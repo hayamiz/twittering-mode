@@ -1,0 +1,119 @@
+2007-10-14  Y. Hayamizu  <haya@haya-laptop-ubuntu>
+
+	* twittering-mode.el : Naoya T. <naoya.t@aqua.plala.or.jp>, masa_edw のパッチをとりこむ
+	(twittering-url-encode): 使わないので削除
+	(twittering-decode-html-entities): patched: 数値エンティティだけでなく,asciiエンティティにも対応.
+	(twittering-font-lock-keywords): font-lock-keywordsを削除.text propertyによって設定する.
+	(twittering-format-status): patched: statusとformat-strからstatusの表示用文字列を生成.
+	(twittering-scroll-mode): patched: 新しいtwitがあったときに,カーソルもスクロールするか固定するかを設定するマイナモード, masa_edwのパッチ
+	(twittering-status-format): twitの表示方法をきめるテンプレート文字列
+	(twittering-icon-mode): patched: ifをwhenにおかえた.nilを渡されたときはマイナモードのスイッチに振舞を変更
+	(twittering-local-strftime): patched: 時間をフォーマット文字列に従い文字列化
+	(twittering-mode-init-variables): font-lock-modeは,Emacs21系ではautoloadするために一度呼ぶ必要がある. icon-mode, scroll-modeをマイナモードに登録.
+	(twittering-inspect-object): 使わないので削除
+	(twittering-http-get-default-sentinel): エラーを追いやすくするため,condition-caseを廃止
+	(twittering-status-to-status-datum): 全てのデータを抽出するようコード追加.ユーザ名,URIリンク表示などの処理もここで.
+
+2007-10-13  Y. Hayamizu  <haya@haya-laptop-ubuntu>
+
+	* twittering-mode.el (twittering-font-lock-keywords): ユーザー名のフェイスを適用する規則を修正.アイコン画像を表示したときに,下線が画像にかからないようにした.
+	(twittering-render-friends-timeline): ポイントが特定のtwitに対して固定されるようにした(patch from masa_edw)
+
+2007-10-12  Y. Hayamizu  <haya@haya-laptop-ubuntu>
+
+	* twittering-mode.el (twittering-idle-time): つかわないので削除
+	(twittering-get-or-generate-buffer): バッファ取得のための関数.存在しないバッファだったら,新たに生成して返す.
+	(twittering-buffer): Variable:twittering-bufferを名前に持つバッファを返す関数.このバッファを使う場合は,(twittering-buffer)によって取得する.
+	(twittering-http-buffer): twittering-bufferと同じ
+	(twittering-wget-buffer): twittering-bufferと同じ
+	
+
+2007-10-11  Y. Hayamizu  <haya@haya-laptop-ubuntu>
+
+	* twittering-mode.el (twittering-icon-mode): アイコンを表示するか否かのフラグ
+	(twittering-wget-buffer): アイコン画像をwgetで取得するプロセスのバッファ
+	(twittering-icon-mode): アイコンの表示/非表示を切り換えるコマンド
+	(twittering-tmp-dir): アイコンの画像を保存するディレクトリ
+	(twittering-image-stack): ダウンロードすべきアイコン画像のリスト
+	(twittering-image-type): 画像の種類を判別する関数
+	(twittering-render-friends-timeline): friends timelineを表示する部分を切り出した
+
+2007-10-10  Y. Hayamizu  <haya@haya-laptop-ubuntu>
+
+	* twittering-mode.el: バージョン番号をつけた 0.1.0
+
+2007-10-07  Y. Hayamizu  <haya@haya-laptop-ubuntu>
+
+	* twittering-mode.el (twittering-http-get-default-sentinel): http-bufferを毎回生成-削除するのをやめて,内容をeraseして使い回すようにした.
+	(twittering-http-get-default-sentinel):HTTPレスポンスのステータスコードが上手く拾えなかったときの処理を追加
+	(twittering-http-get-default-sentinel): カレントバッファか*twittering*のときは,friends-timelineを更新してもポイントの位置が変わらないように修正.
+
+2007-09-24  Y. Hayamizu  <haya@haya-laptop-ubuntu>
+
+	* twittering-mode.el (twittering-status-to-status-datum): URIをクリック可能にする処理を追加
+
+2007-09-23  Y. Hayamizu  <haya@haya-laptop-ubuntu>
+
+	* twittering-mode.el (twittering-uri-face): URI用のフェイス
+	(twittering-click): クリック時に実行されるコマンド
+	(twittering-enter): EnterかC-mが押されたときに実行されるコマンド
+
+2007-09-19  Y. Hayamizu  <haya@haya-laptop-ubuntu>
+
+	* twittering-mode.el (twittering-mode-syntax-table): "(double quote)を,文字列クオートと認識しないようにsytax-tableを変更.
+	(twittering-friends-timeline): friends timelineの取得したデータを保存しておく変数.twittering modeが起動している限り,この変数に取得したstatusを随時追加してゆく.
+	(cl): assocrefをinnner defunして,バイトコンパイル時にWarningが出ていた.clパッケージのfletを使うことでWarningが出ないように解決した.
+	(twittering-status-to-status-datum): twittering-status-to-lineから名前変更
+	(twittering-friends-timeline-data): twittering-friends-timelineから名前変更
+	(twittering-status-to-status-datum): idもstatus datumに含めるようにした.
+	(twittering-cache-status-datum): status datumをdata-var(デフォルトはtwittering-friends-timeline-data)にキャッシュする関数.すでにあるstatus datumを渡すとnil,新しいstatus datumを渡すとtを返してdata-varに追加する.
+	(twittering-http-get-default-sentinel):過去のstatus datumをキャッシュして,バッファに過去のstatusも表示されるようにした.
+	(twittering-erase-old-statuses): 21件目以降の古いstatusを消す関数.実際はキャッシュを全部消して,twittering-http-getを呼んでいるだけ.C-c C-eにバインド.
+	(twittering-username-face): ユーザ名用のface.(defface <name>)の後に(defvar <name>)で使用可能になった.なぜ？
+	(twittering-status-to-status-datum): ユーザ名のテキストにmouse-face属性と,uri属性(ユーザのページのURI)を付加するようにした.
+	(twittering-click-username): ユーザ名をクリックするか,C-mを押したときに起動するコマンド.
+	(twittering-mode-map): vimライクなキーバインドを追加
+	(twittering-mode): twittering-mode-hookでfont-lock-defaultsが設定された後に,font-lock-mode を2回呼んで変更を反映させるようにした.
+	(twittering-mode-init-variables): twittering-username-faceの定義をこの関数の中にうつした.
+	(twittering-browse-user-page): twittering-click-usernameから名前変更.
+	(twittering-update-status-interactive): twittering-update-statusから名前変更.
+	(twittering-reply-to-user): ユーザ名上でEnterを押すとこの関数が呼びだされるようにキーバインド変更.ミニバッファに @<ユーザ名> が自動挿入される.
+	(twittering-view-user-page): twittering-browse-user-pageから名前変更.C-c C-vにバインド.
+	(twittering-update-status-if-not-blank): 引数statusが,空白文字のみか, @<ユーザ名> のみの場合には nil を返し,他の文字も含む場合には POSTしてtを返す関数.
+	(twittering-update-status-from-minibuffer): ミニバッファからstatusを更新するための関数.無効な文字(twittering-update-status-if-not-blankで判定)が入力された場合は,有効な文字列が入力されるまでループする.
+
+2007-09-12  Y. Hayamizu  <haya@haya-laptop-ubuntu>
+
+	* twittering-mode.el (twittering-ucs-to-char): Emacs21系では,Mule-UCSがロードされていないと,(decode-char 'ucs HOGE)がnilになり,文字コードを取得できないことがある.そこで,ucs-to-charが使える環境ではucs-to-charを,使えない環境(Emacs22など)ではdecode-charを使うように自動で切り替えるマクロを書いた.
+
+2007-09-10  Y. Hayamizu  <haya@haya-laptop-ubuntu>
+
+	* twittering-mode.el (twittering-refresh-buffer): 使わないので削除
+	(twittering-http-post-default-sentinel): condition-case でエラーハンドリングするようにした.
+	(twittering-http-get-default-sentinel): *twittering*バッファをread-onlyにした
+	(twittering-http-post-default-sentinel): condition-case でエラーハンドリングするコードを追加.
+	(twittering-start): 複数のタイマが走らないように,twittering-timerがnilでない=既存のタイマが走っている場合は一旦twittering-stopを呼び出してからタイマをスタートするようにした.
+
+2007-09-09  Y. Hayamizu  <haya@haya-laptop-ubuntu>
+
+	* twittering-mode.el: リリース
+	(case-string): CarbonEmacs (Emacs22)で,case-stringを呼びだすコードよりも前にdefmacroを持ってきたら,警告が出ないという報告.
+	(twittering-decode-html-entities): ucs-to-charの使用をやめ,(decode-char 'ucs ...)を使うことに. (reported by masa_edw)
+	(twittering-update-status): read-from-minibufferの7番目の引数にtを指定し,input methodをカレントバッファから継承するようにした.
+	(twittering-decode-html-entities): string-to-intはobsoleteなので,string-to-numberに変更 (reported by masa_edw)
+	(twittering-get-response-header): (setq (get-buffer ...)) となっていたので,(setq buffer (get-buffer ...))に修正. twittering-get-response-bodyも同様
+	(twittering-timer-action): twittering-refresh-triggerは既に使っていない変数だったので削除した
+	(debug-print): マクロが最初にコンパイルされる時点では,debug-modeが変数として宣言されていないので,debug-modeの判断まで含めたコードを吐くようにした.
+	(twittering-http-post-default-sentinel): xml-parse.elのかわりに,xml.el(Emacs標準？)を使うように変更したことに伴い書き換えた
+	(twittering-get-response-body): xml-parse.elのかわりに,xml.el(Emacs標準？)を使うように変更したことに伴い書き換えた
+	(twittering-xmltree-to-status): xml-parse.elのかわりに,xml.el(Emacs標準？)を使うように変更したことに伴い書き換えた
+	(twittering-status-lines): xml-parse.elのかわりに,xml.el(Emacs標準？)を使うように変更したことに伴い書き換えた
+	(twittering-status-to-line): xml-parse.elのかわりに,xml.el(Emacs標準？)を使うように変更したことに伴い書き換えた
+	(twittering-get-timeline): xml-parse.elのかわりに,xml.el(Emacs標準？)を使うように変更したことに削除
+	(twittering-status-lines): xml-parse.elのかわりに,xml.el(Emacs標準？)を使うように変更したことに削除
+	(twittering-parse-xml): xml-parse.elのかわりに,xml.el(Emacs標準？)を使うように変更したことに削除
+	(twittering-timer-interval): twittering-refresh-intervalから名前変更
+	(twittering-inspect-object): 任意のLispオブジェクトを文字列で表現できるユーティリティ関数
+	(twittering-timer-action): xml.elにより処理が軽くなったので,一定時間間隔での更新に変更.
+	(twittering-xmltree-to-status): Emacs21とEmacs22のxml.elの差異を吸収するコードを追加.Emacs22では,ノードのリストに空の文字列が混入することがあるため,文字列を除去するようにした.
+

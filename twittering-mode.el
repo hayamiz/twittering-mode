@@ -1,12 +1,14 @@
 ;;; twittering-mode.el --- Major mode for Twitter
 
 ;; Copyright (C) 2007 Yuto Hayamizu.
+;;               2008 Tsuyoshi CHO
 
 ;; Author: Y. Hayamizu <y.hayamizu@gmail.com>
+;;         Tsuyoshi CHO <Tsuyoshi.CHO+develop@Gmail.com>
 ;; Created: Sep 4, 2007
 ;; Version: SVN-HEAD
 ;; Keywords: twitter web
-;; URL: http://hayamin.com/
+;; URL: http://lambdarepos.svnrepository.com/share/trac.cgi/browser/lang/elisp/twittering-mode
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -28,11 +30,22 @@
 ;; twittering-mode.el is a major mode for Twitter.
 ;; You can check friends timeline, and update your status on Emacs.
 
+;;; Feature Request:
+
+;; URL : http://twitter.com/d00dle/statuses/577876082
+;; URL : http://twitter.com/d00dle/statuses/577879732
+;; * Status Input from Popup buffer and C-cC-c to POST.
+;; * Mark fav(star)
+;; URL : http://code.nanigac.com/source/view/419
+;; * update status for region
+
 ;;; Code:
 
 (require 'cl)
 (require 'xml)
 (require 'parse-time)
+
+(defconst twittering-mode-version "0.3")
 
 (defvar twittering-mode-map (make-sparse-keymap))
 
@@ -92,16 +105,48 @@
 	    (generate-new-buffer buffer)))))
 
 (defun assocref (item alist)
-    (cdr (assoc item alist)))
+  (cdr (assoc item alist)))
 
-;;;
+;;; Proxy
+(defvar twittering-proxy-use nil)
+(defvar twittering-proxy-server nil)
+(defvar twittering-proxy-port 8080)
+(defvar twittering-proxy-user nil)
+(defvar twittering-proxy-password nil)
+
+(defun twittering-toggle-proxy () ""
+  (interactive)
+  (setq twittering-proxy-use
+	(not twittering-proxy-use))
+  (message "%s %s"
+	   "Use Proxy:"
+	   (if twittering-proxy-use
+	       "on" "off")))
+
+(defun twittering-user-agent-default-function ()
+  "Twittering mode default User-Agent function."
+  (concat "Emacs/"
+	  (int-to-string emacs-major-version) "." (int-to-string
+						   emacs-minor-version)
+	  " "
+	  "Twittering-mode/"
+	  twittering-mode-version))
+
+(defvar twittering-user-agent-function 'twittering-user-agent-default-function)
+
+(defun twittering-user-agent ()
+  "Return User-Agent header string."
+  (funcall twittering-user-agent-function))
+
 ;;; to show image files
 
 (defvar twittering-wget-buffer "*twittering-wget-buffer*")
 (defun twittering-wget-buffer ()
   (twittering-get-or-generate-buffer twittering-wget-buffer))
 
-(defvar twittering-tmp-dir "/tmp/twmode-images")
+(defvar twittering-tmp-dir
+  (expand-file-name (concat "twmode-images-" (user-login-name))
+		    temporary-file-directory))
 
 (defvar twittering-icon-mode nil "You MUST NOT CHANGE this variable directory. You should change through function'twittering-icon-mode'")
 (defun twittering-icon-mode (&optional arg)
@@ -114,7 +159,7 @@
 	  (when (or (null arg)
 		    (and arg (> (prefix-numeric-value arg) 0)))
 	    (when (file-writable-p twittering-tmp-dir)
-	      (progn 
+	      (progn
 		(if (not (file-directory-p twittering-tmp-dir))
 		    (make-directory twittering-tmp-dir))
 		t)))))
@@ -123,16 +168,16 @@
 (defun twittering-scroll-mode (&optional arg)
   (interactive)
   (setq twittering-scroll-mode
-      (if (null arg)
-	  (not twittering-scroll-mode)
-        (> (prefix-numeric-value arg) 0))))
+	(if (null arg)
+	    (not twittering-scroll-mode)
+	  (> (prefix-numeric-value arg) 0))))
 
 (defun twittering-jojo-mode (&optional arg)
   (interactive)
   (setq twittering-jojo-mode
-      (if (null arg)
-	  (not twittering-jojo-mode)
-        (> (prefix-numeric-value arg) 0))))
+	(if (null arg)
+	    (not twittering-jojo-mode)
+	  (> (prefix-numeric-value arg) 0))))
 
 (defvar twittering-image-stack nil)
 
@@ -159,7 +204,7 @@
 	     (insert (prin1-to-string ,obsym))
 	     (newline)
 	     ,obsym)
-         ,obsym))))
+	 ,obsym))))
 
 (defun twittering-debug-mode ()
   (interactive)
@@ -186,6 +231,7 @@
       (define-key km [backspace] 'backward-char)
       (define-key km "G" 'end-of-buffer)
       (define-key km "H" 'beginning-of-buffer)
+      (define-key km "\C-c\C-p" 'twittering-toggle-proxy)
       nil))
 
 (defvar twittering-mode-syntax-table nil "")
@@ -193,7 +239,7 @@
 (if twittering-mode-syntax-table
     ()
   (setq twittering-mode-syntax-table (make-syntax-table))
-;  (modify-syntax-entry ?  "" twittering-mode-syntax-table)
+  ;  (modify-syntax-entry ?  "" twittering-mode-syntax-table)
   (modify-syntax-entry ?\" "w"  twittering-mode-syntax-table)
   )
 
@@ -232,6 +278,8 @@
       `(ucs-to-char ,num)
     `(decode-char 'ucs ,num)))
 
+(defvar twittering-mode-string "Twittering mode")
+
 (defun twittering-mode ()
   "Major mode for Twitter"
   (interactive)
@@ -240,7 +288,7 @@
   (twittering-mode-init-variables)
   (use-local-map twittering-mode-map)
   (setq major-mode 'twittering-mode)
-  (setq mode-name "Twittering mode")
+  (setq mode-name twittering-mode-string)
   (set-syntax-table twittering-mode-syntax-table)
   (run-hooks 'twittering-mode-hook)
   (font-lock-mode -1)
@@ -259,53 +307,76 @@
     (set-buffer (twittering-http-buffer))
     (erase-buffer))
 
-  (let (proc)
+  (let (proc server port
+	     (proxy-user twittering-proxy-user)
+	     (proxy-password twittering-proxy-password))
     (condition-case nil
 	(progn
+	  (if (and twittering-proxy-use twittering-proxy-server)
+	      (setq server twittering-proxy-server
+		    port (if (integerp twittering-proxy-port)
+			     (int-to-string twittering-proxy-port)
+			   twittering-proxy-port))
+	    (setq server "twitter.com"
+		  port "80"))
 	  (setq proc
 		(open-network-stream
 		 "network-connection-process" (twittering-http-buffer)
-		 "twitter.com" 80))
+		 server (string-to-number port)))
 	  (set-process-sentinel proc sentinel)
 	  (process-send-string
 	   proc
-	   (let ((nl "\r\n"))
-	     (concat "GET /" method-class "/" method ".xml HTTP/1.1" nl
-		     "Host: twitter.com" nl
-		     "Authorization: Basic "
-		     (base64-encode-string
-		      (concat twittering-username ":" twittering-password))
-		     nl
-		     "Accept: text/xml"
-		     ",application/xml"
-		     ",application/xhtml+xml"
-		     ",application/html;q=0.9"
-		     ",text/plain;q=0.8"
-		     ",image/png,*/*;q=0.5" nl
-		     "Accept-Charset: utf-8;q=0.7,*;q=0.7"
-		     nl nl))))
+	   (let ((nl "\r\n")
+		 request)
+	     (setq request
+		   (concat "GET http://twitter.com/" method-class "/" method ".xml HTTP/1.1" nl
+			   "Host: twitter.com" nl
+			   "User-Agent: " (twittering-user-agent) nl
+			   "Authorization: Basic "
+			   (base64-encode-string
+			    (concat twittering-username ":" (twittering-get-password)))
+			   nl
+			   "Accept: text/xml"
+			   ",application/xml"
+			   ",application/xhtml+xml"
+			   ",application/html;q=0.9"
+			   ",text/plain;q=0.8"
+			   ",image/png,*/*;q=0.5" nl
+			   "Accept-Charset: utf-8;q=0.7,*;q=0.7" nl
+			   (when twittering-proxy-use
+			     "Proxy-Connection: Keep-Alive" nl
+			     (when (and proxy-user proxy-password)
+			       (concat
+				"Proxy-Authorization: Basic "
+				(base64-encode-string
+				 (concat proxy-user ":"
+					 proxy-password))
+				nl)))
+			   nl nl))
+	     (debug-print (concat "GET Request\n" request))
+	     request)))
       (error
        (message "Failure: HTTP GET") nil))))
 
 (defun twittering-http-get-default-sentinel (proc stat &optional suc-msg)
   (let ((header (twittering-get-response-header))
-	  (body (twittering-get-response-body))
-	  (status nil)
-	  )
-      (if (string-match "HTTP/1\.[01] \\([a-z0-9 ]+\\)\r?\n" header)
-	  (progn
-	    (setq status (match-string-no-properties 1 header))
-	    (case-string
-	     status
-	     (("200 OK")
-	      (mapcar
-	       #'twittering-cache-status-datum
-	       (reverse (twittering-xmltree-to-status
-			 body)))
-	      (twittering-render-friends-timeline)
-	      (message (if suc-msg suc-msg "Success: Get.")))
-	     (t (message status))))
-	(message "Failure: Bad http response.")))
+	(body (twittering-get-response-body))
+	(status nil)
+	)
+    (if (string-match "HTTP/1\.[01] \\([a-z0-9 ]+\\)\r?\n" header)
+	(progn
+	  (setq status (match-string-no-properties 1 header))
+	  (case-string
+	   status
+	   (("200 OK")
+	    (mapcar
+	     #'twittering-cache-status-datum
+	     (reverse (twittering-xmltree-to-status
+		       body)))
+	    (twittering-render-friends-timeline)
+	    (message (if suc-msg suc-msg "Success: Get.")))
+	   (t (message status))))
+      (message "Failure: Bad http response.")))
   )
 
 (defun twittering-render-friends-timeline ()
@@ -448,37 +519,60 @@ PARAMETERS is alist of URI parameters. ex) ((\"mode\" . \"view\") (\"page\" . \"
     (set-buffer (twittering-http-buffer))
     (erase-buffer))
 
-  (let (proc)
+  (let (proc server port
+	     (proxy-user twittering-proxy-user)
+	     (proxy-password twittering-proxy-password))
     (progn
+      (if (and twittering-proxy-use twittering-proxy-server)
+	  (setq server twittering-proxy-server
+		port (if (integerp twittering-proxy-port)
+			 (int-to-string twittering-proxy-port)
+		       twittering-proxy-port))
+	(setq server "twitter.com"
+	      port "80"))
       (setq proc
 	    (open-network-stream
 	     "network-connection-process" (twittering-http-buffer)
-	     "twitter.com" 80))
+	     server (string-to-number port)))
       (set-process-sentinel proc sentinel)
       (process-send-string
        proc
-       (let ((nl "\r\n"))
-	 (concat "POST /" method-class "/" method ".xml?"
-		 (if parameters
-		     (mapconcat
-		      (lambda (param-pair)
-			(format "%s=%s"
-				(twittering-percent-encode (car param-pair))
-				(twittering-percent-encode (cdr param-pair))))
-		      parameters
-		      "&"))
-		 " HTTP/1.1" nl
-		 "Host: twitter.com" nl
-		 "Authorization: Basic "
-		 (base64-encode-string
-		  (concat twittering-username ":" twittering-password))
-		 nl
-		 "Content-Type: text/plain" nl
-		 "Content-Length: 0" nl
-		 nl nl))))))
+       (let ((nl "\r\n")
+	     request)
+	 (setq	request
+		(concat "POST http://twitter.com/" method-class "/" method ".xml?"
+			(if parameters
+			    (mapconcat
+			     (lambda (param-pair)
+			       (format "%s=%s"
+				       (twittering-percent-encode (car param-pair))
+				       (twittering-percent-encode (cdr param-pair))))
+			     parameters
+			     "&"))
+			" HTTP/1.1" nl
+			"Host: twitter.com" nl
+			"User-Agent: " (twittering-user-agent) nl
+			"Authorization: Basic "
+			(base64-encode-string
+			 (concat twittering-username ":" (twittering-get-password)))
+			nl
+			"Content-Type: text/plain" nl
+			"Content-Length: 0" nl
+			(when twittering-proxy-use
+			  "Proxy-Connection: Keep-Alive" nl
+			  (when (and proxy-user proxy-password)
+			    (concat
+			     "Proxy-Authorization: Basic "
+			     (base64-encode-string
+			      (concat proxy-user ":"
+				      proxy-password))
+			     nl)))
+			nl nl))
+	 (debug-print (concat "POST Request\n" request))
+	 request)))))
 
 (defun twittering-http-post-default-sentinel (proc stat &optional suc-msg)
-  
+
   (condition-case err-signal
       (let ((header (twittering-get-response-header))
 	    ; (body (twittering-get-response-body)) not used now.
@@ -524,7 +618,7 @@ PARAMETERS is alist of URI parameters. ex) ((\"mode\" . \"view\") (\"page\" . \"
 If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (if (null data-var)
       (setf data-var 'twittering-friends-timeline-data))
-  (let ((id (cdr (assq 'id status-datum)))) 
+  (let ((id (cdr (assq 'id status-datum))))
     (if (or (null (symbol-value data-var))
 	    (not (find-if
 		  (lambda (item)
@@ -552,18 +646,18 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	   user-url
 	   user-protected
 	   regex-index)
-    
+
       (setq id (string-to-number (assq-get 'id status-data)))
-      (setq text (twittering-decode-html-entities 
+      (setq text (twittering-decode-html-entities
 		  (assq-get 'text status-data)))
-      (setq source (twittering-decode-html-entities 
+      (setq source (twittering-decode-html-entities
 		    (assq-get 'source status-data)))
       (setq created-at (assq-get 'created_at status-data))
       (setq truncated (assq-get 'truncated status-data))
       (setq user-id (string-to-number (assq-get 'id user-data)))
       (setq user-name (twittering-decode-html-entities
 		       (assq-get 'name user-data)))
-      (setq user-screen-name (twittering-decode-html-entities 
+      (setq user-screen-name (twittering-decode-html-entities
 			      (assq-get 'screen_name user-data)))
       (setq user-location (twittering-decode-html-entities
 			   (assq-get 'location user-data)))
@@ -604,8 +698,8 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 		   username ,screen-name
 		   uri ,(concat "http://twitter.com/" screen-name))
 	       `(mouse-face highlight
-		 face twittering-uri-face
-		 uri ,uri))
+			    face twittering-uri-face
+			    uri ,uri))
 	     text))
 	  (setq regex-index (match-end 0)) ))
 
@@ -626,9 +720,9 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	    (add-text-properties
 	     0 (length source)
 	     `(mouse-face highlight
-	       uri ,uri
-	       face twittering-uri-face
-	       source ,source)
+			  uri ,uri
+			  face twittering-uri-face
+			  source ,source)
 	     source)
 	    ))
 
@@ -826,6 +920,10 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (let ((username (get-text-property (point) 'username)))
     (if username
 	(twittering-update-status-from-minibuffer (concat "@" username " ")))))
+
+(defun twittering-get-password ()
+  (or twittering-password
+      (setq twittering-password (read-passwd "twittering-mode: "))))
 
 (provide 'twittering-mode)
 ;;; twittering.el ends here

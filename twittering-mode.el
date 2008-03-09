@@ -588,7 +588,7 @@ PARAMETERS is alist of URI parameters. ex) ((\"mode\" . \"view\") (\"page\" . \"
   )
 
 (defun twittering-get-response-header (&optional buffer)
-  "Exract HTTP response header from HTTP response.
+  "Extract HTTP response header from HTTP response.
 `buffer' may be a buffer or the name of an existing buffer.
  If `buffer' is omitted, the value of `twittering-http-buffer' is used as `buffer'."
   (if (stringp buffer) (setq buffer (get-buffer buffer)))
@@ -599,7 +599,7 @@ PARAMETERS is alist of URI parameters. ex) ((\"mode\" . \"view\") (\"page\" . \"
       (substring content 0 (string-match "\r?\n\r?\n" content)))))
 
 (defun twittering-get-response-body (&optional buffer)
-  "Exract HTTP response body from HTTP response, parse it as XML, and return a XML tree as list.
+  "Extract HTTP response body from HTTP response, parse it as XML, and return a XML tree as list.
 `buffer' may be a buffer or the name of an existing buffer.
  If `buffer' is omitted, the value of `twittering-http-buffer' is used as `buffer'."
   (if (stringp buffer) (setq buffer (get-buffer buffer)))

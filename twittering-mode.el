@@ -6,7 +6,7 @@
 ;; Author: Y. Hayamizu <y.hayamizu@gmail.com>
 ;;         Tsuyoshi CHO <Tsuyoshi.CHO+develop@Gmail.com>
 ;; Created: Sep 4, 2007
-;; Version: SVN-HEAD
+;; Version: 0.3
 ;; Keywords: twitter web
 ;; URL: http://lambdarepos.svnrepository.com/share/trac.cgi/browser/lang/elisp/twittering-mode
 
@@ -49,7 +49,7 @@
 
 (defvar twittering-mode-map (make-sparse-keymap))
 
-(defvar twittering-timer nil)
+(defvar twittering-timer nil "Timer object for timeline refreshing will be stored here. DO NOT SET VALUE MANUALLY.")
 
 (defvar twittering-idle-time 20)
 
@@ -106,6 +106,8 @@
 
 (defun assocref (item alist)
   (cdr (assoc item alist)))
+(defmacro list-push (value listvar)
+  `(setq ,listvar (cons ,value ,listvar)))
 
 ;;; Proxy
 (defvar twittering-proxy-use nil)
@@ -431,37 +433,37 @@
       (while (setq found-at (string-match "%\\(C{\\([^}]+\\)}\\|[A-Za-z#@']\\)" format-str cursor))
 	(setq c (string-to-char (match-string-no-properties 1 format-str)))
 	(if (> found-at cursor)
-	    (push (substring format-str cursor found-at) result)
+	    (list-push (substring format-str cursor found-at) result)
 	  "|")
 	(setq cursor (match-end 1))
 
 	(case c
 	  ((?s)				; %s - screen_name
-	   (push (attr 'user-screen-name) result))
+	   (list-push (attr 'user-screen-name) result))
 	  ((?S)				; %S - name
-	   (push (attr 'user-name) result))
+	   (list-push (attr 'user-name) result))
 	  ((?i)				; %i - profile_image
-	   (push (profile-image) result))
+	   (list-push (profile-image) result))
 	  ((?d)				; %d - description
-	   (push (attr 'user-description) result))
+	   (list-push (attr 'user-description) result))
 	  ((?l)				; %l - location
-	   (push (attr 'user-location) result))
+	   (list-push (attr 'user-location) result))
 	  ((?L)				; %L - " [location]"
 	   (let ((location (attr 'user-location)))
 	     (unless (or (null location) (string= "" location))
-	       (push (concat " [" location "]") result)) ))
+	       (list-push (concat " [" location "]") result)) ))
 	  ((?u)				; %u - url
-	   (push (attr 'user-url) result))
+	   (list-push (attr 'user-url) result))
 	  ((?j)				; %j - user.id
-	   (push (attr 'user-id) result))
+	   (list-push (attr 'user-id) result))
 	  ((?p)				; %p - protected?
 	   (let ((protected (attr 'user-protected)))
 	     (when (string= "true" protected)
-	       (push "[x]" result))))
+	       (list-push "[x]" result))))
 	  ((?c)			    ; %c - created_at (raw UTC string)
-	   (push (attr 'created-at) result))
+	   (list-push (attr 'created-at) result))
 	  ((?C)	; %C{time-format-str} - created_at (formatted with time-format-str)
-	   (push (twittering-local-strftime
+	   (list-push (twittering-local-strftime
 		  (or (match-string-no-properties 2 format-str) "%H:%M:%S")
 		  (attr 'created-at))
 		 result))
@@ -473,7 +475,7 @@
 		 (now (current-time)))
 	     (let ((secs (+ (* (- (car now) (car created-at)) 65536)
 			    (- (cadr now) (cadr created-at)))))
-	       (push (cond ((< secs 5) "less than 5 seconds ago")
+	       (list-push (cond ((< secs 5) "less than 5 seconds ago")
 			   ((< secs 10) "less than 10 seconds ago")
 			   ((< secs 20) "less than 20 seconds ago")
 			   ((< secs 30) "half a minute ago")
@@ -487,21 +489,21 @@
 			   (t (format-time-string "%I:%M %p %B %d, %Y" created-at)))
 		     result))))
 	  ((?t)				; %t - text
-	   (push			;(clickable-text)
+	   (list-push			;(clickable-text)
 	    (attr 'text)
 	    result))
 	  ((?')				; %' - truncated
 	   (let ((truncated (attr 'truncated)))
 	     (when (string= "true" truncated)
-	       (push "..." result))))
+	       (list-push "..." result))))
 	  ((?f)				; %f - source
-	   (push (attr 'source) result))
+	   (list-push (attr 'source) result))
 	  ((?#)				; %# - id
-	   (push (attr 'id) result))
+	   (list-push (attr 'id) result))
 	  (t
-	   (push (char-to-string c) result)))
+	   (list-push (char-to-string c) result)))
 	)
-      (push (substring format-str cursor) result)
+      (list-push (substring format-str cursor) result)
       (apply 'concat (nreverse result))
       )))
 
@@ -778,21 +780,21 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 		     (string-match "&\\(#\\([0-9]+\\)\\|\\([A-Za-z]+\\)\\);"
 				   encoded-str cursor))
 	  (when (> found-at cursor)
-	    (push (substring encoded-str cursor found-at) result))
+	    (list-push (substring encoded-str cursor found-at) result))
 	  (let ((number-entity (match-string-no-properties 2 encoded-str))
 		(letter-entity (match-string-no-properties 3 encoded-str)))
 	    (cond (number-entity
-		   (push
+		   (list-push
 		    (char-to-string
 		     (twittering-ucs-to-char
 		      (string-to-number number-entity))) result))
 		  (letter-entity
-		   (cond ((string= "gt" letter-entity) (push ">" result))
-			 ((string= "lt" letter-entity) (push "<" result))
-			 (t push "?" result)))
-		  (t (push "?" result)))
+		   (cond ((string= "gt" letter-entity) (list-push ">" result))
+			 ((string= "lt" letter-entity) (list-push "<" result))
+			 (t (list-push "?" result))))
+		  (t (list-push "?" result)))
 	    (setq cursor (match-end 0))))
-	(push (substring encoded-str cursor) result)
+	(list-push (substring encoded-str cursor) result)
 	(apply 'concat (nreverse result)))
     ""))
 

@@ -1,0 +1,82 @@
+
+C:\home\mshoji\site-lisp\twittering-mode\branches\gan2\twittering-mode.el,6271
+(defconst twittering-mode-version "0.3")twittering-mode-version48,1587
+(defun twittering-mode-version ()twittering-mode-version50,1629
+(defvar twittering-mode-map (make-sparse-keymap))twittering-mode-map59,1907
+(defvar twittering-timer nil "Timer object for timeline refreshing will be stored here. DO NOT SET VALUE MANUALLY.")twittering-timer61,1958
+(defvar twittering-idle-time 20)twittering-idle-time63,2076
+(defvar twittering-timer-interval 90)twittering-timer-interval65,2110
+(defvar twittering-username nil)twittering-username67,2149
+(defvar twittering-password nil)twittering-password69,2183
+(defvar twittering-scroll-mode nil)twittering-scroll-mode71,2217
+(defvar twittering-jojo-mode nil)twittering-jojo-mode73,2254
+(defvar twittering-status-format nil)twittering-status-format75,2289
+(defvar twittering-buffer "*twittering*")twittering-buffer94,2722
+(defun twittering-buffer ()twittering-buffer95,2764
+(defvar twittering-http-buffer "*twittering-http-buffer*")twittering-http-buffer98,2850
+(defun twittering-http-buffer ()twittering-http-buffer99,2909
+(defvar twittering-friends-timeline-data nil)twittering-friends-timeline-data102,3005
+(defvar twittering-username-face 'twittering-username-face)twittering-username-face104,3052
+(defvar twittering-uri-face 'twittering-uri-face)twittering-uri-face105,3112
+(defun twittering-get-or-generate-buffer (buffer)twittering-get-or-generate-buffer107,3163
+(defun assocref (item alist)assocref116,3413
+(defmacro list-push (value listvar)list-push118,3470
+(defvar twittering-proxy-use nil)twittering-proxy-use122,3560
+(defvar twittering-proxy-server nil)twittering-proxy-server123,3594
+(defvar twittering-proxy-port 8080)twittering-proxy-port124,3631
+(defvar twittering-proxy-user nil)twittering-proxy-user125,3667
+(defvar twittering-proxy-password nil)twittering-proxy-password126,3702
+(defun twittering-toggle-proxy () ""twittering-toggle-proxy128,3742
+(defun twittering-user-agent-default-function ()twittering-user-agent-default-function137,3941
+(defvar twittering-user-agent-function 'twittering-user-agent-default-function)twittering-user-agent-function146,4205
+(defun twittering-user-agent ()twittering-user-agent148,4286
+(defvar twittering-wget-buffer "*twittering-wget-buffer*")twittering-wget-buffer154,4425
+(defun twittering-wget-buffer ()twittering-wget-buffer155,4484
+(defvar twittering-tmp-dirtwittering-tmp-dir158,4580
+(defvar twittering-icon-mode nil "You MUST NOT CHANGE this variable directory. You should change through function'twittering-icon-mode'")twittering-icon-mode162,4705
+(defun twittering-icon-mode (&optional arg)twittering-icon-mode163,4843
+(defun twittering-scroll-mode (&optional arg)twittering-scroll-mode179,5304
+(defun twittering-jojo-mode (&optional arg)twittering-jojo-mode186,5487
+(defvar twittering-image-stack nil)twittering-image-stack193,5664
+(defun twittering-image-type (file-name)twittering-image-type195,5701
+(defun twittering-local-strftime (fmt string)twittering-local-strftime202,5899
+(defvar twittering-debug-mode nil)twittering-debug-mode206,6077
+(defvar twittering-debug-buffer "*debug*")twittering-debug-buffer207,6112
+(defun twittering-debug-buffer ()twittering-debug-buffer208,6155
+(defmacro debug-print (obj)debug-print210,6252
+(defun twittering-debug-mode ()twittering-debug-mode220,6500
+(defvar twittering-mode-syntax-table nil "")twittering-mode-syntax-table248,7656
+(defun twittering-mode-init-variables ()twittering-mode-init-variables257,7929
+(defmacro case-string (str &rest clauses)case-string273,8596
+(defmacro twittering-ucs-to-char (num)twittering-ucs-to-char287,9018
+(defvar twittering-mode-string "Twittering mode")twittering-mode-string292,9146
+(defun twittering-mode ()twittering-mode294,9197
+(defun twittering-http-get (method-class method &optional sentinel)twittering-http-get313,9656
+(defun twittering-http-get-default-sentinel (proc stat &optional suc-msg)twittering-http-get-default-sentinel372,11498
+(defun twittering-render-friends-timeline ()twittering-render-friends-timeline393,12139
+(defun twittering-format-status (status format-str)twittering-format-status411,12706
+(defun twittering-http-posttwittering-http-post519,16417
+(defun twittering-http-post-default-sentinel (proc stat &optional suc-msg)twittering-http-post-default-sentinel585,18605
+(defun twittering-get-response-header (&optional buffer)twittering-get-response-header601,19137
+(defun twittering-get-response-body (&optional buffer)twittering-get-response-body612,19655
+(defun twittering-cache-status-datum (status-datum &optional data-var)twittering-cache-status-datum627,20319
+(defun twittering-status-to-status-datum (status)twittering-status-to-status-datum646,21049
+(defun twittering-xmltree-to-status (xmltree)twittering-xmltree-to-status750,24508
+(defun twittering-percent-encode (str &optional coding-system)twittering-percent-encode761,24926
+(defun twittering-url-reserved-p (ch)twittering-url-reserved-p775,25305
+(defun twittering-decode-html-entities (encoded-str)twittering-decode-html-entities783,25482
+(defun twittering-timer-action (func)twittering-timer-action810,26439
+(defun twittering-update-status-if-not-blank (status)twittering-update-status-if-not-blank817,26593
+(defun twittering-update-status-from-minibuffer (&optional init-str)twittering-update-status-from-minibuffer825,26835
+(defun twittering-update-lambda ()twittering-update-lambda833,27181
+(defun twittering-update-jojo (usr msg)twittering-update-jojo840,27373
+(defun twittering-start (&optional action)twittering-start855,27779
+(defun twittering-stop ()twittering-stop866,28075
+(defun twittering-friends-timeline ()twittering-friends-timeline871,28183
+(defun twittering-update-status-interactive ()twittering-update-status-interactive899,28839
+(defun twittering-erase-old-statuses ()twittering-erase-old-statuses903,28949
+(defun twittering-click ()twittering-click908,29107
+(defun twittering-enter ()twittering-enter914,29232
+(defun twittering-view-user-page ()twittering-view-user-page923,29499
+(defun twittering-reply-to-user ()twittering-reply-to-user929,29633
+(defun twittering-get-password ()twittering-get-password935,29833

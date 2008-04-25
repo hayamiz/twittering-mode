@@ -1,3 +1,17 @@
+2008-04-25  gan2  <gan2.ruby@gmail.com>
+
+	* twittering-mode.el: next-line や previous-line は C-n や C-p でできるので j, k を隣接したメッセージの移動に変更
+	(twittering-next-message): 次のメッセージにジャンプする関数を定義
+	(twittering-next-username-face-pos): twittering-next-message が呼び出す関数を定義
+	(twittering-previous-message): 前のメッセージにジャンプする関数を定義
+	(twittering-previous-username-face-pos): twittering-previous-message が呼び出す関数を定義
+	(twittering-mode-map): j, k で次のメッセージと前のメッセージに移動するように変更
+
+2008-04-23  gan2  <gan2.ruby@gmail.com>
+
+	* twittering-mode.el : RB-0.3 を gan2 にコピー. ソフトタブに統一
+	(twittering-mode-version): バージョンを表示する関数を定義
+
 2008-03-15  Y. Hayamizu  <haya@haya-laptop-ubuntu>
 
 	* twittering-mode.el : pushをfree variableと誤認識されるバグ(再現できていない)のため,clのpushをlist-pushで置きかえ.

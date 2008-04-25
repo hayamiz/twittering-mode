@@ -938,8 +938,8 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (or twittering-password
       (setq twittering-password (read-passwd "twittering-mode: "))))
 
-(defun twittering-next-message ()
-  "Go to next message."
+(defun twittering-next-status ()
+  "Go to next status."
   (interactive)
   (let ((pos))
     (setq pos (twittering-next-username-face-pos (point)))
@@ -954,8 +954,8 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
       (setq prop (get-text-property pos 'face)))
     pos))
 
-(defun twittering-previous-message ()
-  "Go to previous message."
+(defun twittering-previous-status ()
+  "Go to previous status."
   (interactive)
   (let ((pos))
     (setq pos (twittering-previous-username-face-pos (point)))

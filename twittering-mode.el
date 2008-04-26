@@ -234,13 +234,15 @@
       (define-key km "\C-c\C-v" 'twittering-view-user-page)
       ;; (define-key km "j" 'next-line)
       ;; (define-key km "k" 'previous-line)
-      (define-key km "j" 'twittering-next-status)
-      (define-key km "k" 'twittering-previous-status)
+      (define-key km "j" 'twittering-goto-next-status)
+      (define-key km "k" 'twittering-goto-previous-status)
       (define-key km "l" 'forward-char)
       (define-key km "h" 'backward-char)
       (define-key km "0" 'beginning-of-line)
       (define-key km "^" 'beginning-of-line-text)
       (define-key km "$" 'end-of-line)
+      (define-key km "n" 'twittering-goto-next-status-of-user)
+      (define-key km "p" 'twittering-goto-previous-status-of-user)
       (define-key km [backspace] 'backward-char)
       (define-key km "G" 'end-of-buffer)
       (define-key km "H" 'beginning-of-buffer)
@@ -938,15 +940,15 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (or twittering-password
       (setq twittering-password (read-passwd "twittering-mode: "))))
 
-(defun twittering-next-status ()
+(defun twittering-goto-next-status ()
   "Go to next status."
   (interactive)
   (let ((pos))
-    (setq pos (twittering-next-username-face-pos (point)))
+    (setq pos (twittering-get-next-username-face-pos (point)))
     (when pos
       (goto-char pos))))
 
-(defun twittering-next-username-face-pos (pos)
+(defun twittering-get-next-username-face-pos (pos)
   (interactive)
   (let ((prop))
     (while (not (eq prop twittering-username-face))
@@ -954,21 +956,48 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
       (setq prop (get-text-property pos 'face)))
     pos))
 
-(defun twittering-previous-status ()
+(defun twittering-goto-previous-status ()
   "Go to previous status."
   (interactive)
   (let ((pos))
-    (setq pos (twittering-previous-username-face-pos (point)))
+    (setq pos (twittering-get-previous-username-face-pos (point)))
     (when pos
       (goto-char pos))))
 
-(defun twittering-previous-username-face-pos (pos)
+(defun twittering-get-previous-username-face-pos (pos)
   (interactive)
   (let ((prop))
     (while (not (eq prop twittering-username-face))
       (setq pos (previous-single-property-change pos 'face))
       (setq prop (get-text-property pos 'face)))
     pos))
+
+(defun twittering-goto-next-status-of-user ()
+  "Go to next status of user."
+  (interactive)
+  (let ((user-name (twittering-get-username-at-pos (point)))
+        (pos (twittering-get-next-username-face-pos (point))))
+    (while (not (equal (twittering-get-username-at-pos pos) user-name))
+      (setq pos (twittering-get-next-username-face-pos pos)))
+    (goto-char pos)))
+
+(defun twittering-goto-previous-status-of-user ()
+  "Go to previous status of user."
+  (interactive)
+  (let ((user-name (twittering-get-username-at-pos (point)))
+        (pos (twittering-get-previous-username-face-pos (point))))
+    (while (not (equal (twittering-get-username-at-pos pos) user-name))
+      (setq pos (twittering-get-previous-username-face-pos pos)))
+    (goto-char pos)))
+
+(defun twittering-get-username-at-pos (pos)
+  (let ((start-pos pos)
+        (end-pos))
+    (while (eq (get-text-property start-pos 'face) twittering-username-face)
+      (setq start-pos (1- start-pos)))
+    (setq start-pos (1+ start-pos))
+    (setq end-pos (next-single-property-change pos 'face))
+    (buffer-substring start-pos end-pos)))
 
 (provide 'twittering-mode)
 ;;; twittering.el ends here

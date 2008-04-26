@@ -1,3 +1,15 @@
+2008-04-26  gan2  <gan2.ruby@gmail.com>
+
+	* twittering-mode.el: n, p でポイント上のユーザの次(前)の発言に移動する設定を追加
+	(twittering-goto-next-status): twittering-next-message の名前を変更
+	(twittering-get-next-username-face-pos): twittering-next-username-face-pos の名前を変更
+	(twittering-goto-previous-status): twittering-previous-message の名前を変更
+	(twittering-get-previous-username-face-pos): twittering-previous-username-face-pos の名前を変更
+	(twittering-goto-next-status-of-user): ポイント上のユーザの次の発言へ移動する関数を定義
+	(twittering-goto-previous-status-of-user): ポイント上のユーザの前の発言へ移動する関数を定義
+	(twittering-get-username-at-pos): ポイント上のユーザ名を返す関数を定義
+	(twittering-mode-map): n, p でポイント上のユーザの次(前)の発言に移動する設定を追加
+
 2008-04-25  gan2  <gan2.ruby@gmail.com>
 
 	* twittering-mode.el: next-line や previous-line は C-n や C-p でできるので j, k を隣接したメッセージの移動に変更

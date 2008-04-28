@@ -958,9 +958,9 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
     (catch 'not-found
       (while (and pos (not (eq prop twittering-username-face)))
 	(setq pos (next-single-property-change pos 'face))
-	(when (eq pos nil) (throw 'not-found 0))
-	(setq prop (get-text-property pos 'face))))
-    pos))
+	(when (eq pos nil) (throw 'not-found nil))
+	(setq prop (get-text-property pos 'face)))
+      pos)))
 
 (defun twittering-goto-previous-status ()
   "Go to previous status."
@@ -977,44 +977,48 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
     (catch 'not-found
       (while (and pos (not (eq prop twittering-username-face)))
 	(setq pos (previous-single-property-change pos 'face))
-	(when (eq pos nil) (throw 'not-found 0))
-	(setq prop (get-text-property pos 'face))))
-    pos))
+	(when (eq pos nil) (throw 'not-found nil))
+	(setq prop (get-text-property pos 'face)))
+      pos)))
 
 (defun twittering-goto-next-status-of-user ()
   "Go to next status of user."
   (interactive)
   (let ((user-name (twittering-get-username-at-pos (point)))
 	(pos (twittering-get-next-username-face-pos (point))))
-    (catch 'not-found
-      (while (not (equal (twittering-get-username-at-pos pos) user-name))
-	(setq pos (twittering-get-next-username-face-pos pos))
-	(when (eq pos nil) (throw 'not-found 0))))
+    (while (and (not (eq pos nil))
+		(not (equal (twittering-get-username-at-pos pos) user-name)))
+      (setq pos (twittering-get-next-username-face-pos pos)))
     (if pos
 	(goto-char pos)
-      (message "End of %s's status." user-name))))
+      (if user-name
+	  (message "End of %s's status." user-name)
+	(message "Invalid user-name.")))))
 
 (defun twittering-goto-previous-status-of-user ()
   "Go to previous status of user."
   (interactive)
   (let ((user-name (twittering-get-username-at-pos (point)))
 	(pos (twittering-get-previous-username-face-pos (point))))
-    (catch 'not-found
-      (while (not (equal (twittering-get-username-at-pos pos) user-name))
-	(setq pos (twittering-get-previous-username-face-pos pos))
-	(when (eq pos nil) (throw 'not-found 0))))
+    (while (and (not (eq pos nil))
+		(not (equal (twittering-get-username-at-pos pos) user-name)))
+      (setq pos (twittering-get-previous-username-face-pos pos)))
     (if pos
 	(goto-char pos)
-      (message "Start of %s's status." user-name))))
+      (if user-name
+	  (message "Start of %s's status." user-name)
+	(message "Invalid user-name.")))))
 
 (defun twittering-get-username-at-pos (pos)
   (let ((start-pos pos)
 	(end-pos))
-    (while (eq (get-text-property start-pos 'face) twittering-username-face)
-      (setq start-pos (1- start-pos)))
-    (setq start-pos (1+ start-pos))
-    (setq end-pos (next-single-property-change pos 'face))
-    (buffer-substring start-pos end-pos)))
+    (catch 'not-found
+      (while (eq (get-text-property start-pos 'face) twittering-username-face)
+	(setq start-pos (1- start-pos))
+	(when (or (eq start-pos nil) (eq start-pos 0)) (throw 'not-found nil)))
+      (setq start-pos (1+ start-pos))
+      (setq end-pos (next-single-property-change pos 'face))
+      (buffer-substring start-pos end-pos))))
 
 ;;;###autoload
 (defun twit ()

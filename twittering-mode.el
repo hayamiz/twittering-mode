@@ -6,7 +6,7 @@
 ;; Author: Y. Hayamizu <y.hayamizu@gmail.com>
 ;;         Tsuyoshi CHO <Tsuyoshi.CHO+develop@Gmail.com>
 ;; Created: Sep 4, 2007
-;; Version: 0.3
+;; Version: 0.4
 ;; Keywords: twitter web
 ;; URL: http://lambdarepos.svnrepository.com/share/trac.cgi/browser/lang/elisp/twittering-mode
 
@@ -45,7 +45,7 @@
 (require 'xml)
 (require 'parse-time)
 
-(defconst twittering-mode-version "0.3")
+(defconst twittering-mode-version "0.4")
 
 (defun twittering-mode-version ()
   "Display a message for twittering-mode version."
@@ -409,11 +409,6 @@
 	  (end (point-max)))
       (setq buffer-read-only nil)
       (erase-buffer)
-;      (insert
-;       (mapconcat (lambda (status)
-;		    (twittering-format-status status twittering-status-format))
-;		  twittering-friends-timeline-data
-;		  "\n"))
       (mapc (lambda (status)
 	      (insert (twittering-format-status
 		       status twittering-status-format))

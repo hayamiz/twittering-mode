@@ -1,3 +1,26 @@
+2008-05-01  Tsuyoshi CHO  <Tsuyoshi.CHO+develop@Gmail.com>
+
+	* twittering-mode.el : 全体のコメント修正、以下の修正は大部分を
+	gan2さんが実施した
+	(twittering-mode-version): 新規関数
+	(twittering-timer): コメント追加
+	(twittering-scroll-mode, twittering-jojo-mode)
+	(twittering-icon-mode): Nicholas Riley <njriley@uiuc.edu>さんのパッ
+	チ採用、バッファローカル化
+	(list-push): 新規マクロ
+	(twittering-mode-map): キーバインド変更
+	(twittering-mode-hook): フック変数新規作成(以前から利用してたけど
+	定義がなかった)
+	(twittering-render-friends-timeline): Nicholas Riley
+	<njriley@uiuc.edu>さんのパッチ採用、ステータスの挿入正常化
+	(twittering-goto-next-status)
+	(twittering-get-next-username-face-pos)
+	(twittering-goto-previous-status)
+	(twittering-get-previous-username-face-pos)
+	(twittering-goto-next-status-of-user)
+	(twittering-goto-previous-status-of-user)
+	(twittering-get-username-at-pos, twit): 新規関数
+
 2008-02-08  Tsuyoshi CHO  <Tsuyoshi.CHO+develop@Gmail.com>
 
 	* twittering-mode.el : 全体的に整形、Proxy、Safe Password、

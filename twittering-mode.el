@@ -6,7 +6,7 @@
 ;; Author: Y. Hayamizu <y.hayamizu@gmail.com>
 ;;         Tsuyoshi CHO <Tsuyoshi.CHO+develop@Gmail.com>
 ;; Created: Sep 4, 2007
-;; Version: SVN-HEAD
+;; Version: 0.4
 ;; Keywords: twitter web
 ;; URL: http://lambdarepos.svnrepository.com/share/trac.cgi/browser/lang/elisp/twittering-mode
 
@@ -45,11 +45,20 @@
 (require 'xml)
 (require 'parse-time)
 
-(defconst twittering-mode-version "0.3")
+(defconst twittering-mode-version "0.4")
+
+(defun twittering-mode-version ()
+  "Display a message for twittering-mode version."
+  (interactive)
+  (let ((version-string
+	 (format "twittering-mode-v%s" twittering-mode-version)))
+    (if (interactive-p)
+	(message "%s" version-string)
+      version-string)))
 
 (defvar twittering-mode-map (make-sparse-keymap))
 
-(defvar twittering-timer nil)
+(defvar twittering-timer nil "Timer object for timeline refreshing will be stored here. DO NOT SET VALUE MANUALLY.")
 
 (defvar twittering-idle-time 20)
 
@@ -60,27 +69,29 @@
 (defvar twittering-password nil)
 
 (defvar twittering-scroll-mode nil)
+(make-variable-buffer-local 'twittering-scroll-mode)
 
 (defvar twittering-jojo-mode nil)
+(make-variable-buffer-local 'twittering-jojo-mode)
 
 (defvar twittering-status-format nil)
 (setq twittering-status-format "%i %s,  %@:\n  %t // from %f%L")
-; %s - screen_name
-; %S - name
-; %i - profile_image
-; %d - description
-; %l - location
-; %L - " [location]"
-; %u - url
-; %j - user.id
-; %p - protected?
-; %c - created_at (raw UTC string)
-; %C{time-format-str} - created_at (formatted with time-format-str)
-; %@ - X seconds ago
-; %t - text
-; %' - truncated
-; %f - source
-; %# - id
+;; %s - screen_name
+;; %S - name
+;; %i - profile_image
+;; %d - description
+;; %l - location
+;; %L - " [location]"
+;; %u - url
+;; %j - user.id
+;; %p - protected?
+;; %c - created_at (raw UTC string)
+;; %C{time-format-str} - created_at (formatted with time-format-str)
+;; %@ - X seconds ago
+;; %t - text
+;; %' - truncated
+;; %f - source
+;; %# - id
 
 (defvar twittering-buffer "*twittering*")
 (defun twittering-buffer ()
@@ -106,6 +117,8 @@
 
 (defun assocref (item alist)
   (cdr (assoc item alist)))
+(defmacro list-push (value listvar)
+  `(setq ,listvar (cons ,value ,listvar)))
 
 ;;; Proxy
 (defvar twittering-proxy-use nil)
@@ -149,6 +162,7 @@
 		    temporary-file-directory))
 
 (defvar twittering-icon-mode nil "You MUST NOT CHANGE this variable directory. You should change through function'twittering-icon-mode'")
+(make-variable-buffer-local 'twittering-icon-mode)
 (defun twittering-icon-mode (&optional arg)
   (interactive)
   (setq twittering-icon-mode
@@ -221,16 +235,23 @@
       (define-key km "\C-c\C-l" 'twittering-update-lambda)
       (define-key km [mouse-1] 'twittering-click)
       (define-key km "\C-c\C-v" 'twittering-view-user-page)
-      (define-key km "j" 'next-line)
-      (define-key km "k" 'previous-line)
+      ;; (define-key km "j" 'next-line)
+      ;; (define-key km "k" 'previous-line)
+      (define-key km "j" 'twittering-goto-next-status)
+      (define-key km "k" 'twittering-goto-previous-status)
       (define-key km "l" 'forward-char)
       (define-key km "h" 'backward-char)
       (define-key km "0" 'beginning-of-line)
       (define-key km "^" 'beginning-of-line-text)
       (define-key km "$" 'end-of-line)
+      (define-key km "n" 'twittering-goto-next-status-of-user)
+      (define-key km "p" 'twittering-goto-previous-status-of-user)
       (define-key km [backspace] 'backward-char)
       (define-key km "G" 'end-of-buffer)
       (define-key km "H" 'beginning-of-buffer)
+      (define-key km "i" 'twittering-icon-mode)
+      (define-key km "s" 'twittering-scroll-mode)
+      (define-key km "t" 'twittering-toggle-proxy)
       (define-key km "\C-c\C-p" 'twittering-toggle-proxy)
       nil))
 
@@ -239,13 +260,13 @@
 (if twittering-mode-syntax-table
     ()
   (setq twittering-mode-syntax-table (make-syntax-table))
-  ;  (modify-syntax-entry ?  "" twittering-mode-syntax-table)
+  ;; (modify-syntax-entry ?  "" twittering-mode-syntax-table)
   (modify-syntax-entry ?\" "w"  twittering-mode-syntax-table)
   )
 
 (defun twittering-mode-init-variables ()
-  ;(make-variable-buffer-local 'variable)
-  ;(setq variable nil)
+  ;; (make-variable-buffer-local 'variable)
+  ;; (setq variable nil)
   (font-lock-mode -1)
   (defface twittering-username-face
     `((t nil)) "" :group 'faces)
@@ -279,6 +300,9 @@
     `(decode-char 'ucs ,num)))
 
 (defvar twittering-mode-string "Twittering mode")
+
+(defvar twittering-mode-hook nil
+  "Twittering-mode hook.")
 
 (defun twittering-mode ()
   "Major mode for Twitter"
@@ -385,11 +409,13 @@
 	  (end (point-max)))
       (setq buffer-read-only nil)
       (erase-buffer)
-      (insert
-       (mapconcat (lambda (status)
-		    (twittering-format-status status twittering-status-format))
-		  twittering-friends-timeline-data
-		  "\n"))
+      (mapc (lambda (status)
+	      (insert (twittering-format-status
+		       status twittering-status-format))
+	      (fill-region-as-paragraph
+	       (save-excursion (beginning-of-line) (point)) (point))
+	      (insert "\n"))
+	    twittering-friends-timeline-data)
       (if twittering-image-stack
 	  (clear-image-cache))
       (setq buffer-read-only t)
@@ -431,41 +457,41 @@
       (while (setq found-at (string-match "%\\(C{\\([^}]+\\)}\\|[A-Za-z#@']\\)" format-str cursor))
 	(setq c (string-to-char (match-string-no-properties 1 format-str)))
 	(if (> found-at cursor)
-	    (push (substring format-str cursor found-at) result)
+	    (list-push (substring format-str cursor found-at) result)
 	  "|")
 	(setq cursor (match-end 1))
 
 	(case c
-	  ((?s)				; %s - screen_name
-	   (push (attr 'user-screen-name) result))
-	  ((?S)				; %S - name
-	   (push (attr 'user-name) result))
-	  ((?i)				; %i - profile_image
-	   (push (profile-image) result))
-	  ((?d)				; %d - description
-	   (push (attr 'user-description) result))
-	  ((?l)				; %l - location
-	   (push (attr 'user-location) result))
-	  ((?L)				; %L - " [location]"
+	  ((?s)                         ; %s - screen_name
+	   (list-push (attr 'user-screen-name) result))
+	  ((?S)                         ; %S - name
+	   (list-push (attr 'user-name) result))
+	  ((?i)                         ; %i - profile_image
+	   (list-push (profile-image) result))
+	  ((?d)                         ; %d - description
+	   (list-push (attr 'user-description) result))
+	  ((?l)                         ; %l - location
+	   (list-push (attr 'user-location) result))
+	  ((?L)                         ; %L - " [location]"
 	   (let ((location (attr 'user-location)))
 	     (unless (or (null location) (string= "" location))
-	       (push (concat " [" location "]") result)) ))
-	  ((?u)				; %u - url
-	   (push (attr 'user-url) result))
-	  ((?j)				; %j - user.id
-	   (push (attr 'user-id) result))
-	  ((?p)				; %p - protected?
+	       (list-push (concat " [" location "]") result)) ))
+	  ((?u)                         ; %u - url
+	   (list-push (attr 'user-url) result))
+	  ((?j)                         ; %j - user.id
+	   (list-push (attr 'user-id) result))
+	  ((?p)                         ; %p - protected?
 	   (let ((protected (attr 'user-protected)))
 	     (when (string= "true" protected)
-	       (push "[x]" result))))
-	  ((?c)			    ; %c - created_at (raw UTC string)
-	   (push (attr 'created-at) result))
-	  ((?C)	; %C{time-format-str} - created_at (formatted with time-format-str)
-	   (push (twittering-local-strftime
-		  (or (match-string-no-properties 2 format-str) "%H:%M:%S")
-		  (attr 'created-at))
-		 result))
-	  ((?@)				; %@ - X seconds ago
+	       (list-push "[x]" result))))
+	  ((?c)                     ; %c - created_at (raw UTC string)
+	   (list-push (attr 'created-at) result))
+	  ((?C) ; %C{time-format-str} - created_at (formatted with time-format-str)
+	   (list-push (twittering-local-strftime
+		       (or (match-string-no-properties 2 format-str) "%H:%M:%S")
+		       (attr 'created-at))
+		      result))
+	  ((?@)                         ; %@ - X seconds ago
 	   (let ((created-at
 		  (apply
 		   'encode-time
@@ -473,35 +499,35 @@
 		 (now (current-time)))
 	     (let ((secs (+ (* (- (car now) (car created-at)) 65536)
 			    (- (cadr now) (cadr created-at)))))
-	       (push (cond ((< secs 5) "less than 5 seconds ago")
-			   ((< secs 10) "less than 10 seconds ago")
-			   ((< secs 20) "less than 20 seconds ago")
-			   ((< secs 30) "half a minute ago")
-			   ((< secs 60) "less than a minute ago")
-			   ((< secs 150) "1 minute ago")
-			   ((< secs 2400) (format "%d minutes ago"
-						  (/ (+ secs 30) 60)))
-			   ((< secs 5400) "about 1 hour ago")
-			   ((< secs 84600) (format "about %d hours ago"
-						   (/ (+ secs 1800) 3600)))
-			   (t (format-time-string "%I:%M %p %B %d, %Y" created-at)))
-		     result))))
-	  ((?t)				; %t - text
-	   (push			;(clickable-text)
+	       (list-push (cond ((< secs 5) "less than 5 seconds ago")
+				((< secs 10) "less than 10 seconds ago")
+				((< secs 20) "less than 20 seconds ago")
+				((< secs 30) "half a minute ago")
+				((< secs 60) "less than a minute ago")
+				((< secs 150) "1 minute ago")
+				((< secs 2400) (format "%d minutes ago"
+						       (/ (+ secs 30) 60)))
+				((< secs 5400) "about 1 hour ago")
+				((< secs 84600) (format "about %d hours ago"
+							(/ (+ secs 1800) 3600)))
+				(t (format-time-string "%I:%M %p %B %d, %Y" created-at)))
+			  result))))
+	  ((?t)                         ; %t - text
+	   (list-push                   ;(clickable-text)
 	    (attr 'text)
 	    result))
-	  ((?')				; %' - truncated
+	  ((?')                         ; %' - truncated
 	   (let ((truncated (attr 'truncated)))
 	     (when (string= "true" truncated)
-	       (push "..." result))))
-	  ((?f)				; %f - source
-	   (push (attr 'source) result))
-	  ((?#)				; %# - id
-	   (push (attr 'id) result))
+	       (list-push "..." result))))
+	  ((?f)                         ; %f - source
+	   (list-push (attr 'source) result))
+	  ((?#)                         ; %# - id
+	   (list-push (attr 'id) result))
 	  (t
-	   (push (char-to-string c) result)))
+	   (list-push (char-to-string c) result)))
 	)
-      (push (substring format-str cursor) result)
+      (list-push (substring format-str cursor) result)
       (apply 'concat (nreverse result))
       )))
 
@@ -539,7 +565,7 @@ PARAMETERS is alist of URI parameters. ex) ((\"mode\" . \"view\") (\"page\" . \"
        proc
        (let ((nl "\r\n")
 	     request)
-	 (setq	request
+	 (setq  request
 		(concat "POST http://twitter.com/" method-class "/" method ".xml?"
 			(if parameters
 			    (mapconcat
@@ -575,7 +601,7 @@ PARAMETERS is alist of URI parameters. ex) ((\"mode\" . \"view\") (\"page\" . \"
 
   (condition-case err-signal
       (let ((header (twittering-get-response-header))
-	    ; (body (twittering-get-response-body)) not used now.
+	    ;; (body (twittering-get-response-body)) not used now.
 	    (status nil))
 	(string-match "HTTP/1\.1 \\([a-z0-9 ]+\\)\r?\n" header)
 	(setq status (match-string-no-properties 1 header))
@@ -588,7 +614,7 @@ PARAMETERS is alist of URI parameters. ex) ((\"mode\" . \"view\") (\"page\" . \"
   )
 
 (defun twittering-get-response-header (&optional buffer)
-  "Extract HTTP response header from HTTP response.
+  "Exract HTTP response header from HTTP response.
 `buffer' may be a buffer or the name of an existing buffer.
  If `buffer' is omitted, the value of `twittering-http-buffer' is used as `buffer'."
   (if (stringp buffer) (setq buffer (get-buffer buffer)))
@@ -599,7 +625,7 @@ PARAMETERS is alist of URI parameters. ex) ((\"mode\" . \"view\") (\"page\" . \"
       (substring content 0 (string-match "\r?\n\r?\n" content)))))
 
 (defun twittering-get-response-body (&optional buffer)
-  "Extract HTTP response body from HTTP response, parse it as XML, and return a XML tree as list.
+  "Exract HTTP response body from HTTP response, parse it as XML, and return a XML tree as list.
 `buffer' may be a buffer or the name of an existing buffer.
  If `buffer' is omitted, the value of `twittering-http-buffer' is used as `buffer'."
   (if (stringp buffer) (setq buffer (get-buffer buffer)))
@@ -778,21 +804,21 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 		     (string-match "&\\(#\\([0-9]+\\)\\|\\([A-Za-z]+\\)\\);"
 				   encoded-str cursor))
 	  (when (> found-at cursor)
-	    (push (substring encoded-str cursor found-at) result))
+	    (list-push (substring encoded-str cursor found-at) result))
 	  (let ((number-entity (match-string-no-properties 2 encoded-str))
 		(letter-entity (match-string-no-properties 3 encoded-str)))
 	    (cond (number-entity
-		   (push
+		   (list-push
 		    (char-to-string
 		     (twittering-ucs-to-char
 		      (string-to-number number-entity))) result))
 		  (letter-entity
-		   (cond ((string= "gt" letter-entity) (push ">" result))
-			 ((string= "lt" letter-entity) (push "<" result))
-			 (t push "?" result)))
-		  (t (push "?" result)))
+		   (cond ((string= "gt" letter-entity) (list-push ">" result))
+			 ((string= "lt" letter-entity) (list-push "<" result))
+			 (t (list-push "?" result))))
+		  (t (list-push "?" result)))
 	    (setq cursor (match-end 0))))
-	(push (substring encoded-str cursor) result)
+	(list-push (substring encoded-str cursor) result)
 	(apply 'concat (nreverse result)))
     ""))
 
@@ -924,6 +950,89 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 (defun twittering-get-password ()
   (or twittering-password
       (setq twittering-password (read-passwd "twittering-mode: "))))
+
+(defun twittering-goto-next-status ()
+  "Go to next status."
+  (interactive)
+  (let ((pos))
+    (setq pos (twittering-get-next-username-face-pos (point)))
+    (if pos
+	(goto-char pos)
+      (message "End of status."))))
+
+(defun twittering-get-next-username-face-pos (pos)
+  (interactive)
+  (let ((prop))
+    (catch 'not-found
+      (while (and pos (not (eq prop twittering-username-face)))
+	(setq pos (next-single-property-change pos 'face))
+	(when (eq pos nil) (throw 'not-found nil))
+	(setq prop (get-text-property pos 'face)))
+      pos)))
+
+(defun twittering-goto-previous-status ()
+  "Go to previous status."
+  (interactive)
+  (let ((pos))
+    (setq pos (twittering-get-previous-username-face-pos (point)))
+    (if pos
+	(goto-char pos)
+      (message "Start of status."))))
+
+(defun twittering-get-previous-username-face-pos (pos)
+  (interactive)
+  (let ((prop))
+    (catch 'not-found
+      (while (and pos (not (eq prop twittering-username-face)))
+	(setq pos (previous-single-property-change pos 'face))
+	(when (eq pos nil) (throw 'not-found nil))
+	(setq prop (get-text-property pos 'face)))
+      pos)))
+
+(defun twittering-goto-next-status-of-user ()
+  "Go to next status of user."
+  (interactive)
+  (let ((user-name (twittering-get-username-at-pos (point)))
+	(pos (twittering-get-next-username-face-pos (point))))
+    (while (and (not (eq pos nil))
+		(not (equal (twittering-get-username-at-pos pos) user-name)))
+      (setq pos (twittering-get-next-username-face-pos pos)))
+    (if pos
+	(goto-char pos)
+      (if user-name
+	  (message "End of %s's status." user-name)
+	(message "Invalid user-name.")))))
+
+(defun twittering-goto-previous-status-of-user ()
+  "Go to previous status of user."
+  (interactive)
+  (let ((user-name (twittering-get-username-at-pos (point)))
+	(pos (twittering-get-previous-username-face-pos (point))))
+    (while (and (not (eq pos nil))
+		(not (equal (twittering-get-username-at-pos pos) user-name)))
+      (setq pos (twittering-get-previous-username-face-pos pos)))
+    (if pos
+	(goto-char pos)
+      (if user-name
+	  (message "Start of %s's status." user-name)
+	(message "Invalid user-name.")))))
+
+(defun twittering-get-username-at-pos (pos)
+  (let ((start-pos pos)
+	(end-pos))
+    (catch 'not-found
+      (while (eq (get-text-property start-pos 'face) twittering-username-face)
+	(setq start-pos (1- start-pos))
+	(when (or (eq start-pos nil) (eq start-pos 0)) (throw 'not-found nil)))
+      (setq start-pos (1+ start-pos))
+      (setq end-pos (next-single-property-change pos 'face))
+      (buffer-substring start-pos end-pos))))
+
+;;;###autoload
+(defun twit ()
+  "Start twittering-mode."
+  (interactive)
+  (twittering-mode))
 
 (provide 'twittering-mode)
 ;;; twittering.el ends here

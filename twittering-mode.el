@@ -69,8 +69,10 @@
 (defvar twittering-password nil)
 
 (defvar twittering-scroll-mode nil)
+(make-variable-buffer-local 'twittering-scroll-mode)
 
 (defvar twittering-jojo-mode nil)
+(make-variable-buffer-local 'twittering-jojo-mode)
 
 (defvar twittering-status-format nil)
 (setq twittering-status-format "%i %s,  %@:\n  %t // from %f%L")
@@ -160,6 +162,7 @@
 		    temporary-file-directory))
 
 (defvar twittering-icon-mode nil "You MUST NOT CHANGE this variable directory. You should change through function'twittering-icon-mode'")
+(make-variable-buffer-local 'twittering-icon-mode)
 (defun twittering-icon-mode (&optional arg)
   (interactive)
   (setq twittering-icon-mode
@@ -298,6 +301,9 @@
 
 (defvar twittering-mode-string "Twittering mode")
 
+(defvar twittering-mode-hook nil
+  "Twittering-mode hook.")
+
 (defun twittering-mode ()
   "Major mode for Twitter"
   (interactive)
@@ -403,11 +409,18 @@
 	  (end (point-max)))
       (setq buffer-read-only nil)
       (erase-buffer)
-      (insert
-       (mapconcat (lambda (status)
-		    (twittering-format-status status twittering-status-format))
-		  twittering-friends-timeline-data
-		  "\n"))
+;      (insert
+;       (mapconcat (lambda (status)
+;		    (twittering-format-status status twittering-status-format))
+;		  twittering-friends-timeline-data
+;		  "\n"))
+      (mapc (lambda (status)
+	      (insert (twittering-format-status
+		       status twittering-status-format))
+	      (fill-region-as-paragraph
+	       (save-excursion (beginning-of-line) (point)) (point))
+	      (insert "\n"))
+	    twittering-friends-timeline-data)
       (if twittering-image-stack
 	  (clear-image-cache))
       (setq buffer-read-only t)

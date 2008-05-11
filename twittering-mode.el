@@ -58,7 +58,9 @@
 
 (defvar twittering-mode-map (make-sparse-keymap))
 
-(defvar twittering-timer nil "Timer object for timeline refreshing will be stored here. DO NOT SET VALUE MANUALLY.")
+(defvar twittering-timer nil
+  "Timer object for timeline refreshing will be stored here. DO NOT SET VALUE
+MANUALLY.")
 
 (defvar twittering-idle-time 20)
 
@@ -74,24 +76,24 @@
 (defvar twittering-jojo-mode nil)
 (make-variable-buffer-local 'twittering-jojo-mode)
 
-(defvar twittering-status-format nil)
-(setq twittering-status-format "%i %s,  %@:\n  %t // from %f%L")
-;; %s - screen_name
-;; %S - name
-;; %i - profile_image
-;; %d - description
-;; %l - location
-;; %L - " [location]"
-;; %u - url
-;; %j - user.id
-;; %p - protected?
-;; %c - created_at (raw UTC string)
-;; %C{time-format-str} - created_at (formatted with time-format-str)
-;; %@ - X seconds ago
-;; %t - text
-;; %' - truncated
-;; %f - source
-;; %# - id
+(defvar twittering-status-format "%i %s,  %@:\n  %t // from %f%L"
+  "Formatt Rule:
+ %s - screen_name
+ %S - name
+ %i - profile_image
+ %d - description
+ %l - location
+ %L - \" [location]\"
+ %u - url
+ %j - user.id
+ %p - protected?
+ %c - created_at (raw UTC string)
+ %C{time-format-str} - created_at (formatted with time-format-str)
+ %@ - X seconds ago
+ %t - text
+ %' - truncated
+ %f - source
+ %# - id")
 
 (defvar twittering-buffer "*twittering*")
 (defun twittering-buffer ()
@@ -252,6 +254,7 @@
       (define-key km "i" 'twittering-icon-mode)
       (define-key km "s" 'twittering-scroll-mode)
       (define-key km "t" 'twittering-toggle-proxy)
+      (define-key km "F" 'twittering-status-toggle-favorite)
       (define-key km "\C-c\C-p" 'twittering-toggle-proxy)
       nil))
 
@@ -540,7 +543,9 @@
       (list-push (substring format-str cursor) result)
       (let ((formatted-status (apply 'concat (nreverse result))))
 	(add-text-properties 0 (length formatted-status)
-			     `(username ,(attr 'user-screen-name))
+			     `(username ,(attr 'user-screen-name)
+					id ,(attr 'id)
+					favorited ,(attr 'favorited))
 			     formatted-status)
 	formatted-status)
       )))
@@ -677,6 +682,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 		   (car (cddr (assq item seq)))))
     (let* ((status-data (cddr status))
 	   id text source created-at truncated
+	   favorited in_reply_to_status_id in_reply_to_user_id
 	   (user-data (cddr (assq 'user status-data)))
 	   user-id user-name
 	   user-screen-name
@@ -694,6 +700,9 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 		    (assq-get 'source status-data)))
       (setq created-at (assq-get 'created_at status-data))
       (setq truncated (assq-get 'truncated status-data))
+      (setq favorited (assq-get 'favorited status-data))
+      (setq in_reply_to_user_id (assq-get 'in_reply_to_user_id status-data))
+      (setq in_reply_to_user_id (assq-get 'in_reply_to_status_id status-data))
       (setq user-id (string-to-number (assq-get 'id user-data)))
       (setq user-name (twittering-decode-html-entities
 		       (assq-get 'name user-data)))
@@ -770,6 +779,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
        (lambda (sym)
 	 `(,sym . ,(symbol-value sym)))
        '(id text source created-at truncated
+	    favorited in_reply_to_status_id in_reply_to_user_id
 	    user-id user-name user-screen-name user-location
 	    user-description
 	    user-profile-image-url
@@ -876,6 +886,48 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 		       (match-string-no-properties 2 msg)
 		       "\xd0a1\xd24f\xd243!?"))
 	 ("source" . "twmode")))))
+
+(defun twittering-http-get-fav-sentinel (proc stat &optional suc-msg)
+  (flet ((assq-get (item seq)
+		   (car (cddr (assq item seq)))))
+    (let ((header (twittering-get-response-header))
+	  (body (twittering-get-response-body))
+	  (status nil))
+      (if (string-match "HTTP/1\.[01] \\([a-z0-9 ]+\\)\r?\n" header)
+	  (progn
+	    (setq status (match-string-no-properties 1 header))
+	    (case-string
+	     status
+	     (("200 OK")
+	      (let ((status-data (assq-get 'status body)))
+		(message "status %s: favorited - %s"
+			 (assq-get 'id status-data)
+			 (assq-get 'favorited status-data))))
+	     (t (message status))))
+	(message "Failure: Bad http response.")))))
+
+(defun twittering-status-set-favorite (id)
+  (with-temp-buffer
+    (twittering-http-get "favourings" (format "create/%d" id)
+			 'twittering-http-get-fav-sentinel)))
+
+(defun twittering-status-destroy-favorite (id)
+  (with-temp-buffer
+    (twittering-http-get "favourings" (format "destroy/%d" id)
+			 'twittering-http-get-fav-sentinel)))
+
+(defun twittering-status-toggle-favorite ()
+  (interactive)
+  (let ((id (get-text-property (point) 'id))
+	(favorite-status
+	 (string-equal "true" (get-text-property (point) 'favorited))))
+    (if favorite-status
+	;; destroy
+	(progn
+	  (twittering-status-destroy-favorite id)
+	  (message "Destory favorite : %d" id))
+      (twittering-status-set-favorite id)
+      (message "Set favorite : %d" id))))
 
 ;;;
 ;;; Commands

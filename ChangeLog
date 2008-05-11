@@ -1,3 +1,12 @@
+2008-05-11  Tsuyoshi CHO  <Tsuyoshi.CHO+develop@Gmail.com>
+
+	* twittering-mode.el (twittering-format-status): id/user-idのフォー
+	マット整形。時間情報にuriを付与。Nicholasのパッチにより全体に
+	username情報を付与
+	(twittering-status-to-status-datum): username/user-screen-nameにつ
+	いて整理
+	(twittering-get-status-url): 新規関数(マクロでもいいんだけど...)
+
 2008-05-01  Tsuyoshi CHO  <Tsuyoshi.CHO+develop@Gmail.com>
 
 	* twittering-mode.el : 全体のコメント修正、以下の修正は大部分を

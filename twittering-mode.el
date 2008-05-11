@@ -45,7 +45,7 @@
 (require 'xml)
 (require 'parse-time)
 
-(defconst twittering-mode-version "0.4")
+(defconst twittering-mode-version "0.5")
 
 (defun twittering-mode-version ()
   "Display a message for twittering-mode version."
@@ -479,7 +479,7 @@
 	  ((?u)                         ; %u - url
 	   (list-push (attr 'user-url) result))
 	  ((?j)                         ; %j - user.id
-	   (list-push (attr 'user-id) result))
+	   (list-push (format "%d" (attr 'user-id)) result))
 	  ((?p)                         ; %p - protected?
 	   (let ((protected (attr 'user-protected)))
 	     (when (string= "true" protected)
@@ -498,20 +498,30 @@
 		   (parse-time-string (attr 'created-at))))
 		 (now (current-time)))
 	     (let ((secs (+ (* (- (car now) (car created-at)) 65536)
-			    (- (cadr now) (cadr created-at)))))
-	       (list-push (cond ((< secs 5) "less than 5 seconds ago")
-				((< secs 10) "less than 10 seconds ago")
-				((< secs 20) "less than 20 seconds ago")
-				((< secs 30) "half a minute ago")
-				((< secs 60) "less than a minute ago")
-				((< secs 150) "1 minute ago")
-				((< secs 2400) (format "%d minutes ago"
-						       (/ (+ secs 30) 60)))
-				((< secs 5400) "about 1 hour ago")
-				((< secs 84600) (format "about %d hours ago"
-							(/ (+ secs 1800) 3600)))
-				(t (format-time-string "%I:%M %p %B %d, %Y" created-at)))
-			  result))))
+			    (- (cadr now) (cadr created-at))))
+		   time-string url)
+	       (setq time-string
+		     (cond ((< secs 5) "less than 5 seconds ago")
+			   ((< secs 10) "less than 10 seconds ago")
+			   ((< secs 20) "less than 20 seconds ago")
+			   ((< secs 30) "half a minute ago")
+			   ((< secs 60) "less than a minute ago")
+			   ((< secs 150) "1 minute ago")
+			   ((< secs 2400) (format "%d minutes ago"
+						  (/ (+ secs 30) 60)))
+			   ((< secs 5400) "about 1 hour ago")
+			   ((< secs 84600) (format "about %d hours ago"
+						   (/ (+ secs 1800) 3600)))
+			   (t (format-time-string "%I:%M %p %B %d, %Y" created-at))))
+	       (setq url (twittering-get-status-url (attr 'user-screen-name) (attr 'id)))
+	       ;; make status url clickable
+	       (add-text-properties
+		0 (length time-string)
+		`(mouse-face highlight
+			     face twittering-uri-face
+			     uri ,url)
+		time-string)
+	       (list-push time-string result))))
 	  ((?t)                         ; %t - text
 	   (list-push                   ;(clickable-text)
 	    (attr 'text)
@@ -523,12 +533,16 @@
 	  ((?f)                         ; %f - source
 	   (list-push (attr 'source) result))
 	  ((?#)                         ; %# - id
-	   (list-push (attr 'id) result))
+	   (list-push (format "%d" (attr 'id)) result))
 	  (t
 	   (list-push (char-to-string c) result)))
 	)
       (list-push (substring format-str cursor) result)
-      (apply 'concat (nreverse result))
+      (let ((formatted-status (apply 'concat (nreverse result))))
+	(add-text-properties 0 (length formatted-status)
+			     `(username ,(attr 'user-screen-name))
+			     formatted-status)
+	formatted-status)
       )))
 
 (defun twittering-http-post
@@ -694,12 +708,21 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
       (setq user-protected (assq-get 'protected user-data))
 
       ;; make username clickable
-      (add-text-properties 0 (length user-screen-name)
-			   `(mouse-face highlight
-					uri ,(concat "http://twitter.com/" user-screen-name)
-					username ,user-screen-name
-					face twittering-username-face)
-			   user-screen-name)
+      (add-text-properties
+       0 (length user-name)
+       `(mouse-face highlight
+		    uri ,(concat "http://twitter.com/" user-screen-name)
+		    face twittering-username-face)
+       user-name)
+
+      ;; make screen-name clickable
+      (add-text-properties
+       0 (length user-screen-name)
+       `(mouse-face highlight
+		    face twittering-username-face
+		    uri ,(concat "http://twitter.com/" user-screen-name)
+		    face twittering-username-face)
+       user-screen-name)
 
       ;; make URI clickable
       (setq regex-index 0)
@@ -721,7 +744,6 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 		 `(mouse-face
 		   highlight
 		   face twittering-uri-face
-		   username ,screen-name
 		   uri ,(concat "http://twitter.com/" screen-name))
 	       `(mouse-face highlight
 			    face twittering-uri-face
@@ -729,14 +751,6 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	     text))
 	  (setq regex-index (match-end 0)) ))
 
-      ;; make screen-name clickable
-      (add-text-properties
-       0 (length user-screen-name)
-       `(mouse-face highlight
-		    face twittering-username-face
-		    uri ,(concat "http://twitter.com/" user-screen-name)
-		    username ,user-screen-name)
-       user-screen-name)
 
       ;; make source pretty and clickable
       (if (string-match "<a href=\"\\(.*\\)\">\\(.*\\)</a>" source)
@@ -1027,6 +1041,10 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
       (setq start-pos (1+ start-pos))
       (setq end-pos (next-single-property-change pos 'face))
       (buffer-substring start-pos end-pos))))
+
+(defun twittering-get-status-url (username id)
+  "Generate status URL."
+  (format "http://twitter.com/%s/statuses/%d" username id))
 
 ;;;###autoload
 (defun twit ()

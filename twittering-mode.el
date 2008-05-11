@@ -45,7 +45,7 @@
 (require 'xml)
 (require 'parse-time)
 
-(defconst twittering-mode-version "0.4")
+(defconst twittering-mode-version "0.5")
 
 (defun twittering-mode-version ()
   "Display a message for twittering-mode version."

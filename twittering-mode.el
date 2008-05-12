@@ -99,7 +99,7 @@ MANUALLY.")
 (defun twittering-buffer ()
   (twittering-get-or-generate-buffer twittering-buffer))
 
-(defvar twittering-http-buffer "*twittering-http-buffer*")
+(defvar twittering-http-buffer " *twittering-http-buffer*")
 (defun twittering-http-buffer ()
   (twittering-get-or-generate-buffer twittering-http-buffer))
 
@@ -155,7 +155,7 @@ MANUALLY.")
 
 ;;; to show image files
 
-(defvar twittering-wget-buffer "*twittering-wget-buffer*")
+(defvar twittering-wget-buffer " *twittering-wget-buffer*")
 (defun twittering-wget-buffer ()
   (twittering-get-or-generate-buffer twittering-wget-buffer))
 
@@ -899,7 +899,10 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	    (case-string
 	     status
 	     (("200 OK")
-	      (let ((status-data (assq-get 'status body)))
+	      (let ((status-data
+		     ;;(assq-get 'status body)
+		     (cddr (car body))
+		     ))
 		(message "status %s: favorited - %s"
 			 (assq-get 'id status-data)
 			 (assq-get 'favorited status-data))))

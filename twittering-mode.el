@@ -376,7 +376,7 @@
 				 (concat proxy-user ":"
 					 proxy-password))
 				nl)))
-			   nl nl))
+			   nl))
 	     (debug-print (concat "GET Request\n" request))
 	     request)))
       (error
@@ -607,7 +607,7 @@ PARAMETERS is alist of URI parameters. ex) ((\"mode\" . \"view\") (\"page\" . \"
 			      (concat proxy-user ":"
 				      proxy-password))
 			     nl)))
-			nl nl))
+			nl))
 	 (debug-print (concat "POST Request\n" request))
 	 request)))))
 

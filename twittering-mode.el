@@ -45,7 +45,7 @@
 (require 'xml)
 (require 'parse-time)
 
-(defconst twittering-mode-version "0.5")
+(defconst twittering-mode-version "0.6")
 
 (defun twittering-mode-version ()
   "Display a message for twittering-mode version."
@@ -102,6 +102,7 @@
   (twittering-get-or-generate-buffer twittering-http-buffer))
 
 (defvar twittering-friends-timeline-data nil)
+(defvar twittering-friends-timeline-last-update nil)
 
 (defvar twittering-username-face 'twittering-username-face)
 (defvar twittering-uri-face 'twittering-uri-face)
@@ -202,9 +203,15 @@
    ((string-match "\\.gif" file-name) 'gif)
    (t nil)))
 
+(defun twittering-setftime (fmt string uni)
+  (format-time-string fmt ; like "%Y-%m-%d %H:%M:%S"
+		      (apply 'encode-time (parse-time-string string))
+		      uni))
 (defun twittering-local-strftime (fmt string)
-  (format-time-string fmt ; like "%Y-%m-%d %H:%M:%S", shown in localtime
-		      (apply 'encode-time (parse-time-string string))))
+  (twittering-setftime fmt string nil))
+(defun twittering-global-strftime (fmt string)
+  (twittering-setftime fmt string t))
+
 
 (defvar twittering-debug-mode nil)
 (defvar twittering-debug-buffer "*debug*")
@@ -323,7 +330,7 @@
 ;;; Basic HTTP functions
 ;;;
 
-(defun twittering-http-get (method-class method &optional sentinel)
+(defun twittering-http-get (method-class method &optional parameters sentinel)
   (if (null sentinel) (setq sentinel 'twittering-http-get-default-sentinel))
 
   ;; clear the buffer
@@ -353,7 +360,18 @@
 	   (let ((nl "\r\n")
 		 request)
 	     (setq request
-		   (concat "GET http://twitter.com/" method-class "/" method ".xml HTTP/1.1" nl
+		   (concat "GET http://twitter.com/" method-class "/" method
+			   ".xml"
+			   (when parameters
+			     (concat "?"
+				     (mapconcat
+				      (lambda (param-pair)
+					(format "%s=%s"
+						(twittering-percent-encode (car param-pair))
+						(twittering-percent-encode (cdr param-pair))))
+				      parameters
+				      "&")))
+			   " HTTP/1.1" nl
 			   "Host: twitter.com" nl
 			   "User-Agent: " (twittering-user-agent) nl
 			   "Authorization: Basic "
@@ -580,15 +598,16 @@ PARAMETERS is alist of URI parameters. ex) ((\"mode\" . \"view\") (\"page\" . \"
        (let ((nl "\r\n")
 	     request)
 	 (setq  request
-		(concat "POST http://twitter.com/" method-class "/" method ".xml?"
-			(if parameters
-			    (mapconcat
-			     (lambda (param-pair)
-			       (format "%s=%s"
-				       (twittering-percent-encode (car param-pair))
-				       (twittering-percent-encode (cdr param-pair))))
-			     parameters
-			     "&"))
+		(concat "POST http://twitter.com/" method-class "/" method ".xml"
+			(when parameters
+			  (concat "?"
+				  (mapconcat
+				   (lambda (param-pair)
+				     (format "%s=%s"
+					     (twittering-percent-encode (car param-pair))
+					     (twittering-percent-encode (cdr param-pair))))
+				   parameters
+				   "&")))
 			" HTTP/1.1" nl
 			"Host: twitter.com" nl
 			"User-Agent: " (twittering-user-agent) nl
@@ -766,6 +785,9 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	     source)
 	    ))
 
+      ;; save last update time
+      (setq twittering-friends-timeline-last-update created-at)
+
       (mapcar
        (lambda (sym)
 	 `(,sym . ,(symbol-value sym)))
@@ -902,8 +924,15 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (let ((buf (get-buffer twittering-buffer)))
     (if (not buf)
 	(twittering-stop)
-      (twittering-http-get "statuses" "friends_timeline")
-      ))
+       (if (not twittering-friends-timeline-last-update)
+	   (twittering-http-get "statuses" "friends_timeline")
+	 (let* ((system-time-locale "C")
+		(since
+		  (twittering-global-strftime
+		   "%a, %d %b %Y %H:%M:%S GMT"
+		   twittering-friends-timeline-last-update)))
+	   (twittering-http-get "statuses" "friends_timeline"
+				`(("since" . ,since)))))))
 
   (if twittering-icon-mode
       (if twittering-image-stack
@@ -932,7 +961,15 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 (defun twittering-erase-old-statuses ()
   (interactive)
   (setq twittering-friends-timeline-data nil)
-  (twittering-http-get "statuses" "friends_timeline"))
+  (if (not twittering-friends-timeline-last-update)
+      (twittering-http-get "statuses" "friends_timeline")
+    (let* ((system-time-locale "C")
+	   (since
+	     (twittering-global-strftime
+	      "%a, %d %b %Y %H:%M:%S GMT"
+	      twittering-friends-timeline-last-update)))
+      (twittering-http-get "statuses" "friends_timeline"
+			   `(("since" . ,since))))))
 
 (defun twittering-click ()
   (interactive)

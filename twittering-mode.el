@@ -312,7 +312,8 @@
   "Twittering-mode hook.")
 
 (defun twittering-mode ()
-  "Major mode for Twitter"
+  "Major mode for Twitter
+\\{twittering-mode-map}"
   (interactive)
   (switch-to-buffer (twittering-buffer))
   (kill-all-local-variables)

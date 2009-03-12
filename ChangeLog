@@ -1,7 +1,33 @@
+2009-03-12  Tsuyoshi CHO  <Tsuyoshi.CHO+develop@Gmail.com>
+
+	* twittering-mode.el: Append new methods by Alberto Garcia
+	<agarcia@igalia.com>'s patch.
+	(twittering-get-timeline): Add new general method. Old name is
+	`twittering-friends-timeline'.
+	(twittering-friends-timeline): Renew use general method.
+	(twittering-replies-timeline): Add new.
+	(twittering-public-timeline): Ditto.
+	(twittering-user-timeline): Ditto.
+	(twittering-current-timeline): Ditto.
+	(twittering-last-timeline-retrieved): Add new variable.
+	(twittering-mode-map): Add new key binding.
+	(twittering-erase-old-statuses): Support multi method.
+
+	(twittering-timer): Comment update.
+	(twittering-icon-mode): Ditto.
+	(twittering-http-post): Ditto.
+	(twittering-get-response-body): Ditto.
+	(twittering-cache-status-datum): Ditto and Fix renaming.
+	(twittering-timeline-data, twittering-timeline-last-update): Rename.
+	(twittering-render-timeline): Ditto.
+	(twittering-icon-mode): Fix renaming.
+	(twittering-http-get-default-sentinel): Ditto.
+	(twittering-format-status): Fix indentation.
+
 2009-03-09  Tsuyoshi CHO  <Tsuyoshi.CHO+develop@Gmail.com>
 
 	* twittering-mode.el (twittering-mode): Add keybind in Major mode
-	docstirng
+	docstirng by Alex Schröder <kensanata@gmail.com>
 
 2008-08-03  Tsuyoshi CHO  <Tsuyoshi.CHO+develop@Gmail.com>
 

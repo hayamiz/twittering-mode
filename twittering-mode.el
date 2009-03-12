@@ -933,7 +933,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 (defun twittering-start (&optional action)
   (interactive)
   (if (null action)
-      (setq action #'twittering-friends-timeline))
+      (setq action #'twittering-current-timeline))
   (if twittering-timer
       nil
     (setq twittering-timer

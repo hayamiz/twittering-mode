@@ -1,5 +1,10 @@
 2009-03-12  Tsuyoshi CHO  <Tsuyoshi.CHO+develop@Gmail.com>
 
+	* twittering-mode.el (twittering-start): Update target chagne to
+	current.
+
+2009-03-12  Tsuyoshi CHO  <Tsuyoshi.CHO+develop@Gmail.com>
+
 	* twittering-mode.el: Append new methods by Alberto Garcia
 	<agarcia@igalia.com>'s patch.
 	(twittering-get-timeline): Add new general method. Old name is
@@ -18,7 +23,8 @@
 	(twittering-http-post): Ditto.
 	(twittering-get-response-body): Ditto.
 	(twittering-cache-status-datum): Ditto and Fix renaming.
-	(twittering-timeline-data, twittering-timeline-last-update): Rename.
+	(twittering-timeline-data, twittering-timeline-last-update):
+	Rename.
 	(twittering-render-timeline): Ditto.
 	(twittering-icon-mode): Fix renaming.
 	(twittering-http-get-default-sentinel): Ditto.

@@ -518,7 +518,7 @@ directory. You should change through function'twittering-icon-mode'")
 	  ((?u)                         ; %u - url
 	   (list-push (attr 'user-url) result))
 	  ((?j)                         ; %j - user.id
-	   (list-push (format "%d" (attr 'user-id)) result))
+	   (list-push (attr 'user-id) result))
 	  ((?p)                         ; %p - protected?
 	   (let ((protected (attr 'user-protected)))
 	     (when (string= "true" protected)
@@ -575,7 +575,7 @@ directory. You should change through function'twittering-icon-mode'")
 	  ((?f)                         ; %f - source
 	   (list-push (attr 'source) result))
 	  ((?#)                         ; %# - id
-	   (list-push (format "%d" (attr 'id)) result))
+	   (list-push (attr 'id) result))
 	  (t
 	   (list-push (char-to-string c) result)))
 	)
@@ -707,7 +707,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
     (if (or (null (symbol-value data-var))
 	    (not (find-if
 		  (lambda (item)
-		    (eql id (cdr (assq 'id item))))
+		    (string= id (cdr (assq 'id item))))
 		  (symbol-value data-var))))
 	(progn
 	  (if twittering-jojo-mode
@@ -733,14 +733,14 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	   user-protected
 	   regex-index)
 
-      (setq id (string-to-number (assq-get 'id status-data)))
+      (setq id (assq-get 'id status-data))
       (setq text (twittering-decode-html-entities
 		  (assq-get 'text status-data)))
       (setq source (twittering-decode-html-entities
 		    (assq-get 'source status-data)))
       (setq created-at (assq-get 'created_at status-data))
       (setq truncated (assq-get 'truncated status-data))
-      (setq user-id (string-to-number (assq-get 'id user-data)))
+      (setq user-id (assq-get 'id user-data))
       (setq user-name (twittering-decode-html-entities
 		       (assq-get 'name user-data)))
       (setq user-screen-name (twittering-decode-html-entities
@@ -1135,7 +1135,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 
 (defun twittering-get-status-url (username id)
   "Generate status URL."
-  (format "http://twitter.com/%s/statuses/%d" username id))
+  (format "http://twitter.com/%s/statuses/%s" username id))
 
 ;;;###autoload
 (defun twit ()

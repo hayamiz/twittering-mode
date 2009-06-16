@@ -14,7 +14,9 @@
 ;; twittering-replies-timeline
 ;; twittering-public-timeline
 ;; twittering-user-timeline
-;; twittering-current-timeline
+;; twittering-current-timeline(-(non)interractive)
+;; twittering-other-user-timeline
+;; twittering-other-user-timeline-interactive
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -51,7 +53,7 @@
 (require 'xml)
 (require 'parse-time)
 
-(defconst twittering-mode-version "0.6")
+(defconst twittering-mode-version "0.7")
 
 (defun twittering-mode-version ()
   "Display a message for twittering-mode version."
@@ -76,6 +78,17 @@ stored here. DO NOT SET VALUE MANUALLY.")
 (defvar twittering-password nil)
 
 (defvar twittering-last-timeline-retrieved nil)
+
+(defvar twittering-last-timeline-interactive nil)
+
+(defvar twittering-new-tweets-count 0
+  "Number of new tweets when `twittering-new-tweets-hook' is run")
+
+(defvar twittering-new-tweets-hook nil
+  "Hook run when new twits are received.
+
+You can read `twittering-new-tweets-count' to get the number of new
+tweets received when this hook is run.")
 
 (defvar twittering-scroll-mode nil)
 (make-variable-buffer-local 'twittering-scroll-mode)
@@ -256,7 +269,9 @@ directory. You should change through function'twittering-icon-mode'")
       (define-key km "\C-c\C-l" 'twittering-update-lambda)
       (define-key km [mouse-1] 'twittering-click)
       (define-key km "\C-c\C-v" 'twittering-view-user-page)
-      (define-key km "g" 'twittering-current-timeline)
+      (define-key km "g" 'twittering-current-timeline-interactive)
+      (define-key km "v" 'twittering-other-user-timeline)
+      (define-key km "V" 'twittering-other-user-timeline-interactive)
       ;; (define-key km "j" 'next-line)
       ;; (define-key km "k" 'previous-line)
       (define-key km "j" 'twittering-goto-next-status)
@@ -430,10 +445,15 @@ directory. You should change through function'twittering-icon-mode'")
 	  (case-string
 	   status
 	   (("200 OK")
-	    (mapcar
-	     #'twittering-cache-status-datum
-	     (reverse (twittering-xmltree-to-status
-		       body)))
+	    (setq twittering-new-tweets-count
+		  (count t (mapcar
+			    #'twittering-cache-status-datum
+			    (reverse (twittering-xmltree-to-status
+				      body)))))
+	    (if (and (> twittering-new-tweets-count 0)
+		     (not twittering-last-timeline-interactive))
+		(run-hooks 'twittering-new-tweets-hook))
+	    (setq twittering-last-timeline-interactive t)
 	    (twittering-render-timeline)
 	    (message (if suc-msg suc-msg "Success: Get.")))
 	   (t (message status))))
@@ -453,7 +473,7 @@ directory. You should change through function'twittering-icon-mode'")
 	       (save-excursion (beginning-of-line) (point)) (point))
 	      (insert "\n"))
 	    twittering-timeline-data)
-      (if twittering-image-stack
+      (if (and twittering-image-stack window-system)
 	  (clear-image-cache))
       (setq buffer-read-only t)
       (debug-print (current-buffer))
@@ -526,7 +546,7 @@ directory. You should change through function'twittering-icon-mode'")
 	  ((?c)                     ; %c - created_at (raw UTC string)
 	   (list-push (attr 'created-at) result))
 	  ((?C) ; %C{time-format-str} - created_at (formatted with
-		; time-format-str)
+	   ; time-format-str)
 	   (list-push (twittering-local-strftime
 		       (or (match-string-no-properties 2 format-str) "%H:%M:%S")
 		       (attr 'created-at))
@@ -758,6 +778,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
        0 (length user-name)
        `(mouse-face highlight
 		    uri ,(concat "http://twitter.com/" user-screen-name)
+		    status-id ,id
 		    face twittering-username-face)
        user-name)
 
@@ -765,8 +786,8 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
       (add-text-properties
        0 (length user-screen-name)
        `(mouse-face highlight
-		    face twittering-username-face
 		    uri ,(concat "http://twitter.com/" user-screen-name)
+		    status-id ,id
 		    face twittering-username-face)
        user-screen-name)
 
@@ -892,21 +913,27 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
       (funcall func)
       )))
 
-(defun twittering-update-status-if-not-blank (status)
+(defun twittering-update-status-if-not-blank (status &optional reply-to-id)
   (if (string-match "^\\s-*\\(?:@[-_a-z0-9]+\\)?\\s-*$" status)
       nil
-    (twittering-http-post "statuses" "update"
-			  `(("status" . ,status)
-			    ("source" . "twmode")))
+    (let ((parameters `(("status" . ,status)
+			("source" . "twmode"))))
+      (twittering-http-post "statuses" "update"
+			    (if reply-to-id
+				(cons `("in_reply_to_status_id" . ,(format "%s" reply-to-id))
+				      parameters)
+			      parameters)))
     t))
 
-(defun twittering-update-status-from-minibuffer (&optional init-str)
+(defun twittering-update-status-from-minibuffer (&optional init-str
+							   reply-to-id)
   (if (null init-str) (setq init-str ""))
   (let ((status init-str) (not-posted-p t))
     (while not-posted-p
       (setq status (read-from-minibuffer "status: " status nil nil nil nil t))
       (setq not-posted-p
-	    (not (twittering-update-status-if-not-blank status))))))
+	    (not (twittering-update-status-if-not-blank status reply-to-id))))
+    ))
 
 (defun twittering-update-lambda ()
   (interactive)
@@ -933,7 +960,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 (defun twittering-start (&optional action)
   (interactive)
   (if (null action)
-      (setq action #'twittering-current-timeline))
+      (setq action #'twittering-current-timeline-noninteractive))
   (if twittering-timer
       nil
     (setq twittering-timer
@@ -964,7 +991,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	  (twittering-http-get "statuses" method
 			       `(("since" . ,since)))))))
 
-  (if twittering-icon-mode
+  (if (and twittering-icon-mode window-system)
       (if twittering-image-stack
 	  (let ((proc
 		 (apply
@@ -1000,8 +1027,16 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (interactive)
   (twittering-get-timeline "user_timeline"))
 
-(defun twittering-current-timeline ()
+(defun twittering-current-timeline-interactive ()
   (interactive)
+  (setq twittering-last-timeline-interactive t)
+  (twittering-current-timeline))
+
+(defun twittering-current-timeline-noninteractive ()
+  (setq twittering-last-timeline-interactive nil)
+  (twittering-current-timeline))
+
+(defun twittering-current-timeline ()
   (if (not twittering-last-timeline-retrieved)
       (setq twittering-last-timeline-retrieved "friends_timeline"))
   (twittering-get-timeline twittering-last-timeline-retrieved))
@@ -1034,9 +1069,11 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 (defun twittering-enter ()
   (interactive)
   (let ((username (get-text-property (point) 'username))
+	(status-id (get-text-property (point) 'status-id))
 	(uri (get-text-property (point) 'uri)))
     (if username
-	(twittering-update-status-from-minibuffer (concat "@" username " "))
+	(twittering-update-status-from-minibuffer (concat "@" username " ")
+						  status-id)
       (if uri
 	  (browse-url uri)))))
 
@@ -1045,6 +1082,20 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (let ((uri (get-text-property (point) 'uri)))
     (if uri
 	(browse-url uri))))
+
+(defun twittering-other-user-timeline ()
+  (interactive)
+  (let ((username (get-text-property (point) 'username)))
+    (if (> (length username) 0)
+	(twittering-get-timeline (concat "user_timeline/" username))
+      (message "No user selected"))))
+
+(defun twittering-other-user-timeline-interactive ()
+  (interactive)
+  (let ((username (read-from-minibuffer "user: " (get-text-property (point) 'username))))
+    (if (> (length username) 0)
+	(twittering-get-timeline (concat "user_timeline/" username))
+      (message "No user selected"))))
 
 (defun twittering-reply-to-user ()
   (interactive)

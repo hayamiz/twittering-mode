@@ -1,3 +1,22 @@
+2009-06-17  Tsuyoshi CHO  <Tsuyoshi.CHO+develop@Gmail.com>
+
+	* twittering-mode.el (twittering-last-timeline-interactive): New add variable.
+	(twittering-new-tweets-count): Ditto.
+	(twittering-new-tweets-hook): Ditto.
+	(twittering-mode-map): Add new binding v/V
+	(twittering-http-get-default-sentinel): Add new hook support
+	`twittering-new-tweets-hook'.
+	(twittering-render-timeline, twittering-get-timeline): Support
+	console emacs.
+	(twittering-current-timeline-interactive): Add new function.
+	(twittering-current-timeline-noninteractive): Ditto.
+	(twittering-other-user-timeline): Ditto.
+	(twittering-other-user-timeline-interactive): Ditto.
+	(twittering-status-to-status-datum): Add support status id and
+	reply to id.
+	(twittering-update-status-if-not-blank): Ditto.
+	(twittering-update-status-from-minibuffer): Ditto.
+
 2009-03-12  Tsuyoshi CHO  <Tsuyoshi.CHO+develop@Gmail.com>
 
 	* twittering-mode.el (twittering-start): Update target chagne to

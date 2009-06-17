@@ -266,6 +266,7 @@ directory. You should change through function'twittering-icon-mode'")
       (define-key km "\C-c\C-u" 'twittering-user-timeline)
       (define-key km "\C-c\C-s" 'twittering-update-status-interactive)
       (define-key km "\C-c\C-e" 'twittering-erase-old-statuses)
+      (define-key km "\C-c\C-m" 'twittering-retweet)
       (define-key km "\C-m" 'twittering-enter)
       (define-key km "\C-c\C-l" 'twittering-update-lambda)
       (define-key km [mouse-1] 'twittering-click)
@@ -618,7 +619,8 @@ directory. You should change through function'twittering-icon-mode'")
       (let ((formatted-status (apply 'concat (nreverse result))))
 	(add-text-properties 0 (length formatted-status)
 			     `(username ,(attr 'user-screen-name)
-					id ,(attr 'id))
+					id ,(attr 'id)
+					text ,(attr 'text))
 			     formatted-status)
 	formatted-status)
       )))
@@ -1098,6 +1100,15 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	(twittering-update-status-from-minibuffer (concat "@" username " ") id)
       (if uri
 	  (browse-url uri)))))
+
+(defun twittering-retweet ()
+  (interactive)
+  (let ((username (get-text-property (point) 'username))
+	(id (get-text-property (point) 'id))
+	(text (get-text-property (point) 'text)))
+    (when username
+	(twittering-update-status-from-minibuffer
+	 (concat "RT: " text " (via @" username ")") id))))
 
 (defun twittering-view-user-page ()
   (interactive)

@@ -97,13 +97,14 @@ tweets received when this hook is run.")
 (make-variable-buffer-local 'twittering-jojo-mode)
 
 (defvar twittering-status-format nil)
-(setq twittering-status-format "%i %s,  %@:\n  %t // from %f%L")
+(setq twittering-status-format "%i %s,  %@:\n  %t // from %f%L%r")
 ;; %s - screen_name
 ;; %S - name
 ;; %i - profile_image
 ;; %d - description
 ;; %l - location
 ;; %L - " [location]"
+;; %r - " in reply to user"
 ;; %u - url
 ;; %j - user.id
 ;; %p - protected?
@@ -539,6 +540,20 @@ directory. You should change through function'twittering-icon-mode'")
 	   (list-push (attr 'user-url) result))
 	  ((?j)                         ; %j - user.id
 	   (list-push (attr 'user-id) result))
+	  ((?r)				; %r - in_reply_to_status_id
+	   (let ((reply-id (attr 'in-reply-to-status-id))
+		 (reply-name (attr 'in-reply-to-screen-name)))
+	     (unless (or (null reply-id) (string= "" reply-id)
+			 (null reply-name) (string= "" reply-name))
+	       (let ((in-reply-to-string (format "in reply to %s" reply-name))
+		     (url (twittering-get-status-url reply-name reply-id)))
+		 (add-text-properties
+		  0 (length in-reply-to-string)
+		  `(mouse-face highlight
+			       face twittering-uri-face
+			       uri ,url)
+		  in-reply-to-string)
+		 (list-push (concat " " in-reply-to-string) result)))))
 	  ((?p)                         ; %p - protected?
 	   (let ((protected (attr 'user-protected)))
 	     (when (string= "true" protected)
@@ -602,7 +617,8 @@ directory. You should change through function'twittering-icon-mode'")
       (list-push (substring format-str cursor) result)
       (let ((formatted-status (apply 'concat (nreverse result))))
 	(add-text-properties 0 (length formatted-status)
-			     `(username ,(attr 'user-screen-name))
+			     `(username ,(attr 'user-screen-name)
+					id ,(attr 'id))
 			     formatted-status)
 	formatted-status)
       )))
@@ -743,6 +759,8 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 		   (car (cddr (assq item seq)))))
     (let* ((status-data (cddr status))
 	   id text source created-at truncated
+	   in-reply-to-status-id
+	   in-reply-to-screen-name
 	   (user-data (cddr (assq 'user status-data)))
 	   user-id user-name
 	   user-screen-name
@@ -760,6 +778,12 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 		    (assq-get 'source status-data)))
       (setq created-at (assq-get 'created_at status-data))
       (setq truncated (assq-get 'truncated status-data))
+      (setq in-reply-to-status-id
+	    (twittering-decode-html-entities
+	     (assq-get 'in_reply_to_status_id status-data)))
+      (setq in-reply-to-screen-name
+	    (twittering-decode-html-entities
+	     (assq-get 'in_reply_to_screen_name status-data)))
       (setq user-id (assq-get 'id user-data))
       (setq user-name (twittering-decode-html-entities
 		       (assq-get 'name user-data)))
@@ -778,7 +802,6 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
        0 (length user-name)
        `(mouse-face highlight
 		    uri ,(concat "http://twitter.com/" user-screen-name)
-		    status-id ,id
 		    face twittering-username-face)
        user-name)
 
@@ -787,7 +810,6 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
        0 (length user-screen-name)
        `(mouse-face highlight
 		    uri ,(concat "http://twitter.com/" user-screen-name)
-		    status-id ,id
 		    face twittering-username-face)
        user-screen-name)
 
@@ -840,6 +862,8 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
        (lambda (sym)
 	 `(,sym . ,(symbol-value sym)))
        '(id text source created-at truncated
+	    in-reply-to-status-id
+	    in-reply-to-screen-name
 	    user-id user-name user-screen-name user-location
 	    user-description
 	    user-profile-image-url
@@ -916,13 +940,12 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 (defun twittering-update-status-if-not-blank (status &optional reply-to-id)
   (if (string-match "^\\s-*\\(?:@[-_a-z0-9]+\\)?\\s-*$" status)
       nil
-    (let ((parameters `(("status" . ,status)
-			("source" . "twmode"))))
-      (twittering-http-post "statuses" "update"
-			    (if reply-to-id
-				(cons `("in_reply_to_status_id" . ,(format "%s" reply-to-id))
-				      parameters)
-			      parameters)))
+    (let ((parameters (append `(("status" . ,status)
+				("source" . "twmode"))
+			      (if reply-to-id
+				  `(("in_reply_to_status_id"
+				     . ,reply-to-id))))))
+      (twittering-http-post "statuses" "update" parameters))
     t))
 
 (defun twittering-update-status-from-minibuffer (&optional init-str
@@ -1069,11 +1092,10 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 (defun twittering-enter ()
   (interactive)
   (let ((username (get-text-property (point) 'username))
-	(status-id (get-text-property (point) 'status-id))
+	(id (get-text-property (point) 'id))
 	(uri (get-text-property (point) 'uri)))
     (if username
-	(twittering-update-status-from-minibuffer (concat "@" username " ")
-						  status-id)
+	(twittering-update-status-from-minibuffer (concat "@" username " ") id)
       (if uri
 	  (browse-url uri)))))
 

@@ -1,6 +1,25 @@
+2009-06-18  Alberto Garcia  <agarcia@igalia.com>
+
+	* twittering-mode.el
+	(twittering-status-to-status-datum):
+	Read 'in_reply_to_status_id' and 'in_reply_to_user_id' attributes.
+	(twittering-format-status):
+	Add new '%r' format string for " in reply to user".
+	(twittering-update-status-if-not-blank):
+	Code refactoring. No need to use (format) to convert a string.
+
+2009-06-18  Tsuyoshi CHO  <tsuyoshi_cho@yahoo.co.jp>
+
+	* twittering-mode.el (twittering-status-format)
+	(twittering-format-status, twittering-status-to-status-datum)
+	(twittering-update-status-if-not-blank, twittering-enter): Fix
+	in_reply_to_status_id support not work problem, and marge Alberl
+	patch below.
+
 2009-06-17  Tsuyoshi CHO  <Tsuyoshi.CHO+develop@Gmail.com>
 
-	* twittering-mode.el (twittering-last-timeline-interactive): New add variable.
+	* twittering-mode.el (twittering-last-timeline-interactive): New
+	add variable.
 	(twittering-new-tweets-count): Ditto.
 	(twittering-new-tweets-hook): Ditto.
 	(twittering-mode-map): Add new binding v/V

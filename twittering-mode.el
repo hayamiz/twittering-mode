@@ -5,18 +5,11 @@
 
 ;; Author: Y. Hayamizu <y.hayamizu@gmail.com>
 ;;         Tsuyoshi CHO <Tsuyoshi.CHO+develop@Gmail.com>
+;;         Alberto Garcia  <agarcia@igalia.com>
 ;; Created: Sep 4, 2007
 ;; Version: 0.4
 ;; Keywords: twitter web
 ;; URL: http://lambdarepos.svnrepository.com/share/trac.cgi/browser/lang/elisp/twittering-mode
-
-;; Modified by Alberto Garcia <agarcia@igalia.com> to add the following methods:
-;; twittering-replies-timeline
-;; twittering-public-timeline
-;; twittering-user-timeline
-;; twittering-current-timeline(-(non)interractive)
-;; twittering-other-user-timeline
-;; twittering-other-user-timeline-interactive
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -53,7 +46,7 @@
 (require 'xml)
 (require 'parse-time)
 
-(defconst twittering-mode-version "0.7")
+(defconst twittering-mode-version "0.8")
 
 (defun twittering-mode-version ()
   "Display a message for twittering-mode version."
@@ -169,11 +162,24 @@ tweets received when this hook is run.")
 	  "Twittering-mode/"
 	  twittering-mode-version))
 
+(defvar twittering-sign-simple-string nil)
+
+(defun twittering-sign-string-default-function ()
+  "Tweet append sign string:simple "
+  (if twittering-sign-simple-string
+      (concat " [" twittering-sign-simple-string "]")
+    ""))
+
 (defvar twittering-user-agent-function 'twittering-user-agent-default-function)
+(defvar twittering-sign-string-function 'twittering-sign-string-default-function)
 
 (defun twittering-user-agent ()
   "Return User-Agent header string."
   (funcall twittering-user-agent-function))
+
+(defun twittering-sign-string ()
+  "Return Tweet sign string."
+  (funcall twittering-sign-string-function))
 
 ;;; to show image files
 
@@ -942,11 +948,12 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 (defun twittering-update-status-if-not-blank (status &optional reply-to-id)
   (if (string-match "^\\s-*\\(?:@[-_a-z0-9]+\\)?\\s-*$" status)
       nil
-    (let ((parameters (append `(("status" . ,status)
-				("source" . "twmode"))
-			      (if reply-to-id
-				  `(("in_reply_to_status_id"
-				     . ,reply-to-id))))))
+    (setq status (concat status (twittering-sign-string)))
+    (let ((parameters `(("status" . ,status)
+			("source" . "twmode")
+			,@(if reply-to-id
+			      `(("in_reply_to_status_id"
+				 . ,reply-to-id))))))
       (twittering-http-post "statuses" "update" parameters))
     t))
 

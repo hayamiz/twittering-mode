@@ -1,5 +1,13 @@
 2009-06-18  Tsuyoshi CHO  <Tsuyoshi.CHO+develop@Gmail.com>
 
+	* twittering-mode.el (twittering-sign-simple-string)
+	(twittering-sign-string-default-function)
+	(twittering-sign-string-function, twittering-sign-string): Add
+	new.
+	(twittering-update-status-if-not-blank): Fix params, support sign.
+
+2009-06-18  Tsuyoshi CHO  <Tsuyoshi.CHO+develop@Gmail.com>
+
 	* twittering-mode.el (twittering-mode-map)
 	(twittering-format-status, twittering-retweet): Add new feature
 	ReTweet

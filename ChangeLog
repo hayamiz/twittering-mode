@@ -1,3 +1,13 @@
+2009-06-18  Alberto Garcia  <agarcia@igalia.com>
+
+	* twittering-mode.el (twittering-http-get)
+	(twittering-http-get-default-sentinel)
+	(twittering-get-timeline, twittering-mode-map)
+	(twittering-current-timeline-noninteractive)
+	(twittering-current-timeline, twittering-erase-old-statuses):
+	Get rid of the `twittering-last-timeline-interactive' global
+	variable.
+
 2009-06-18  Tsuyoshi CHO  <Tsuyoshi.CHO+develop@Gmail.com>
 
 	* twittering-mode.el (twittering-sign-simple-string)

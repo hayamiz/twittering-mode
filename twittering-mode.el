@@ -72,8 +72,6 @@ stored here. DO NOT SET VALUE MANUALLY.")
 
 (defvar twittering-last-timeline-retrieved nil)
 
-(defvar twittering-last-timeline-interactive nil)
-
 (defvar twittering-new-tweets-count 0
   "Number of new tweets when `twittering-new-tweets-hook' is run")
 
@@ -277,7 +275,7 @@ directory. You should change through function'twittering-icon-mode'")
       (define-key km "\C-c\C-l" 'twittering-update-lambda)
       (define-key km [mouse-1] 'twittering-click)
       (define-key km "\C-c\C-v" 'twittering-view-user-page)
-      (define-key km "g" 'twittering-current-timeline-interactive)
+      (define-key km "g" 'twittering-current-timeline)
       (define-key km "v" 'twittering-other-user-timeline)
       (define-key km "V" 'twittering-other-user-timeline-interactive)
       ;; (define-key km "j" 'next-line)
@@ -369,7 +367,7 @@ directory. You should change through function'twittering-icon-mode'")
 ;;; Basic HTTP functions
 ;;;
 
-(defun twittering-http-get (method-class method &optional parameters sentinel)
+(defun twittering-http-get (method-class method &optional noninteractive parameters sentinel)
   (if (null sentinel) (setq sentinel 'twittering-http-get-default-sentinel))
 
   ;; clear the buffer
@@ -393,7 +391,8 @@ directory. You should change through function'twittering-icon-mode'")
 		(open-network-stream
 		 "network-connection-process" (twittering-http-buffer)
 		 server (string-to-number port)))
-	  (set-process-sentinel proc sentinel)
+          (lexical-let ((sentinel sentinel) (noninteractive noninteractive))
+            (set-process-sentinel proc (lambda (&rest args) (apply sentinel noninteractive args))))
 	  (process-send-string
 	   proc
 	   (let ((nl "\r\n")
@@ -442,7 +441,7 @@ directory. You should change through function'twittering-icon-mode'")
       (error
        (message "Failure: HTTP GET") nil))))
 
-(defun twittering-http-get-default-sentinel (proc stat &optional suc-msg)
+(defun twittering-http-get-default-sentinel (noninteractive proc stat &optional suc-msg)
   (let ((header (twittering-get-response-header))
 	(body (twittering-get-response-body))
 	(status nil)
@@ -459,9 +458,8 @@ directory. You should change through function'twittering-icon-mode'")
 			    (reverse (twittering-xmltree-to-status
 				      body)))))
 	    (if (and (> twittering-new-tweets-count 0)
-		     (not twittering-last-timeline-interactive))
+		     noninteractive)
 		(run-hooks 'twittering-new-tweets-hook))
-	    (setq twittering-last-timeline-interactive t)
 	    (twittering-render-timeline)
 	    (message (if suc-msg suc-msg "Success: Get.")))
 	   (t (message status))))
@@ -1005,7 +1003,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (cancel-timer twittering-timer)
   (setq twittering-timer nil))
 
-(defun twittering-get-timeline (method)
+(defun twittering-get-timeline (method &optional noninteractive)
   (if (not (eq twittering-last-timeline-retrieved method))
       (setq twittering-timeline-last-update nil
 	    twittering-timeline-data nil))
@@ -1014,13 +1012,13 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
     (if (not buf)
 	(twittering-stop)
       (if (not twittering-timeline-last-update)
-	  (twittering-http-get "statuses" method)
+	  (twittering-http-get "statuses" method noninteractive)
 	(let* ((system-time-locale "C")
 	       (since
 		(twittering-global-strftime
 		 "%a, %d %b %Y %H:%M:%S GMT"
 		 twittering-timeline-last-update)))
-	  (twittering-http-get "statuses" method
+	  (twittering-http-get "statuses" method noninteractive
 			       `(("since" . ,since)))))))
 
   (if (and twittering-icon-mode window-system)
@@ -1059,19 +1057,14 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (interactive)
   (twittering-get-timeline "user_timeline"))
 
-(defun twittering-current-timeline-interactive ()
-  (interactive)
-  (setq twittering-last-timeline-interactive t)
-  (twittering-current-timeline))
-
 (defun twittering-current-timeline-noninteractive ()
-  (setq twittering-last-timeline-interactive nil)
-  (twittering-current-timeline))
+  (twittering-current-timeline t))
 
-(defun twittering-current-timeline ()
+(defun twittering-current-timeline (&optional noninteractive)
+  (interactive)
   (if (not twittering-last-timeline-retrieved)
       (setq twittering-last-timeline-retrieved "friends_timeline"))
-  (twittering-get-timeline twittering-last-timeline-retrieved))
+  (twittering-get-timeline twittering-last-timeline-retrieved noninteractive))
 
 (defun twittering-update-status-interactive ()
   (interactive)
@@ -1089,7 +1082,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	    (twittering-global-strftime
 	     "%a, %d %b %Y %H:%M:%S GMT"
 	     twittering-timeline-last-update)))
-      (twittering-http-get "statuses" twittering-last-timeline-retrieved
+      (twittering-http-get "statuses" twittering-last-timeline-retrieved nil
 			   `(("since" . ,since))))))
 
 (defun twittering-click ()

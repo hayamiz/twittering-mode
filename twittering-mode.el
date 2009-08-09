@@ -296,6 +296,7 @@ directory. You should change through function'twittering-icon-mode'")
       (define-key km "s" 'twittering-scroll-mode)
       (define-key km "t" 'twittering-toggle-proxy)
       (define-key km "\C-c\C-p" 'twittering-toggle-proxy)
+      (define-key km "q" 'twittering-suspend)
       nil))
 
 (defvar twittering-mode-syntax-table nil "")
@@ -1247,6 +1248,11 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 (defun twittering-get-status-url (username id)
   "Generate status URL."
   (format "http://twitter.com/%s/statuses/%s" username id))
+
+(defun twittering-suspend ()
+  "Suspend twittering-mode then switch to another buffer."
+  (interactive)
+  (switch-to-buffer (other-buffer)))
 
 ;;;###autoload
 (defun twit ()

@@ -378,7 +378,7 @@ directory. You should change through function'twittering-icon-mode'")
   (let (proc server port
 	     (proxy-user twittering-proxy-user)
 	     (proxy-password twittering-proxy-password))
-    (condition-case nil
+    (condition-case get-error
 	(progn
 	  (if (and twittering-proxy-use twittering-proxy-server)
 	      (setq server twittering-proxy-server
@@ -439,7 +439,7 @@ directory. You should change through function'twittering-icon-mode'")
 	     (debug-print (concat "GET Request\n" request))
 	     request)))
       (error
-       (message "Failure: HTTP GET") nil))))
+       (message (format "Failure: HTTP GET: %s" get-error)) nil))))
 
 (defun twittering-http-get-default-sentinel (noninteractive proc stat &optional suc-msg)
   (let ((header (twittering-get-response-header))

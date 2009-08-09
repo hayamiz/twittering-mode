@@ -1119,10 +1119,11 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (let ((username (get-text-property (point) 'username))
 	(id (get-text-property (point) 'id))
 	(uri (get-text-property (point) 'uri)))
-    (if username
-	(twittering-update-status-from-minibuffer (concat "@" username " ") id)
-      (if uri
-	  (browse-url uri)))))
+    (if uri
+        (browse-url uri)
+      (if username
+          (twittering-update-status-from-minibuffer
+           (concat "@" username " ") id)))))
 
 (defun twittering-retweet ()
   (interactive)

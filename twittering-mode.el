@@ -441,6 +441,11 @@ directory. You should change through function'twittering-icon-mode'")
       (error
        (message (format "Failure: HTTP GET: %s" get-error)) nil))))
 
+(defun twittering-created-at-to-seconds (created-at)
+  (let ((encoded-time (apply 'encode-time (parse-time-string created-at))))
+    (+ (* (car encoded-time) 65536)
+       (cadr encoded-time))))
+
 (defun twittering-http-get-default-sentinel (noninteractive proc stat &optional suc-msg)
   (let ((header (twittering-get-response-header))
 	(body (twittering-get-response-body))
@@ -457,6 +462,16 @@ directory. You should change through function'twittering-icon-mode'")
 			    #'twittering-cache-status-datum
 			    (reverse (twittering-xmltree-to-status
 				      body)))))
+            (setq twittering-timeline-data
+                  (sort twittering-timeline-data
+                        (lambda (status1 status2)
+                          (let ((created-at1
+                                 (twittering-created-at-to-seconds
+                                  (cdr (assoc 'created-at status1))))
+                                (created-at2
+                                 (twittering-created-at-to-seconds
+                                  (cdr (assoc 'created-at status2)))))
+                            (> created-at1 created-at2)))))
 	    (if (and (> twittering-new-tweets-count 0)
 		     noninteractive)
 		(run-hooks 'twittering-new-tweets-hook))
@@ -862,7 +877,11 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	    ))
 
       ;; save last update time
-      (setq twittering-timeline-last-update created-at)
+      (when (or (null twittering-timeline-last-update)
+                (< (twittering-created-at-to-seconds
+                    twittering-timeline-last-update)
+                   (twittering-created-at-to-seconds created-at)))
+        (setq twittering-timeline-last-update created-at))
 
       (mapcar
        (lambda (sym)
@@ -1003,7 +1022,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (cancel-timer twittering-timer)
   (setq twittering-timer nil))
 
-(defun twittering-get-timeline (method &optional noninteractive)
+(defun twittering-get-timeline (method &optional noninteractive id)
   (if (not (eq twittering-last-timeline-retrieved method))
       (setq twittering-timeline-last-update nil
 	    twittering-timeline-data nil))
@@ -1011,15 +1030,19 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (let ((buf (get-buffer twittering-buffer)))
     (if (not buf)
 	(twittering-stop)
-      (if (not twittering-timeline-last-update)
-	  (twittering-http-get "statuses" method noninteractive)
-	(let* ((system-time-locale "C")
-	       (since
-		(twittering-global-strftime
-		 "%a, %d %b %Y %H:%M:%S GMT"
-		 twittering-timeline-last-update)))
-	  (twittering-http-get "statuses" method noninteractive
-			       `(("since" . ,since)))))))
+      (if id
+          (twittering-http-get "statuses" method noninteractive
+                               `(("max_id" . ,id)
+                                 ("count" . "20")))
+        (if (not twittering-timeline-last-update)
+            (twittering-http-get "statuses" method noninteractive)
+          (let* ((system-time-locale "C")
+                 (since
+                  (twittering-global-strftime
+                   "%a, %d %b %Y %H:%M:%S GMT"
+                   twittering-timeline-last-update)))
+            (twittering-http-get "statuses" method noninteractive
+                                 `(("since" . ,since))))))))
 
   (if (and twittering-icon-mode window-system)
       (if twittering-image-stack
@@ -1147,7 +1170,10 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
     (setq pos (twittering-get-next-username-face-pos (point)))
     (if pos
 	(goto-char pos)
-      (message "End of status."))))
+      (let ((id (get-text-property (point) 'id)))
+        (if id
+            (twittering-get-timeline twittering-last-timeline-retrieved
+                                     nil id))))))
 
 (defun twittering-get-next-username-face-pos (pos)
   (interactive)

@@ -1,3 +1,13 @@
+2009-08-19  Alberto Garcia  <agarcia@igalia.com>
+
+	* twittering-mode.el
+	(twittering-image-type):
+	Use external 'file' program if available to detect image types,
+	and store the results in memory to avoid having to call it once
+	and again.
+	(twittering-format-status):
+	Pass full image path to `twittering-image-type'
+
 2009-06-18  Alberto Garcia  <agarcia@igalia.com>
 
 	* twittering-mode.el (twittering-http-get)

@@ -224,13 +224,22 @@ directory. You should change through function'twittering-icon-mode'")
 	  (> (prefix-numeric-value arg) 0))))
 
 (defvar twittering-image-stack nil)
+(defvar twittering-image-type-cache nil)
 
 (defun twittering-image-type (file-name)
-  (cond
-   ((string-match "\\.jpe?g" file-name) 'jpeg)
-   ((string-match "\\.png" file-name) 'png)
-   ((string-match "\\.gif" file-name) 'gif)
-   (t nil)))
+  (if (and (not (assoc file-name twittering-image-type-cache))
+	   (file-exists-p file-name))
+      (let* ((file-output (shell-command-to-string (concat "file -b " file-name)))
+	     (file-type (cond
+			 ((string-match "JPEG" file-output) 'jpeg)
+			 ((string-match "PNG" file-output) 'png)
+			 ((string-match "GIF" file-output) 'gif)
+			 ((string-match "\\.jpe?g" file-name) 'jpeg)
+			 ((string-match "\\.png" file-name) 'png)
+			 ((string-match "\\.gif" file-name) 'gif)
+			 (t nil))))
+	(add-to-list 'twittering-image-type-cache `(,file-name . ,file-type))))
+  (cdr (assoc file-name twittering-image-type-cache)))
 
 (defun twittering-setftime (fmt string uni)
   (format-time-string fmt ; like "%Y-%m-%d %H:%M:%S"
@@ -510,21 +519,19 @@ directory. You should change through function'twittering-icon-mode'")
 	  (let ((profile-image-url (attr 'user-profile-image-url))
 		(icon-string "\n  "))
 	    (if (string-match "/\\([^/?]+\\)\\(?:\\?\\|$\\)" profile-image-url)
-		(let ((filename (match-string-no-properties 1
-							    profile-image-url)))
+		(let* ((filename (match-string-no-properties 1
+							     profile-image-url))
+		       (fullpath (concat twittering-tmp-dir "/" filename)))
 		  ;; download icons if does not exist
-		  (if (file-exists-p (concat twittering-tmp-dir
-					     "/" filename))
+		  (if (file-exists-p fullpath)
 		      t
 		    (add-to-list 'twittering-image-stack profile-image-url))
 
 		  (when (and icon-string twittering-icon-mode)
 		    (set-text-properties
 		     1 2 `(display
-			   (image :type ,(twittering-image-type filename)
-				  :file ,(concat twittering-tmp-dir
-						 "/"
-						 filename)))
+			   (image :type ,(twittering-image-type fullpath)
+				  :file ,fullpath))
 		     icon-string)
 		    icon-string)
 		  )))))
@@ -581,8 +588,8 @@ directory. You should change through function'twittering-icon-mode'")
 	       (list-push "[x]" result))))
 	  ((?c)                     ; %c - created_at (raw UTC string)
 	   (list-push (attr 'created-at) result))
-	  ((?C) ; %C{time-format-str} - created_at (formatted with
-	   ; time-format-str)
+	  ((?C)	    ; %C{time-format-str} - created_at (formatted with
+					; time-format-str)
 	   (list-push (twittering-local-strftime
 		       (or (match-string-no-properties 2 format-str) "%H:%M:%S")
 		       (attr 'created-at))

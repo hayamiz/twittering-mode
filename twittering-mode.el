@@ -862,10 +862,10 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 		 `(mouse-face
 		   highlight
 		   face twittering-uri-face
-		   uri ,(concat "http://twitter.com/" screen-name))
+		   uri-in-text ,(concat "http://twitter.com/" screen-name))
 	       `(mouse-face highlight
 			    face twittering-uri-face
-			    uri ,uri))
+			    uri-in-text ,uri))
 	     text))
 	  (setq regex-index (match-end 0)) ))
 
@@ -1126,12 +1126,15 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (interactive)
   (let ((username (get-text-property (point) 'username))
 	(id (get-text-property (point) 'id))
-	(uri (get-text-property (point) 'uri)))
-    (if uri
-        (browse-url uri)
+	(uri (get-text-property (point) 'uri))
+	(uri-in-text (get-text-property (point) 'uri-in-text)))
+    (if uri-in-text
+        (browse-url uri-in-text)
       (if username
           (twittering-update-status-from-minibuffer
-           (concat "@" username " ") id)))))
+           (concat "@" username " ") id)
+	(if uri
+	    (browse-url uri))))))
 
 (defun twittering-retweet ()
   (interactive)

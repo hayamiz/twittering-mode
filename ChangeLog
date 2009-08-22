@@ -2,6 +2,8 @@
 
 	* twittering-mode.el (twittering-get-username): add
 	(twittering-get-password): changed prompt
+	(twittering-status-to-status-datum): added a new text property 'uri-in-text'
+	(twittering-enter): use 'uri-in-text'
 
 2009-08-19  Alberto Garcia  <agarcia@igalia.com>
 

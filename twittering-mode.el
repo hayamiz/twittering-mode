@@ -426,7 +426,7 @@ directory. You should change through function'twittering-icon-mode'")
 			   "User-Agent: " (twittering-user-agent) nl
 			   "Authorization: Basic "
 			   (base64-encode-string
-			    (concat twittering-username ":"
+			    (concat (twittering-get-username) ":"
 				    (twittering-get-password)))
 			   nl
 			   "Accept: text/xml"
@@ -704,7 +704,7 @@ PARAMETERS is alist of URI parameters.
 			"User-Agent: " (twittering-user-agent) nl
 			"Authorization: Basic "
 			(base64-encode-string
-			 (concat twittering-username ":" (twittering-get-password)))
+			 (concat (twittering-get-username) ":" (twittering-get-password)))
 			nl
 			"Content-Type: text/plain" nl
 			"Content-Length: 0" nl
@@ -1168,9 +1168,13 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
     (if username
 	(twittering-update-status-from-minibuffer (concat "@" username " ")))))
 
+(defun twittering-get-username ()
+  (or twittering-username
+      (setq twittering-username (read-string "your twitter username: "))))
+
 (defun twittering-get-password ()
   (or twittering-password
-      (setq twittering-password (read-passwd "twittering-mode: "))))
+      (setq twittering-password (read-passwd "your twitter password: "))))
 
 (defun twittering-goto-next-status ()
   "Go to next status."

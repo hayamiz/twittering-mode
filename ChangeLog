@@ -1,3 +1,8 @@
+2009-08-22  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-get-username): add
+	(twittering-get-password): changed prompt
+
 2009-08-19  Alberto Garcia  <agarcia@igalia.com>
 
 	* twittering-mode.el

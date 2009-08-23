@@ -1,3 +1,7 @@
+2009-08-23  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-keybind-message): add. displaying important keybindings in minibuffer
+
 2009-08-22  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-get-username): add

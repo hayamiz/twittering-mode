@@ -308,6 +308,28 @@ directory. You should change through function'twittering-icon-mode'")
       (define-key km "q" 'twittering-suspend)
       nil))
 
+(defun twittering-keybind-message ()
+  (let ((important-commands
+	 '(("Timeline" . twittering-friends-timeline)
+	   ("Replies" . twittering-replies-timeline)
+	   ("Update status" . twittering-update-status-interactive)
+	   ("Next" . twittering-goto-next-status)
+	   ("Prev" . twittering-goto-previous-status))))
+    (mapconcat (lambda (command-spec)
+		 (let ((descr (car command-spec))
+		       (command (cdr command-spec)))
+		   (format "%s: %s" descr (key-description
+					   (where-is-internal
+					    command
+					    overriding-local-map t)))))
+	       important-commands ", ")))
+
+;; (run-with-idle-timer
+;;  0.1 t
+;;  '(lambda ()
+;;     (when (equal (buffer-name (current-buffer)) twittering-buffer)
+;;       (message (twittering-keybind-message)))))
+
 (defvar twittering-mode-syntax-table nil "")
 
 (if twittering-mode-syntax-table

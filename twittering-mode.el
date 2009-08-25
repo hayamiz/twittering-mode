@@ -534,6 +534,18 @@ directory. You should change through function'twittering-icon-mode'")
     ))
 
 (defun twittering-format-status (status format-str)
+  ;; Formatting strategy:
+  ;; 
+  ;; 1. Search the special character '%' in format-str, expand it with
+  ;; corresponding string(such as username, image, description, ...),
+  ;; and pushes it on 'result' until the end of format-str.
+  ;; 2. concat strings in 'result' together
+  ;;
+  ;; Example:
+  ;;  format-str: "%s, %@:\n %t", where screen name is "hayamiz",
+  ;;    timestamp is "1 minute ago", and text is "hello, world"
+  ;;  result: ("hello, world" ":\n " "1 minute ago" ", " "hayamiz")
+  ;;
   (flet ((attr (key)
 	       (assocref key status))
 	 (profile-image

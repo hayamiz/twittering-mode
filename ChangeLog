@@ -1,3 +1,8 @@
+2009-09-01  Alberto Garcia  <agarcia@igalia.com>
+
+	* twittering-mode.el (twittering-retweet):
+	Don't set the original status ID when retweeting.
+
 2009-08-23  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-keybind-message): add. displaying important keybindings in minibuffer

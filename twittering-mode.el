@@ -905,7 +905,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 
 
       ;; make source pretty and clickable
-      (if (string-match "<a href=\"\\(.*\\)\">\\(.*\\)</a>" source)
+      (if (string-match "<a href=\"\\(.*\\)\" rel=\"nofollow\" >\\(.*\\)</a>" source)
 	  (let ((uri (match-string-no-properties 1 source))
 		(caption (match-string-no-properties 2 source)))
 	    (setq source caption)

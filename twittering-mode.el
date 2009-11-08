@@ -71,6 +71,11 @@ stored here. DO NOT SET VALUE MANUALLY.")
 (defvar twittering-password nil)
 
 (defvar twittering-last-timeline-retrieved nil)
+(defun twittering-last-host ()
+  (car twittering-last-timeline-retrieved))
+(defun twittering-last-method ()
+  (nth 1 twittering-last-timeline-retrieved))
+(defvar twittering-list-index-retrieved nil)
 
 (defvar twittering-new-tweets-count 0
   "Number of new tweets when `twittering-new-tweets-hook' is run")
@@ -399,7 +404,60 @@ directory. You should change through function'twittering-icon-mode'")
 ;;; Basic HTTP functions
 ;;;
 
-(defun twittering-http-get (method-class method &optional noninteractive parameters sentinel)
+(defun twittering-make-http-request (host method method-class
+					  &optional parameters)
+  (let* ((nl "\r\n")
+	 request)
+    (setq request
+	  (concat method " http://" host "/" method-class ".xml"
+	   (when parameters
+		    (concat "?"
+			    (mapconcat
+			     (lambda (param-pair)
+			       (format "%s=%s"
+				       (twittering-percent-encode
+					(car param-pair))
+				       (twittering-percent-encode
+					(cdr param-pair))))
+			     parameters
+			     "&")))
+		  " HTTP/1.1" nl
+		  "Host: " host nl
+		  "User-Agent: " (twittering-user-agent) nl
+		  "Authorization: Basic "
+		  (base64-encode-string
+		   (concat
+		    (twittering-get-username) ":" (twittering-get-password)))
+		  nl
+		  (when (string= "GET" method)
+		    "Accept: text/xml"
+		    ",application/xml"
+		    ",application/xhtml+xml"
+		    ",application/html;q=0.9"
+		    ",text/plain;q=0.8"
+		    ",image/png,*/*;q=0.5" nl
+		    "Accept-Charset: utf-8;q=0.7,*;q=0.7"
+		    nl)
+		  (when (string= "POST" method)
+		    "Content-Type: text/plain" nl
+		    "Content-Length: 0" nl)
+		  (when twittering-proxy-use
+		    "Proxy-Connection: Keep-Alive" nl
+		    (when (and twittering-proxy-user
+			       twittering-proxy-password)
+		      (concat
+		       "Proxy-Authorization: Basic "
+		       (base64-encode-string
+			(concat
+			 twittering-proxy-user ":" twittering-proxy-password))
+		       nl)
+		      ))
+		  nl))
+    (debug-print (concat method "Request\n" request))
+    request))
+
+(defun twittering-http-get
+  (host method &optional noninteractive parameters sentinel)
   (if (null sentinel) (setq sentinel 'twittering-http-get-default-sentinel))
 
   ;; clear the buffer
@@ -407,7 +465,8 @@ directory. You should change through function'twittering-icon-mode'")
     (set-buffer (twittering-http-buffer))
     (erase-buffer))
 
-  (let (proc server port
+  (let (proc (server host)
+	     (port "80")
 	     (proxy-user twittering-proxy-user)
 	     (proxy-password twittering-proxy-password))
     (condition-case get-error
@@ -417,8 +476,7 @@ directory. You should change through function'twittering-icon-mode'")
 		    port (if (integerp twittering-proxy-port)
 			     (int-to-string twittering-proxy-port)
 			   twittering-proxy-port))
-	    (setq server "twitter.com"
-		  port "80"))
+	    )
 	  (setq proc
 		(open-network-stream
 		 "network-connection-process" (twittering-http-buffer)
@@ -427,49 +485,7 @@ directory. You should change through function'twittering-icon-mode'")
             (set-process-sentinel proc (lambda (&rest args) (apply sentinel noninteractive args))))
 	  (process-send-string
 	   proc
-	   (let ((nl "\r\n")
-		 request)
-	     (setq request
-		   (concat "GET http://twitter.com/" method-class "/" method
-			   ".xml"
-			   (when parameters
-			     (concat "?"
-				     (mapconcat
-				      (lambda (param-pair)
-					(format "%s=%s"
-						(twittering-percent-encode (car
-									    param-pair))
-						(twittering-percent-encode (cdr
-									    param-pair))))
-				      parameters
-				      "&")))
-			   " HTTP/1.1" nl
-			   "Host: twitter.com" nl
-			   "User-Agent: " (twittering-user-agent) nl
-			   "Authorization: Basic "
-			   (base64-encode-string
-			    (concat (twittering-get-username) ":"
-				    (twittering-get-password)))
-			   nl
-			   "Accept: text/xml"
-			   ",application/xml"
-			   ",application/xhtml+xml"
-			   ",application/html;q=0.9"
-			   ",text/plain;q=0.8"
-			   ",image/png,*/*;q=0.5" nl
-			   "Accept-Charset: utf-8;q=0.7,*;q=0.7" nl
-			   (when twittering-proxy-use
-			     "Proxy-Connection: Keep-Alive" nl
-			     (when (and proxy-user proxy-password)
-			       (concat
-				"Proxy-Authorization: Basic "
-				(base64-encode-string
-				 (concat proxy-user ":"
-					 proxy-password))
-				nl)))
-			   nl))
-	     (debug-print (concat "GET Request\n" request))
-	     request)))
+	   (twittering-make-http-request host "GET" method parameters)))
       (error
        (message (format "Failure: HTTP GET: %s" get-error)) nil))))
 
@@ -477,6 +493,35 @@ directory. You should change through function'twittering-icon-mode'")
   (let ((encoded-time (apply 'encode-time (parse-time-string created-at))))
     (+ (* (car encoded-time) 65536)
        (cadr encoded-time))))
+
+;; XXX: this is a preliminary implementation because we should parse
+;; xmltree in the function.
+(defun twittering-http-get-list-index-sentinel
+  (noninteractive proc stat &optional suc-msg)
+  (let ((header (twittering-get-response-header)))
+    (if (not (string-match "HTTP/1\.[01] \\([a-z0-9 ]+\\)\r?\n" header))
+	(setq twittering-list-index-retrieved "Failure: Bad http response.")
+      (let ((status (match-string-no-properties 1 header)))
+	(if (not (string-match "\r?\nLast-Modified: " header))
+	    (setq twittering-list-index-retrieved
+		  (concat status ", but no contents."))
+	  (case-string
+	   status
+	   (("200 OK")
+	    (let ((buffer (twittering-http-buffer))
+		  (indexes nil))
+	      (save-excursion
+		(set-buffer buffer)
+		(goto-char (point-min))
+		(search-forward "\r?\n\r?\n" nil t)
+		(while (re-search-forward
+			"<slug>\\([-a-zA-Z0-9_]+\\)</slug>" nil t)
+		  (push (match-string 1) indexes))
+		(if indexes
+		    (setq twittering-list-index-retrieved indexes)
+		  (setq twittering-list-index-retrieved "")))))
+	   (t
+	    (setq twittering-list-index-retrieved status))))))))
 
 (defun twittering-http-get-default-sentinel (noninteractive proc stat &optional suc-msg)
   (let ((header (twittering-get-response-header))
@@ -687,12 +732,12 @@ directory. You should change through function'twittering-icon-mode'")
       )))
 
 (defun twittering-http-post
-  (method-class method &optional parameters contents sentinel)
-  "Send HTTP POST request to twitter.com
+  (host method &optional parameters contents sentinel)
+  "Send HTTP POST request to twitter.com (or api.twitter.com)
 
-METHOD-CLASS must be one of Twitter API method classes
+HOST is hostname of remote side, twitter.com or api.twitter.com.
+METHOD must be one of Twitter API method classes
  (statuses, users or direct_messages).
-METHOD must be one of Twitter API method which belongs to METHOD-CLASS.
 PARAMETERS is alist of URI parameters.
  ex) ((\"mode\" . \"view\") (\"page\" . \"6\")) => <URI>?mode=view&page=6"
   (if (null sentinel) (setq sentinel 'twittering-http-post-default-sentinel))
@@ -702,7 +747,8 @@ PARAMETERS is alist of URI parameters.
     (set-buffer (twittering-http-buffer))
     (erase-buffer))
 
-  (let (proc server port
+  (let (proc (server host)
+	     (port "80")
 	     (proxy-user twittering-proxy-user)
 	     (proxy-password twittering-proxy-password))
     (progn
@@ -711,8 +757,7 @@ PARAMETERS is alist of URI parameters.
 		port (if (integerp twittering-proxy-port)
 			 (int-to-string twittering-proxy-port)
 		       twittering-proxy-port))
-	(setq server "twitter.com"
-	      port "80"))
+	)
       (setq proc
 	    (open-network-stream
 	     "network-connection-process" (twittering-http-buffer)
@@ -720,40 +765,7 @@ PARAMETERS is alist of URI parameters.
       (set-process-sentinel proc sentinel)
       (process-send-string
        proc
-       (let ((nl "\r\n")
-	     request)
-	 (setq  request
-		(concat "POST http://twitter.com/" method-class "/" method ".xml"
-			(when parameters
-			  (concat "?"
-				  (mapconcat
-				   (lambda (param-pair)
-				     (format "%s=%s"
-					     (twittering-percent-encode (car param-pair))
-					     (twittering-percent-encode (cdr param-pair))))
-				   parameters
-				   "&")))
-			" HTTP/1.1" nl
-			"Host: twitter.com" nl
-			"User-Agent: " (twittering-user-agent) nl
-			"Authorization: Basic "
-			(base64-encode-string
-			 (concat (twittering-get-username) ":" (twittering-get-password)))
-			nl
-			"Content-Type: text/plain" nl
-			"Content-Length: 0" nl
-			(when twittering-proxy-use
-			  "Proxy-Connection: Keep-Alive" nl
-			  (when (and proxy-user proxy-password)
-			    (concat
-			     "Proxy-Authorization: Basic "
-			     (base64-encode-string
-			      (concat proxy-user ":"
-				      proxy-password))
-			     nl)))
-			nl))
-	 (debug-print (concat "POST Request\n" request))
-	 request)))))
+       (twittering-make-http-request host "POST" method parameters)))))
 
 (defun twittering-http-post-default-sentinel (proc stat &optional suc-msg)
 
@@ -1013,7 +1025,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 			,@(if reply-to-id
 			      `(("in_reply_to_status_id"
 				 . ,reply-to-id))))))
-      (twittering-http-post "statuses" "update" parameters))
+      (twittering-http-post "twitter.com" "statuses/update" parameters))
     t))
 
 (defun twittering-update-status-from-minibuffer (&optional init-str
@@ -1029,7 +1041,8 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 (defun twittering-update-lambda ()
   (interactive)
   (twittering-http-post
-   "statuses" "update"
+   "twitter.com"
+   "statuses/update"
    `(("status" . "\xd34b\xd22b\xd26f\xd224\xd224\xd268\xd34b")
      ("source" . "twmode"))))
 
@@ -1037,7 +1050,8 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (if (string-match "\xde21\xd24b\\(\xd22a\xe0b0\\|\xdaae\xe6cd\\)\xd24f\xd0d6\\([^\xd0d7]+\\)\xd0d7\xd248\xdc40\xd226"
 		    msg)
       (twittering-http-post
-       "statuses" "update"
+       "twitter.com"
+       "statuses/update"
        `(("status" . ,(concat
 		       "@" usr " "
 		       (match-string-no-properties 2 msg)
@@ -1065,26 +1079,47 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (setq twittering-timer nil))
 
 (defun twittering-get-timeline (method &optional noninteractive id)
-  (if (not (eq twittering-last-timeline-retrieved method))
-      (setq twittering-timeline-last-update nil
-	    twittering-timeline-data nil))
-  (setq twittering-last-timeline-retrieved method)
+  (twittering-get-twits "twitter.com"
+			(concat "statuses/" method) noninteractive id))
+
+(defun twittering-get-list (username listname)
+  (twittering-get-twits "api.twitter.com"
+			(concat "1/" username "/lists/" listname "/statuses")))
+
+(defun twittering-get-list-index (username)
+  (twittering-http-get "api.twitter.com"
+			(concat "1/" username "/lists")
+			t nil
+			'twittering-http-get-list-index-sentinel))
+
+(defun twittering-get-twits (host method &optional noninteractive id)
+  (unless (string= (twittering-last-method) method)
+    (setq twittering-timeline-last-update nil
+	  twittering-timeline-data nil
+	  twittering-last-timeline-retrieved `(,host ,method)))
   (let ((buf (get-buffer twittering-buffer)))
     (if (not buf)
 	(twittering-stop)
-      (if id
-          (twittering-http-get "statuses" method noninteractive
-                               `(("max_id" . ,id)
-                                 ("count" . "20")))
-        (if (not twittering-timeline-last-update)
-            (twittering-http-get "statuses" method noninteractive)
-          (let* ((system-time-locale "C")
-                 (since
-                  (twittering-global-strftime
-                   "%a, %d %b %Y %H:%M:%S GMT"
-                   twittering-timeline-last-update)))
-            (twittering-http-get "statuses" method noninteractive
-                                 `(("since" . ,since))))))))
+      (let ((count "20")
+	    parameters)
+	(when (boundp 'twittering-get-count)
+	  (cond
+	   ((integerp twittering-get-count)
+	    (setq count (number-to-string twittering-get-count)))
+	   ((string-match "^[0-9]+$" twittering-get-count)
+	    (setq count twittering-get-count))))
+	(setq parameters `(("count" . ,count)))
+	(if id
+	    (add-to-list 'parameters `("max_id" . ,id))
+	  (when twittering-timeline-last-update
+	    (let* ((system-time-locale "C")
+		   (since
+		    (twittering-global-strftime
+		     "%a, %d %b %Y %H:%M:%S GMT"
+		     twittering-timeline-last-update)))
+	      (add-to-list 'parameters `("since" . ,since)))))
+	(twittering-http-get (twittering-last-host) method
+			     noninteractive parameters))))
 
   (if (and twittering-icon-mode window-system)
       (if twittering-image-stack
@@ -1128,8 +1163,10 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 (defun twittering-current-timeline (&optional noninteractive)
   (interactive)
   (if (not twittering-last-timeline-retrieved)
-      (setq twittering-last-timeline-retrieved "friends_timeline"))
-  (twittering-get-timeline twittering-last-timeline-retrieved noninteractive))
+      (setq twittering-last-timeline-retrieved
+	    '("twitter.com" "statuses/friends_timeline")))
+  (twittering-get-twits (twittering-last-host) (twittering-last-method)
+			noninteractive))
 
 (defun twittering-update-status-interactive ()
   (interactive)
@@ -1139,16 +1176,17 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (interactive)
   (setq twittering-timeline-data nil)
   (if (not twittering-last-timeline-retrieved)
-      (setq twittering-last-timeline-retrieved "friends_timeline"))
+      (setq twittering-last-timeline-retrieved
+	    '("twitter.com" "statuses/friends_timeline"))
   (if (not twittering-timeline-last-update)
-      (twittering-http-get "statuses" twittering-last-timeline-retrieved)
+      (twittering-http-get (twittering-last-host) (twittering-last-method))
     (let* ((system-time-locale "C")
 	   (since
 	    (twittering-global-strftime
 	     "%a, %d %b %Y %H:%M:%S GMT"
 	     twittering-timeline-last-update)))
-      (twittering-http-get "statuses" twittering-last-timeline-retrieved nil
-			   `(("since" . ,since))))))
+      (twittering-http-get (twittering-last-host) (twittering-last-method)
+			   nil `(("since" . ,since)))))))
 
 (defun twittering-click ()
   (interactive)
@@ -1198,6 +1236,29 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	(twittering-get-timeline (concat "user_timeline/" username))
       (message "No user selected"))))
 
+(defun twittering-other-user-list-interactive ()
+  (interactive)
+  (let ((username (get-text-property (point) 'username)))
+    (if (> (length username) 0)
+	(progn
+	  (setq twittering-list-index-retrieved nil)
+	  (twittering-get-list-index username)
+	  (while (not twittering-list-index-retrieved)
+	    (sit-for 0.1))
+	  (cond
+	   ((listp twittering-list-index-retrieved)
+	    (let ((choise (completing-read
+			   (concat username "'s list: ")
+			   twittering-list-index-retrieved
+			   nil t "")))
+	      (when choise
+		(twittering-get-list username choise))))
+	   ((stringp twittering-list-index-retrieved)
+	    (if (string= "" twittering-list-index-retrieved)
+		(message (concat username " have no list"))
+	      (message twittering-list-index-retrieved)))))
+      (message "No user selected"))))
+
 (defun twittering-reply-to-user ()
   (interactive)
   (let ((username (get-text-property (point) 'username)))
@@ -1221,8 +1282,9 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	(goto-char pos)
       (let ((id (get-text-property (point) 'id)))
         (if id
-            (twittering-get-timeline twittering-last-timeline-retrieved
-                                     nil id))))))
+	    (twittering-get-twits (twittering-last-host)
+				  (twittering-last-method)
+				  nil id))))))
 
 (defun twittering-get-next-username-face-pos (pos)
   (interactive)

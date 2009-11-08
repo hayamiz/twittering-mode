@@ -1,3 +1,8 @@
+2009-11-09  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-mode-map): Bind "L" to
+	`twittering-other-user-list-interactive'.
+
 2009-11-07  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el: Add (preliminary) Lists support.

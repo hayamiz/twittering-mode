@@ -1,3 +1,50 @@
+2009-11-07  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el: Add (preliminary) Lists support.
+
+	* twittering-mode.el (twittering-other-user-list-interactive): New
+	command.
+
+	* twittering-mode.el (twittering-get-list): New defun.
+	(twittering-get-list-index): Likewise.
+	(twittering-http-get-list-index-sentinel): Likewise.
+
+	* twittering-mode.el (twittering-last-timeline-retrieved): Now it
+	expects a list, not a string.
+	(twittering-last-host, twittering-last-method): New defuns.
+	(twittering-list-index-retrieved): New defvar.
+
+	* twittering-mode.el (twittering-get-twits): Rename from
+	twittering-get-timeline.
+	(twittering-get-timeline): Call twittering-get-twits instead
+	of (previous) twittering-get-timeline.
+	(twittering-current-timeline): Likewise.
+	(twittering-erase-old-statuses): Likewise.
+	(twittering-goto-next-status): Likewise.
+
+	* twittering-mode.el (twittering-make-http-request): New defun.
+	(twittering-http-get): Use it.
+	(twittering-http-post): Likewise.
+
+	* twittering-mode.el (twittering-http-get): Add new local variable
+	`server' which point to "twitter.com", "api.twitter.com", or your
+	nearest proxy server. Otherwise `host' always point to
+	"twitter.com" or "api.twitter.com".
+	(twittering-http-post): Likewise.
+
+	* twittering-mode.el (twittering-http-post): Add new argument
+	`host'.
+	(twittering-http-post): Change handling of the argument
+	`method'. Now it expects `(concat method-class "/" method)'.
+
+	* twittering-mode.el (twittering-update-status-if-not-blank):
+	Adjust for change to twittering-http-post.
+	(twittering-update-lambda): Likewise.
+	(twittering-update-jojo): Likewise.
+
+	* twittering-mode.el (twittering-get-twits): Set parameter `count'
+	from twittering-get-count if existing.
+
 2009-09-01  Alberto Garcia  <agarcia@igalia.com>
 
 	* twittering-mode.el (twittering-retweet):

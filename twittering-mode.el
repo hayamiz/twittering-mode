@@ -1251,12 +1251,12 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	    (sit-for 0.1))
 	  (cond
 	   ((listp twittering-list-index-retrieved)
-	    (let ((choise (completing-read
+	    (let ((choice (completing-read
 			   (concat username "'s list: ")
 			   twittering-list-index-retrieved
 			   nil t "")))
-	      (when choise
-		(twittering-get-list username choise))))
+	      (when choice
+		(twittering-get-list username choice))))
 	   ((stringp twittering-list-index-retrieved)
 	    (if (string= "" twittering-list-index-retrieved)
 		(message (concat username " have no list"))

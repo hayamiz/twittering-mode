@@ -1242,7 +1242,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 
 (defun twittering-other-user-list-interactive ()
   (interactive)
-  (let ((username (get-text-property (point) 'username)))
+  (let ((username (read-from-minibuffer "whose list: " (get-text-property (point) 'username))))
     (if (> (length username) 0)
 	(progn
 	  (setq twittering-list-index-retrieved nil)

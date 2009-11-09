@@ -2,6 +2,8 @@
 
 	* twittering-mode.el (twittering-mode-map): Bind "L" to
 	`twittering-other-user-list-interactive'.
+	(twittering-other-user-list-interactive): Set default username
+	interactively.
 
 2009-11-07  Satoshi Yatagawa  <yata_github@y.hauN.org>
 

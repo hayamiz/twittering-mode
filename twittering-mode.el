@@ -410,8 +410,8 @@ directory. You should change through function'twittering-icon-mode'")
 
 (defun twittering-make-http-request (host method method-class
 					  &optional parameters)
-  (let* ((nl "\r\n")
-	 request)
+  (let ((nl "\r\n")
+	request)
     (setq request
 	  (concat method " http://" host "/" method-class ".xml"
 	   (when parameters

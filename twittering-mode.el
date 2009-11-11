@@ -34,9 +34,7 @@
 ;;; Feature Request:
 
 ;; URL : http://twitter.com/d00dle/statuses/577876082
-;; URL : http://twitter.com/d00dle/statuses/577879732
 ;; * Status Input from Popup buffer and C-cC-c to POST.
-;; * Mark fav(star)
 ;; URL : http://code.nanigac.com/source/view/419
 ;; * update status for region
 
@@ -1059,6 +1057,17 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 		       "\xd0a1\xd24f\xd243!?"))
 	 ("source" . "twmode")))))
 
+(defun twittering-manage-friendships (method username)
+  (twittering-http-post "twitter.com"
+			(concat "friendships/" method)
+			`(("screen_name" . ,username)
+			  ("source" . "twmode"))))
+
+(defun twittering-manage-favorites (method id)
+  (twittering-http-post "twitter.com"
+			(concat "favorites/" method "/" id)
+			`(("source" . "twmode"))))
+
 ;;;
 ;;; Commands
 ;;;
@@ -1222,6 +1231,42 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (let ((uri (get-text-property (point) 'uri)))
     (if uri
 	(browse-url uri))))
+
+(defun twittering-follow (&optional remove)
+  (interactive)
+  (let ((username (get-text-property (point) 'username))
+	(method (if remove "destroy" "create"))
+	(mes (if remove "unfollowing" "following")))
+    (unless username
+      (setq username (read-from-minibuffer "who: ")))
+    (if (> (length username) 0)
+	(when (y-or-n-p (format "%s %s? " mes username))
+	  (twittering-manage-friendships method username))
+      (message "No user selected"))))
+
+(defun twittering-unfollow ()
+  (interactive)
+  (twittering-follow t))
+
+(defun twittering-favorite (&optional remove)
+  (interactive)
+  (let ((id (get-text-property (point) 'id))
+	(text (get-text-property (point) 'text))
+	(len 25) ;; XXX
+	(method (if remove "destroy" "create")))
+    (if id
+	(let ((mes (format "%s \"%s\"? "
+			   (if remove "unfavorite" "favorite")
+			   (if (> (length text) len)
+			       (concat (substring text 0 len) "...")
+			     text))))
+	  (when (y-or-n-p mes)
+	    (twittering-manage-favorites method id)))
+      (message "No status selected"))))
+
+(defun twittering-unfavorite ()
+  (interactive)
+  (twittering-favorite t))
 
 (defun twittering-other-user-timeline ()
   (interactive)

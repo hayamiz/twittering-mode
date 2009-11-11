@@ -1,3 +1,13 @@
+2009-11-10  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-follow): New command.
+	(twittering-unfollow): Likewise.
+	(twittering-manage-friendships): New defun.
+
+	* twittering-mode.el (twittering-favorite): New command.
+	(twittering-unfavorite): Likewise.
+	(twittering-manage-favorites): New defun.
+
 2009-09-01  Alberto Garcia  <agarcia@igalia.com>
 
 	* twittering-mode.el (twittering-retweet):

@@ -1282,15 +1282,12 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	(message "Invalid user-name.")))))
 
 (defun twittering-get-username-at-pos (pos)
-  (let ((start-pos pos)
-	(end-pos))
-    (catch 'not-found
-      (while (eq (get-text-property start-pos 'face) twittering-username-face)
-	(setq start-pos (1- start-pos))
-	(when (or (eq start-pos nil) (eq start-pos 0)) (throw 'not-found nil)))
-      (setq start-pos (1+ start-pos))
-      (setq end-pos (next-single-property-change pos 'face))
-      (buffer-substring start-pos end-pos))))
+  (or (get-text-property pos 'username)
+      (get-text-property (max (point-min) (1- pos)) 'username)
+      (let* ((border (or (previous-single-property-change pos 'username)
+                         (point-min)))
+             (pos (max (point-min) (1- border))))
+        (get-text-property pos 'username))))
 
 (defun twittering-get-status-url (username id)
   "Generate status URL."

@@ -1,4 +1,4 @@
-;; twittering-mode.el --- Major mode for Twitter
+;;; twittering-mode.el --- Major mode for Twitter
 
 ;; Copyright (C) 2007 Yuto Hayamizu.
 ;;               2008 Tsuyoshi CHO
@@ -45,6 +45,7 @@
 (require 'cl)
 (require 'xml)
 (require 'parse-time)
+(require 'smallurl)						; you can download smallurl from http://tinyurl.com/l978uu
 
 (defconst twittering-mode-version "0.8")
 
@@ -430,7 +431,7 @@ directory. You should change through function'twittering-icon-mode'")
 	   (let ((nl "\r\n")
 		 request)
 	     (setq request
-		   (concat "GET http://twitter.com/" method-class "/" method
+		   (concat "GET https://twitter.com/" method-class "/" method
 			   ".xml"
 			   (when parameters
 			     (concat "?"
@@ -483,7 +484,7 @@ directory. You should change through function'twittering-icon-mode'")
 	(body (twittering-get-response-body))
 	(status nil)
 	)
-    (if (string-match "HTTP/1\.[01] \\([a-z0-9 ]+\\)\r?\n" header)
+    (if (string-match "HTTP/1\.[01] \\([a-zA-Z0-9 ]+\\)\r?\n" header)
 	(progn
 	  (setq status (match-string-no-properties 1 header))
 	  (case-string
@@ -508,7 +509,8 @@ directory. You should change through function'twittering-icon-mode'")
 		     noninteractive)
 		(run-hooks 'twittering-new-tweets-hook))
 	    (twittering-render-timeline)
-	    (message (if suc-msg suc-msg "Success: Get.")))
+	    ;(message (if suc-msg suc-msg "Success: Get."))
+		)
 	   (t (message status))))
       (message "Failure: Bad http response.")))
   )
@@ -723,7 +725,7 @@ PARAMETERS is alist of URI parameters.
        (let ((nl "\r\n")
 	     request)
 	 (setq  request
-		(concat "POST http://twitter.com/" method-class "/" method ".xml"
+		(concat "POST https://twitter.com/" method-class "/" method ".xml"
 			(when parameters
 			  (concat "?"
 				  (mapconcat
@@ -761,7 +763,7 @@ PARAMETERS is alist of URI parameters.
       (let ((header (twittering-get-response-header))
 	    ;; (body (twittering-get-response-body)) not used now.
 	    (status nil))
-	(string-match "HTTP/1\.1 \\([a-z0-9 ]+\\)\r?\n" header)
+	(string-match "HTTP/1\.1 \\([a-zA-Z0-9 ]+\\)\r?\n" header)
 	(setq status (match-string-no-properties 1 header))
 	(case-string status
 		     (("200 OK")
@@ -864,7 +866,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
       (add-text-properties
        0 (length user-name)
        `(mouse-face highlight
-		    uri ,(concat "http://twitter.com/" user-screen-name)
+		    uri ,(concat "https://twitter.com/" user-screen-name)
 		    face twittering-username-face)
        user-name)
 
@@ -872,7 +874,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
       (add-text-properties
        0 (length user-screen-name)
        `(mouse-face highlight
-		    uri ,(concat "http://twitter.com/" user-screen-name)
+		    uri ,(concat "https://twitter.com/" user-screen-name)
 		    face twittering-username-face)
        user-screen-name)
 
@@ -896,7 +898,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 		 `(mouse-face
 		   highlight
 		   face twittering-uri-face
-		   uri-in-text ,(concat "http://twitter.com/" screen-name))
+		   uri-in-text ,(concat "https://twitter.com/" screen-name))
 	       `(mouse-face highlight
 			    face twittering-uri-face
 			    uri-in-text ,uri))
@@ -1017,13 +1019,19 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
     t))
 
 (defun twittering-update-status-from-minibuffer (&optional init-str
-							   reply-to-id)
+														   reply-to-id)
   (if (null init-str) (setq init-str ""))
-  (let ((status init-str) (not-posted-p t))
+  (let ((status init-str) (not-posted-p t) (map minibuffer-local-map))
     (while not-posted-p
-      (setq status (read-from-minibuffer "status: " status nil nil nil nil t))
+	  (define-key map (kbd "<f4>") 'smallurl-replace-at-point)
+      (setq status (read-from-minibuffer "status: " status map nil nil nil t))
+	  (while (< 141 (length status))
+		(setq status (read-from-minibuffer (format "(%d): "
+												   (- 140 (length status)))
+										   status map nil nil nil t)))
       (setq not-posted-p
-	    (not (twittering-update-status-if-not-blank status reply-to-id))))
+			(not (twittering-update-status-if-not-blank status reply-to-id)))
+	  )
     ))
 
 (defun twittering-update-lambda ()
@@ -1173,10 +1181,11 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 (defun twittering-retweet ()
   (interactive)
   (let ((username (get-text-property (point) 'username))
+	(id (get-text-property (point) 'id))
 	(text (get-text-property (point) 'text)))
     (when username
 	(twittering-update-status-from-minibuffer
-	 (concat "RT: " text " (via @" username ")")))))
+	 (concat "RT: " text " (via @" username ")") id))))
 
 (defun twittering-view-user-page ()
   (interactive)
@@ -1294,7 +1303,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 
 (defun twittering-get-status-url (username id)
   "Generate status URL."
-  (format "http://twitter.com/%s/statuses/%s" username id))
+  (format "https://twitter.com/%s/statuses/%s" username id))
 
 (defun twittering-suspend ()
   "Suspend twittering-mode then switch to another buffer."

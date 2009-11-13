@@ -70,9 +70,15 @@ stored here. DO NOT SET VALUE MANUALLY.")
 
 (defvar twittering-last-timeline-retrieved nil)
 (defun twittering-last-host ()
+  (twittering-convert-last-timeline-retrieved)
   (car twittering-last-timeline-retrieved))
 (defun twittering-last-method ()
+  (twittering-convert-last-timeline-retrieved)
   (nth 1 twittering-last-timeline-retrieved))
+(defun twittering-convert-last-timeline-retrieved ()
+  (and (stringp twittering-last-timeline-retrieved)
+       (setq twittering-last-timeline-retrieved
+	     `("twitter.com" ,twittering-last-timeline-retrieved))))
 (defvar twittering-list-index-retrieved nil)
 
 (defvar twittering-new-tweets-count 0

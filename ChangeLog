@@ -1,3 +1,9 @@
+2009-11-13  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-convert-last-timeline-retrieved):
+	New defun to keep a backward compatibility.
+	(twittering-last-host, twittering-last-method): Call it.
+
 2009-11-09  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-mode-map): Bind "L" to

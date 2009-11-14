@@ -1,5 +1,7 @@
 2009-11-15  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
+	* test/test-twittering-mode.el, test/run-test.el, test/elunit.el: add unit testing framework elunit.
+
 	* twittering-mode.el (twittering-goto-next-thing,
 	(twittering-goto-previous-thing): add new commands.
 	(twittering-goto-previous-status): check whether prev-pos is not nil.

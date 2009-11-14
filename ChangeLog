@@ -1,3 +1,9 @@
+2009-11-15  Naohiro Aota  <naota@elisp.net>
+
+	* twittering-mode.el (twittering-convert-fix-size): New variable.
+	(twittering-image-type): Use it; Resize icons to fix size if the
+	above variable is set.
+
 2009-11-15  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* test/test-twittering-mode.el, test/run-test.el, test/elunit.el: add unit testing framework elunit.
@@ -82,6 +88,11 @@
 
 	* twittering-mode.el (twittering-get-twits): Set parameter `count'
 	from twittering-get-count if existing.
+
+2009-11-06  Naohiro Aota  <naota@elisp.net>
+	* twittering-mode.el (twittering-image-type): Support bitmap type
+	using `convert'.
+	(twittering-convert-program): New varibale.
 
 2009-09-01  Alberto Garcia  <agarcia@igalia.com>
 

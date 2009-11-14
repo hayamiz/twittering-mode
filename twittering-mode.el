@@ -62,6 +62,9 @@ stored here. DO NOT SET VALUE MANUALLY.")
 
 (defvar twittering-tweet-history nil)
 (defvar twittering-user-history nil)
+(defvar twittering-hashtag-history nil)
+
+(defvar twittering-current-hashtag nil)
 
 (defvar twittering-idle-time 20)
 
@@ -292,6 +295,7 @@ directory. You should change through function'twittering-icon-mode'")
       (define-key km "\C-c\C-s" 'twittering-update-status-interactive)
       (define-key km "\C-c\C-e" 'twittering-erase-old-statuses)
       (define-key km "\C-c\C-m" 'twittering-retweet)
+      (define-key km "\C-c\C-h" 'twittering-set-current-hashtag)
       (define-key km "\C-m" 'twittering-enter)
       (define-key km "\C-c\C-l" 'twittering-update-lambda)
       (define-key km [mouse-1] 'twittering-click)
@@ -1040,7 +1044,9 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 
 (defun twittering-update-status-from-minibuffer (&optional init-str
 							   reply-to-id)
-  (if (null init-str) (setq init-str ""))
+  (when (and (null init-str)
+	     twittering-current-hashtag)
+    (setq init-str (format " #%s " twittering-current-hashtag)))
   (let ((status init-str) (not-posted-p t))
     (while not-posted-p
       (setq status (read-from-minibuffer "status: " status nil nil 'twittering-tweet-history nil t))
@@ -1192,6 +1198,23 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 (defun twittering-update-status-interactive ()
   (interactive)
   (twittering-update-status-from-minibuffer))
+
+(defun twittering-set-current-hashtag (&optional tag)
+  (interactive)
+  (unless tag
+    (setq tag (completing-read "hashtag (blank to clear): #"
+			       twittering-hashtag-history
+			       nil nil
+			       twittering-current-hashtag
+			       'twittering-hashtag-history
+			       ))
+    (message
+     (if (eq 0 (length tag))
+	 (progn (setq twittering-current-hashtag nil)
+		"Current hashtag is not set.")
+       (progn 
+	 (setq twittering-current-hashtag tag)
+	 (format "Current hashtag is #%s" twittering-current-hashtag))))))
 
 (defun twittering-erase-old-statuses ()
   (interactive)

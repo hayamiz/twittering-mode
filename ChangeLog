@@ -3,6 +3,8 @@
 	* twittering-mode.el (twittering-goto-next-thing,
 	(twittering-goto-previous-thing): add new commands.
 	(twittering-goto-previous-status): check whether prev-pos is not nil.
+	(twittering-set-current-hashtag, twittering-hashtag-history): add functions to support hashtag. Set the current hashtag with C-c C-h.
+	(twittering-update-status-from-minibuffer): use the current hashtag if set.
 
 2009-11-13  Satoshi Yatagawa  <yata_github@y.hauN.org>
 

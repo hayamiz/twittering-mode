@@ -1250,13 +1250,13 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
       (while (and pos (not (eq prop twittering-username-face)))
 	(setq pos (previous-single-property-change pos 'face))
 	(when (eq pos nil)
-    (let ((head-prop (get-text-property (point-min) 'face)))
-      (if (and
-           (not (eq prop twittering-username-face))
-           (eq head-prop twittering-username-face))
-          (setq pos (point-min))
-        (throw 'not-found nil)
-        )))
+	  (let ((head-prop (get-text-property (point-min) 'face)))
+	    (if (and
+		 (not (eq prop twittering-username-face))
+		 (eq head-prop twittering-username-face))
+		(setq pos (point-min))
+	      (throw 'not-found nil)
+	      )))
 	(setq prop (get-text-property pos 'face)))
       pos)))
 

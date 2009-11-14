@@ -1,3 +1,9 @@
+2009-11-15  Naohiro Aota  <naota@elisp.net>
+
+	* twittering-mode.el (twittering-convert-fix-size): New variable.
+	(twittering-image-type): Use it; Resize icons to fix size if the
+	above variable is set.
+
 2009-11-13  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-convert-last-timeline-retrieved):

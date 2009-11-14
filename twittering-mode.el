@@ -238,34 +238,46 @@ directory. You should change through function'twittering-icon-mode'")
 (defvar twittering-image-stack nil)
 (defvar twittering-image-type-cache nil)
 (defvar twittering-convert-program "/usr/bin/convert")
+(defvar twittering-convert-fix-size nil)
 
 (defun twittering-image-type (file-name)
   (if (and (not (assoc file-name twittering-image-type-cache))
 	   (file-exists-p file-name))
+      (if twittering-convert-fix-size
+	  (let ((tmpfile (make-temp-file "emacstwit" nil ".png")))
+	    (let ((coding-system-for-read 'raw-text)
+		  (coding-system-for-write 'binary))
+	      (call-process twittering-convert-program nil nil nil
+			    file-name "-resize" 
+			    (format "%dx%d" twittering-convert-fix-size
+				    twittering-convert-fix-size)
+			    tmpfile)
+	      (rename-file tmpfile file-name t))
+	    (add-to-list 'twittering-image-type-cache `(,file-name . png)))
       (let* ((file-output (shell-command-to-string (concat "file -b " file-name)))
-	     (file-type (cond
-			 ((string-match "JPEG" file-output) 'jpeg)
-			 ((string-match "PNG" file-output) 'png)
-			 ((string-match "GIF" file-output) 'gif)
-			 ((string-match "bitmap" file-output)
-			  (let ((coding-system-for-read 'raw-text)
-				(coding-system-for-write 'binary))
-			    (with-temp-buffer
-			      (set-buffer-multibyte nil)
-			      (insert-file-contents file-name)
-			      (call-process-region
-			       (point-min) (point-max)
-			       twittering-convert-program
-			       t (current-buffer) nil
-			       "bmp:-" "png:-")
-			      (write-region (point-min) (point-max)
-					    file-name)))
-			  'png)
-			 ((string-match "\\.jpe?g" file-name) 'jpeg)
-			 ((string-match "\\.png" file-name) 'png)
-			 ((string-match "\\.gif" file-name) 'gif)
-			 (t nil))))
-	(add-to-list 'twittering-image-type-cache `(,file-name . ,file-type))))
+      	     (file-type (cond
+      			 ((string-match "JPEG" file-output) 'jpeg)
+      			 ((string-match "PNG" file-output) 'png)
+      			 ((string-match "GIF" file-output) 'gif)
+      			 ((string-match "bitmap" file-output)
+      			  (let ((coding-system-for-read 'raw-text)
+      				(coding-system-for-write 'binary))
+      			    (with-temp-buffer
+      			      (set-buffer-multibyte nil)
+      			      (insert-file-contents file-name)
+      			      (call-process-region
+      			       (point-min) (point-max)
+      			       twittering-convert-program
+      			       t (current-buffer) nil
+      			       "bmp:-" "png:-")
+      			      (write-region (point-min) (point-max)
+      					    file-name)))
+      			  'png)
+      			 ((string-match "\\.jpe?g" file-name) 'jpeg)
+      			 ((string-match "\\.png" file-name) 'png)
+      			 ((string-match "\\.gif" file-name) 'gif)
+      			 (t nil))))
+      	(add-to-list 'twittering-image-type-cache `(,file-name . ,file-type)))))
   (cdr (assoc file-name twittering-image-type-cache)))
 
 (defun twittering-setftime (fmt string uni)

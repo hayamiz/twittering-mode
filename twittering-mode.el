@@ -1358,7 +1358,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (interactive)
   (let* ((current-pos (point))
          (prev-pos (twittering-get-previous-username-face-pos current-pos)))
-    (if (not (eq current-pos prev-pos))
+    (if (and prev-pos (not (eq current-pos prev-pos)))
         (goto-char prev-pos)
       (message "Start of status."))))
 

@@ -62,6 +62,9 @@
 (defvar twittering-timer nil "Timer object for timeline refreshing will be
 stored here. DO NOT SET VALUE MANUALLY.")
 
+(defvar twittering-tweet-history nil)
+(defvar twittering-user-history nil)
+
 (defvar twittering-idle-time 20)
 
 (defvar twittering-timer-interval 90)
@@ -1021,7 +1024,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (if (null init-str) (setq init-str ""))
   (let ((status init-str) (not-posted-p t))
     (while not-posted-p
-      (setq status (read-from-minibuffer "status: " status nil nil nil nil t))
+      (setq status (read-from-minibuffer "status: " status nil nil 'twittering-tweet-history nil t))
       (setq not-posted-p
 	    (not (twittering-update-status-if-not-blank status reply-to-id))))
     ))
@@ -1193,7 +1196,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 
 (defun twittering-other-user-timeline-interactive ()
   (interactive)
-  (let ((username (read-from-minibuffer "user: " (get-text-property (point) 'username))))
+  (let ((username (read-from-minibuffer "user: " (get-text-property (point) 'username) nil nil 'twittering-user-history)))
     (if (> (length username) 0)
 	(twittering-get-timeline (concat "user_timeline/" username))
       (message "No user selected"))))

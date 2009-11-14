@@ -1,3 +1,8 @@
+2009-11-15  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-goto-next-thing,
+	(twittering-goto-previous-thing): add new commands.
+
 2009-11-13  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-convert-last-timeline-retrieved):

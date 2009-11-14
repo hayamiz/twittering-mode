@@ -311,6 +311,8 @@ directory. You should change through function'twittering-icon-mode'")
       (define-key km "$" 'end-of-line)
       (define-key km "n" 'twittering-goto-next-status-of-user)
       (define-key km "p" 'twittering-goto-previous-status-of-user)
+      (define-key km [tab] 'twittering-goto-next-thing)
+      (define-key km [backtab] 'twittering-goto-previous-thing)
       (define-key km [backspace] 'backward-char)
       (define-key km "G" 'end-of-buffer)
       (define-key km "H" 'beginning-of-buffer)
@@ -1409,6 +1411,34 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
       (if user-name
 	  (message "Start of %s's status." user-name)
 	(message "Invalid user-name.")))))
+
+(defun twittering-goto-next-thing (&optional backword)
+  "Go to next interesting thing. ex) username, URI, ... "
+  (interactive)
+  (let* ((propety-change-f (if backword
+			       'previous-single-property-change
+			     'next-single-property-change))
+	 (pos (funcall propety-change-f (point) 'face)))
+    (while (and pos
+		(not 
+		 (let* ((current-face (get-text-property pos 'face))
+			(face-pred
+			 (lambda (face)
+			   (cond
+			    ((listp current-face) (memq face current-face))
+			    ((symbolp current-face) (eq face current-face))
+			    (t nil)))))
+		   (member-if face-pred
+			      '(twittering-username-face
+				twittering-uri-face)))))
+      (setq pos (funcall propety-change-f pos 'face)))
+    (when pos
+      (goto-char pos))))
+
+(defun twittering-goto-previous-thing (&optional backword)
+  "Go to previous interesting thing. ex) username, URI, ... "
+  (interactive)
+  (twittering-goto-next-thing (not backword)))
 
 (defun twittering-get-username-at-pos (pos)
   (or (get-text-property pos 'username)

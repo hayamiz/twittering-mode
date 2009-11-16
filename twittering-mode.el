@@ -817,12 +817,15 @@ PARAMETERS is alist of URI parameters.
       (let ((header (twittering-get-response-header))
 	    ;; (body (twittering-get-response-body)) not used now.
 	    (status nil))
-	(string-match "HTTP/1\.1 \\([a-z0-9 ]+\\)\r?\n" header)
-	(setq status (match-string-no-properties 1 header))
+	(if (string-match "HTTP/1\.1 \\([a-z0-9 ]+\\)\r?\n" header)
+			(setq status (match-string-no-properties 1 header))
+		(setq status
+          (progn (string-match "^\\([^\r\n]+\\)\r?\n" header)
+                 (match-string-no-properties 1 header))))
 	(case-string status
 		     (("200 OK")
 		      (message (if suc-msg suc-msg "Success: Post")))
-		     (t (message status)))
+		     (t (message "Response status code: %s" status)))
 	)
     (error (message (prin1-to-string err-signal))))
   )

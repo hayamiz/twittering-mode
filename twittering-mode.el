@@ -60,6 +60,12 @@
 (defvar twittering-timer nil "Timer object for timeline refreshing will be
 stored here. DO NOT SET VALUE MANUALLY.")
 
+(defvar twittering-tweet-history nil)
+(defvar twittering-user-history nil)
+(defvar twittering-hashtag-history nil)
+
+(defvar twittering-current-hashtag nil)
+
 (defvar twittering-idle-time 20)
 
 (defvar twittering-timer-interval 90)
@@ -234,20 +240,47 @@ directory. You should change through function'twittering-icon-mode'")
 
 (defvar twittering-image-stack nil)
 (defvar twittering-image-type-cache nil)
+(defvar twittering-convert-program "/usr/bin/convert")
+(defvar twittering-convert-fix-size nil)
 
 (defun twittering-image-type (file-name)
   (if (and (not (assoc file-name twittering-image-type-cache))
 	   (file-exists-p file-name))
+      (if twittering-convert-fix-size
+	  (let ((tmpfile (make-temp-file "emacstwit" nil ".png")))
+	    (let ((coding-system-for-read 'raw-text)
+		  (coding-system-for-write 'binary))
+	      (call-process twittering-convert-program nil nil nil
+			    file-name "-resize" 
+			    (format "%dx%d" twittering-convert-fix-size
+				    twittering-convert-fix-size)
+			    tmpfile)
+	      (rename-file tmpfile file-name t))
+	    (add-to-list 'twittering-image-type-cache `(,file-name . png)))
       (let* ((file-output (shell-command-to-string (concat "file -b " file-name)))
-	     (file-type (cond
-			 ((string-match "JPEG" file-output) 'jpeg)
-			 ((string-match "PNG" file-output) 'png)
-			 ((string-match "GIF" file-output) 'gif)
-			 ((string-match "\\.jpe?g" file-name) 'jpeg)
-			 ((string-match "\\.png" file-name) 'png)
-			 ((string-match "\\.gif" file-name) 'gif)
-			 (t nil))))
-	(add-to-list 'twittering-image-type-cache `(,file-name . ,file-type))))
+      	     (file-type (cond
+      			 ((string-match "JPEG" file-output) 'jpeg)
+      			 ((string-match "PNG" file-output) 'png)
+      			 ((string-match "GIF" file-output) 'gif)
+      			 ((string-match "bitmap" file-output)
+      			  (let ((coding-system-for-read 'raw-text)
+      				(coding-system-for-write 'binary))
+      			    (with-temp-buffer
+      			      (set-buffer-multibyte nil)
+      			      (insert-file-contents file-name)
+      			      (call-process-region
+      			       (point-min) (point-max)
+      			       twittering-convert-program
+      			       t (current-buffer) nil
+      			       "bmp:-" "png:-")
+      			      (write-region (point-min) (point-max)
+      					    file-name)))
+      			  'png)
+      			 ((string-match "\\.jpe?g" file-name) 'jpeg)
+      			 ((string-match "\\.png" file-name) 'png)
+      			 ((string-match "\\.gif" file-name) 'gif)
+      			 (t nil))))
+      	(add-to-list 'twittering-image-type-cache `(,file-name . ,file-type)))))
   (cdr (assoc file-name twittering-image-type-cache)))
 
 (defun twittering-setftime (fmt string uni)
@@ -289,6 +322,7 @@ directory. You should change through function'twittering-icon-mode'")
       (define-key km "\C-c\C-s" 'twittering-update-status-interactive)
       (define-key km "\C-c\C-e" 'twittering-erase-old-statuses)
       (define-key km "\C-c\C-m" 'twittering-retweet)
+      (define-key km "\C-c\C-h" 'twittering-set-current-hashtag)
       (define-key km "\C-m" 'twittering-enter)
       (define-key km "\C-c\C-l" 'twittering-update-lambda)
       (define-key km [mouse-1] 'twittering-click)
@@ -308,6 +342,8 @@ directory. You should change through function'twittering-icon-mode'")
       (define-key km "$" 'end-of-line)
       (define-key km "n" 'twittering-goto-next-status-of-user)
       (define-key km "p" 'twittering-goto-previous-status-of-user)
+      (define-key km [tab] 'twittering-goto-next-thing)
+      (define-key km [backtab] 'twittering-goto-previous-thing)
       (define-key km [backspace] 'backward-char)
       (define-key km "G" 'end-of-buffer)
       (define-key km "H" 'beginning-of-buffer)
@@ -1035,10 +1071,12 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 
 (defun twittering-update-status-from-minibuffer (&optional init-str
 							   reply-to-id)
-  (if (null init-str) (setq init-str ""))
+  (when (and (null init-str)
+	     twittering-current-hashtag)
+    (setq init-str (format " #%s " twittering-current-hashtag)))
   (let ((status init-str) (not-posted-p t))
     (while not-posted-p
-      (setq status (read-from-minibuffer "status: " status nil nil nil nil t))
+      (setq status (read-from-minibuffer "status: " status nil nil 'twittering-tweet-history nil t))
       (setq not-posted-p
 	    (not (twittering-update-status-if-not-blank status reply-to-id))))
     ))
@@ -1188,6 +1226,23 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (interactive)
   (twittering-update-status-from-minibuffer))
 
+(defun twittering-set-current-hashtag (&optional tag)
+  (interactive)
+  (unless tag
+    (setq tag (completing-read "hashtag (blank to clear): #"
+			       twittering-hashtag-history
+			       nil nil
+			       twittering-current-hashtag
+			       'twittering-hashtag-history
+			       ))
+    (message
+     (if (eq 0 (length tag))
+	 (progn (setq twittering-current-hashtag nil)
+		"Current hashtag is not set.")
+       (progn 
+	 (setq twittering-current-hashtag tag)
+	 (format "Current hashtag is #%s" twittering-current-hashtag))))))
+
 (defun twittering-erase-old-statuses ()
   (interactive)
   (setq twittering-timeline-data nil)
@@ -1283,7 +1338,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 
 (defun twittering-other-user-timeline-interactive ()
   (interactive)
-  (let ((username (read-from-minibuffer "user: " (get-text-property (point) 'username))))
+  (let ((username (read-from-minibuffer "user: " (get-text-property (point) 'username) nil nil 'twittering-user-history)))
     (if (> (length username) 0)
 	(twittering-get-timeline (concat "user_timeline/" username))
       (message "No user selected"))))
@@ -1351,10 +1406,10 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 (defun twittering-goto-previous-status ()
   "Go to previous status."
   (interactive)
-  (let ((pos))
-    (setq pos (twittering-get-previous-username-face-pos (point)))
-    (if pos
-	(goto-char pos)
+  (let* ((current-pos (point))
+         (prev-pos (twittering-get-previous-username-face-pos current-pos)))
+    (if (and prev-pos (not (eq current-pos prev-pos)))
+        (goto-char prev-pos)
       (message "Start of status."))))
 
 (defun twittering-get-previous-username-face-pos (pos)
@@ -1363,7 +1418,14 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
     (catch 'not-found
       (while (and pos (not (eq prop twittering-username-face)))
 	(setq pos (previous-single-property-change pos 'face))
-	(when (eq pos nil) (throw 'not-found nil))
+	(when (eq pos nil)
+	  (let ((head-prop (get-text-property (point-min) 'face)))
+	    (if (and
+		 (not (eq prop twittering-username-face))
+		 (eq head-prop twittering-username-face))
+		(setq pos (point-min))
+	      (throw 'not-found nil)
+	      )))
 	(setq prop (get-text-property pos 'face)))
       pos)))
 
@@ -1385,26 +1447,56 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   "Go to previous status of user."
   (interactive)
   (let ((user-name (twittering-get-username-at-pos (point)))
+        (prev-pos (point))
 	(pos (twittering-get-previous-username-face-pos (point))))
     (while (and (not (eq pos nil))
+                (not (eq pos prev-pos))
 		(not (equal (twittering-get-username-at-pos pos) user-name)))
+      (setq prev-pos pos)
       (setq pos (twittering-get-previous-username-face-pos pos)))
-    (if pos
+    (if (and pos
+             (not (eq pos prev-pos))
+             (equal (twittering-get-username-at-pos pos) user-name))
 	(goto-char pos)
       (if user-name
 	  (message "Start of %s's status." user-name)
 	(message "Invalid user-name.")))))
 
+(defun twittering-goto-next-thing (&optional backword)
+  "Go to next interesting thing. ex) username, URI, ... "
+  (interactive)
+  (let* ((propety-change-f (if backword
+			       'previous-single-property-change
+			     'next-single-property-change))
+	 (pos (funcall propety-change-f (point) 'face)))
+    (while (and pos
+		(not 
+		 (let* ((current-face (get-text-property pos 'face))
+			(face-pred
+			 (lambda (face)
+			   (cond
+			    ((listp current-face) (memq face current-face))
+			    ((symbolp current-face) (eq face current-face))
+			    (t nil)))))
+		   (member-if face-pred
+			      '(twittering-username-face
+				twittering-uri-face)))))
+      (setq pos (funcall propety-change-f pos 'face)))
+    (when pos
+      (goto-char pos))))
+
+(defun twittering-goto-previous-thing (&optional backword)
+  "Go to previous interesting thing. ex) username, URI, ... "
+  (interactive)
+  (twittering-goto-next-thing (not backword)))
+
 (defun twittering-get-username-at-pos (pos)
-  (let ((start-pos pos)
-	(end-pos))
-    (catch 'not-found
-      (while (eq (get-text-property start-pos 'face) twittering-username-face)
-	(setq start-pos (1- start-pos))
-	(when (or (eq start-pos nil) (eq start-pos 0)) (throw 'not-found nil)))
-      (setq start-pos (1+ start-pos))
-      (setq end-pos (next-single-property-change pos 'face))
-      (buffer-substring start-pos end-pos))))
+  (or (get-text-property pos 'username)
+      (get-text-property (max (point-min) (1- pos)) 'username)
+      (let* ((border (or (previous-single-property-change pos 'username)
+                         (point-min)))
+             (pos (max (point-min) (1- border))))
+        (get-text-property pos 'username))))
 
 (defun twittering-get-status-url (username id)
   "Generate status URL."

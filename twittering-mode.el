@@ -124,6 +124,11 @@ tweets received when this hook is run.")
 ;; %f - source
 ;; %# - id
 
+(defvar twittering-retweet-format "RT: %t (via @%s)")
+;; %s - screen_name
+;; %t - text
+;; %% - %
+
 (defvar twittering-buffer "*twittering*")
 (defun twittering-buffer ()
   (twittering-get-or-generate-buffer twittering-buffer))
@@ -1311,7 +1316,27 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	(text (get-text-property (point) 'text)))
     (when username
 	(twittering-update-status-from-minibuffer
-	 (concat "RT: " text " (via @" username ")")))))
+	 (let ((retweet-format
+		(or twittering-retweet-format "RT: %t (via @%s)"))
+	       (replace-func
+		(lambda (spec value str)
+		  (replace-regexp-in-string spec value str nil t)))
+	       (replace-table
+		`(("%s" . ,username)
+		  ("%t" . ,text))))
+	   (mapconcat
+	    (lambda (substr)
+	      (let ((current-str substr)
+		    (current-table replace-table))
+		(while (not (null current-table))
+		  (let ((spec (caar current-table))
+			(value (cdar current-table)))
+		    (setq current-str
+			  (funcall replace-func spec value current-str))
+		    (setq current-table (cdr current-table))))
+		current-str))
+	    (split-string retweet-format "%%") "%"))
+	 ))))
 
 (defun twittering-view-user-page ()
   (interactive)

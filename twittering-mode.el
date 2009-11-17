@@ -471,28 +471,31 @@ directory. You should change through function'twittering-icon-mode'")
 		    (twittering-get-username) ":" (twittering-get-password)))
 		  nl
 		  (when (string= "GET" method)
-		    "Accept: text/xml"
-		    ",application/xml"
-		    ",application/xhtml+xml"
-		    ",application/html;q=0.9"
-		    ",text/plain;q=0.8"
-		    ",image/png,*/*;q=0.5" nl
-		    "Accept-Charset: utf-8;q=0.7,*;q=0.7"
-		    nl)
+		    (concat
+		     "Accept: text/xml"
+		     ",application/xml"
+		     ",application/xhtml+xml"
+		     ",application/html;q=0.9"
+		     ",text/plain;q=0.8"
+		     ",image/png,*/*;q=0.5" nl
+		     "Accept-Charset: utf-8;q=0.7,*;q=0.7"
+		     nl))
 		  (when (string= "POST" method)
-		    "Content-Type: text/plain" nl
-		    "Content-Length: 0" nl)
+		    (concat
+		     "Content-Type: text/plain" nl
+		     "Content-Length: 0" nl))
 		  (when twittering-proxy-use
-		    "Proxy-Connection: Keep-Alive" nl
-		    (when (and twittering-proxy-user
-			       twittering-proxy-password)
-		      (concat
-		       "Proxy-Authorization: Basic "
-		       (base64-encode-string
-			(concat
-			 twittering-proxy-user ":" twittering-proxy-password))
-		       nl)
-		      ))
+		    (concat
+		     "Proxy-Connection: Keep-Alive" nl
+		     (when (and twittering-proxy-user
+				twittering-proxy-password)
+		       (concat
+			"Proxy-Authorization: Basic "
+			(base64-encode-string
+			 (concat
+			  twittering-proxy-user ":" twittering-proxy-password))
+			nl)
+		       )))
 		  nl))
     (debug-print (concat method "Request\n" request))
     request))

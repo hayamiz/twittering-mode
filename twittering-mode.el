@@ -152,6 +152,7 @@ tweets received when this hook is run.")
 
 ;;; Proxy
 (defvar twittering-proxy-use nil)
+(defvar twittering-proxy-keep-alive nil)
 (defvar twittering-proxy-server nil)
 (defvar twittering-proxy-port 8080)
 (defvar twittering-proxy-user nil)
@@ -486,7 +487,8 @@ directory. You should change through function'twittering-icon-mode'")
 		     "Content-Length: 0" nl))
 		  (when twittering-proxy-use
 		    (concat
-		     "Proxy-Connection: Keep-Alive" nl
+		     (when twittering-proxy-keep-alive
+		       (concat "Proxy-Connection: Keep-Alive" nl))
 		     (when (and twittering-proxy-user
 				twittering-proxy-password)
 		       (concat

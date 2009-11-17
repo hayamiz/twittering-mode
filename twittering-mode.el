@@ -75,16 +75,6 @@ stored here. DO NOT SET VALUE MANUALLY.")
 (defvar twittering-password nil)
 
 (defvar twittering-last-timeline-retrieved nil)
-(defun twittering-last-host ()
-  (twittering-convert-last-timeline-retrieved)
-  (car twittering-last-timeline-retrieved))
-(defun twittering-last-method ()
-  (twittering-convert-last-timeline-retrieved)
-  (nth 1 twittering-last-timeline-retrieved))
-(defun twittering-convert-last-timeline-retrieved ()
-  (and (stringp twittering-last-timeline-retrieved)
-       (setq twittering-last-timeline-retrieved
-	     `("twitter.com" ,twittering-last-timeline-retrieved))))
 (defvar twittering-list-index-retrieved nil)
 
 (defvar twittering-new-tweets-count 0
@@ -144,6 +134,20 @@ tweets received when this hook is run.")
     (if (stringp buffer)
 	(or (get-buffer buffer)
 	    (generate-new-buffer buffer)))))
+
+(defun twittering-last-host ()
+  (twittering-convert-last-timeline-retrieved)
+  (car twittering-last-timeline-retrieved))
+
+(defun twittering-last-method ()
+  (twittering-convert-last-timeline-retrieved)
+  (nth 1 twittering-last-timeline-retrieved))
+
+(defun twittering-convert-last-timeline-retrieved ()
+  "Adjust variable to keep a backward compatibility."
+  (and (stringp twittering-last-timeline-retrieved)
+       (setq twittering-last-timeline-retrieved
+	     `("twitter.com" ,twittering-last-timeline-retrieved))))
 
 (defun assocref (item alist)
   (cdr (assoc item alist)))
@@ -251,36 +255,36 @@ directory. You should change through function'twittering-icon-mode'")
 	    (let ((coding-system-for-read 'raw-text)
 		  (coding-system-for-write 'binary))
 	      (call-process twittering-convert-program nil nil nil
-			    file-name "-resize" 
+			    file-name "-resize"
 			    (format "%dx%d" twittering-convert-fix-size
 				    twittering-convert-fix-size)
 			    tmpfile)
 	      (rename-file tmpfile file-name t))
 	    (add-to-list 'twittering-image-type-cache `(,file-name . png)))
-      (let* ((file-output (shell-command-to-string (concat "file -b " file-name)))
-      	     (file-type (cond
-      			 ((string-match "JPEG" file-output) 'jpeg)
-      			 ((string-match "PNG" file-output) 'png)
-      			 ((string-match "GIF" file-output) 'gif)
-      			 ((string-match "bitmap" file-output)
-      			  (let ((coding-system-for-read 'raw-text)
-      				(coding-system-for-write 'binary))
-      			    (with-temp-buffer
-      			      (set-buffer-multibyte nil)
-      			      (insert-file-contents file-name)
-      			      (call-process-region
-      			       (point-min) (point-max)
-      			       twittering-convert-program
-      			       t (current-buffer) nil
-      			       "bmp:-" "png:-")
-      			      (write-region (point-min) (point-max)
-      					    file-name)))
-      			  'png)
-      			 ((string-match "\\.jpe?g" file-name) 'jpeg)
-      			 ((string-match "\\.png" file-name) 'png)
-      			 ((string-match "\\.gif" file-name) 'gif)
-      			 (t nil))))
-      	(add-to-list 'twittering-image-type-cache `(,file-name . ,file-type)))))
+	(let* ((file-output (shell-command-to-string (concat "file -b " file-name)))
+	       (file-type (cond
+			   ((string-match "JPEG" file-output) 'jpeg)
+			   ((string-match "PNG" file-output) 'png)
+			   ((string-match "GIF" file-output) 'gif)
+			   ((string-match "bitmap" file-output)
+			    (let ((coding-system-for-read 'raw-text)
+				  (coding-system-for-write 'binary))
+			      (with-temp-buffer
+				(set-buffer-multibyte nil)
+				(insert-file-contents file-name)
+				(call-process-region
+				 (point-min) (point-max)
+				 twittering-convert-program
+				 t (current-buffer) nil
+				 "bmp:-" "png:-")
+				(write-region (point-min) (point-max)
+					      file-name)))
+			    'png)
+			   ((string-match "\\.jpe?g" file-name) 'jpeg)
+			   ((string-match "\\.png" file-name) 'png)
+			   ((string-match "\\.gif" file-name) 'gif)
+			   (t nil))))
+	  (add-to-list 'twittering-image-type-cache `(,file-name . ,file-type)))))
   (cdr (assoc file-name twittering-image-type-cache)))
 
 (defun twittering-setftime (fmt string uni)
@@ -506,10 +510,11 @@ directory. You should change through function'twittering-icon-mode'")
     (set-buffer (twittering-http-buffer))
     (erase-buffer))
 
-  (let (proc (server host)
-	     (port "80")
-	     (proxy-user twittering-proxy-user)
-	     (proxy-password twittering-proxy-password))
+  (let ((server host)
+	(port "80")
+	(proxy-user twittering-proxy-user)
+	(proxy-password twittering-proxy-password)
+	proc)
     (condition-case get-error
 	(progn
 	  (if (and twittering-proxy-use twittering-proxy-server)
@@ -788,10 +793,11 @@ PARAMETERS is alist of URI parameters.
     (set-buffer (twittering-http-buffer))
     (erase-buffer))
 
-  (let (proc (server host)
-	     (port "80")
-	     (proxy-user twittering-proxy-user)
-	     (proxy-password twittering-proxy-password))
+  (let ((server host)
+	(port "80")
+	(proxy-user twittering-proxy-user)
+	(proxy-password twittering-proxy-password)
+	proc)
     (progn
       (if (and twittering-proxy-use twittering-proxy-server)
 	  (setq server twittering-proxy-server
@@ -1081,71 +1087,6 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	    (not (twittering-update-status-if-not-blank status reply-to-id))))
     ))
 
-(defun twittering-update-lambda ()
-  (interactive)
-  (twittering-http-post
-   "twitter.com"
-   "statuses/update"
-   `(("status" . "\xd34b\xd22b\xd26f\xd224\xd224\xd268\xd34b")
-     ("source" . "twmode"))))
-
-(defun twittering-update-jojo (usr msg)
-  (if (string-match "\xde21\xd24b\\(\xd22a\xe0b0\\|\xdaae\xe6cd\\)\xd24f\xd0d6\\([^\xd0d7]+\\)\xd0d7\xd248\xdc40\xd226"
-		    msg)
-      (twittering-http-post
-       "twitter.com"
-       "statuses/update"
-       `(("status" . ,(concat
-		       "@" usr " "
-		       (match-string-no-properties 2 msg)
-		       "\xd0a1\xd24f\xd243!?"))
-	 ("source" . "twmode")))))
-
-(defun twittering-manage-friendships (method username)
-  (twittering-http-post "twitter.com"
-			(concat "friendships/" method)
-			`(("screen_name" . ,username)
-			  ("source" . "twmode"))))
-
-(defun twittering-manage-favorites (method id)
-  (twittering-http-post "twitter.com"
-			(concat "favorites/" method "/" id)
-			`(("source" . "twmode"))))
-
-;;;
-;;; Commands
-;;;
-
-(defun twittering-start (&optional action)
-  (interactive)
-  (if (null action)
-      (setq action #'twittering-current-timeline-noninteractive))
-  (if twittering-timer
-      nil
-    (setq twittering-timer
-	  (run-at-time "0 sec"
-		       twittering-timer-interval
-		       #'twittering-timer-action action))))
-
-(defun twittering-stop ()
-  (interactive)
-  (cancel-timer twittering-timer)
-  (setq twittering-timer nil))
-
-(defun twittering-get-timeline (method &optional noninteractive id)
-  (twittering-get-twits "twitter.com"
-			(concat "statuses/" method) noninteractive id))
-
-(defun twittering-get-list (username listname)
-  (twittering-get-twits "api.twitter.com"
-			(concat "1/" username "/lists/" listname "/statuses")))
-
-(defun twittering-get-list-index (username)
-  (twittering-http-get "api.twitter.com"
-			(concat "1/" username "/lists")
-			t nil
-			'twittering-http-get-list-index-sentinel))
-
 (defun twittering-get-twits (host method &optional noninteractive id)
   (unless (string= (twittering-last-method) method)
     (setq twittering-timeline-last-update nil
@@ -1195,6 +1136,51 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 		 (set-buffer (twittering-wget-buffer))
 		 )))))))
 
+(defun twittering-get-timeline (method &optional noninteractive id)
+  (twittering-get-twits "twitter.com"
+			(concat "statuses/" method) noninteractive id))
+
+(defun twittering-get-list (username listname)
+  (twittering-get-twits "api.twitter.com"
+			(concat "1/" username "/lists/" listname "/statuses")))
+
+(defun twittering-get-list-index (username)
+  (twittering-http-get "api.twitter.com"
+			(concat "1/" username "/lists")
+			t nil
+			'twittering-http-get-list-index-sentinel))
+
+(defun twittering-manage-friendships (method username)
+  (twittering-http-post "twitter.com"
+			(concat "friendships/" method)
+			`(("screen_name" . ,username)
+			  ("source" . "twmode"))))
+
+(defun twittering-manage-favorites (method id)
+  (twittering-http-post "twitter.com"
+			(concat "favorites/" method "/" id)
+			`(("source" . "twmode"))))
+
+;;;
+;;; Commands
+;;;
+
+(defun twittering-start (&optional action)
+  (interactive)
+  (if (null action)
+      (setq action #'twittering-current-timeline-noninteractive))
+  (if twittering-timer
+      nil
+    (setq twittering-timer
+	  (run-at-time "0 sec"
+		       twittering-timer-interval
+		       #'twittering-timer-action action))))
+
+(defun twittering-stop ()
+  (interactive)
+  (cancel-timer twittering-timer)
+  (setq twittering-timer nil))
+
 (defun twittering-friends-timeline ()
   (interactive)
   (twittering-get-timeline "friends_timeline"))
@@ -1226,6 +1212,26 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (interactive)
   (twittering-update-status-from-minibuffer))
 
+(defun twittering-update-lambda ()
+  (interactive)
+  (twittering-http-post
+   "twitter.com"
+   "statuses/update"
+   `(("status" . "\xd34b\xd22b\xd26f\xd224\xd224\xd268\xd34b")
+     ("source" . "twmode"))))
+
+(defun twittering-update-jojo (usr msg)
+  (if (string-match "\xde21\xd24b\\(\xd22a\xe0b0\\|\xdaae\xe6cd\\)\xd24f\xd0d6\\([^\xd0d7]+\\)\xd0d7\xd248\xdc40\xd226"
+		    msg)
+      (twittering-http-post
+       "twitter.com"
+       "statuses/update"
+       `(("status" . ,(concat
+		       "@" usr " "
+		       (match-string-no-properties 2 msg)
+		       "\xd0a1\xd24f\xd243!?"))
+	 ("source" . "twmode")))))
+
 (defun twittering-set-current-hashtag (&optional tag)
   (interactive)
   (unless tag
@@ -1239,7 +1245,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
      (if (eq 0 (length tag))
 	 (progn (setq twittering-current-hashtag nil)
 		"Current hashtag is not set.")
-       (progn 
+       (progn
 	 (setq twittering-current-hashtag tag)
 	 (format "Current hashtag is #%s" twittering-current-hashtag))))))
 

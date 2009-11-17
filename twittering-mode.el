@@ -154,6 +154,7 @@ tweets received when this hook is run.")
 
 ;;; Proxy
 (defvar twittering-proxy-use nil)
+(defvar twittering-proxy-keep-alive nil)
 (defvar twittering-proxy-server nil)
 (defvar twittering-proxy-port 8080)
 (defvar twittering-proxy-user nil)
@@ -479,28 +480,32 @@ directory. You should change through function'twittering-icon-mode'")
 		    (twittering-get-username) ":" (twittering-get-password)))
 		  nl
 		  (when (string= "GET" method)
-		    "Accept: text/xml"
-		    ",application/xml"
-		    ",application/xhtml+xml"
-		    ",application/html;q=0.9"
-		    ",text/plain;q=0.8"
-		    ",image/png,*/*;q=0.5" nl
-		    "Accept-Charset: utf-8;q=0.7,*;q=0.7"
-		    nl)
+		    (concat
+		     "Accept: text/xml"
+		     ",application/xml"
+		     ",application/xhtml+xml"
+		     ",application/html;q=0.9"
+		     ",text/plain;q=0.8"
+		     ",image/png,*/*;q=0.5" nl
+		     "Accept-Charset: utf-8;q=0.7,*;q=0.7"
+		     nl))
 		  (when (string= "POST" method)
-		    "Content-Type: text/plain" nl
-		    "Content-Length: 0" nl)
+		    (concat
+		     "Content-Type: text/plain" nl
+		     "Content-Length: 0" nl))
 		  (when twittering-proxy-use
-		    "Proxy-Connection: Keep-Alive" nl
-		    (when (and twittering-proxy-user
-			       twittering-proxy-password)
-		      (concat
-		       "Proxy-Authorization: Basic "
-		       (base64-encode-string
-			(concat
-			 twittering-proxy-user ":" twittering-proxy-password))
-		       nl)
-		      ))
+		    (concat
+		     (when twittering-proxy-keep-alive
+		       (concat "Proxy-Connection: Keep-Alive" nl))
+		     (when (and twittering-proxy-user
+				twittering-proxy-password)
+		       (concat
+			"Proxy-Authorization: Basic "
+			(base64-encode-string
+			 (concat
+			  twittering-proxy-user ":" twittering-proxy-password))
+			nl)
+		       )))
 		  nl))
     (debug-print (concat method "Request\n" request))
     request))
@@ -822,12 +827,15 @@ PARAMETERS is alist of URI parameters.
       (let ((header (twittering-get-response-header))
 	    ;; (body (twittering-get-response-body)) not used now.
 	    (status nil))
-	(string-match "HTTP/1\.1 \\([a-z0-9 ]+\\)\r?\n" header)
-	(setq status (match-string-no-properties 1 header))
+	(if (string-match "HTTP/1\.1 \\([a-z0-9 ]+\\)\r?\n" header)
+			(setq status (match-string-no-properties 1 header))
+		(setq status
+          (progn (string-match "^\\([^\r\n]+\\)\r?\n" header)
+                 (match-string-no-properties 1 header))))
 	(case-string status
 		     (("200 OK")
 		      (message (if suc-msg suc-msg "Success: Post")))
-		     (t (message status)))
+		     (t (message "Response status code: %s" status)))
 	)
     (error (message (prin1-to-string err-signal))))
   )

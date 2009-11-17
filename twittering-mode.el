@@ -222,6 +222,7 @@ directory. You should change through function'twittering-icon-mode'")
 		(if (not (file-directory-p twittering-tmp-dir))
 		    (make-directory twittering-tmp-dir))
 		t)))))
+  (force-mode-line-update)
   (twittering-render-timeline))
 
 (defun twittering-scroll-mode (&optional arg)
@@ -229,14 +230,16 @@ directory. You should change through function'twittering-icon-mode'")
   (setq twittering-scroll-mode
 	(if (null arg)
 	    (not twittering-scroll-mode)
-	  (> (prefix-numeric-value arg) 0))))
+	  (> (prefix-numeric-value arg) 0)))
+  (force-mode-line-update))
 
 (defun twittering-jojo-mode (&optional arg)
   (interactive)
   (setq twittering-jojo-mode
 	(if (null arg)
 	    (not twittering-jojo-mode)
-	  (> (prefix-numeric-value arg) 0))))
+	  (> (prefix-numeric-value arg) 0)))
+  (force-mode-line-update))
 
 (defvar twittering-image-stack nil)
 (defvar twittering-image-type-cache nil)

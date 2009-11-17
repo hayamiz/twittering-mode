@@ -71,8 +71,10 @@ stored here. DO NOT SET VALUE MANUALLY.")
 (defvar twittering-timer-interval 90)
 
 (defvar twittering-username nil)
+(defvar twittering-username-active nil)
 
 (defvar twittering-password nil)
+(defvar twittering-password-active nil)
 
 (defvar twittering-last-timeline-retrieved nil)
 (defun twittering-last-host ()
@@ -402,6 +404,8 @@ directory. You should change through function'twittering-icon-mode'")
   (add-to-list 'minor-mode-alist '(twittering-icon-mode " tw-icon"))
   (add-to-list 'minor-mode-alist '(twittering-scroll-mode " tw-scroll"))
   (add-to-list 'minor-mode-alist '(twittering-jojo-mode " tw-jojo"))
+  (setq twittering-username-active twittering-username)
+  (setq twittering-password-active twittering-password)
   )
 
 (defmacro case-string (str &rest clauses)
@@ -442,6 +446,7 @@ directory. You should change through function'twittering-icon-mode'")
   (set-syntax-table twittering-mode-syntax-table)
   (run-hooks 'twittering-mode-hook)
   (font-lock-mode -1)
+  (twittering-stop)
   (twittering-start))
 
 ;;;
@@ -1141,8 +1146,9 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 
 (defun twittering-stop ()
   (interactive)
-  (cancel-timer twittering-timer)
-  (setq twittering-timer nil))
+  (when twittering-timer
+    (cancel-timer twittering-timer)
+    (setq twittering-timer nil)))
 
 (defun twittering-get-timeline (method &optional noninteractive id)
   (twittering-get-twits "twitter.com"
@@ -1385,12 +1391,12 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	(twittering-update-status-from-minibuffer (concat "@" username " ")))))
 
 (defun twittering-get-username ()
-  (or twittering-username
-      (setq twittering-username (read-string "your twitter username: "))))
+  (or twittering-username-active
+      (setq twittering-username-active (read-string "your twitter username: "))))
 
 (defun twittering-get-password ()
-  (or twittering-password
-      (setq twittering-password (read-passwd "your twitter password: "))))
+  (or twittering-password-active
+      (setq twittering-password-active (read-passwd "your twitter password: "))))
 
 (defun twittering-goto-next-status ()
   "Go to next status."

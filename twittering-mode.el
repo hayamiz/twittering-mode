@@ -1086,11 +1086,17 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (twittering-http-post
    "twitter.com"
    "statuses/update"
-   `(("status" . "\xd34b\xd22b\xd26f\xd224\xd224\xd268\xd34b")
+   `(("status" . (string-as-multibyte
+                  (if (>= emacs-major-version 23)
+                      "\316\273\343\201\213\343\202\217\343\201\204\343\201\204\343\202\210\316\273"
+                    "\222\246\313\222\244\253\222\244\357\222\244\244\222\244\244\222\244\350\222\246\313")))
      ("source" . "twmode"))))
 
 (defun twittering-update-jojo (usr msg)
-  (if (string-match "\xde21\xd24b\\(\xd22a\xe0b0\\|\xdaae\xe6cd\\)\xd24f\xd0d6\\([^\xd0d7]+\\)\xd0d7\xd248\xdc40\xd226"
+  (if (string-match (string-as-multibyte
+                     (if (>= emacs-major-version 23)
+                         "\346\254\241\343\201\253\\(\343\201\212\345\211\215\\|\350\262\264\346\247\230\\)\343\201\257\343\200\214\\([^\343\200\215]+\\)\343\200\215\343\201\250\350\250\200\343\201\206"
+                       "\222\274\241\222\244\313\\(\222\244\252\222\301\260\\|\222\265\256\222\315\315\\)\222\244\317\222\241\326\\([^\222\241\327]+\\)\222\241\327\222\244\310\222\270\300\222\244\246"))
 		    msg)
       (twittering-http-post
        "twitter.com"
@@ -1098,7 +1104,10 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
        `(("status" . ,(concat
 		       "@" usr " "
 		       (match-string-no-properties 2 msg)
-		       "\xd0a1\xd24f\xd243!?"))
+		       (string-as-multibyte
+                        (if (>= emacs-major-version 23)
+                            "\343\200\200\343\201\257\343\201\243!?"
+                          "\222\241\241\222\244\317\222\244\303!?"))))
 	 ("source" . "twmode")))))
 
 (defun twittering-manage-friendships (method username)

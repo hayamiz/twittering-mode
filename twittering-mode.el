@@ -45,9 +45,12 @@
 (require 'cl)
 (require 'xml)
 (require 'parse-time)
-(require 'smallurl)						; you can download smallurl from http://tinyurl.com/l978uu
+(require 'mm-url)
 
 (defconst twittering-mode-version "0.8")
+
+(defconst tinyurl-service-url "http://tinyurl.com/api-create.php?url="
+  "service url for tinyurl")
 
 (defun twittering-mode-version ()
   "Display a message for twittering-mode version."
@@ -431,7 +434,7 @@ directory. You should change through function'twittering-icon-mode'")
 	   (let ((nl "\r\n")
 		 request)
 	     (setq request
-		   (concat "GET https://twitter.com/" method-class "/" method
+		   (concat "GET http://twitter.com/" method-class "/" method
 			   ".xml"
 			   (when parameters
 			     (concat "?"
@@ -725,7 +728,7 @@ PARAMETERS is alist of URI parameters.
        (let ((nl "\r\n")
 	     request)
 	 (setq  request
-		(concat "POST https://twitter.com/" method-class "/" method ".xml"
+		(concat "POST http://twitter.com/" method-class "/" method ".xml"
 			(when parameters
 			  (concat "?"
 				  (mapconcat
@@ -866,7 +869,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
       (add-text-properties
        0 (length user-name)
        `(mouse-face highlight
-		    uri ,(concat "https://twitter.com/" user-screen-name)
+		    uri ,(concat "http://twitter.com/" user-screen-name)
 		    face twittering-username-face)
        user-name)
 
@@ -874,7 +877,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
       (add-text-properties
        0 (length user-screen-name)
        `(mouse-face highlight
-		    uri ,(concat "https://twitter.com/" user-screen-name)
+		    uri ,(concat "http://twitter.com/" user-screen-name)
 		    face twittering-username-face)
        user-screen-name)
 
@@ -882,7 +885,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
       (setq regex-index 0)
       (while regex-index
 	(setq regex-index
-	      (string-match "@\\([_a-zA-Z0-9]+\\)\\|\\(https?://[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+\\)"
+	      (string-match "@\\([_a-zA-Z0-9]+\\)\\|\\(http?://[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+\\)"
 			    text
 			    regex-index))
 	(when regex-index
@@ -898,7 +901,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 		 `(mouse-face
 		   highlight
 		   face twittering-uri-face
-		   uri-in-text ,(concat "https://twitter.com/" screen-name))
+		   uri-in-text ,(concat "http://twitter.com/" screen-name))
 	       `(mouse-face highlight
 			    face twittering-uri-face
 			    uri-in-text ,uri))
@@ -1023,7 +1026,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (if (null init-str) (setq init-str ""))
   (let ((status init-str) (not-posted-p t) (map minibuffer-local-map))
     (while not-posted-p
-	  (define-key map (kbd "<f4>") 'smallurl-replace-at-point)
+	  (define-key map (kbd "<f4>") 'twittering-tinyurl-replace-at-point)
       (setq status (read-from-minibuffer "status: " status map nil nil nil t))
 	  (while (< 141 (length status))
 		(setq status (read-from-minibuffer (format "(%d): "
@@ -1051,6 +1054,24 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 		       (match-string-no-properties 2 msg)
 		       "\xd0a1\xd24f\xd243!?"))
 	 ("source" . "twmode")))))
+
+(defun twittering-tinyurl-get (longurl)
+  "Tinyfy LONGURL"
+  (with-temp-buffer
+	(mm-url-insert (concat tinyurl-service-url longurl))
+	(buffer-substring (point-min) (point-at-eol))))
+
+(defun twittering-tinyurl-replace-at-point ()
+  "Replace the url at point with a tiny version."
+  (interactive)
+  (let* ((url-bounds (bounds-of-thing-at-point 'url))
+		 (url (thing-at-point 'url))
+		 (newurl (twittering-tinyurl-get url)))
+	(save-restriction
+	  (narrow-to-region (car url-bounds) (cdr url-bounds))
+	  (delete-region (point-min) (point-max))
+	  (insert newurl))
+	newurl))
 
 ;;;
 ;;; Commands
@@ -1303,7 +1324,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 
 (defun twittering-get-status-url (username id)
   "Generate status URL."
-  (format "https://twitter.com/%s/statuses/%s" username id))
+  (format "http://twitter.com/%s/statuses/%s" username id))
 
 (defun twittering-suspend ()
   "Suspend twittering-mode then switch to another buffer."

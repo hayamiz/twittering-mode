@@ -71,8 +71,10 @@ stored here. DO NOT SET VALUE MANUALLY.")
 (defvar twittering-timer-interval 90)
 
 (defvar twittering-username nil)
+(defvar twittering-username-active nil)
 
 (defvar twittering-password nil)
+(defvar twittering-password-active nil)
 
 (defvar twittering-last-timeline-retrieved nil)
 (defun twittering-last-host ()
@@ -122,6 +124,11 @@ tweets received when this hook is run.")
 ;; %f - source
 ;; %# - id
 
+(defvar twittering-retweet-format "RT: %t (via @%s)")
+;; %s - screen_name
+;; %t - text
+;; %% - %
+
 (defvar twittering-buffer "*twittering*")
 (defun twittering-buffer ()
   (twittering-get-or-generate-buffer twittering-buffer))
@@ -152,6 +159,7 @@ tweets received when this hook is run.")
 
 ;;; Proxy
 (defvar twittering-proxy-use nil)
+(defvar twittering-proxy-keep-alive nil)
 (defvar twittering-proxy-server nil)
 (defvar twittering-proxy-port 8080)
 (defvar twittering-proxy-user nil)
@@ -222,6 +230,7 @@ directory. You should change through function'twittering-icon-mode'")
 		(if (not (file-directory-p twittering-tmp-dir))
 		    (make-directory twittering-tmp-dir))
 		t)))))
+  (force-mode-line-update)
   (twittering-render-timeline))
 
 (defun twittering-scroll-mode (&optional arg)
@@ -229,14 +238,16 @@ directory. You should change through function'twittering-icon-mode'")
   (setq twittering-scroll-mode
 	(if (null arg)
 	    (not twittering-scroll-mode)
-	  (> (prefix-numeric-value arg) 0))))
+	  (> (prefix-numeric-value arg) 0)))
+  (force-mode-line-update))
 
 (defun twittering-jojo-mode (&optional arg)
   (interactive)
   (setq twittering-jojo-mode
 	(if (null arg)
 	    (not twittering-jojo-mode)
-	  (> (prefix-numeric-value arg) 0))))
+	  (> (prefix-numeric-value arg) 0)))
+  (force-mode-line-update))
 
 (defvar twittering-image-stack nil)
 (defvar twittering-image-type-cache nil)
@@ -399,6 +410,8 @@ directory. You should change through function'twittering-icon-mode'")
   (add-to-list 'minor-mode-alist '(twittering-icon-mode " tw-icon"))
   (add-to-list 'minor-mode-alist '(twittering-scroll-mode " tw-scroll"))
   (add-to-list 'minor-mode-alist '(twittering-jojo-mode " tw-jojo"))
+  (setq twittering-username-active twittering-username)
+  (setq twittering-password-active twittering-password)
   )
 
 (defmacro case-string (str &rest clauses)
@@ -439,6 +452,7 @@ directory. You should change through function'twittering-icon-mode'")
   (set-syntax-table twittering-mode-syntax-table)
   (run-hooks 'twittering-mode-hook)
   (font-lock-mode -1)
+  (twittering-stop)
   (twittering-start))
 
 ;;;
@@ -471,28 +485,32 @@ directory. You should change through function'twittering-icon-mode'")
 		    (twittering-get-username) ":" (twittering-get-password)))
 		  nl
 		  (when (string= "GET" method)
-		    "Accept: text/xml"
-		    ",application/xml"
-		    ",application/xhtml+xml"
-		    ",application/html;q=0.9"
-		    ",text/plain;q=0.8"
-		    ",image/png,*/*;q=0.5" nl
-		    "Accept-Charset: utf-8;q=0.7,*;q=0.7"
-		    nl)
+		    (concat
+		     "Accept: text/xml"
+		     ",application/xml"
+		     ",application/xhtml+xml"
+		     ",application/html;q=0.9"
+		     ",text/plain;q=0.8"
+		     ",image/png,*/*;q=0.5" nl
+		     "Accept-Charset: utf-8;q=0.7,*;q=0.7"
+		     nl))
 		  (when (string= "POST" method)
-		    "Content-Type: text/plain" nl
-		    "Content-Length: 0" nl)
+		    (concat
+		     "Content-Type: text/plain" nl
+		     "Content-Length: 0" nl))
 		  (when twittering-proxy-use
-		    "Proxy-Connection: Keep-Alive" nl
-		    (when (and twittering-proxy-user
-			       twittering-proxy-password)
-		      (concat
-		       "Proxy-Authorization: Basic "
-		       (base64-encode-string
-			(concat
-			 twittering-proxy-user ":" twittering-proxy-password))
-		       nl)
-		      ))
+		    (concat
+		     (when twittering-proxy-keep-alive
+		       (concat "Proxy-Connection: Keep-Alive" nl))
+		     (when (and twittering-proxy-user
+				twittering-proxy-password)
+		       (concat
+			"Proxy-Authorization: Basic "
+			(base64-encode-string
+			 (concat
+			  twittering-proxy-user ":" twittering-proxy-password))
+			nl)
+		       )))
 		  nl))
     (debug-print (concat method "Request\n" request))
     request))
@@ -814,12 +832,15 @@ PARAMETERS is alist of URI parameters.
       (let ((header (twittering-get-response-header))
 	    ;; (body (twittering-get-response-body)) not used now.
 	    (status nil))
-	(string-match "HTTP/1\.1 \\([a-z0-9 ]+\\)\r?\n" header)
-	(setq status (match-string-no-properties 1 header))
+	(if (string-match "HTTP/1\.1 \\([a-z0-9 ]+\\)\r?\n" header)
+			(setq status (match-string-no-properties 1 header))
+		(setq status
+          (progn (string-match "^\\([^\r\n]+\\)\r?\n" header)
+                 (match-string-no-properties 1 header))))
 	(case-string status
 		     (("200 OK")
 		      (message (if suc-msg suc-msg "Success: Post")))
-		     (t (message status)))
+		     (t (message "Response status code: %s" status)))
 	)
     (error (message (prin1-to-string err-signal))))
   )
@@ -1086,11 +1107,17 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (twittering-http-post
    "twitter.com"
    "statuses/update"
-   `(("status" . "\xd34b\xd22b\xd26f\xd224\xd224\xd268\xd34b")
+   `(("status" . (string-as-multibyte
+                  (if (>= emacs-major-version 23)
+                      "\316\273\343\201\213\343\202\217\343\201\204\343\201\204\343\202\210\316\273"
+                    "\222\246\313\222\244\253\222\244\357\222\244\244\222\244\244\222\244\350\222\246\313")))
      ("source" . "twmode"))))
 
 (defun twittering-update-jojo (usr msg)
-  (if (string-match "\xde21\xd24b\\(\xd22a\xe0b0\\|\xdaae\xe6cd\\)\xd24f\xd0d6\\([^\xd0d7]+\\)\xd0d7\xd248\xdc40\xd226"
+  (if (string-match (string-as-multibyte
+                     (if (>= emacs-major-version 23)
+                         "\346\254\241\343\201\253\\(\343\201\212\345\211\215\\|\350\262\264\346\247\230\\)\343\201\257\343\200\214\\([^\343\200\215]+\\)\343\200\215\343\201\250\350\250\200\343\201\206"
+                       "\222\274\241\222\244\313\\(\222\244\252\222\301\260\\|\222\265\256\222\315\315\\)\222\244\317\222\241\326\\([^\222\241\327]+\\)\222\241\327\222\244\310\222\270\300\222\244\246"))
 		    msg)
       (twittering-http-post
        "twitter.com"
@@ -1098,7 +1125,10 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
        `(("status" . ,(concat
 		       "@" usr " "
 		       (match-string-no-properties 2 msg)
-		       "\xd0a1\xd24f\xd243!?"))
+		       (string-as-multibyte
+                        (if (>= emacs-major-version 23)
+                            "\343\200\200\343\201\257\343\201\243!?"
+                          "\222\241\241\222\244\317\222\244\303!?"))))
 	 ("source" . "twmode")))))
 
 (defun twittering-manage-friendships (method username)
@@ -1129,8 +1159,9 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 
 (defun twittering-stop ()
   (interactive)
-  (cancel-timer twittering-timer)
-  (setq twittering-timer nil))
+  (when twittering-timer
+    (cancel-timer twittering-timer)
+    (setq twittering-timer nil)))
 
 (defun twittering-get-timeline (method &optional noninteractive id)
   (twittering-get-twits "twitter.com"
@@ -1285,7 +1316,27 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	(text (get-text-property (point) 'text)))
     (when username
 	(twittering-update-status-from-minibuffer
-	 (concat "RT: " text " (via @" username ")")))))
+	 (let ((retweet-format
+		(or twittering-retweet-format "RT: %t (via @%s)"))
+	       (replace-func
+		(lambda (spec value str)
+		  (replace-regexp-in-string spec value str nil t)))
+	       (replace-table
+		`(("%s" . ,username)
+		  ("%t" . ,text))))
+	   (mapconcat
+	    (lambda (substr)
+	      (let ((current-str substr)
+		    (current-table replace-table))
+		(while (not (null current-table))
+		  (let ((spec (caar current-table))
+			(value (cdar current-table)))
+		    (setq current-str
+			  (funcall replace-func spec value current-str))
+		    (setq current-table (cdr current-table))))
+		current-str))
+	    (split-string retweet-format "%%") "%"))
+	 ))))
 
 (defun twittering-view-user-page ()
   (interactive)
@@ -1373,12 +1424,12 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	(twittering-update-status-from-minibuffer (concat "@" username " ")))))
 
 (defun twittering-get-username ()
-  (or twittering-username
-      (setq twittering-username (read-string "your twitter username: "))))
+  (or twittering-username-active
+      (setq twittering-username-active (read-string "your twitter username: "))))
 
 (defun twittering-get-password ()
-  (or twittering-password
-      (setq twittering-password (read-passwd "your twitter password: "))))
+  (or twittering-password-active
+      (setq twittering-password-active (read-passwd "your twitter password: "))))
 
 (defun twittering-goto-next-status ()
   "Go to next status."

@@ -1,3 +1,9 @@
+2009-11-18  Alberto Garcia  <agarcia@igalia.com>
+
+	* twittering-mode.el
+	(+twittering-direct-message, twittering-mode-map):
+	New `twittering-direct-message' function to send direct messages.
+
 2009-11-15  Naohiro Aota  <naota@elisp.net>
 
 	* twittering-mode.el (twittering-convert-fix-size): New variable.

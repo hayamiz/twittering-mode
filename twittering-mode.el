@@ -347,6 +347,7 @@ directory. You should change through function'twittering-icon-mode'")
       (define-key km [mouse-1] 'twittering-click)
       (define-key km "\C-c\C-v" 'twittering-view-user-page)
       (define-key km "g" 'twittering-current-timeline)
+      (define-key km "d" 'twittering-direct-message)
       (define-key km "v" 'twittering-other-user-timeline)
       (define-key km "V" 'twittering-other-user-timeline-interactive)
       (define-key km "L" 'twittering-other-user-list-interactive)
@@ -1453,6 +1454,12 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 		(message (concat username " have no list"))
 	      (message twittering-list-index-retrieved)))))
       (message "No user selected"))))
+
+(defun twittering-direct-message ()
+  (interactive)
+  (let ((username (get-text-property (point) 'username)))
+    (if username
+	(twittering-update-status-from-minibuffer (concat "d " username " ")))))
 
 (defun twittering-reply-to-user ()
   (interactive)

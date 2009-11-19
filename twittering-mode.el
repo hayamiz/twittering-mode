@@ -870,11 +870,10 @@ XML tree as list. `buffer' may be a buffer or the name of an existing buffer. If
   (save-excursion
     (set-buffer buffer)
     (let ((content (buffer-string)))
-      (let ((content (buffer-string)))
 	(xml-parse-region (+ (string-match "\r?\n\r?\n" content)
 			     (length (match-string 0 content)))
 			  (point-max)))
-      )))
+      ))
 
 (defun twittering-cache-status-datum (status-datum &optional data-var)
   "Cache status datum into data-var(default twittering-timeline-data)
@@ -1343,7 +1342,6 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 (defun twittering-retweet ()
   (interactive)
   (let ((username (get-text-property (point) 'username))
-	(id (get-text-property (point) 'id))
 	(text (get-text-property (point) 'text)))
     (when username
 	(twittering-update-status-from-minibuffer

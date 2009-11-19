@@ -617,8 +617,7 @@ directory. You should change through function'twittering-icon-mode'")
 		     noninteractive)
 		(run-hooks 'twittering-new-tweets-hook))
 	    (twittering-render-timeline)
-	    ;(message (if suc-msg suc-msg "Success: Get."))
-		)
+	    (message (if suc-msg suc-msg "Success: Get.")))
 	   (t (message status))))
       (message "Failure: Bad http response.")))
   )
@@ -960,7 +959,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
       (setq regex-index 0)
       (while regex-index
 	(setq regex-index
-	      (string-match "@\\([_a-zA-Z0-9]+\\)\\|\\(http?://[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+\\)"
+	      (string-match "@\\([_a-zA-Z0-9]+\\)\\|\\(https?://[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+\\)"
 			    text
 			    regex-index))
 	(when regex-index
@@ -1344,7 +1343,6 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 (defun twittering-retweet ()
   (interactive)
   (let ((username (get-text-property (point) 'username))
-	(id (get-text-property (point) 'id))
 	(text (get-text-property (point) 'text)))
     (when username
 	(twittering-update-status-from-minibuffer

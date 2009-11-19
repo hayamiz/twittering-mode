@@ -1,4 +1,4 @@
-;; twittering-mode.el --- Major mode for Twitter
+;;; twittering-mode.el --- Major mode for Twitter
 
 ;; Copyright (C) 2007 Yuto Hayamizu.
 ;;               2008 Tsuyoshi CHO
@@ -43,8 +43,12 @@
 (require 'cl)
 (require 'xml)
 (require 'parse-time)
+(require 'mm-url)
 
 (defconst twittering-mode-version "0.8")
+
+(defconst tinyurl-service-url "http://tinyurl.com/api-create.php?url="
+  "service url for tinyurl")
 
 (defun twittering-mode-version ()
   "Display a message for twittering-mode version."
@@ -592,7 +596,7 @@ directory. You should change through function'twittering-icon-mode'")
 	(body (twittering-get-response-body))
 	(status nil)
 	)
-    (if (string-match "HTTP/1\.[01] \\([a-z0-9 ]+\\)\r?\n" header)
+    (if (string-match "HTTP/1\.[01] \\([a-zA-Z0-9 ]+\\)\r?\n" header)
 	(progn
 	  (setq status (match-string-no-properties 1 header))
 	  (case-string
@@ -617,7 +621,8 @@ directory. You should change through function'twittering-icon-mode'")
 		     noninteractive)
 		(run-hooks 'twittering-new-tweets-hook))
 	    (twittering-render-timeline)
-	    (message (if suc-msg suc-msg "Success: Get.")))
+	    ;(message (if suc-msg suc-msg "Success: Get."))
+		)
 	   (t (message status))))
       (message "Failure: Bad http response.")))
   )
@@ -960,7 +965,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
       (setq regex-index 0)
       (while regex-index
 	(setq regex-index
-	      (string-match "@\\([_a-zA-Z0-9]+\\)\\|\\(https?://[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+\\)"
+	      (string-match "@\\([_a-zA-Z0-9]+\\)\\|\\(http?://[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+\\)"
 			    text
 			    regex-index))
 	(when regex-index
@@ -1101,11 +1106,17 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (when (and (null init-str)
 	     twittering-current-hashtag)
     (setq init-str (format " #%s " twittering-current-hashtag)))
-  (let ((status init-str) (not-posted-p t))
+  (let ((status init-str) (not-posted-p t) (map minibuffer-local-map))
     (while not-posted-p
-      (setq status (read-from-minibuffer "status: " status nil nil 'twittering-tweet-history nil t))
+      (define-key map (kbd "<f4>") 'twittering-tinyurl-replace-at-point)
+      (setq status (read-from-minibuffer "status: " status map nil 'twittering-tweet-history nil t))
+      (while (< 140 (length status))
+	(setq status (read-from-minibuffer (format "(%d): "
+						   (- 140 (length status)))
+					   status map nil 'twittering-tweet-history nil t)))
       (setq not-posted-p
-	    (not (twittering-update-status-if-not-blank status reply-to-id))))
+	    (not (twittering-update-status-if-not-blank status reply-to-id)))
+      )
     ))
 
 (defun twittering-get-timeline (method &optional noninteractive id)
@@ -1122,6 +1133,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 			t nil
 			'twittering-http-get-list-index-sentinel))
 
+
 (defun twittering-manage-friendships (method username)
   (twittering-http-post "twitter.com"
 			(concat "friendships/" method)
@@ -1132,6 +1144,24 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (twittering-http-post "twitter.com"
 			(concat "favorites/" method "/" id)
 			`(("source" . "twmode"))))
+
+(defun twittering-tinyurl-get (longurl)
+  "Tinyfy LONGURL"
+  (with-temp-buffer
+	(mm-url-insert (concat tinyurl-service-url longurl))
+	(buffer-substring (point-min) (point-at-eol))))
+
+(defun twittering-tinyurl-replace-at-point ()
+  "Replace the url at point with a tiny version."
+  (interactive)
+  (let* ((url-bounds (bounds-of-thing-at-point 'url))
+		 (url (thing-at-point 'url))
+		 (newurl (twittering-tinyurl-get url)))
+	(save-restriction
+	  (narrow-to-region (car url-bounds) (cdr url-bounds))
+	  (delete-region (point-min) (point-max))
+	  (insert newurl))
+	newurl))
 
 ;;;
 ;;; Commands
@@ -1319,6 +1349,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 (defun twittering-retweet ()
   (interactive)
   (let ((username (get-text-property (point) 'username))
+	(id (get-text-property (point) 'id))
 	(text (get-text-property (point) 'text)))
     (when username
 	(twittering-update-status-from-minibuffer

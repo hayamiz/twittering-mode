@@ -1326,7 +1326,7 @@ If TO is a function, the matched string is replaced with the
 return value of (funcall TO the-following-string the-match-data).
 "
   (let ((current-pos 0)
-	(result nil)
+	(result "")
 	(case-fold-search nil))
     (while (string-match prefix string current-pos)
       (let ((found nil)
@@ -1335,7 +1335,7 @@ return value of (funcall TO the-following-string the-match-data).
 	    (matched-string (match-string 0 string))
 	    (skipped-string
 	     (substring string current-pos (match-beginning 0))))
-	(setq result (cons skipped-string result))
+	(setq result (concat result skipped-string))
 	(setq current-pos next-pos)
 	(while (and (not (null current-table))
 		    (not found))
@@ -1351,12 +1351,12 @@ return value of (funcall TO the-following-string the-match-data).
 			 (funcall value following-string (match-data)))))
 		  (setq found t)
 		  (setq current-pos next-pos)
-		  (setq result (cons output result)))
+		  (setq result (concat result output)))
 	      (setq current-table (cdr current-table)))))
 	(if (not found)
-	    (setq result (cons matched-string result)))))
+	    (setq result (concat result matched-string)))))
     (let* ((skipped-string (substring string current-pos)))
-      (apply 'concat (reverse (cons skipped-string result))))
+      (concat result skipped-string))
     ))
 
 (defun twittering-retweet ()

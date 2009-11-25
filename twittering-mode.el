@@ -46,6 +46,7 @@
 (require 'mm-url)
 
 (defconst twittering-mode-version "0.8")
+(defconst twittering-max-count 200)
 
 (defconst tinyurl-service-url "http://tinyurl.com/api-create.php?url="
   "service url for tinyurl")
@@ -1216,15 +1217,20 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (let ((buf (get-buffer twittering-buffer)))
     (if (not buf)
 	(twittering-stop)
-      (let ((count "20")
-	    parameters)
-	(when (boundp 'twittering-get-count)
-	  (cond
-	   ((integerp twittering-get-count)
-	    (setq count (number-to-string twittering-get-count)))
-	   ((string-match "^[0-9]+$" twittering-get-count)
-	    (setq count twittering-get-count))))
-	(setq parameters `(("count" . ,count)))
+      (let* ((default-count 20)
+	     (count (cond
+		     ((not (boundp 'twittering-get-count)) default-count)
+		     ((integerp twittering-get-count) twittering-get-count)
+		     ((string-match "^[0-9]+$" twittering-get-count)
+		      (string-to-number twittering-get-count 10))
+		     (t default-count)))
+	     (count (min (max 1 count) twittering-max-count))
+	     (regexp-list-method "^1/[^/]*/lists/[^/]*/statuses$")
+	     (parameters
+	      (list (cons (if (string-match regexp-list-method method)
+			      "per_page"
+			    "count")
+			  (number-to-string count)))))
 	(if id
 	    (add-to-list 'parameters `("max_id" . ,id))
 	  (when twittering-timeline-last-update

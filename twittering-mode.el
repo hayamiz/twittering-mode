@@ -139,10 +139,6 @@ tweets received when this hook is run.")
 (defun twittering-buffer ()
   (twittering-get-or-generate-buffer twittering-buffer))
 
-(defvar twittering-http-buffer "*twittering-http-buffer*")
-(defun twittering-http-buffer ()
-  (twittering-get-or-generate-buffer twittering-http-buffer))
-
 (defvar twittering-timeline-data nil)
 (defvar twittering-timeline-last-update nil)
 
@@ -866,8 +862,7 @@ PARAMETERS is alist of URI parameters.
 
 (defun twittering-get-response-body (buffer)
   "Exract HTTP response body from HTTP response, parse it as XML, and return a
-XML tree as list. `buffer' may be a buffer or the name of an existing buffer. If
-`buffer' is omitted, the value of `twittering-http-buffer' is used as `buffer'."
+XML tree as list. `buffer' may be a buffer or the name of an existing buffer. "
   (if (stringp buffer) (setq buffer (get-buffer buffer)))
   (save-excursion
     (set-buffer buffer)

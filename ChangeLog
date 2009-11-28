@@ -6,6 +6,7 @@
 	(twittering-get-response-header, twittering-get-response-body):
 	requires 'buffer' because now each http request is associated with
 	its temp buffer
+	(twittering-http-buffer): removed
 
 2009-11-19  Tadashi MATSUO  <tad@mymail.twin.jp>
 

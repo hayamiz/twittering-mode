@@ -1,3 +1,9 @@
+2009-11-19  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-format-string): Add new function
+	to format strings with a user-defined table.
+	(twittering-retweet): Use 'twittering-format-string'.
+
 2009-11-18  Alberto Garcia  <agarcia@igalia.com>
 
 	* twittering-mode.el

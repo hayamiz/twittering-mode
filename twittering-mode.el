@@ -1341,34 +1341,79 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	(if uri
 	    (browse-url uri))))))
 
+(defun twittering-format-string(string prefix replacement-table)
+  "Format STRING according to PREFIX and REPLACEMENT-TABLE.
+PREFIX is a regexp. REPLACEMENT-TABLE is a list of (FROM . TO) pairs,
+where FROM is a regexp and TO is a string or a 2-parameter function.
+
+The pairs in REPLACEMENT-TABLE are stored in order of precedence.
+First, search PREFIX in STRING from left to right.
+If PREFIX is found in STRING, try to match the following string with
+FROM of each pair in the same order of REPLACEMENT-TABLE. If FROM in
+a pair is matched, replace the prefix and the matched string with a
+string generated from TO.
+If TO is a string, the matched string is replaced with TO.
+If TO is a function, the matched string is replaced with the
+return value of (funcall TO the-following-string the-match-data).
+"
+  (let ((current-pos 0)
+	(result "")
+	(case-fold-search nil))
+    (while (string-match prefix string current-pos)
+      (let ((found nil)
+	    (current-table replacement-table)
+	    (next-pos (match-end 0))
+	    (matched-string (match-string 0 string))
+	    (skipped-string
+	     (substring string current-pos (match-beginning 0))))
+	(setq result (concat result skipped-string))
+	(setq current-pos next-pos)
+	(while (and (not (null current-table))
+		    (not found))
+	  (let ((key (caar current-table))
+		(value (cdar current-table))
+		(following-string (substring string current-pos))
+		(case-fold-search nil))
+	    (if (string-match (concat "^" key) following-string)
+		(let ((next-pos (+ current-pos (match-end 0)))
+		      (output
+		       (if (stringp value)
+			   value
+			 (funcall value following-string (match-data)))))
+		  (setq found t)
+		  (setq current-pos next-pos)
+		  (setq result (concat result output)))
+	      (setq current-table (cdr current-table)))))
+	(if (not found)
+	    (setq result (concat result matched-string)))))
+    (let* ((skipped-string (substring string current-pos)))
+      (concat result skipped-string))
+    ))
+
 (defun twittering-retweet ()
   (interactive)
   (let ((username (get-text-property (point) 'username))
+	(text (get-text-property (point) 'text))
 	(id (get-text-property (point) 'id))
-	(text (get-text-property (point) 'text)))
+	(retweet-time (current-time))
+	(format-str (or twittering-retweet-format
+			"RT: %t (via @%s)")))
     (when username
+      (let ((prefix "%")
+	    (replace-table
+	     `(("%" . "%")
+	       ("s" . ,username)
+	       ("t" . ,text)
+	       ("#" . ,id)
+	       ("C{\\([^}]*\\)}" .
+		(lambda (str match-data)
+		  (store-match-data match-data)
+		  (format-time-string (match-string 1 str) ',retweet-time)))
+	       ))
+	    )
 	(twittering-update-status-from-minibuffer
-	 (let ((retweet-format
-		(or twittering-retweet-format "RT: %t (via @%s)"))
-	       (replace-func
-		(lambda (spec value str)
-		  (replace-regexp-in-string spec value str nil t)))
-	       (replace-table
-		`(("%s" . ,username)
-		  ("%t" . ,text))))
-	   (mapconcat
-	    (lambda (substr)
-	      (let ((current-str substr)
-		    (current-table replace-table))
-		(while (not (null current-table))
-		  (let ((spec (caar current-table))
-			(value (cdar current-table)))
-		    (setq current-str
-			  (funcall replace-func spec value current-str))
-		    (setq current-table (cdr current-table))))
-		current-str))
-	    (split-string retweet-format "%%") "%"))
-	 ))))
+	 (twittering-format-string format-str prefix replace-table))
+	))))
 
 (defun twittering-view-user-page ()
   (interactive)

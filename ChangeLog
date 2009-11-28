@@ -1,5 +1,7 @@
 2009-11-28  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
+	* test/run-test.el (twittering-run-test): use test.el
+
 	* twittering-mode.el (twittering-http-get, twittering-http-post):
 	use a temp-buffer for each connection. This change solved the
 	problem caused by concurrent HTTP request.

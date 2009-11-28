@@ -19,8 +19,9 @@
 	(load file-name))))
 
   (test-run-all-cases)
-
-  (print (save-excursion (set-buffer "*test-result*")
-			 (buffer-string))))
+  
+  (princ (save-excursion (set-buffer "*test-result*")
+			 (buffer-string)))
+  (terpri))
 
 (twittering-run-test)

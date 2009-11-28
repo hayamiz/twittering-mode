@@ -44,7 +44,7 @@
       (t nil)))
 
   (test-assert-string-equal "Amphibian"
-    (case-string "Rinko"
+    (case-string "Frog"
       (("Rabbit") "Mammal")
       (("Salamandar" "Frog") "Amphibian")
       (t nil)))

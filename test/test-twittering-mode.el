@@ -51,5 +51,23 @@
   )
 
 (defcase format-string nil nil
-  (test-assert-string-equal "foo"
-    (twittering-format-string "" "" nil)))
+  (test-assert-string-equal ""
+    (twittering-format-string "" "" nil))
+
+  (test-assert-string-equal "Hello world"
+    (twittering-format-string "Hello world" "" nil))
+
+  (test-assert-string-equal "RT: twittering-mode now (via @twmode)"
+    (twittering-format-string "RT: %t (via @%s)" "%"
+			      '(("t" . "twittering-mode now")
+				("s" . "twmode"))))
+
+  (test-assert-string-equal "RT: %t (via @twmode)"
+    (twittering-format-string "RT: %t (via @%s)" "%"
+			      '(("t" . "%t")
+				("s" . "twmode"))))
+
+  (test-assert-string-equal "new\nline"
+    (twittering-format-string "new~%line" "~"
+			      '(("%" . "\n"))))
+  )

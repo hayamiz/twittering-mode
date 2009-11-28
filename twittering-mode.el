@@ -871,11 +871,10 @@ XML tree as list. `buffer' may be a buffer or the name of an existing buffer. If
   (save-excursion
     (set-buffer buffer)
     (let ((content (buffer-string)))
-      (let ((content (buffer-string)))
 	(xml-parse-region (+ (string-match "\r?\n\r?\n" content)
 			     (length (match-string 0 content)))
 			  (point-max)))
-      )))
+      ))
 
 (defun twittering-cache-status-datum (status-datum &optional data-var)
   "Cache status datum into data-var(default twittering-timeline-data)

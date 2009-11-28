@@ -1342,7 +1342,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	(if uri
 	    (browse-url uri))))))
 
-(defun twittering-format-string(string prefix replacement-table)
+(defun twittering-format-string (string prefix replacement-table)
   "Format STRING according to PREFIX and REPLACEMENT-TABLE.
 PREFIX is a regexp. REPLACEMENT-TABLE is a list of (FROM . TO) pairs,
 where FROM is a regexp and TO is a string or a 2-parameter function.

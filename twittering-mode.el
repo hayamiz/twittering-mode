@@ -526,15 +526,11 @@ directory. You should change through function'twittering-icon-mode'")
   (host method &optional noninteractive parameters sentinel)
   (if (null sentinel) (setq sentinel 'twittering-http-get-default-sentinel))
 
-  ;; clear the buffer
-  (save-excursion
-    (set-buffer (twittering-http-buffer))
-    (erase-buffer))
-
   (let (proc (server host)
 	     (port "80")
 	     (proxy-user twittering-proxy-user)
-	     (proxy-password twittering-proxy-password))
+	     (proxy-password twittering-proxy-password)
+	     (temp-buffer (generate-new-buffer "*twmode-http-buffer*")))
     (condition-case get-error
 	(progn
 	  (if (and twittering-proxy-use twittering-proxy-server)
@@ -545,10 +541,12 @@ directory. You should change through function'twittering-icon-mode'")
 	    )
 	  (setq proc
 		(open-network-stream
-		 "network-connection-process" (twittering-http-buffer)
+		 "network-connection-process" temp-buffer
 		 server (string-to-number port)))
-          (lexical-let ((sentinel sentinel) (noninteractive noninteractive))
-            (set-process-sentinel proc (lambda (&rest args) (apply sentinel noninteractive args))))
+          (lexical-let ((temp-buffer temp-buffer)
+			(sentinel sentinel)
+			(noninteractive noninteractive))
+            (set-process-sentinel proc (lambda (&rest args) (apply sentinel temp-buffer noninteractive args))))
 	  (process-send-string
 	   proc
 	   (twittering-make-http-request host "GET" method parameters)))
@@ -563,66 +561,68 @@ directory. You should change through function'twittering-icon-mode'")
 ;; XXX: this is a preliminary implementation because we should parse
 ;; xmltree in the function.
 (defun twittering-http-get-list-index-sentinel
-  (noninteractive proc stat &optional suc-msg)
-  (let ((header (twittering-get-response-header)))
-    (if (not (string-match "HTTP/1\.[01] \\([a-z0-9 ]+\\)\r?\n" header))
-	(setq twittering-list-index-retrieved "Failure: Bad http response.")
-      (let ((status (match-string-no-properties 1 header)))
-	(if (not (string-match "\r?\nLast-Modified: " header))
-	    (setq twittering-list-index-retrieved
-		  (concat status ", but no contents."))
-	  (case-string
-	   status
-	   (("200 OK")
-	    (let ((buffer (twittering-http-buffer))
-		  (indexes nil))
-	      (save-excursion
-		(set-buffer buffer)
-		(goto-char (point-min))
-		(search-forward "\r?\n\r?\n" nil t)
-		(while (re-search-forward
-			"<slug>\\([-a-zA-Z0-9_]+\\)</slug>" nil t)
-		  (push (match-string 1) indexes))
-		(if indexes
-		    (setq twittering-list-index-retrieved indexes)
-		  (setq twittering-list-index-retrieved "")))))
-	   (t
-	    (setq twittering-list-index-retrieved status))))))))
+  (temp-buffer noninteractive proc stat &optional suc-msg)
+  (unwind-protect
+      (let ((header (twittering-get-response-header temp-buffer)))
+	(if (not (string-match "HTTP/1\.[01] \\([a-z0-9 ]+\\)\r?\n" header))
+	    (setq twittering-list-index-retrieved "Failure: Bad http response.")
+	  (let ((status (match-string-no-properties 1 header)))
+	    (if (not (string-match "\r?\nLast-Modified: " header))
+		(setq twittering-list-index-retrieved
+		      (concat status ", but no contents."))
+	      (case-string
+	       status
+	       (("200 OK")
+		(save-excursion
+		  (set-buffer temp-buffer)
+		  (goto-char (point-min))
+		  (search-forward "\r?\n\r?\n" nil t)
+		  (while (re-search-forward
+			  "<slug>\\([-a-zA-Z0-9_]+\\)</slug>" nil t)
+		    (push (match-string 1) indexes))
+		  (if indexes
+		      (setq twittering-list-index-retrieved indexes)
+		    (setq twittering-list-index-retrieved ""))))
+	       (t
+		(setq twittering-list-index-retrieved status)))))))
+    (kill-buffer temp-buffer)))
 
-(defun twittering-http-get-default-sentinel (noninteractive proc stat &optional suc-msg)
-  (let ((header (twittering-get-response-header))
-	(body (twittering-get-response-body))
-	(status nil)
-	)
-    (if (string-match "HTTP/1\.[01] \\([a-zA-Z0-9 ]+\\)\r?\n" header)
-	(progn
-	  (setq status (match-string-no-properties 1 header))
-	  (case-string
-	   status
-	   (("200 OK")
-	    (setq twittering-new-tweets-count
-		  (count t (mapcar
-			    #'twittering-cache-status-datum
-			    (reverse (twittering-xmltree-to-status
-				      body)))))
-            (setq twittering-timeline-data
-                  (sort twittering-timeline-data
-                        (lambda (status1 status2)
-                          (let ((created-at1
-                                 (twittering-created-at-to-seconds
-                                  (cdr (assoc 'created-at status1))))
-                                (created-at2
-                                 (twittering-created-at-to-seconds
-                                  (cdr (assoc 'created-at status2)))))
-                            (> created-at1 created-at2)))))
-	    (if (and (> twittering-new-tweets-count 0)
-		     noninteractive)
-		(run-hooks 'twittering-new-tweets-hook))
-	    (twittering-render-timeline)
-	    (when twittering-notify-successful-http-get
-	      (message (if suc-msg suc-msg "Success: Get."))))
-	   (t (message status))))
-      (message "Failure: Bad http response.")))
+(defun twittering-http-get-default-sentinel (temp-buffer noninteractive proc stat &optional suc-msg)
+  (unwind-protect
+      (let ((header (twittering-get-response-header temp-buffer))
+	    (body (twittering-get-response-body temp-buffer))
+	    (status nil)
+	    )
+	(if (string-match "HTTP/1\.[01] \\([a-zA-Z0-9 ]+\\)\r?\n" header)
+	    (progn
+	      (setq status (match-string-no-properties 1 header))
+	      (case-string
+	       status
+	       (("200 OK")
+		(setq twittering-new-tweets-count
+		      (count t (mapcar
+				#'twittering-cache-status-datum
+				(reverse (twittering-xmltree-to-status
+					  body)))))
+		(setq twittering-timeline-data
+		      (sort twittering-timeline-data
+			    (lambda (status1 status2)
+			      (let ((created-at1
+				     (twittering-created-at-to-seconds
+				      (cdr (assoc 'created-at status1))))
+				    (created-at2
+				     (twittering-created-at-to-seconds
+				      (cdr (assoc 'created-at status2)))))
+				(> created-at1 created-at2)))))
+		(if (and (> twittering-new-tweets-count 0)
+			 noninteractive)
+		    (run-hooks 'twittering-new-tweets-hook))
+		(twittering-render-timeline)
+		(when twittering-notify-successful-http-get
+		  (message (if suc-msg suc-msg "Success: Get."))))
+	       (t (message status))))
+	  (message "Failure: Bad http response.")))
+    (kill-buffer temp-buffer))
   )
 
 (defun twittering-render-timeline ()
@@ -809,15 +809,11 @@ PARAMETERS is alist of URI parameters.
  ex) ((\"mode\" . \"view\") (\"page\" . \"6\")) => <URI>?mode=view&page=6"
   (if (null sentinel) (setq sentinel 'twittering-http-post-default-sentinel))
 
-  ;; clear the buffer
-  (save-excursion
-    (set-buffer (twittering-http-buffer))
-    (erase-buffer))
-
   (let (proc (server host)
 	     (port "80")
 	     (proxy-user twittering-proxy-user)
-	     (proxy-password twittering-proxy-password))
+	     (proxy-password twittering-proxy-password)
+	     (temp-buffer (generate-new-buffer "*twmode-http-buffer*")))
     (progn
       (if (and twittering-proxy-use twittering-proxy-server)
 	  (setq server twittering-proxy-server
@@ -827,49 +823,52 @@ PARAMETERS is alist of URI parameters.
 	)
       (setq proc
 	    (open-network-stream
-	     "network-connection-process" (twittering-http-buffer)
+	     "network-connection-process" temp-buffer
 	     server (string-to-number port)))
-      (set-process-sentinel proc sentinel)
+      (lexical-let ((temp-buffer temp-buffer)
+		    (sentinel sentinel))
+	(set-process-sentinel proc
+			      (lambda (&rest args)
+				(apply sentinel temp-buffer args))))
       (process-send-string
        proc
        (twittering-make-http-request host "POST" method parameters)))))
 
-(defun twittering-http-post-default-sentinel (proc stat &optional suc-msg)
+(defun twittering-http-post-default-sentinel (temp-buffer proc stat &optional suc-msg)
 
-  (condition-case err-signal
-      (let ((header (twittering-get-response-header))
-	    ;; (body (twittering-get-response-body)) not used now.
-	    (status nil))
-	(if (string-match "HTTP/1\.1 \\([a-z0-9 ]+\\)\r?\n" header)
-			(setq status (match-string-no-properties 1 header))
-		(setq status
-          (progn (string-match "^\\([^\r\n]+\\)\r?\n" header)
-                 (match-string-no-properties 1 header))))
-	(case-string status
-		     (("200 OK")
-		      (message (if suc-msg suc-msg "Success: Post")))
-		     (t (message "Response status code: %s" status)))
-	)
-    (error (message (prin1-to-string err-signal))))
+  (unwind-protect
+      (condition-case err-signal
+	  (let ((header (twittering-get-response-header temp-buffer))
+		;; (body (twittering-get-response-body)) not used now.
+		(status nil))
+	    (if (string-match "HTTP/1\.1 \\([a-z0-9 ]+\\)\r?\n" header)
+		(setq status (match-string-no-properties 1 header))
+	      (setq status
+		    (progn (string-match "^\\([^\r\n]+\\)\r?\n" header)
+			   (match-string-no-properties 1 header))))
+	    (case-string status
+			 (("200 OK")
+			  (message (if suc-msg suc-msg "Success: Post")))
+			 (t (message "Response status code: %s" status)))
+	    )
+	(error (message (prin1-to-string err-signal))))
+    (kill-buffer temp-buffer))
   )
 
-(defun twittering-get-response-header (&optional buffer)
+(defun twittering-get-response-header (buffer)
   "Exract HTTP response header from HTTP response.
-`buffer' may be a buffer or the name of an existing buffer.
- If `buffer' is omitted, the value of `twittering-http-buffer' is used as `buffer'."
+`buffer' may be a buffer or the name of an existing buffer which contains the HTTP response."
   (if (stringp buffer) (setq buffer (get-buffer buffer)))
-  (if (null buffer) (setq buffer (twittering-http-buffer)))
   (save-excursion
     (set-buffer buffer)
     (let ((content (buffer-string)))
       (substring content 0 (string-match "\r?\n\r?\n" content)))))
 
-(defun twittering-get-response-body (&optional buffer)
+(defun twittering-get-response-body (buffer)
   "Exract HTTP response body from HTTP response, parse it as XML, and return a
 XML tree as list. `buffer' may be a buffer or the name of an existing buffer. If
 `buffer' is omitted, the value of `twittering-http-buffer' is used as `buffer'."
   (if (stringp buffer) (setq buffer (get-buffer buffer)))
-  (if (null buffer) (setq buffer (twittering-http-buffer)))
   (save-excursion
     (set-buffer buffer)
     (let ((content (buffer-string)))

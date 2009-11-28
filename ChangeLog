@@ -1,3 +1,12 @@
+2009-11-28  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-http-get, twittering-http-post):
+	use a temp-buffer for each connection. This change solved the
+	problem caused by concurrent HTTP request.
+	(twittering-get-response-header, twittering-get-response-body):
+	requires 'buffer' because now each http request is associated with
+	its temp buffer
+
 2009-11-19  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-format-string): Add new function

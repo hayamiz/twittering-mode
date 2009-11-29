@@ -1,3 +1,12 @@
+2009-11-30  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-max-number-of-tweets-on-retrieval)
+	(twittering-number-of-tweets-on-retrieval): add
+	(twittering-http-get-list-index-sentinel): restore the variable
+	'indexes' removed by mistake
+	(twittering-get-twits): use 'twittering-number-of-tweets-on-retrieval'
+	These changes were made by cvmat. thanks.
+
 2009-11-29  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-status-to-status-datum): defined

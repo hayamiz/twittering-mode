@@ -46,6 +46,8 @@
 (require 'mm-url)
 
 (defconst twittering-mode-version "0.8")
+(defconst twittering-max-number-of-tweets-on-retrieval 200
+  "The maximum number of `twittering-number-of-tweets-on-retrieval'.")
 
 (defconst tinyurl-service-url "http://tinyurl.com/api-create.php?url="
   "service url for tinyurl")
@@ -67,6 +69,10 @@ stored here. DO NOT SET VALUE MANUALLY.")
 (defvar twittering-tweet-history nil)
 (defvar twittering-user-history nil)
 (defvar twittering-hashtag-history nil)
+
+(defvar twittering-number-of-tweets-on-retrieval 20
+  "*The number of tweets which will be retrieved in one request.
+The upper limit is `twittering-max-number-of-tweets-on-retrieval'.")
 
 (defvar twittering-current-hashtag nil)
 
@@ -1204,15 +1210,21 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (let ((buf (get-buffer twittering-buffer)))
     (if (not buf)
 	(twittering-stop)
-      (let ((count "20")
-	    parameters)
-	(when (boundp 'twittering-get-count)
-	  (cond
-	   ((integerp twittering-get-count)
-	    (setq count (number-to-string twittering-get-count)))
-	   ((string-match "^[0-9]+$" twittering-get-count)
-	    (setq count twittering-get-count))))
-	(setq parameters `(("count" . ,count)))
+      (let* ((default-count 20)
+	     (count twittering-number-of-tweets-on-retrieval)
+	     (count (cond
+		     ((integerp count) count)
+		     ((string-match "^[0-9]+$" count)
+		      (string-to-number count 10))
+		     (t default-count)))
+	     (count (min (max 1 count)
+			 twittering-max-number-of-tweets-on-retrieval))
+	     (regexp-list-method "^1/[^/]*/lists/[^/]*/statuses$")
+	     (parameters
+	      (list (cons (if (string-match regexp-list-method method)
+			      "per_page"
+			    "count")
+			  (number-to-string count)))))
 	(if id
 	    (add-to-list 'parameters `("max_id" . ,id))
 	  (when twittering-timeline-last-update

@@ -957,6 +957,21 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 		    face twittering-username-face)
        user-screen-name)
 
+      ;; make screen-name in text clickable
+      (let ((pos 0))
+	(block nil
+	  (while (string-match "@\\([_a-zA-Z0-9]+\\)" text pos)
+	    (let ((next-pos (match-end 0))
+		  (screen-name (match-string 1 text)))
+	      (when (eq next-pos pos)
+		(return nil))
+	      
+	      (add-text-properties
+	       (match-beginning 1) (match-end 1)
+	       `(screen-name-in-text ,screen-name) text)
+	      
+	      (setq pos next-pos)))))
+
       ;; make URI clickable
       (setq regex-index 0)
       (while regex-index
@@ -1333,14 +1348,19 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (let ((username (get-text-property (point) 'username))
 	(id (get-text-property (point) 'id))
 	(uri (get-text-property (point) 'uri))
-	(uri-in-text (get-text-property (point) 'uri-in-text)))
-    (if uri-in-text
-        (browse-url uri-in-text)
-      (if username
-          (twittering-update-status-from-minibuffer
-           (concat "@" username " ") id)
-	(if uri
-	    (browse-url uri))))))
+	(uri-in-text (get-text-property (point) 'uri-in-text))
+	(screen-name-in-text
+	 (get-text-property (point) 'screen-name-in-text)))
+    (cond (screen-name-in-text
+	   (twittering-update-status-from-minibuffer
+	    (concat "@" screen-name-in-text " ") id))
+	  (uri-in-text
+	   (browse-url uri-in-text))
+	  (username
+	   (twittering-update-status-from-minibuffer
+	    (concat "@" username " ") id))
+	  (uri
+	   (browse-url uri)))))
 
 (defun twittering-format-string (string prefix replacement-table)
   "Format STRING according to PREFIX and REPLACEMENT-TABLE.
@@ -1464,14 +1484,25 @@ return value of (funcall TO the-following-string the-match-data).
 
 (defun twittering-other-user-timeline ()
   (interactive)
-  (let ((username (get-text-property (point) 'username)))
-    (if (> (length username) 0)
-	(twittering-get-timeline (concat "user_timeline/" username))
-      (message "No user selected"))))
+  (let ((username (get-text-property (point) 'username))
+	(screen-name-in-text
+	 (get-text-property (point) 'screen-name-in-text)))
+    (cond (screen-name-in-text
+	   (twittering-get-timeline
+	    (concat "user_timeline/" screen-name-in-text)))
+	  (username
+	   (twittering-get-timeline (concat "user_timeline/" username)))
+	  (t
+	   (message "No user selected")))))
 
 (defun twittering-other-user-timeline-interactive ()
   (interactive)
-  (let ((username (read-from-minibuffer "user: " (get-text-property (point) 'username) nil nil 'twittering-user-history)))
+  (let ((username
+	 (read-from-minibuffer
+	  "user: "
+	  (or (get-text-property (point) 'screen-name-in-text)
+	      (get-text-property (point) 'username))
+	  nil nil 'twittering-user-history)))
     (if (> (length username) 0)
 	(twittering-get-timeline (concat "user_timeline/" username))
       (message "No user selected"))))

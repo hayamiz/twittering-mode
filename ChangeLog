@@ -1,3 +1,12 @@
+2009-11-29  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-status-to-status-datum): defined
+	screen-name-in-text property
+	(twittering-enter)
+	(twittering-other-user-timeline-interactive)
+	(twittering-other-user-timeline):
+	put a screen-name-in-text ahead of other elements(uri, ...)
+
 2009-11-28  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* test/run-test.el (twittering-run-test): use test.el

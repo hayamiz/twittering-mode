@@ -2041,8 +2041,10 @@ return value of (funcall TO the-following-string the-match-data).
 
 (when twittering-assist-mode-map
   (let ((km twittering-assist-mode-map))
+    (define-key km "\C-c\C-s" 'twittering-update-status-interactive)
     (define-key km "\C-c\C-c" 'twittering-assist-update-status-from-region)
-    (define-key km "\C-c\C-l" 'twittering-assist-update-status-from-line)))
+    (define-key km "\C-c\C-l" 'twittering-assist-update-status-from-line)
+    ))
 
 (define-minor-mode twittering-assist-mode
   "A minor mode assisting you to twit everywhere"

@@ -2031,5 +2031,54 @@ return value of (funcall TO the-following-string the-match-data).
   (interactive)
   (twittering-mode))
 
+
+
+;;;;
+;;;; Minor mode for twittering everywhere
+;;;;
+
+(defvar twittering-assist-mode-map (make-sparse-keymap))
+
+(when twittering-assist-mode-map
+  (let ((km twittering-assist-mode-map))
+    (define-key km "\C-c\C-c" 'twittering-assist-update-status-from-region)
+    (define-key km "\C-c\C-l" 'twittering-assist-update-status-from-line)))
+
+(define-minor-mode twittering-assist-mode
+  "A minor mode assisting you to twit everywhere"
+  nil " Tw" twittering-assist-mode-map
+  :group 'twittering-mode
+
+  (when twittering-assist-mode
+    (transient-mark-mode t))
+  twittering-assist-mode)
+
+(defun twittering-assist-mode-maybe ()
+  "Return t and enable twittering-assist-mode if `twittering-assist-mode' can be called on the current buffer."
+  (unless (minibufferp (current-buffer))
+    (twittering-assist-mode t)))
+
+(define-global-minor-mode global-twittering-assist-mode
+  twittering-assist-mode twittering-assist-mode-maybe
+  :group 'twittering-mode)
+
+(defun twittering-assist-update-status-from-region (begin end)
+  (interactive "r")
+  (if (< 140 (- end begin))
+      (message "More than 140 chars in the region")
+    (let* ((str (buffer-substring-no-properties begin end))
+	   (hashtag (if twittering-current-hashtag
+			(concat " #" twittering-current-hashtag) ""))
+	   (status (concat str hashtag)))
+      (twittering-update-status-from-minibuffer status))))
+
+(defun twittering-assist-update-status-from-line ()
+  (interactive)
+  (save-excursion
+    (let (begin end)
+      (beginning-of-line) (setq begin (point))
+      (end-of-line)       (setq end (point))
+      (twittering-assist-update-status-from-region begin end))))
+
 (provide 'twittering-mode)
 ;;; twittering.el ends here

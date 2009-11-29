@@ -163,8 +163,13 @@
 	screen-name-in-text property
 	(twittering-enter)
 	(twittering-other-user-timeline-interactive)
-	(twittering-other-user-timeline):
-	put a screen-name-in-text ahead of other elements(uri, ...)
+	(twittering-other-user-timeline): put a screen-name-in-text ahead
+	of other elements(uri, ...)
+	(twittering-assist-mode): introduced a minor mode
+	(twittering-assist-update-status-from-region): new command for
+	updating status from region
+	(twittering-assist-update-status-from-line): new command for
+	updating status from current line
 
 2009-11-28  Yuto Hayamizu  <y.hayamizu@gmail.com>
 

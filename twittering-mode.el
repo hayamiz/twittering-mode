@@ -46,6 +46,8 @@
 (require 'mm-url)
 
 (defconst twittering-mode-version "0.8")
+(defconst twittering-max-number-of-tweets-on-retrieval 200
+  "The maximum number of `twittering-number-of-tweets-on-retrieval'.")
 
 (defconst tinyurl-service-url "http://tinyurl.com/api-create.php?url="
   "service url for tinyurl")
@@ -67,6 +69,10 @@ stored here. DO NOT SET VALUE MANUALLY.")
 (defvar twittering-tweet-history nil)
 (defvar twittering-user-history nil)
 (defvar twittering-hashtag-history nil)
+
+(defvar twittering-number-of-tweets-on-retrieval 20
+  "*The number of tweets which will be retrieved in one request.
+The upper limit is `twittering-max-number-of-tweets-on-retrieval'.")
 
 (defvar twittering-current-hashtag nil)
 
@@ -567,7 +573,8 @@ directory. You should change through function'twittering-icon-mode'")
       (let ((header (twittering-get-response-header temp-buffer)))
 	(if (not (string-match "HTTP/1\.[01] \\([a-z0-9 ]+\\)\r?\n" header))
 	    (setq twittering-list-index-retrieved "Failure: Bad http response.")
-	  (let ((status (match-string-no-properties 1 header)))
+	  (let ((status (match-string-no-properties 1 header))
+		(indexes nil))
 	    (if (not (string-match "\r?\nLast-Modified: " header))
 		(setq twittering-list-index-retrieved
 		      (concat status ", but no contents."))
@@ -957,6 +964,21 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 		    face twittering-username-face)
        user-screen-name)
 
+      ;; make screen-name in text clickable
+      (let ((pos 0))
+	(block nil
+	  (while (string-match "@\\([_a-zA-Z0-9]+\\)" text pos)
+	    (let ((next-pos (match-end 0))
+		  (screen-name (match-string 1 text)))
+	      (when (eq next-pos pos)
+		(return nil))
+	      
+	      (add-text-properties
+	       (match-beginning 1) (match-end 1)
+	       `(screen-name-in-text ,screen-name) text)
+	      
+	      (setq pos next-pos)))))
+
       ;; make URI clickable
       (setq regex-index 0)
       (while regex-index
@@ -1188,15 +1210,21 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (let ((buf (get-buffer twittering-buffer)))
     (if (not buf)
 	(twittering-stop)
-      (let ((count "20")
-	    parameters)
-	(when (boundp 'twittering-get-count)
-	  (cond
-	   ((integerp twittering-get-count)
-	    (setq count (number-to-string twittering-get-count)))
-	   ((string-match "^[0-9]+$" twittering-get-count)
-	    (setq count twittering-get-count))))
-	(setq parameters `(("count" . ,count)))
+      (let* ((default-count 20)
+	     (count twittering-number-of-tweets-on-retrieval)
+	     (count (cond
+		     ((integerp count) count)
+		     ((string-match "^[0-9]+$" count)
+		      (string-to-number count 10))
+		     (t default-count)))
+	     (count (min (max 1 count)
+			 twittering-max-number-of-tweets-on-retrieval))
+	     (regexp-list-method "^1/[^/]*/lists/[^/]*/statuses$")
+	     (parameters
+	      (list (cons (if (string-match regexp-list-method method)
+			      "per_page"
+			    "count")
+			  (number-to-string count)))))
 	(if id
 	    (add-to-list 'parameters `("max_id" . ,id))
 	  (when twittering-timeline-last-update
@@ -1333,16 +1361,21 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (let ((username (get-text-property (point) 'username))
 	(id (get-text-property (point) 'id))
 	(uri (get-text-property (point) 'uri))
-	(uri-in-text (get-text-property (point) 'uri-in-text)))
-    (if uri-in-text
-        (browse-url uri-in-text)
-      (if username
-          (twittering-update-status-from-minibuffer
-           (concat "@" username " ") id)
-	(if uri
-	    (browse-url uri))))))
+	(uri-in-text (get-text-property (point) 'uri-in-text))
+	(screen-name-in-text
+	 (get-text-property (point) 'screen-name-in-text)))
+    (cond (screen-name-in-text
+	   (twittering-update-status-from-minibuffer
+	    (concat "@" screen-name-in-text " ") id))
+	  (uri-in-text
+	   (browse-url uri-in-text))
+	  (username
+	   (twittering-update-status-from-minibuffer
+	    (concat "@" username " ") id))
+	  (uri
+	   (browse-url uri)))))
 
-(defun twittering-format-string(string prefix replacement-table)
+(defun twittering-format-string (string prefix replacement-table)
   "Format STRING according to PREFIX and REPLACEMENT-TABLE.
 PREFIX is a regexp. REPLACEMENT-TABLE is a list of (FROM . TO) pairs,
 where FROM is a regexp and TO is a string or a 2-parameter function.
@@ -1360,33 +1393,37 @@ return value of (funcall TO the-following-string the-match-data).
   (let ((current-pos 0)
 	(result "")
 	(case-fold-search nil))
-    (while (string-match prefix string current-pos)
-      (let ((found nil)
-	    (current-table replacement-table)
-	    (next-pos (match-end 0))
-	    (matched-string (match-string 0 string))
-	    (skipped-string
-	     (substring string current-pos (match-beginning 0))))
-	(setq result (concat result skipped-string))
-	(setq current-pos next-pos)
-	(while (and (not (null current-table))
-		    (not found))
-	  (let ((key (caar current-table))
-		(value (cdar current-table))
-		(following-string (substring string current-pos))
-		(case-fold-search nil))
-	    (if (string-match (concat "^" key) following-string)
-		(let ((next-pos (+ current-pos (match-end 0)))
-		      (output
-		       (if (stringp value)
-			   value
-			 (funcall value following-string (match-data)))))
-		  (setq found t)
-		  (setq current-pos next-pos)
-		  (setq result (concat result output)))
-	      (setq current-table (cdr current-table)))))
-	(if (not found)
-	    (setq result (concat result matched-string)))))
+    (block nil
+      (while (string-match prefix string current-pos)
+	(let ((found nil)
+	      (current-table replacement-table)
+	      (next-pos (match-end 0))
+	      (matched-string (match-string 0 string))
+	      (skipped-string
+	       (substring string current-pos (match-beginning 0))))
+	  (when (eq next-pos current-pos)
+	    (return result)) ;; no progress. prevent infinite loop
+	  
+	  (setq result (concat result skipped-string))
+	  (setq current-pos next-pos)
+	  (while (and (not (null current-table))
+		      (not found))
+	    (let ((key (caar current-table))
+		  (value (cdar current-table))
+		  (following-string (substring string current-pos))
+		  (case-fold-search nil))
+	      (if (string-match (concat "^" key) following-string)
+		  (let ((next-pos (+ current-pos (match-end 0)))
+			(output
+			 (if (stringp value)
+			     value
+			   (funcall value following-string (match-data)))))
+		    (setq found t)
+		    (setq current-pos next-pos)
+		    (setq result (concat result output)))
+		(setq current-table (cdr current-table)))))
+	  (if (not found)
+	      (setq result (concat result matched-string))))))
     (let* ((skipped-string (substring string current-pos)))
       (concat result skipped-string))
     ))
@@ -1460,14 +1497,25 @@ return value of (funcall TO the-following-string the-match-data).
 
 (defun twittering-other-user-timeline ()
   (interactive)
-  (let ((username (get-text-property (point) 'username)))
-    (if (> (length username) 0)
-	(twittering-get-timeline (concat "user_timeline/" username))
-      (message "No user selected"))))
+  (let ((username (get-text-property (point) 'username))
+	(screen-name-in-text
+	 (get-text-property (point) 'screen-name-in-text)))
+    (cond (screen-name-in-text
+	   (twittering-get-timeline
+	    (concat "user_timeline/" screen-name-in-text)))
+	  (username
+	   (twittering-get-timeline (concat "user_timeline/" username)))
+	  (t
+	   (message "No user selected")))))
 
 (defun twittering-other-user-timeline-interactive ()
   (interactive)
-  (let ((username (read-from-minibuffer "user: " (get-text-property (point) 'username) nil nil 'twittering-user-history)))
+  (let ((username
+	 (read-from-minibuffer
+	  "user: "
+	  (or (get-text-property (point) 'screen-name-in-text)
+	      (get-text-property (point) 'username))
+	  nil nil 'twittering-user-history)))
     (if (> (length username) 0)
 	(twittering-get-timeline (concat "user_timeline/" username))
       (message "No user selected"))))

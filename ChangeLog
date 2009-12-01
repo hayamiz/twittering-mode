@@ -1,3 +1,14 @@
+2009-12-01  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-update-status-from-minibuffer):
+	Add more strict length check for status.
+	
+	* twittering-mode.el (twittering-status-not-blank-p): New defun to
+	separate a check code from twittering-update-status-if-not-blank.
+	(twittering-update-status-from-minibuffer): Integrate a post code
+	from twittering-update-status-if-not-blank.
+	(twittering-update-status-if-not-blank): Remove.
+
 2009-11-30  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-max-number-of-tweets-on-retrieval)

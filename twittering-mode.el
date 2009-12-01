@@ -49,8 +49,16 @@
 (defconst twittering-max-number-of-tweets-on-retrieval 200
   "The maximum number of `twittering-number-of-tweets-on-retrieval'.")
 
-(defconst tinyurl-service-url "http://tinyurl.com/api-create.php?url="
-  "service url for tinyurl")
+;; (defconst tinyurl-service-url "http://tinyurl.com/api-create.php?url="
+;;   "service url for tinyurl")
+
+(defvar twittering-tinyurl-service 'toly
+  "The service to use. One of 'tinyurl' or 'toly'")
+
+(defvar twittering-tinyurl-services-map
+  '((tinyurl . "http://tinyurl.com/api-create.php?url=")
+    (toly    . "http://to.ly/api.php?longurl="))
+  "Alist of tinyfy services")
 
 (defun twittering-mode-version ()
   "Display a message for twittering-mode version."
@@ -1165,9 +1173,16 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 
 (defun twittering-tinyurl-get (longurl)
   "Tinyfy LONGURL"
-  (with-temp-buffer
-	(mm-url-insert (concat tinyurl-service-url longurl))
-	(buffer-substring (point-min) (point-at-eol))))
+  (let ((api (cdr (assoc twittering-tinyurl-service twittering-tinyurl-services-map))))
+    (unless api
+      (error (concat
+	      "invalid service try one of "
+	      (mapconcat (lambda (x)
+			   (symbol-name (car x)))
+			 twittering-tinyurl-servies-map ", "))))
+    (with-temp-buffer
+      (mm-url-insert (concat api longurl))
+      (buffer-substring (point-min) (point-at-eol)))))
 
 (defun twittering-tinyurl-replace-at-point ()
   "Replace the url at point with a tiny version."

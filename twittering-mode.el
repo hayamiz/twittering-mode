@@ -52,7 +52,7 @@
 ;; (defconst tinyurl-service-url "http://tinyurl.com/api-create.php?url="
 ;;   "service url for tinyurl")
 
-(defvar twittering-tinyurl-service 'toly
+(defvar twittering-tinyurl-service 'tinyurl
   "The service to use. One of 'tinyurl' or 'toly'")
 
 (defvar twittering-tinyurl-services-map

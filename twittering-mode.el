@@ -1262,7 +1262,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 		   (clear-image-cache)
 		   (save-excursion
 		     (set-buffer (twittering-wget-buffer))
-		     )))))))))
+		     ))))))))))
 
 (defun twittering-friends-timeline ()
   (interactive)

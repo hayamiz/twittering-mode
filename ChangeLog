@@ -1,3 +1,9 @@
+2009-12-02  Naohiro Aota  <naota@elisp.net>
+
+	* twittering-mode.el (twittering-icon-path): New funciton.
+	(twittering-format-status): Use it.
+	(twittering-get-twits): Ditto; wget now invoked for each icon.
+
 2009-12-01  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-update-status-from-minibuffer):

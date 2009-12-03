@@ -661,6 +661,10 @@ directory. You should change through function'twittering-icon-mode'")
       (goto-char (+ point (if twittering-scroll-mode (- (point-max) end) 0))))
     ))
 
+(defun twittering-icon-path (icon-url)
+  (concat (md5 icon-url nil nil 'iso-2022-7bit)
+	  (or (ffap-file-suffix icon-url) ".img")))
+
 (defun twittering-format-status (status format-str)
   ;; Formatting strategy:
   ;; 
@@ -683,7 +687,7 @@ directory. You should change through function'twittering-icon-mode'")
 	    (if (string-match "/\\([^/?]+\\)\\(?:\\?\\|$\\)" profile-image-url)
 		(let* ((filename (match-string-no-properties 1
 							     profile-image-url))
-		       (fullpath (concat twittering-tmp-dir "/" filename)))
+		       (fullpath (concat twittering-tmp-dir "/" (twittering-icon-path profile-image-url))))
 		  ;; download icons if does not exist
 		  (if (file-exists-p fullpath)
 		      t
@@ -1256,23 +1260,26 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 
   (if (and twittering-icon-mode window-system)
       (if twittering-image-stack
-	  (let ((proc
-		 (apply
-		  #'start-process
-		  "wget-images"
-		  (twittering-wget-buffer)
-		  "wget"
-		  (format "--directory-prefix=%s" twittering-tmp-dir)
-		  "--no-clobber"
-		  "--quiet"
-		  twittering-image-stack)))
-	    (set-process-sentinel
-	     proc
-	     (lambda (proc stat)
-	       (clear-image-cache)
-	       (save-excursion
-		 (set-buffer (twittering-wget-buffer))
-		 )))))))
+	  (dolist (url twittering-image-stack)
+	    (let ((file (concat twittering-tmp-dir "/" (twittering-icon-path url))))
+	    (unless (file-exists-p file)
+	      (let ((proc
+		     (funcall
+		      #'start-process
+		      "wget-images"
+		      (twittering-wget-buffer)
+		      "wget"
+		      "--quiet"
+		      (format "--directory-prefix=%s" twittering-tmp-dir)
+		      "-O" file
+		      url)))
+		(set-process-sentinel
+		 proc
+		 (lambda (proc stat)
+		   (clear-image-cache)
+		   (save-excursion
+		     (set-buffer (twittering-wget-buffer))
+		     ))))))))))
 
 (defun twittering-friends-timeline ()
   (interactive)

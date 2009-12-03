@@ -281,7 +281,7 @@
 2009-03-09  Tsuyoshi CHO  <Tsuyoshi.CHO+develop@Gmail.com>
 
 	* twittering-mode.el (twittering-mode): Add keybind in Major mode
-	docstirng by Alex Schröder <kensanata@gmail.com>
+	docstring by Alex Schröder <kensanata@gmail.com>
 
 2008-08-03  Tsuyoshi CHO  <Tsuyoshi.CHO+develop@Gmail.com>
 

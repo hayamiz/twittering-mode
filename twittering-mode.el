@@ -1115,35 +1115,37 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
       (funcall func)
       )))
 
-(defun twittering-update-status-if-not-blank (status &optional reply-to-id)
-  (if (string-match "^\\s-*\\(?:@[-_a-z0-9]+\\)?\\s-*$" status)
-      nil
-    (setq status (concat status (twittering-sign-string)))
-    (let ((parameters `(("status" . ,status)
-			("source" . "twmode")
-			,@(if reply-to-id
-			      `(("in_reply_to_status_id"
-				 . ,reply-to-id))))))
-      (twittering-http-post "twitter.com" "statuses/update" parameters))
-    t))
-
+(defun twittering-status-not-blank-p (status)
+  (not (string-match
+	"^\\s-*\\(?:@[-_a-z0-9]+\\(\s+@[-_a-z0-9]+\\)*\\)?\\s-*$" status))
+ 
 (defun twittering-update-status-from-minibuffer (&optional init-str
 							   reply-to-id)
   (when (and (null init-str)
 	     twittering-current-hashtag)
     (setq init-str (format " #%s " twittering-current-hashtag)))
-  (let ((status init-str) (not-posted-p t) (map minibuffer-local-map))
+  (let ((status init-str)
+	(sign-str (twittering-sign-string))
+	(not-posted-p t)
+	(map minibuffer-local-map))
+    (define-key map (kbd "<f4>") 'twittering-tinyurl-replace-at-point)
     (while not-posted-p
-      (define-key map (kbd "<f4>") 'twittering-tinyurl-replace-at-point)
       (setq status (read-from-minibuffer "status: " status map nil 'twittering-tweet-history nil t))
-      (while (< 140 (length status))
+      (while (< 140 (length (concat status sign-str)))
 	(setq status (read-from-minibuffer (format "(%d): "
-						   (- 140 (length status)))
+						   (- 140 (length (concat status sign-str))))
 					   status map nil 'twittering-tweet-history nil t)))
-      (setq not-posted-p
-	    (not (twittering-update-status-if-not-blank status reply-to-id)))
-      )
-    ))
+
+      (when (twittering-status-not-blank-p status)
+	(let* ((status-with-sign (concat status sign-str))
+	       (parameters `(("status" . ,status-with-sign)
+			     ("source" . "twmode")
+			     ,@(if reply-to-id
+				   `(("in_reply_to_status_id"
+				      . ,reply-to-id))))))
+	  (twittering-http-post "twitter.com" "statuses/update" parameters)
+	  (setq not-posted-p nil)))
+      )))
 
 (defun twittering-get-timeline (method &optional noninteractive id)
   (twittering-get-twits "twitter.com"

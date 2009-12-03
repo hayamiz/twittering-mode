@@ -1,4 +1,9 @@
-2009-12-03  Tadashi MATSUO  <tad@mymail.twin.jp>
+2009-12-04  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-current-hashtag): docstring
+	(twittering-idle-time): removed (unused?)
+
+2009-12-03  Tadasohi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-mode-map): define bindings so
 	as to be also valid even on non-window terminal.

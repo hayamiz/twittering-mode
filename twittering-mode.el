@@ -83,17 +83,26 @@ stored here. DO NOT SET VALUE MANUALLY.")
   "*The number of tweets which will be retrieved in one request.
 The upper limit is `twittering-max-number-of-tweets-on-retrieval'.")
 
-(defvar twittering-current-hashtag nil)
+(defvar twittering-current-hashtag nil
+  "A hash tag string currently set. You can set it by calling
+  `twittering-set-current-hashtag'")
 
-(defvar twittering-idle-time 20)
+(defvar twittering-timer-interval 90
+  "The interval of auto reloading. You should use 60 or more
+  seconds for this variable because the number of API call is
+  limited by the hour.")
 
-(defvar twittering-timer-interval 90)
+(defvar twittering-username nil
+  "An username of your Twitter account.")
+(defvar twittering-username-active nil
+  "Copy of `twittering-username' for internal use.")
 
-(defvar twittering-username nil)
-(defvar twittering-username-active nil)
-
-(defvar twittering-password nil)
-(defvar twittering-password-active nil)
+(defvar twittering-password nil
+  "A password of your Twitter account. Leave it blank is the
+  recommended way because writing a password in .emacs file is so
+  dangerous.")
+(defvar twittering-password-active nil
+  "Copy of `twittering-password' for internal use.")
 
 (defvar twittering-last-timeline-retrieved nil)
 (defvar twittering-list-index-retrieved nil)

@@ -44,6 +44,7 @@
 (require 'xml)
 (require 'parse-time)
 (require 'mm-url)
+(require 'ffap)
 
 (defconst twittering-mode-version "0.8")
 (defconst twittering-max-number-of-tweets-on-retrieval 200

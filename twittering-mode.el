@@ -122,30 +122,38 @@ tweets received when this hook is run.")
 (defvar twittering-jojo-mode nil)
 (make-variable-buffer-local 'twittering-jojo-mode)
 
-(defvar twittering-status-format nil)
-(setq twittering-status-format "%i %s,  %@:\n  %t // from %f%L%r")
-;; %s - screen_name
-;; %S - name
-;; %i - profile_image
-;; %d - description
-;; %l - location
-;; %L - " [location]"
-;; %r - " in reply to user"
-;; %u - url
-;; %j - user.id
-;; %p - protected?
-;; %c - created_at (raw UTC string)
-;; %C{time-format-str} - created_at (formatted with time-format-str)
-;; %@ - X seconds ago
-;; %t - text
-;; %' - truncated
-;; %f - source
-;; %# - id
+(defvar twittering-status-format "%i %s,  %@:\n  %t // from %f%L%r"
+  "Format string for rendering statuses.
+Ex. \"%i %s,  %@:\\n  %t // from %f%L%r\"
 
-(defvar twittering-retweet-format "RT: %t (via @%s)")
-;; %s - screen_name
-;; %t - text
-;; %% - %
+Items:
+ %s - screen_name
+ %S - name
+ %i - profile_image
+ %d - description
+ %l - location
+ %L - \" [location]\"
+ %r - \" in reply to user\"
+ %u - url
+ %j - user.id
+ %p - protected?
+ %c - created_at (raw UTC string)
+ %C{time-format-str} - created_at (formatted with time-format-str)
+ %@ - X seconds ago
+ %t - text
+ %' - truncated
+ %f - source
+ %# - id
+")
+
+(defvar twittering-retweet-format "RT: %t (via @%s)"
+  "Format string for retweet.
+
+Items:
+ %s - screen_name
+ %t - text
+ %% - %
+")
 
 (defvar twittering-notify-successful-http-get t)
 

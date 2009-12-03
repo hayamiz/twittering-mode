@@ -1,3 +1,8 @@
+2009-12-03  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-mode-map): define bindings so
+	as to be also valid even on non-window terminal.
+
 2009-12-02  Naohiro Aota  <naota@elisp.net>
 
 	* twittering-mode.el (twittering-icon-path): New funciton.

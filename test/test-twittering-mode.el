@@ -71,3 +71,21 @@
     (twittering-format-string "new~%line" "~"
 			      '(("%" . "\n"))))
   )
+
+(defcase sign-string nil nil
+    (setq twittering-sign-simple-string nil)
+    (test-assert-string-equal ""
+      (twittering-sign-string))
+
+    (setq twittering-sign-simple-string "")
+    (test-assert-string-equal " []"
+      (twittering-sign-string))
+
+    (setq twittering-sign-simple-string "foo")
+    (test-assert-string-equal " [foo]"
+      (twittering-sign-string))
+
+    (setq twittering-sign-string-function (lambda () "foo"))
+    (test-assert-string-equal "foo"
+      (twittering-sign-string))
+  )

@@ -83,17 +83,26 @@ stored here. DO NOT SET VALUE MANUALLY.")
   "*The number of tweets which will be retrieved in one request.
 The upper limit is `twittering-max-number-of-tweets-on-retrieval'.")
 
-(defvar twittering-current-hashtag nil)
+(defvar twittering-current-hashtag nil
+  "A hash tag string currently set. You can set it by calling
+  `twittering-set-current-hashtag'")
 
-(defvar twittering-idle-time 20)
+(defvar twittering-timer-interval 90
+  "The interval of auto reloading. You should use 60 or more
+  seconds for this variable because the number of API call is
+  limited by the hour.")
 
-(defvar twittering-timer-interval 90)
+(defvar twittering-username nil
+  "An username of your Twitter account.")
+(defvar twittering-username-active nil
+  "Copy of `twittering-username' for internal use.")
 
-(defvar twittering-username nil)
-(defvar twittering-username-active nil)
-
-(defvar twittering-password nil)
-(defvar twittering-password-active nil)
+(defvar twittering-password nil
+  "A password of your Twitter account. Leave it blank is the
+  recommended way because writing a password in .emacs file is so
+  dangerous.")
+(defvar twittering-password-active nil
+  "Copy of `twittering-password' for internal use.")
 
 (defvar twittering-last-timeline-retrieved nil)
 (defvar twittering-list-index-retrieved nil)
@@ -113,30 +122,38 @@ tweets received when this hook is run.")
 (defvar twittering-jojo-mode nil)
 (make-variable-buffer-local 'twittering-jojo-mode)
 
-(defvar twittering-status-format nil)
-(setq twittering-status-format "%i %s,  %@:\n  %t // from %f%L%r")
-;; %s - screen_name
-;; %S - name
-;; %i - profile_image
-;; %d - description
-;; %l - location
-;; %L - " [location]"
-;; %r - " in reply to user"
-;; %u - url
-;; %j - user.id
-;; %p - protected?
-;; %c - created_at (raw UTC string)
-;; %C{time-format-str} - created_at (formatted with time-format-str)
-;; %@ - X seconds ago
-;; %t - text
-;; %' - truncated
-;; %f - source
-;; %# - id
+(defvar twittering-status-format "%i %s,  %@:\n  %t // from %f%L%r"
+  "Format string for rendering statuses.
+Ex. \"%i %s,  %@:\\n  %t // from %f%L%r\"
 
-(defvar twittering-retweet-format "RT: %t (via @%s)")
-;; %s - screen_name
-;; %t - text
-;; %% - %
+Items:
+ %s - screen_name
+ %S - name
+ %i - profile_image
+ %d - description
+ %l - location
+ %L - \" [location]\"
+ %r - \" in reply to user\"
+ %u - url
+ %j - user.id
+ %p - protected?
+ %c - created_at (raw UTC string)
+ %C{time-format-str} - created_at (formatted with time-format-str)
+ %@ - X seconds ago
+ %t - text
+ %' - truncated
+ %f - source
+ %# - id
+")
+
+(defvar twittering-retweet-format "RT: %t (via @%s)"
+  "Format string for retweet.
+
+Items:
+ %s - screen_name
+ %t - text
+ %% - %
+")
 
 (defvar twittering-notify-successful-http-get t)
 
@@ -375,7 +392,8 @@ directory. You should change through function'twittering-icon-mode'")
       (define-key km "$" 'end-of-line)
       (define-key km "n" 'twittering-goto-next-status-of-user)
       (define-key km "p" 'twittering-goto-previous-status-of-user)
-      (define-key km [tab] 'twittering-goto-next-thing)
+      (define-key km "\C-i" 'twittering-goto-next-thing)
+      (define-key km "\M-\C-i" 'twittering-goto-previous-thing)
       (define-key km [backtab] 'twittering-goto-previous-thing)
       (define-key km [backspace] 'backward-char)
       (define-key km "G" 'end-of-buffer)

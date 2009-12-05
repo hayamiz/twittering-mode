@@ -1326,11 +1326,12 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
       (unless (file-exists-p file)
 	(url-retrieve
 	 url `(lambda (status)
-		(goto-char (point-min))
-		(search-forward-regexp "^$")
-		(goto-char (1+ (point)))
-		(delete-region (point-min) (point))
-		(write-file ,file)))
+		(let ((coding-system-for-write 'binary))
+		  (goto-char (point-min))
+		  (search-forward-regexp "^$")
+		  (goto-char (1+ (point)))
+		  (delete-region (point-min) (point))
+		  (write-file ,file))))
 	))))
 
 (defun twittering-retrieve-image-with-wget (image-urls)

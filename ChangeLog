@@ -10,6 +10,8 @@
 	the external command `convert' should be used.
 	(twittering-make-display-spec-for-icon): new function for
 	generating properties for icon with/without cropping the image.
+	(twittering-retrieve-image-without-wget): write an image as binary
+	explicitly.
 
 2009-12-04  Yuto Hayamizu  <y.hayamizu@gmail.com>
 

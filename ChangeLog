@@ -1,3 +1,13 @@
+2009-12-05  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-get-username-with-completion):
+	New defun as a wrapper function for read-from-minibuffer.
+	(twittering-follow): Call it instead of read-from-minibuffer.
+	(twittering-other-user-timeline-interactive): Likewise.
+	(twittering-other-user-list-interactive): Likewise.
+
+	* twittering-mode.el (twittering-make-list-from-assoc): New defun.
+
 2009-12-04  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* test/test-twittering-mode.el (sign-string): add test

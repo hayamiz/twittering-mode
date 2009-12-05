@@ -1508,7 +1508,8 @@ return value of (funcall TO the-following-string the-match-data).
 	(method (if remove "destroy" "create"))
 	(mes (if remove "unfollowing" "following")))
     (unless username
-      (setq username (read-from-minibuffer "who: ")))
+      (setq username (twittering-get-username-with-completion
+		      "who: " "" 'twittering-user-history)))
     (if (> (length username) 0)
 	(when (y-or-n-p (format "%s %s? " mes username))
 	  (twittering-manage-friendships method username))
@@ -1554,18 +1555,20 @@ return value of (funcall TO the-following-string the-match-data).
 (defun twittering-other-user-timeline-interactive ()
   (interactive)
   (let ((username
-	 (read-from-minibuffer
+	 (twittering-get-username-with-completion
 	  "user: "
 	  (or (get-text-property (point) 'screen-name-in-text)
 	      (get-text-property (point) 'username))
-	  nil nil 'twittering-user-history)))
+	  'twittering-user-history)))
     (if (> (length username) 0)
 	(twittering-get-timeline (concat "user_timeline/" username))
       (message "No user selected"))))
 
 (defun twittering-other-user-list-interactive ()
   (interactive)
-  (let ((username (read-from-minibuffer "whose list: " (get-text-property (point) 'username))))
+  (let ((username (twittering-get-username-with-completion
+		   "whose list: "
+		   (get-text-property (point) 'username))))
     (if (> (length username) 0)
 	(progn
 	  (setq twittering-list-index-retrieved nil)
@@ -1597,6 +1600,20 @@ return value of (funcall TO the-following-string the-match-data).
   (let ((username (get-text-property (point) 'username)))
     (if username
 	(twittering-update-status-from-minibuffer (concat "@" username " ")))))
+
+(defun twittering-make-list-from-assoc (key data)
+  (let ((ret nil))
+    (mapc (lambda (status)
+	    (push (cdr (assoc key status)) ret))
+	  data)
+    ret))
+
+(defun twittering-get-username-with-completion (prompt init-user
+						       &optional history)
+  (completing-read prompt
+		   (twittering-make-list-from-assoc
+		    'user-screen-name twittering-timeline-data)
+		   nil nil init-user history))
 
 (defun twittering-get-username ()
   (or twittering-username-active

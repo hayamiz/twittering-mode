@@ -1,3 +1,18 @@
+2009-12-06  Tadashi MATSUO  <matsuo@i.ci.ritsumei.ac.jp>
+
+	* twittering-mode.el (twittering-use-wget): new variable for
+	specifying whether the external command `wget' should be used.
+	(twittering-retrieve-image): new function for retrieving icon
+	images with/without wget.
+	(twittering-get-twits): retrieve images with
+	`twittering-retrieve-image'.
+	(twittering-use-convert): add a new variable specifying whether
+	the external command `convert' should be used.
+	(twittering-make-display-spec-for-icon): new function for
+	generating properties for icon with/without cropping the image.
+	(twittering-retrieve-image-without-wget): write an image as binary
+	explicitly.
+
 2009-12-05  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-get-username-with-completion):

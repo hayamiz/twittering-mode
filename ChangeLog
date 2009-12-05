@@ -6,6 +6,10 @@
 	images with/without wget.
 	(twittering-get-twits): retrieve images with
 	`twittering-retrieve-image'.
+	(twittering-use-convert): add a new variable specifying whether
+	the external command `convert' should be used.
+	(twittering-make-display-spec-for-icon): new function for
+	generating properties for icon with/without cropping the image.
 
 2009-12-04  Yuto Hayamizu  <y.hayamizu@gmail.com>
 

@@ -1,3 +1,12 @@
+2009-12-06  Tadashi MATSUO  <matsuo@i.ci.ritsumei.ac.jp>
+
+	* twittering-mode.el (twittering-use-wget): new variable for
+	specifying whether the external command `wget' should be used.
+	(twittering-retrieve-image): new function for retrieving icon
+	images with/without wget.
+	(twittering-get-twits): retrieve images with
+	`twittering-retrieve-image'.
+
 2009-12-04  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* test/test-twittering-mode.el (sign-string): add test

@@ -291,6 +291,9 @@ directory. You should change through function'twittering-icon-mode'")
 (defvar twittering-image-type-cache nil)
 (defvar twittering-convert-program "/usr/bin/convert")
 (defvar twittering-convert-fix-size nil)
+(defvar twittering-use-wget nil
+  "*If non-nil, icon images are retrieved by invoking \"wget\".
+Otherwise, they are retrieved by `url-retrieve'.")
 
 (defun twittering-image-type (file-name)
   (if (and (not (assoc file-name twittering-image-type-cache))
@@ -1277,28 +1280,51 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	(twittering-http-get (twittering-last-host) method
 			     noninteractive parameters))))
 
-  (if (and twittering-icon-mode window-system)
-      (if twittering-image-stack
-	  (dolist (url twittering-image-stack)
-	    (let ((file (concat twittering-tmp-dir "/" (twittering-icon-path url))))
-	    (unless (file-exists-p file)
-	      (let ((proc
-		     (funcall
-		      #'start-process
-		      "wget-images"
-		      (twittering-wget-buffer)
-		      "wget"
-		      "--quiet"
-		      (format "--directory-prefix=%s" twittering-tmp-dir)
-		      "-O" file
-		      url)))
-		(set-process-sentinel
-		 proc
-		 (lambda (proc stat)
-		   (clear-image-cache)
-		   (save-excursion
-		     (set-buffer (twittering-wget-buffer))
-		     ))))))))))
+  (if (and twittering-icon-mode window-system
+	   twittering-image-stack)
+      (twittering-retrieve-image twittering-image-stack)
+    ))
+
+(defun twittering-retrieve-image (images)
+  (if twittering-use-wget
+      (twittering-retrieve-image-with-wget images)
+    (twittering-retrieve-image-without-wget images)))
+
+(defun twittering-retrieve-image-without-wget (image-urls)
+  (require 'url)
+  (dolist (url image-urls)
+    (let ((file (concat twittering-tmp-dir "/" (twittering-icon-path url))))
+      (unless (file-exists-p file)
+	(url-retrieve
+	 url `(lambda (status)
+		(goto-char (point-min))
+		(search-forward-regexp "^$")
+		(goto-char (1+ (point)))
+		(delete-region (point-min) (point))
+		(write-file ,file)))
+	))))
+
+(defun twittering-retrieve-image-with-wget (image-urls)
+  (dolist (url image-urls)
+    (let ((file (concat twittering-tmp-dir "/" (twittering-icon-path url))))
+      (unless (file-exists-p file)
+	(let ((proc
+	       (funcall
+		#'start-process
+		"wget-images"
+		(twittering-wget-buffer)
+		"wget"
+		"--quiet"
+		(format "--directory-prefix=%s" twittering-tmp-dir)
+		"-O" file
+		url)))
+	  (set-process-sentinel
+	   proc
+	   (lambda (proc stat)
+	     (clear-image-cache)
+	     (save-excursion
+	       (set-buffer (twittering-wget-buffer))
+	       ))))))))
 
 (defun twittering-friends-timeline ()
   (interactive)

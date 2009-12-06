@@ -1,3 +1,10 @@
+2009-12-06  NAKAYA Toshiharu  <toshiharu.nakaya@gmail.com>
+
+	* twittering-mode.el (twittering-retrieve-image-without-wget): set
+	require-final-newline is nil locally since emacs can not save icon
+	images because of "error in process filter: save-buffer: Text is
+	read-only".
+
 2009-12-06  Tadashi MATSUO  <matsuo@i.ci.ritsumei.ac.jp>
 
 	* twittering-mode.el (twittering-use-wget): new variable for

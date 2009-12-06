@@ -1326,7 +1326,8 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
       (unless (file-exists-p file)
 	(url-retrieve
 	 url `(lambda (status)
-		(let ((coding-system-for-write 'binary))
+		(let ((coding-system-for-write 'binary)
+		      (require-final-newline nil))
 		  (goto-char (point-min))
 		  (search-forward-regexp "^$")
 		  (goto-char (1+ (point)))

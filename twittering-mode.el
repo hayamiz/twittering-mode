@@ -1612,9 +1612,7 @@ return value of (funcall TO the-following-string the-match-data).
   (interactive)
   (let ((username
 	 (twittering-read-username-with-completion
-	  "user: "
-	  (or (get-text-property (point) 'screen-name-in-text)
-	      (get-text-property (point) 'username))
+	  "user: " nil
 	  'twittering-user-history)))
     (if (> (length username) 0)
 	(twittering-get-timeline (concat "user_timeline/" username))

@@ -3,6 +3,8 @@
 	* twittering-mode.el (twittering-read-username-with-completion):
 	rename from `twittering-get-username-with-completion'
 	(twittering-make-list-from-assoc): simplified
+	(twittering-other-user-timeline-interactive): changed init string
+	to nil
 
 2009-12-06  Tadashi MATSUO  <matsuo@i.ci.ritsumei.ac.jp>
 

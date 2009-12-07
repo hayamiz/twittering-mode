@@ -1564,7 +1564,7 @@ return value of (funcall TO the-following-string the-match-data).
 	(method (if remove "destroy" "create"))
 	(mes (if remove "unfollowing" "following")))
     (unless username
-      (setq username (twittering-get-username-with-completion
+      (setq username (twittering-read-username-with-completion
 		      "who: " "" 'twittering-user-history)))
     (if (> (length username) 0)
 	(when (y-or-n-p (format "%s %s? " mes username))
@@ -1611,7 +1611,7 @@ return value of (funcall TO the-following-string the-match-data).
 (defun twittering-other-user-timeline-interactive ()
   (interactive)
   (let ((username
-	 (twittering-get-username-with-completion
+	 (twittering-read-username-with-completion
 	  "user: "
 	  (or (get-text-property (point) 'screen-name-in-text)
 	      (get-text-property (point) 'username))
@@ -1622,9 +1622,10 @@ return value of (funcall TO the-following-string the-match-data).
 
 (defun twittering-other-user-list-interactive ()
   (interactive)
-  (let ((username (twittering-get-username-with-completion
+  (let ((username (twittering-read-username-with-completion
 		   "whose list: "
-		   (get-text-property (point) 'username))))
+		   (get-text-property (point) 'username)
+		   'twittering-user-history)))
     (if (> (length username) 0)
 	(progn
 	  (setq twittering-list-index-retrieved nil)
@@ -1658,17 +1659,16 @@ return value of (funcall TO the-following-string the-match-data).
 	(twittering-update-status-from-minibuffer (concat "@" username " ")))))
 
 (defun twittering-make-list-from-assoc (key data)
-  (let ((ret nil))
-    (mapc (lambda (status)
-	    (push (cdr (assoc key status)) ret))
-	  data)
-    ret))
+  (mapcar (lambda (status)
+	    (cdr (assoc key status)))
+	  data))
 
-(defun twittering-get-username-with-completion (prompt init-user
-						       &optional history)
+(defun twittering-read-username-with-completion (prompt init-user
+							&optional history)
   (completing-read prompt
-		   (twittering-make-list-from-assoc
-		    'user-screen-name twittering-timeline-data)
+		   (append (twittering-make-list-from-assoc
+			    'user-screen-name twittering-timeline-data)
+			   twittering-user-history)
 		   nil nil init-user history))
 
 (defun twittering-get-username ()

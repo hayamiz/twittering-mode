@@ -1,3 +1,9 @@
+2009-12-07  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-read-username-with-completion):
+	rename from `twittering-get-username-with-completion'
+	(twittering-make-list-from-assoc): simplified
+
 2009-12-06  Tadashi MATSUO  <matsuo@i.ci.ritsumei.ac.jp>
 
 	* twittering-mode.el (twittering-use-wget): new variable for

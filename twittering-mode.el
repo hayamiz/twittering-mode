@@ -1,3 +1,5 @@
+;;; -*- indent-tabs-mode: t -*-
+;;;
 ;;; twittering-mode.el --- Major mode for Twitter
 
 ;; Copyright (C) 2007 Yuto Hayamizu.

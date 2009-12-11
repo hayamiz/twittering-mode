@@ -1,4 +1,4 @@
-;;; -*- indent-tabs-mode: t -*-
+;;; -*- indent-tabs-mode: t; tab-width: 8 -*-
 ;;;
 ;;; twittering-mode.el --- Major mode for Twitter
 

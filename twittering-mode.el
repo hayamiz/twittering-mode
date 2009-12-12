@@ -1335,7 +1335,8 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 		  (search-forward-regexp "^$")
 		  (goto-char (1+ (point)))
 		  (delete-region (point-min) (point))
-		  (write-file ,file))))
+		  (write-file ,file)
+		  (kill-buffer (current-buffer)))))
 	))))
 
 (defun twittering-retrieve-image-with-wget (image-urls)

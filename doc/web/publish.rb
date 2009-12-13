@@ -13,10 +13,39 @@ $html_header = "
   <head>
     <title>Twittering-mode</title>
     <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />
+    <link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\" media=\"screen\" />
   </head>
   <body>
+<div id=\"wrap\">
+
+<!--
+<div id=\"header\">
+<h1><a href=\"#\">Twittering-mode</a></h1>
+<h2>A major mode for Twitter.</h2>
+</div>
+<div id=\"top\"> </div>
+-->
+
+<div id=\"menu\">
+<ul>
+<li><img src=\"./images/logo.png\" /></li>
+</ul>
+</div>
+
+<div id=\"content\">
+<div class=\"left\">
 "
 $html_footer = "
+</div>
+<div style=\"clear: both;\"> </div>
+</div>
+
+<div id=\"bottom\"> </div>
+<div id=\"footer\">
+Designed by <a href=\"http://www.free-css-templates.com/\">Free CSS Templates</a>, Thanks to <a href=\"http://www.legalhelpers.com/chapter-13-bankruptcy/chapter13.html\">Chapter 13 Bankruptcy</a>
+</div>
+</div>
+
   </body>
 </html>
 "

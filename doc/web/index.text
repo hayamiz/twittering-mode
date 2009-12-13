@@ -1,8 +1,24 @@
 <!-- -*- mode: markdown -*- -->
 
-Twittering-mode
-===============
+<!-- # Twittering-mode -->
 
 Twittering-mode is a major mode for Twitter. It enables you to check
 timelines, tweet, mark posts as favorites and so on.
 
+## Download
+
+* [twittering-mode.el](http://github.com/hayamiz/twittering-mode/raw/master/twittering-mode.el)
+
+## Contribute
+
+### Repository
+
+    git clone git://github.com/hayamiz/twittering-mode.git
+
+Or fork from [GitHub repository](http://github.com/hayamiz/twittering-mode)
+
+See [Developer's guideline]()(will be available soon) for more information.
+
+## See also
+
+* [EmacsWiki: TwitteringMode](http://www.emacswiki.org/emacs/TwitteringMode)

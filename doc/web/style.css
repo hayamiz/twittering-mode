@@ -1,0 +1,148 @@
+* {
+    padding: 0;
+    margin: 0;
+} 
+
+body {
+background: #555;
+font-family: Verdana, Arial, Helvetica, sans-serif;
+font-size: 15pt;
+line-height: 18pt;
+color: #333333;;
+}
+
+li {
+margin-left: 20pt;
+padding: 3pt;
+}
+
+p {
+margin: 3pt;
+padding: 3pt;
+}
+
+img { border: none; }
+a { color: #3E92EA;  }
+a:hover { text-decoration: none; color : #000; }
+
+#wrap {
+margin: 40px auto 0 auto;
+width: 800px;
+}
+
+#header { 
+padding-bottom:10px;
+}
+#header h1 {
+font-size: 28pt;
+font-weight: 100;
+letter-spacing: -1pt;
+padding: 12px 0 5px 10px;
+}
+#header h1 a {
+color: #fff;
+text-decoration: none;
+}
+#header h1 a:hover {
+color: #fff;
+text-decoration: none;
+}
+#header h2 {
+color: #ccc;
+font-size: 15pt;
+font-weight: 100;
+padding: 0 0 0 11px;
+letter-spacing: -1pt;
+line-height: 18pt;
+}
+
+#menu {
+height: 75px;
+line-height: 75px;
+background: #222 url(images/menu.png) repeat-y;
+}
+#menu ul {
+padding-left: 10px;
+list-style-type: none;
+}
+#menu ul li {
+display: block;
+float: left;
+padding: 0;
+marging: 0;
+}
+#menu ul li a {
+color: #eee;
+padding: 0 10px;
+text-decoration: none;
+font-weight: 600;
+}
+#menu ul li a:hover {
+color: #fff;
+text-decoration: underline;
+}
+
+#content {
+background: #555 url(images/content.jpg) repeat-y;
+padding: 10px 20px;
+}
+
+.left {
+/* width: 568px; */
+float: left;
+text-align: justify;
+}
+.left h1 {
+font-size: 26pt;
+line-height: 32pt;
+letter-spacing: -2pt;
+padding : 10px 0 15px 0;
+}
+.left h2 {
+color: #FF4800;
+font-size: 24pt;
+letter-spacing: -2pt;
+font-weight: 100;
+padding : 10px 0 15px 0;
+}
+
+.left pre {
+margin: 10px;
+padding: 10px;
+border: 1px solid gray;
+}
+
+.right {
+width: 150px;
+float: right;
+padding: 10px;
+border-left: 1px solid #bbb;
+font-size: 12px;
+}
+.right ul {
+list-style-type: none;
+padding: 5px 10px 10px 10px;
+}
+.right h2 {
+height: 30px;
+font-size: 12px;
+color: #666;
+line-height: 30px;
+}
+.right a { text-decoration: none }
+
+#top {
+background: #555 url(images/top.jpg) no-repeat;
+padding: 5px 0;
+}
+#bottom {
+background: #555 url(images/bottom.jpg) no-repeat;
+padding: 10px 0;
+}
+
+#footer {
+text-align: center;
+color: #eee;
+font-size: 11px;
+padding: 0 0 10px 0;
+}

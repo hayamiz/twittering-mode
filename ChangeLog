@@ -1,3 +1,7 @@
+2009-12-15  haya  <haya@starfish.unicus.ddo.jp>
+
+	* twittering-mode.el (twittering-status-not-blank-p): fix invalid escape sequence
+
 2009-12-12  Alberto Garcia  <agarcia@igalia.com>
 
 	* twittering-mode.el (twittering-retrieve-image-without-wget):

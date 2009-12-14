@@ -1175,7 +1175,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 
 (defun twittering-status-not-blank-p (status)
   (not (string-match
-	"^\\s-*\\(?:@[-_a-z0-9]+\\(\s+@[-_a-z0-9]+\\)*\\)?\\s-*$" status)))
+	"^\\s-*\\(?:@[-_a-z0-9]+\\(\\s+@[-_a-z0-9]+\\)*\\)?\\s-*$" status)))
  
 (defun twittering-update-status-from-minibuffer (&optional init-str
 							   reply-to-id)

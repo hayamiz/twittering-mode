@@ -15,7 +15,7 @@ Version numbers are based on date. For example, if the new version is released o
 - Change the version number in `/VERSION` to next (expected) version number.
 - Make a tag `release-<VERSION>`
 - Upload new source files to souceforge.net
-- Publish web pages.
+- Publish web pages(`cd doc/web; make upload`).
 - Release announce on MLs.
 - Release announce on freshmeat.net.
 - Release announce on Twitter.

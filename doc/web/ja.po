@@ -1,27 +1,20 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: twittering-mode HEAD\n"
-"POT-Creation-Date: 2009-12-14 12:27+0900\n"
-"PO-Revision-Date: 2009-12-14 12:30+0900\n"
+"POT-Creation-Date: 2009-12-14 18:10+0900\n"
+"PO-Revision-Date: 2009-12-14 16:24+0900\n"
 "Last-Translator: Yuto Hayamizu <y.hayamizu@gmail.com>\n"
 "Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: index.html:6(title)
+#: index.html:5(title)
 msgid "Twittering-mode"
 msgstr "Twittering-mode"
 
-#: index.html:35(img:alt)
-msgid "Japanese"
-msgstr "日本語"
-
-#: index.html:35(img:alt)
-msgid "English"
-msgstr "英語"
-
-#: index.html:37(p)
+#. # Twittering-mode
+#: index.html:39(p)
 msgid ""
 "Twittering-mode is a major mode for Twitter. It enables you to check "
 "timelines, tweet, mark posts as favorites and so on."
@@ -30,66 +23,70 @@ msgstr ""
 "のチェック、投稿、お気に入りなど様々なTwitterの機能をEmacsから使うことができ"
 "ます。"
 
-#: index.html:40(h2)
+#: index.html:42(h2)
 msgid "Download"
 msgstr "ダウンロード"
 
-#: index.html:43(a)
+#: index.html:45(a)
 msgid "twittering-mode.el"
 msgstr "twittering-mode.el"
 
-#: index.html:47(h2)
+#: index.html:49(h2)
 msgid "Documentation"
 msgstr "ドキュメント"
 
-#: index.html:50(li)
+#: index.html:52(li)
 msgid "will be available soon"
 msgstr "しばしお待ちを"
 
-#: index.html:54(h2)
+#: index.html:56(h2)
 msgid "Contribute"
 msgstr "プロジェクトに参加"
 
-#: index.html:56(h3)
+#: index.html:58(h3)
 msgid "Repository"
 msgstr "レポジトリ"
 
-#: index.html:58(p)
+#: index.html:60(p)
 msgid "You can clone the git repository:"
 msgstr "次のコマンドを実行することで、gitレポジトリをcloneできます:"
 
-#: index.html:60(code)
+#: index.html:62(code)
 msgid "git clone git://github.com/hayamiz/twittering-mode.git"
 msgstr "git clone git://github.com/hayamiz/twittering-mode.git"
 
-#: index.html:63(p)
+#: index.html:65(p)
 msgid ""
 "Or fork on <a href=\"http://github.com/hayamiz/twittering-mode\">GitHub</a>"
-msgstr "また、<a href=\"http://github.com/hayamiz/twittering-mode\">GitHub</a>でforkすることもできます。"
+msgstr ""
+"また、<a href=\"http://github.com/hayamiz/twittering-mode\">GitHub</a>でfork"
+"することもできます。"
 
-#: index.html:65(p)
+#: index.html:67(p)
 msgid ""
 "See <a href=\"#\">Developer's guideline</a>(will be available soon) for more "
 "information."
-msgstr "詳しい情報については<a href=\"#\">開発の手引き</a>(準備中)を参照してください。"
+msgstr ""
+"詳しい情報については<a href=\"#\">開発の手引き</a>(準備中)を参照してくださ"
+"い。"
 
-#: index.html:67(h2)
+#: index.html:69(h2)
 msgid "See also"
 msgstr "See also"
 
-#: index.html:70(a)
+#: index.html:72(a)
 msgid "EmacsWiki: TwitteringMode"
 msgstr "EmacsWiki: TwitteringMode"
 
-#: index.html:79(a)
+#: index.html:80(a)
 msgid "Free CSS Templates"
 msgstr "Free CSS Templates"
 
-#: index.html:79(a)
+#: index.html:80(a)
 msgid "Chapter 13 Bankruptcy"
 msgstr "Chapter 13 Bankruptcy"
 
-#: index.html:78(div)
+#: index.html:79(div)
 msgid ""
 "Designed by <placeholder-1></placeholder-1>, Thanks to <placeholder-2></"
 "placeholder-2>\n"
@@ -97,9 +94,28 @@ msgid ""
 "<a href=\"http://www.famfamfam.com/\"><img src=\"images/famfamfam-logo.png"
 "\" /></a>"
 msgstr ""
-"Designed by <placeholder-1></placeholder-1>, Thanks to <placeholder-2></placeholder-2>\n"
+"Designed by <placeholder-1></placeholder-1>, Thanks to <placeholder-2></"
+"placeholder-2>\n"
 "<br />\n"
-"<a href=\"http://www.famfamfam.com/\"><img src=\"images/famfamfam-logo.png\" /></a>"
+"<a href=\"http://www.famfamfam.com/\"><img src=\"images/famfamfam-logo.png"
+"\" /></a>"
+
+#~ msgid "Japanese"
+#~ msgstr "日本語"
+
+#, fuzzy
+#~ msgid ""
+#~ "Languages: <a href=\"index.html.ja\"><img src=\"./images/lang-ja.png\" "
+#~ "alt=\"Japanese\" /></a>"
+#~ msgstr ""
+#~ "Other languages: <a href=\"index.html\"><img src=\"./images/lang-en.png\" "
+#~ "alt=\"English\" /></a>"
+
+#~ msgid "Other languages:"
+#~ msgstr "Other languages:"
+
+#~ msgid "English"
+#~ msgstr "英語"
 
 #~ msgid "GitHub"
 #~ msgstr "GitHub"

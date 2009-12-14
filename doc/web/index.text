@@ -2,8 +2,6 @@
 
 <!-- # Twittering-mode -->
 
-[![Japanese](./images/lang-ja.png)](index.html.ja) [![English](./images/lang-en.png)](index.html)
-
 Twittering-mode is a major mode for Twitter. It enables you to check
 timelines, tweet, mark posts as favorites and so on.
 

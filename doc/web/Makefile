@@ -1,7 +1,8 @@
 
 RM ?= rm -f
 PUBLISH := ./publish.rb
-HTML_DOCS := index.html
+MARKDOWN_DOCS := index.text
+HTML_DOCS := $(subst .text,.html,$(MARKDOWN_DOCS))
 HTML_ASSETS := style.css images
 CATALOGS := ja.po
 
@@ -45,10 +46,17 @@ update-po: twmode.pot Makefile
 publish: $(HTML_DOCS) $(CATALOGS)
 	for catalog in $(CATALOGS); do \
 	  lang=$$(echo $$catalog|sed 's/.po$$//'); \
-	  for html in $(HTML_DOCS); do \
-	    xml2po -k -m xhtml -p $$catalog -l $$lang $$html > $$html.$$lang; \
+	  [ -d $$lang ] || mkdir $$lang; \
+	  cp -t $$lang -r $(HTML_ASSETS); \
+	  for text in $(MARKDOWN_DOCS); do \
+	    html=$$(echo $$text|sed 's/.text$$/.html/'); \
+	    $(PUBLISH) -l $$lang -o $$lang/$$html $$text; \
 	  done; \
 	done
 
 clean:
-	$(RM) *.html *.html.?? upload.bat
+	$(RM) *.html *.html upload.bat
+	for catalog in $(CATALOGS); do \
+	  lang=$$(echo $$catalog|sed 's/.po$$//'); \
+	  $(RM) $$lang/*.html; \
+	done

@@ -91,6 +91,13 @@ Dir.glob("#{$web_dir}/??.po").map{|f| File.basename(f)}.each do |catalog|
 end
 $available_langs.sort!.uniq!
 
+unless system("which xml2po 1> /dev/null 2>/dev/null")
+  $stderr.puts("'xml2po' command is required.")
+  $stderr.puts()
+  $stderr.puts("If you are using Debian or Ubuntu,\n'xml2po' can be installed by the following command:\n    apt-get install gnome-doc-utils")
+  exit(1)
+end
+
 def parse_option(argv)
   opt = OptionParser.new
   

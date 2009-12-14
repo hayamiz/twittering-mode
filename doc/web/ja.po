@@ -1,0 +1,107 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: twittering-mode HEAD\n"
+"POT-Creation-Date: 2009-12-14 11:43+0900\n"
+"PO-Revision-Date: 2009-12-14 11:43+0900\n"
+"Last-Translator: Yuto Hayamizu <y.hayamizu@gmail.com>\n"
+"Language-Team: Japanese\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: index.html:6(title)
+msgid "Twittering-mode"
+msgstr "Twittering-mode"
+
+#: index.html:37(p)
+msgid ""
+"Twittering-mode is a major mode for Twitter. It enables you to check "
+"timelines, tweet, mark posts as favorites and so on."
+msgstr ""
+"twittering-modeは、EmacsでTwitterをするためのメジャーモードです。タイムライン"
+"のチェック、投稿、お気に入りなど様々なTwitterの機能をEmacsから使うことができ"
+"ます。"
+
+#: index.html:40(h2)
+msgid "Download"
+msgstr "Download"
+
+#: index.html:43(a)
+msgid "twittering-mode.el"
+msgstr "twittering-mode.el"
+
+#: index.html:47(h2)
+msgid "Documentation"
+msgstr "ドキュメント"
+
+#: index.html:50(li)
+msgid "will be available soon"
+msgstr "しばしお待ちを"
+
+#: index.html:54(h2)
+msgid "Contribute"
+msgstr "プロジェクトに参加"
+
+#: index.html:56(h3)
+msgid "Repository"
+msgstr "レポジトリ"
+
+#: index.html:58(p)
+msgid "You can clone the git repository:"
+msgstr "次のコマンドを実行することで、gitレポジトリをcloneできます:"
+
+#: index.html:60(code)
+msgid "git clone git://github.com/hayamiz/twittering-mode.git"
+msgstr "git clone git://github.com/hayamiz/twittering-mode.git"
+
+#: index.html:63(a)
+msgid "GitHub"
+msgstr "GitHub"
+
+#: index.html:63(p)
+msgid "Or fork on <placeholder-1></placeholder-1>"
+msgstr "または<placeholder-1></placeholder-1>でforkしてください。"
+
+#: index.html:65(a)
+msgid "Developer's guideline"
+msgstr "開発の手引き"
+
+#: index.html:65(p)
+msgid ""
+"See <placeholder-1></placeholder-1>(will be available soon) for more "
+"information."
+msgstr ""
+"詳しい情報については<placeholder-1></placeholder-1>(しばしお待ちを)を参照して"
+"ください。"
+
+#: index.html:67(h2)
+msgid "See also"
+msgstr "See also"
+
+#: index.html:70(a)
+msgid "EmacsWiki: TwitteringMode"
+msgstr "EmacsWiki: TwitteringMode"
+
+#: index.html:79(a)
+msgid "Free CSS Templates"
+msgstr "Free CSS Templates"
+
+#: index.html:79(a)
+msgid "Chapter 13 Bankruptcy"
+msgstr "Chapter 13 Bankruptcy"
+
+#: index.html:78(div)
+msgid ""
+"Designed by <placeholder-1></placeholder-1>, Thanks to <placeholder-2></"
+"placeholder-2>"
+msgstr ""
+"Designed by <placeholder-1></placeholder-1>, Thanks to <placeholder-2></"
+"placeholder-2>"
+
+#. Put one translator per line, in the form of NAME <EMAIL>, YEAR1, YEAR2.
+#: index.html:0(None)
+msgid "translator-credits"
+msgstr "translator-credits"
+
+#~ msgid "GitHub repository"
+#~ msgstr "GitHubレポジトリ"

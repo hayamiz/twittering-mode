@@ -1,14 +1,16 @@
 
 RM ?= rm -f
 PUBLISH := ./publish.rb
-
 HTML_DOCS := index.html
+HTML_ASSETS := style.css images
+CATALOGS := ja.po
 
-.PHONY: all clean upload
+
+.PHONY: all clean upload update-po publish
 
 .SUFFIXES: .text .html
 
-all: $(HTML_DOCS)
+all: publish
 
 .text.html: $(PUBLISH)
 	$(PUBLISH) $<
@@ -17,8 +19,36 @@ upload: upload.bat
 	@(! [ -z "$${SF_USERNAME}" ] || (echo "Environmental variable 'SF_USERNAME', which is a username of sf.net, is required."; false))
 	sftp -b $< $${SF_USERNAME},twmode@web.sourceforge.net
 
-upload.bat: $(HTML_DOCS) Makefile
-	(echo "cd htdocs"; echo "-mkdir images"; ls *.html *.css images/*.jpg images/*.gif images/*.png | while read file; do echo "put $${file} $${file}"; done) > $@
+upload.bat: $(HTML_DOCS) Makefile publish
+	files=$$(find -name "*.html"; \
+	         find -name "*.html.??"; \
+	         find -name ".htaccess"; \
+	         find -name "*.css"; \
+	         find -name "*.png"; \
+	         find -name "*.jpg"); \
+	dirs=$$(echo $$files|xargs -n1 dirname|sort|uniq); \
+	(echo "cd htdocs"; \
+	 echo $$dirs | xargs -n 1 echo "-mkdir"; \
+	 for file in $$files; do echo "put $${file} $${file}"; done) > $@
+
+twmode.pot: $(HTML_DOCS)
+	xml2po -k -o $@ $(HTML_DOCS)
+	for catalog in $(CATALOGS); do \
+	  [ -f $$catalog ] || cp $@ $$catalog; \
+	done
+
+update-po: twmode.pot Makefile
+	for catalog in $(CATALOGS); do \
+	  xml2po -k -u $$catalog $(HTML_DOCS); \
+	done
+
+publish: $(HTML_DOCS) $(CATALOGS) update-po
+	for catalog in $(CATALOGS); do \
+	  lang=$$(echo $$catalog|sed 's/.po$$//'); \
+	  for html in $(HTML_DOCS); do \
+	    xml2po -k -p $$catalog -l $$lang $$html > $$html.$$lang; \
+	  done; \
+	done
 
 clean:
 	$(RM) *.html upload.bat

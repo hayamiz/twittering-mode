@@ -136,16 +136,14 @@ def main(argv)
     next unless File.exist?(arg)
     textfile = File.open(arg)
 
-    if options[:output]
-      output = File.open(options[:output], "w")
-    else
+    unless options[:output]
       if arg =~ /\.text$/
-        output = arg.gsub(/\.text$/, ".html")
+        options[:output] = arg.gsub(/\.text$/, ".html")
       else
-        output = arg + ".html"
+        options[:output] = arg + ".html"
       end
-      output = File.open(output, "w")
     end
+    output = File.open(options[:output], "w")
     break
   end
   

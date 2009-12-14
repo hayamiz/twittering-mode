@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: twittering-mode HEAD\n"
-"POT-Creation-Date: 2009-12-14 11:43+0900\n"
-"PO-Revision-Date: 2009-12-14 11:43+0900\n"
+"POT-Creation-Date: 2009-12-14 12:27+0900\n"
+"PO-Revision-Date: 2009-12-14 12:30+0900\n"
 "Last-Translator: Yuto Hayamizu <y.hayamizu@gmail.com>\n"
 "Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
@@ -12,6 +12,14 @@ msgstr ""
 #: index.html:6(title)
 msgid "Twittering-mode"
 msgstr "Twittering-mode"
+
+#: index.html:35(img:alt)
+msgid "Japanese"
+msgstr "日本語"
+
+#: index.html:35(img:alt)
+msgid "English"
+msgstr "英語"
 
 #: index.html:37(p)
 msgid ""
@@ -24,7 +32,7 @@ msgstr ""
 
 #: index.html:40(h2)
 msgid "Download"
-msgstr "Download"
+msgstr "ダウンロード"
 
 #: index.html:43(a)
 msgid "twittering-mode.el"
@@ -54,25 +62,16 @@ msgstr "次のコマンドを実行することで、gitレポジトリをclone�
 msgid "git clone git://github.com/hayamiz/twittering-mode.git"
 msgstr "git clone git://github.com/hayamiz/twittering-mode.git"
 
-#: index.html:63(a)
-msgid "GitHub"
-msgstr "GitHub"
-
 #: index.html:63(p)
-msgid "Or fork on <placeholder-1></placeholder-1>"
-msgstr "または<placeholder-1></placeholder-1>でforkしてください。"
-
-#: index.html:65(a)
-msgid "Developer's guideline"
-msgstr "開発の手引き"
+msgid ""
+"Or fork on <a href=\"http://github.com/hayamiz/twittering-mode\">GitHub</a>"
+msgstr "また、<a href=\"http://github.com/hayamiz/twittering-mode\">GitHub</a>でforkすることもできます。"
 
 #: index.html:65(p)
 msgid ""
-"See <placeholder-1></placeholder-1>(will be available soon) for more "
+"See <a href=\"#\">Developer's guideline</a>(will be available soon) for more "
 "information."
-msgstr ""
-"詳しい情報については<placeholder-1></placeholder-1>(しばしお待ちを)を参照して"
-"ください。"
+msgstr "詳しい情報については<a href=\"#\">開発の手引き</a>(準備中)を参照してください。"
 
 #: index.html:67(h2)
 msgid "See also"
@@ -93,15 +92,26 @@ msgstr "Chapter 13 Bankruptcy"
 #: index.html:78(div)
 msgid ""
 "Designed by <placeholder-1></placeholder-1>, Thanks to <placeholder-2></"
-"placeholder-2>"
+"placeholder-2>\n"
+"<br />\n"
+"<a href=\"http://www.famfamfam.com/\"><img src=\"images/famfamfam-logo.png"
+"\" /></a>"
 msgstr ""
-"Designed by <placeholder-1></placeholder-1>, Thanks to <placeholder-2></"
-"placeholder-2>"
+"Designed by <placeholder-1></placeholder-1>, Thanks to <placeholder-2></placeholder-2>\n"
+"<br />\n"
+"<a href=\"http://www.famfamfam.com/\"><img src=\"images/famfamfam-logo.png\" /></a>"
 
-#. Put one translator per line, in the form of NAME <EMAIL>, YEAR1, YEAR2.
-#: index.html:0(None)
-msgid "translator-credits"
-msgstr "translator-credits"
+#~ msgid "GitHub"
+#~ msgstr "GitHub"
+
+#~ msgid "Or fork on <placeholder-1></placeholder-1>"
+#~ msgstr "または<placeholder-1></placeholder-1>でforkしてください。"
+
+#~ msgid "Developer's guideline"
+#~ msgstr "開発の手引き"
+
+#~ msgid "translator-credits"
+#~ msgstr "translator-credits"
 
 #~ msgid "GitHub repository"
 #~ msgstr "GitHubレポジトリ"

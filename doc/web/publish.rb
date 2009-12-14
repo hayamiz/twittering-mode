@@ -14,6 +14,8 @@ def header(options)
   langs = $available_langs.dup
   # langs.delete(lang)
   
+  page = File.basename(options[:output] || "index.html")
+    
   lang_menu_items = langs.map do |l|
     rel_dir = "../#{l}"
     if lang == "en" && l == "en"
@@ -23,8 +25,8 @@ def header(options)
     elsif l == "en"
       rel_dir = ".."
     end
-    
-    "<a href=\"#{rel_dir}/index.html\"><img src=\"#{rel_dir}/images/lang-#{l}.png\" /></a>"
+
+    "<a href=\"#{rel_dir}/#{page}\"><img src=\"#{rel_dir}/images/lang-#{l}.png\" /></a>"
   end.join("&nbsp;")
   
   ret = <<EOS
@@ -54,7 +56,7 @@ def header(options)
 
 <div id="menu">
 <ul>
-<li><img src="./images/logo.png" /></li>
+<li><a href="./index.html"><img src="./images/logo.png" /></a></li>
 </ul>
 </div>
 

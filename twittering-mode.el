@@ -879,6 +879,7 @@ Return nil if STR is invalid as a timeline spec."
       (define-key km "t" 'twittering-toggle-proxy)
       (define-key km "\C-c\C-p" 'twittering-toggle-proxy)
       (define-key km "q" 'twittering-suspend)
+      (define-key km ":" 'twittering-command-prompt)
       nil))
 
 (defun twittering-keybind-message ()
@@ -2890,6 +2891,39 @@ The return value is nil or a positive integer less than POS."
   "Suspend twittering-mode then switch to another buffer."
   (interactive)
   (switch-to-buffer (other-buffer)))
+
+;;;
+;;; Vim like command interface
+;;;
+
+(defvar twittering-commands nil)
+
+(defvar twittering-command-history nil)
+
+(defun twittering-defcommand (command function)
+  (unless (symbolp function)
+    (error (format "twittering-defcommand: `function' must be as symbol")))
+  (setq command (format "%s" command))
+  (add-to-list 'twittering-commands
+	       (cons command function)))
+
+(defun twittering-command-prompt ()
+  (interactive)
+  (let ((command 
+	 (completing-read ":"
+			  (mapcar 'car twittering-commands)
+			  nil t nil 'twittering-command-history)))
+    (funcall (cdr (assoc command twittering-commands)))))
+
+(twittering-defcommand "friends-timeline" 'twittering-friends-timeline)
+(twittering-defcommand "replies" 'twittering-replies-timeline)
+(twittering-defcommand "update" 'twittering-update-status-interactive)
+(twittering-defcommand "post" 'twittering-update-status-interactive)
+(twittering-defcommand "follow" 'twittering-follow)
+(twittering-defcommand "favorite" 'twittering-favorite)
+(twittering-defcommand "retweet" 'twittering-retweet)
+(twittering-defcommand "hashtag-set" 'twittering-current-hashtag)
+(twittering-defcommand "set-hashtag" 'twittering-current-hashtag)
 
 ;;;###autoload
 (defun twit ()

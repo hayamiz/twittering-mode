@@ -13,7 +13,13 @@ timelines, tweet, mark posts as favorites and so on.
 
 * will be available soon
 
-## Contribute
+## Getting involved
+
+See [how to contribute](./how-to-contribute.html) for detailed information.
+
+### Mailing lists
+
+Join [twittering-mode ML](http://sourceforge.net/mail/?group_id=288615).
 
 ### Repository
 
@@ -22,8 +28,6 @@ You can clone the git repository:
     git clone git://github.com/hayamiz/twittering-mode.git
 
 Or fork on [GitHub](http://github.com/hayamiz/twittering-mode)
-
-See [Developer's guideline](#)(will be available soon) for more information.
 
 ## See also
 

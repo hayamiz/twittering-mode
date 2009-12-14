@@ -1,7 +1,7 @@
 
 RM ?= rm -f
 PUBLISH := ./publish.rb
-MARKDOWN_DOCS := index.text
+MARKDOWN_DOCS := index.text how-to-contribute.text
 HTML_DOCS := $(subst .text,.html,$(MARKDOWN_DOCS))
 HTML_ASSETS := style.css images
 CATALOGS := ja.po

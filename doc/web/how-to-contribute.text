@@ -1,0 +1,49 @@
+# How to contribute to twittering-mode
+
+## Code
+
+Recommended way is to fork on [GitHub](http://github.com/hayamiz/twittering-mode). Visit there and click 'fork' button.
+
+Of course you can clone the git repository in the ordinary way:
+
+    git clone git://github.com/hayamiz/twittering-mode.git
+
+### How to create patches
+
+We recommend to follow these steps:
+
+1. Pull the master branch(`hayamiz/master` on [GitHub](http://github.com/hayamiz/twittering-mode)).
+1. Create a *topic branch* and make some modifications. 
+1. Before sending a patch, *rebase* the topic branch to the master.
+1. Now it's ready to *post* your patch. Send a [pull request](http://github.com/guides/pull-requests) on [GitHub](http://github.com/hayamiz/twittering-mode) (if you have forked) and write a mail to [twittering-mode ML](http://sourceforge.net/mail/?group_id=288615).
+
+#### Topic branch
+
+(now writing...)
+
+#### Rebasing a topic branch
+
+(now writing...)
+
+#### Posting your patch
+
+(now writing...)
+
+## Communication
+
+All your voices should be sent to [twittering-mode ML](http://sourceforge.net/mail/?group_id=288615).
+
+### Bug reports
+
+If you find some bugs in twittering-mode, please send a mail with detailed information to [twittering-mode ML](http://sourceforge.net/mail/?group_id=288615):
+
+* Platform (Windows, Linux, Mac OS X, ...)
+* Kind of Emacs and its version number (GNU Emacs, XEmacs, Carbon Emacs, ...): you can check it by `(emacs-version)<C-j>` on `*scratch*` buffer.
+* What you *wanted* to do, what you *actually did*, and what *happened*.
+* Any other information you think it's important.
+
+If you have enough time, please try to reproduce the bug in a minimal environment. You can launch Emacs without loading any scripts by `emacs -Q`. This saves our time so much :)
+
+### Feature requests and others
+
+Join [twittering-mode ML](http://sourceforge.net/mail/?group_id=288615) and let's talk!

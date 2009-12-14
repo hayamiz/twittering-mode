@@ -1,0 +1,21 @@
+<!-- -*- mode: markdown -*- -->
+
+# Version numbers
+
+(Not decided)
+
+Version numbers are based on date. For example, if the new version is released on December 1986, the version number is *1986-DEC*. If there are more than two releases in a month, version numbers are *1986-DEC*, *1986-DEC-1*, *1986-DEC-2*, *1986-DEC-3*, ...
+
+# What to do on a release
+
+- Fix the new version number based on the rule above and update `/VERSION`.
+- Update version numbers in source code(`/twittering-mode.el`).
+- Add new version number to `/NEWS` and describe updates.
+- Update version numbers on web pages(`/doc/web/index.text`).
+- Change the version number in `/VERSION` to next (expected) version number.
+- Make a tag `release-<VERSION>`
+- Upload new source files to souceforge.net
+- Publish web pages.
+- Release announce on MLs.
+- Release announce on freshmeat.net.
+- Release announce on Twitter.

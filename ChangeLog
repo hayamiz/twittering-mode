@@ -147,6 +147,7 @@
 2009-12-15  haya  <haya@starfish.unicus.ddo.jp>
 
 	* twittering-mode.el (twittering-status-not-blank-p): fix invalid escape sequence
+	(twittering-tinyurl-replace-at-point): disabled when 'mm-url' doesn't exist.
 
 2009-12-12  Alberto Garcia  <agarcia@igalia.com>
 

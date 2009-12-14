@@ -2,6 +2,8 @@
 
 <!-- # Twittering-mode -->
 
+[![Japanese](./images/lang-ja.png)](index.html.ja) [![English](./images/lang-en.png)](index.html)
+
 Twittering-mode is a major mode for Twitter. It enables you to check
 timelines, tweet, mark posts as favorites and so on.
 
@@ -17,9 +19,11 @@ timelines, tweet, mark posts as favorites and so on.
 
 ### Repository
 
+You can clone the git repository:
+
     git clone git://github.com/hayamiz/twittering-mode.git
 
-Or fork from [GitHub repository](http://github.com/hayamiz/twittering-mode)
+Or fork on [GitHub](http://github.com/hayamiz/twittering-mode)
 
 See [Developer's guideline]()(will be available soon) for more information.
 

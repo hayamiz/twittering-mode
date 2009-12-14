@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: twittering-mode HEAD\n"
-"POT-Creation-Date: 2009-12-14 20:08+0900\n"
+"POT-Creation-Date: 2009-12-15 02:17+0900\n"
 "PO-Revision-Date: 2009-12-14 20:26+0900\n"
 "Last-Translator: Yuto Hayamizu <y.hayamizu@gmail.com>\n"
 "Language-Team: Japanese\n"
@@ -27,74 +27,93 @@ msgstr ""
 msgid "Download"
 msgstr "ダウンロード"
 
-#: index.html:45(a)
-msgid "twittering-mode.el"
-msgstr "twittering-mode.el"
+#: index.html:44(p)
+msgid ""
+"Currently there's no stable release, but it does <strong>not</strong> mean "
+"twittering-mode is too unstable for practical usage."
+msgstr ""
 
-#: index.html:49(h2)
+#: index.html:47(li)
+msgid ""
+"<a href=\"http://github.com/hayamiz/twittering-mode/raw/master/twittering-"
+"mode.el\">twittering-mode.el</a> (development version)"
+msgstr ""
+
+#: index.html:51(p)
+#, fuzzy
+msgid ""
+"See the <a href=\"http://github.com/hayamiz/twittering-mode/commits/master/"
+"twittering-mode.el\">history</a>."
+msgstr ""
+"また、<a href=\"http://github.com/hayamiz/twittering-mode\">GitHub</a>でfork"
+"することもできます。"
+
+#: index.html:53(h2)
 msgid "Documentation"
 msgstr "ドキュメント"
 
-#: index.html:52(li)
+#: index.html:56(li)
 msgid "will be available soon"
 msgstr "しばしお待ちを"
 
-#: index.html:56(h2)
+#: index.html:60(h2)
 msgid "Getting involved"
 msgstr ""
 
-#: index.html:58(p)
+#: index.html:62(p)
 msgid ""
 "See <a href=\"./how-to-contribute.html\">how to contribute</a> for detailed "
 "information."
-msgstr "詳しくは<a href=\"./how-to-contribute.html\">Twittering-modeの開発へ参加</a>をご覧ください。"
+msgstr ""
+"詳しくは<a href=\"./how-to-contribute.html\">Twittering-modeの開発へ参加</a>"
+"をご覧ください。"
 
-#: index.html:60(h3)
+#: index.html:64(h3)
 msgid "Mailing lists"
 msgstr ""
 
-#: index.html:62(p)
+#: index.html:66(p)
 msgid ""
 "Join <a href=\"http://sourceforge.net/mail/?group_id=288615\">twittering-"
 "mode ML</a>."
 msgstr ""
 
-#: index.html:64(h3)
+#: index.html:68(h3)
 msgid "Repository"
 msgstr "レポジトリ"
 
-#: index.html:66(p)
+#: index.html:70(p)
 msgid "You can clone the git repository:"
 msgstr "次のコマンドを実行することで、gitレポジトリをcloneできます:"
 
-#: index.html:68(code) how-to-contribute.html:41(code)
+#: index.html:72(code) how-to-contribute.html:41(code)
 msgid "git clone git://github.com/hayamiz/twittering-mode.git"
 msgstr "git clone git://github.com/hayamiz/twittering-mode.git"
 
-#: index.html:71(p)
+#: index.html:75(p)
 msgid ""
 "Or fork on <a href=\"http://github.com/hayamiz/twittering-mode\">GitHub</a>"
 msgstr ""
 "また、<a href=\"http://github.com/hayamiz/twittering-mode\">GitHub</a>でfork"
 "することもできます。"
 
-#: index.html:73(h2)
+#: index.html:77(h2)
 msgid "See also"
 msgstr "See also"
 
-#: index.html:76(a)
+#: index.html:80(a)
 msgid "EmacsWiki: TwitteringMode"
 msgstr "EmacsWiki: TwitteringMode"
 
-#: index.html:84(a) how-to-contribute.html:94(a)
+#: index.html:88(a) how-to-contribute.html:94(a)
 msgid "Free CSS Templates"
 msgstr "Free CSS Templates"
 
-#: index.html:84(a) how-to-contribute.html:94(a)
+#: index.html:88(a) how-to-contribute.html:94(a)
 msgid "Chapter 13 Bankruptcy"
 msgstr "Chapter 13 Bankruptcy"
 
-#: index.html:83(div) how-to-contribute.html:93(div)
+#: index.html:87(div) how-to-contribute.html:93(div)
 msgid ""
 "Designed by <placeholder-1></placeholder-1>, Thanks to <placeholder-2></"
 "placeholder-2>\n"
@@ -120,11 +139,16 @@ msgstr ""
 msgid ""
 "Recommended way is to fork on <a href=\"http://github.com/hayamiz/twittering-"
 "mode\">GitHub</a>. Visit there and click 'fork' button."
-msgstr "<a href=\"http://github.com/hayamiz/twittering-mode\">GitHub</a>でレポジトリをforkするのが一番おすすめの方法です。<a href=\"http://github.com/hayamiz/twittering-mode\">GitHub:twittering-mode</a>を開いて、'fork'ボタンをクリックしてください。"
+msgstr ""
+"<a href=\"http://github.com/hayamiz/twittering-mode\">GitHub</a>でレポジトリ"
+"をforkするのが一番おすすめの方法です。<a href=\"http://github.com/hayamiz/"
+"twittering-mode\">GitHub:twittering-mode</a>を開いて、'fork'ボタンをクリック"
+"してください。"
 
 #: how-to-contribute.html:39(p)
 msgid "Of course you can clone the git repository in the ordinary way:"
-msgstr "もちろん、次のコマンドを実行してgitのレポジトリを直接cloneしても構いません。"
+msgstr ""
+"もちろん、次のコマンドを実行してgitのレポジトリを直接cloneしても構いません。"
 
 #: how-to-contribute.html:44(h3)
 msgid "How to create patches"
@@ -138,24 +162,36 @@ msgstr "次のような手順でパッチを作る慣例となっています:"
 msgid ""
 "Pull the master branch(<code>hayamiz/master</code> on <a href=\"http://"
 "github.com/hayamiz/twittering-mode\">GitHub</a>)."
-msgstr "マスターブランチ(<a href=\"http://github.com/hayamiz/twittering-mode\">GitHub</a>レポジトリの<code>hayamiz/master</code>)を取得する"
+msgstr ""
+"マスターブランチ(<a href=\"http://github.com/hayamiz/twittering-mode"
+"\">GitHub</a>レポジトリの<code>hayamiz/master</code>)を取得する"
 
 #: how-to-contribute.html:50(li)
-msgid "Create a <em>topic branch</em> and make some modifications."
+#, fuzzy
+msgid "Create a <strong>topic branch</strong> and make some modifications."
 msgstr "<em>トピックブランチ</em>を作成して、そこに変更を加える"
 
 #: how-to-contribute.html:51(li)
-msgid "Before sending a patch, <em>rebase</em> the topic branch to the master."
-msgstr "パッチを投稿する前に、トピックブランチをマスターブランチに<em>rebase</em>する"
+#, fuzzy
+msgid ""
+"Before sending a patch, <strong>rebase</strong> the topic branch to the "
+"master."
+msgstr ""
+"パッチを投稿する前に、トピックブランチをマスターブランチに<em>rebase</em>する"
 
 #: how-to-contribute.html:52(li)
+#, fuzzy
 msgid ""
-"Now it's ready to <em>post</em> your patch. Send a <a href=\"http://github."
-"com/guides/pull-requests\">pull request</a> on <a href=\"http://github.com/"
-"hayamiz/twittering-mode\">GitHub</a> (if you have forked) and write a mail "
-"to <a href=\"http://sourceforge.net/mail/?group_id=288615\">twittering-mode "
-"ML</a>."
-msgstr "以上で<em>パッチを投稿する</em>準備は完了です。(GitHubでforkした人は)<a href=\"http://github.com/guides/pull-requests\">pull request</a>を送って、<a href=\"http://sourceforge.net/mail/?group_id=288615\">メーリングリスト</a>へ投稿しましょう"
+"Now it's ready to <strong>post</strong> your patch. Send a <a href=\"http://"
+"github.com/guides/pull-requests\">pull request</a> on <a href=\"http://"
+"github.com/hayamiz/twittering-mode\">GitHub</a> (if you have forked) and "
+"write a mail to <a href=\"http://sourceforge.net/mail/?group_id=288615"
+"\">twittering-mode ML</a>."
+msgstr ""
+"以上で<em>パッチを投稿する</em>準備は完了です。(GitHubでforkした人は)<a href="
+"\"http://github.com/guides/pull-requests\">pull request</a>を送って、<a href="
+"\"http://sourceforge.net/mail/?group_id=288615\">メーリングリスト</a>へ投稿し"
+"ましょう"
 
 #: how-to-contribute.html:56(h4)
 msgid "Topic branch"
@@ -182,7 +218,10 @@ msgstr "バグ報告、その他意見など"
 msgid ""
 "All your voices should be sent to <a href=\"http://sourceforge.net/mail/?"
 "group_id=288615\">twittering-mode ML</a>."
-msgstr "バグ報告を始めとして、機能追加や意見、感想などは<a href=\"http://sourceforge.net/mail/?group_id=288615\">twittering-modeのメーリングリスト</a>へ投稿してください。"
+msgstr ""
+"バグ報告を始めとして、機能追加や意見、感想などは<a href=\"http://sourceforge."
+"net/mail/?group_id=288615\">twittering-modeのメーリングリスト</a>へ投稿してく"
+"ださい。"
 
 #: how-to-contribute.html:72(h3)
 msgid "Bug reports"
@@ -232,6 +271,9 @@ msgid ""
 "Join <a href=\"http://sourceforge.net/mail/?group_id=288615\">twittering-"
 "mode ML</a> and let's talk!"
 msgstr ""
+
+#~ msgid "twittering-mode.el"
+#~ msgstr "twittering-mode.el"
 
 #~ msgid "Contribute"
 #~ msgstr "プロジェクトに参加"

@@ -13,9 +13,9 @@ Of course you can clone the git repository in the ordinary way:
 We recommend to follow these steps:
 
 1. Pull the master branch(`hayamiz/master` on [GitHub](http://github.com/hayamiz/twittering-mode)).
-1. Create a *topic branch* and make some modifications. 
-1. Before sending a patch, *rebase* the topic branch to the master.
-1. Now it's ready to *post* your patch. Send a [pull request](http://github.com/guides/pull-requests) on [GitHub](http://github.com/hayamiz/twittering-mode) (if you have forked) and write a mail to [twittering-mode ML](http://sourceforge.net/mail/?group_id=288615).
+1. Create a **topic branch** and make some modifications. 
+1. Before sending a patch, **rebase** the topic branch to the master.
+1. Now it's ready to **post** your patch. Send a [pull request](http://github.com/guides/pull-requests) on [GitHub](http://github.com/hayamiz/twittering-mode) (if you have forked) and write a mail to [twittering-mode ML](http://sourceforge.net/mail/?group_id=288615).
 
 #### Topic branch
 

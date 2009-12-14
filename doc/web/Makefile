@@ -39,16 +39,16 @@ twmode.pot: $(HTML_DOCS)
 
 update-po: twmode.pot Makefile
 	for catalog in $(CATALOGS); do \
-	  xml2po -k -u $$catalog $(HTML_DOCS); \
+	  xml2po -k -m xhtml -u $$catalog $(HTML_DOCS); \
 	done
 
-publish: $(HTML_DOCS) $(CATALOGS) update-po
+publish: $(HTML_DOCS) $(CATALOGS)
 	for catalog in $(CATALOGS); do \
 	  lang=$$(echo $$catalog|sed 's/.po$$//'); \
 	  for html in $(HTML_DOCS); do \
-	    xml2po -k -p $$catalog -l $$lang $$html > $$html.$$lang; \
+	    xml2po -k -m xhtml -p $$catalog -l $$lang $$html > $$html.$$lang; \
 	  done; \
 	done
 
 clean:
-	$(RM) *.html upload.bat
+	$(RM) *.html *.html.?? upload.bat

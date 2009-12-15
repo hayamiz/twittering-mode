@@ -1,3 +1,9 @@
+2009-12-16  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-tinyurl-replace-at-point):
+	distinguish between URL and others based on
+	`bounds-of-thing-at-point'.
+
 2009-12-15  haya  <haya@starfish.unicus.ddo.jp>
 
 	* twittering-mode.el (twittering-status-not-blank-p): fix invalid escape sequence

@@ -1233,7 +1233,8 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 
 (defun twittering-tinyurl-get (longurl)
   "Tinyfy LONGURL"
-  (let ((api (cdr (assoc twittering-tinyurl-service twittering-tinyurl-services-map))))
+  (let ((api (cdr (assoc twittering-tinyurl-service
+			 twittering-tinyurl-services-map))))
     (unless api
       (error (concat
 	      "invalid service try one of "
@@ -1241,8 +1242,8 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 			   (symbol-name (car x)))
 			 twittering-tinyurl-servies-map ", "))))
     (if longurl
-    (with-temp-buffer
-      (mm-url-insert (concat api longurl))
+	(with-temp-buffer
+	  (mm-url-insert (concat api longurl))
 	  (buffer-substring (point-min) (point-at-eol)))
       nil)))
 
@@ -1250,17 +1251,16 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   "Replace the url at point with a tiny version."
   (interactive)
   (let* ((url-bounds (bounds-of-thing-at-point 'url))
-		 (url (thing-at-point 'url))
-		 (newurl (if url
-			     (twittering-tinyurl-get url)
-			   nil)))
+	 (url (thing-at-point 'url))
+	 (newurl (if url
+		     (twittering-tinyurl-get url)
+		   nil)))
     (if newurl
 	(save-restriction
 	  (narrow-to-region (car url-bounds) (cdr url-bounds))
 	  (delete-region (point-min) (point-max))
-	  (insert newurl))
-      )
-	newurl))
+	  (insert newurl)))
+    newurl))
 
 ;;;
 ;;; Commands

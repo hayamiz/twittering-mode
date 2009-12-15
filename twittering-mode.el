@@ -2915,15 +2915,35 @@ The return value is nil or a positive integer less than POS."
 			  nil t nil 'twittering-command-history)))
     (funcall (cdr (assoc command twittering-commands)))))
 
+;;; Commands: timeline
 (twittering-defcommand "friends-timeline" 'twittering-friends-timeline)
+(twittering-defcommand "public-timeline" 'twittering-public-timeline)
 (twittering-defcommand "replies" 'twittering-replies-timeline)
+
+;;; Commands: action
 (twittering-defcommand "update" 'twittering-update-status-interactive)
 (twittering-defcommand "post" 'twittering-update-status-interactive)
 (twittering-defcommand "follow" 'twittering-follow)
 (twittering-defcommand "favorite" 'twittering-favorite)
 (twittering-defcommand "retweet" 'twittering-retweet)
-(twittering-defcommand "hashtag-set" 'twittering-current-hashtag)
-(twittering-defcommand "set-hashtag" 'twittering-current-hashtag)
+(twittering-defcommand "hashtag-set" 'twittering-set-current-hashtag)
+(twittering-defcommand "set-hashtag" 'twittering-set-current-hashtag)
+(twittering-defcommand "open-user-page" 'twittering-view-user-page)
+; (twittering-defcommand "open-in-browser" 'twittering-view-user-page)
+(twittering-defcommand "direct-message" 'twittering-direct-message)
+(twittering-defcommand "send-direct-message" 'twittering-direct-message)
+(twittering-defcommand "list" 'twittering-other-user-list-interactive)
+(twittering-defcommand "icon" 'twittering-icon-mode)
+(twittering-defcommand "suspend" 'twittering-suspend)
+(twittering-defcommand "close" 'twittering-suspend)
+(twittering-defcommand "proxy" 'twittering-toggle-proxy)
+(twittering-defcommand "toggle-proxy" 'twittering-toggle-proxy)
+
+;; (twittering-defcommand "" 'twittering-user-timeline)
+;; (twittering-defcommand "" 'twittering-erase-old-statuses)
+;; (twittering-defcommand "" 'twittering-current-timeline)
+;; (twittering-defcommand "" 'beginning-of-buffer)
+;; (twittering-defcommand "" 'twittering-scroll-mode)
 
 ;;;###autoload
 (defun twit ()

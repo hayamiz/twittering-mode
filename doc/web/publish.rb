@@ -159,7 +159,7 @@ def main(argv)
   tempfile.fsync()
 
   translated_str = nil
-  unless options[:lang] == "en"
+  if options[:lang] != "en"
     translated_str = `xml2po -k -m xhtml -p #{options[:lang]}.po -o /dev/stdout #{tempfile.path}`
   else
     translated_str = File.open(tempfile.path).read
@@ -169,7 +169,7 @@ def main(argv)
 
   output.puts(translated_str)
   
-  0
+  true
 end
 
 if __FILE__ == $0

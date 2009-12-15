@@ -1240,20 +1240,26 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	      (mapconcat (lambda (x)
 			   (symbol-name (car x)))
 			 twittering-tinyurl-servies-map ", "))))
+    (if longurl
     (with-temp-buffer
       (mm-url-insert (concat api longurl))
-      (buffer-substring (point-min) (point-at-eol)))))
+	  (buffer-substring (point-min) (point-at-eol)))
+      nil)))
 
 (defun twittering-tinyurl-replace-at-point ()
   "Replace the url at point with a tiny version."
   (interactive)
   (let* ((url-bounds (bounds-of-thing-at-point 'url))
 		 (url (thing-at-point 'url))
-		 (newurl (twittering-tinyurl-get url)))
+		 (newurl (if url
+			     (twittering-tinyurl-get url)
+			   nil)))
+    (if newurl
 	(save-restriction
 	  (narrow-to-region (car url-bounds) (cdr url-bounds))
 	  (delete-region (point-min) (point-max))
 	  (insert newurl))
+      )
 	newurl))
 
 ;;;

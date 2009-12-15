@@ -7,6 +7,14 @@
 	* twittering-mode.el (twittering-retrieve-image-without-wget):
 	Kill buffer after retrieving the image
 
+2009-12-11  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-tinyurl-get): Call
+	`mm-url-insert' only if argument `longurl' is non-nil to avoid
+	error "Wrong type argument", otherwise return nil explicitly.
+	(twittering-tinyurl-replace-at-point): Replace a region with
+	newurl when `newurl' is non-nil.
+
 2009-12-07  Naohiro Aota  <naota@elisp.net>
 
 	* twittering-mode.el (twittering-http-get-default-sentinel): Check

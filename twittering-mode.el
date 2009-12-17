@@ -200,6 +200,15 @@ when it conflict with your input method (such as AquaSKK, etc.)")
 
 SSL connections use 'curl' command as a backend.")
 
+(defvar twittering-command-mode t
+  "If this is non-nil, vim-style command interface is enabled:
+
+`twittering-command-prompt' prompts you to specify a command. It reads a command name with completion, and executes the command."
+  )
+(defun twittering-command-mode ()
+  (interactive)
+  (setq twittering-command-mode (not twittering-command-mode)))
+
 (defvar twittering-buffer "*twittering*")
 (defun twittering-buffer ()
   (twittering-get-or-generate-buffer twittering-buffer))
@@ -2893,14 +2902,18 @@ The return value is nil or a positive integer less than POS."
   (switch-to-buffer (other-buffer)))
 
 ;;;
-;;; Vim like command interface
+;;; Vim-style command interface
 ;;;
 
-(defvar twittering-commands nil)
+(defvar twittering-commands nil
+"An assoc list of commands to be executed by `twittering-command-prompt'.
+You can define commands with `twittering-defcommand'.")
 
-(defvar twittering-command-history nil)
+(defvar twittering-command-history nil
+  "History of commands executed by `twittering-command-prompt' are saved in this variable.")
 
 (defun twittering-defcommand (command function)
+  "Define a command for twittering-mode. Call `twittering-command-prompt' to invoke commands."
   (unless (symbolp function)
     (error (format "twittering-defcommand: `function' must be as symbol")))
   (setq command (format "%s" command))
@@ -2911,17 +2924,27 @@ The return value is nil or a positive integer less than POS."
 		   (cons command function)))))
 
 (defun twittering-command-prompt ()
+  "Read a command in the minibuffer with completion.
+Commands are defined by `twittering-defcommand'."
   (interactive)
-  (let ((command 
-	 (completing-read ":"
-			  (mapcar 'car twittering-commands)
-			  nil t nil 'twittering-command-history)))
-    (funcall (cdr (assoc command twittering-commands)))))
+  (when twittering-command-mode
+    (let ((command
+	   (completing-read ":"
+			    (mapcar 'car twittering-commands)
+			    nil t nil 'twittering-command-history)))
+      (funcall (cdr (assoc command twittering-commands))))))
 
 ;;; Commands: timeline
 (twittering-defcommand "friends-timeline" 'twittering-friends-timeline)
+(twittering-defcommand "friends-timeline" 'twittering-friends-timeline)
 (twittering-defcommand "public-timeline" 'twittering-public-timeline)
 (twittering-defcommand "replies" 'twittering-replies-timeline)
+(twittering-defcommand "list" 'twittering-other-user-list-interactive)
+
+;;; Commands: switch
+(twittering-defcommand "icon" 'twittering-icon-mode)
+(twittering-defcommand "proxy" 'twittering-toggle-proxy)
+(twittering-defcommand "toggle-proxy" 'twittering-toggle-proxy)
 
 ;;; Commands: action
 (twittering-defcommand "update" 'twittering-update-status-interactive)
@@ -2929,24 +2952,13 @@ The return value is nil or a positive integer less than POS."
 (twittering-defcommand "follow" 'twittering-follow)
 (twittering-defcommand "favorite" 'twittering-favorite)
 (twittering-defcommand "retweet" 'twittering-retweet)
-(twittering-defcommand "hashtag-set" 'twittering-set-current-hashtag)
+(twittering-defcommand "hashtag" 'twittering-set-current-hashtag)
 (twittering-defcommand "set-hashtag" 'twittering-set-current-hashtag)
 (twittering-defcommand "open-user-page" 'twittering-view-user-page)
-; (twittering-defcommand "open-in-browser" 'twittering-view-user-page)
 (twittering-defcommand "direct-message" 'twittering-direct-message)
 (twittering-defcommand "send-direct-message" 'twittering-direct-message)
-(twittering-defcommand "list" 'twittering-other-user-list-interactive)
-(twittering-defcommand "icon" 'twittering-icon-mode)
 (twittering-defcommand "suspend" 'twittering-suspend)
 (twittering-defcommand "close" 'twittering-suspend)
-(twittering-defcommand "proxy" 'twittering-toggle-proxy)
-(twittering-defcommand "toggle-proxy" 'twittering-toggle-proxy)
-
-;; (twittering-defcommand "" 'twittering-user-timeline)
-;; (twittering-defcommand "" 'twittering-erase-old-statuses)
-;; (twittering-defcommand "" 'twittering-current-timeline)
-;; (twittering-defcommand "" 'beginning-of-buffer)
-;; (twittering-defcommand "" 'twittering-scroll-mode)
 
 ;;;###autoload
 (defun twit ()

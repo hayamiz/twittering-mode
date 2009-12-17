@@ -767,6 +767,13 @@
 	(twittering-http-post-default-sentinel): use the same argument
 	format of http-get-default-sentinel
 
+2009-12-17  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-defcommand): add
+	(twittering-commands): add
+	(twittering-command-history): add
+	(twittering-command-mode): add a switch of command interface
+
 2009-12-16  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-tinyurl-replace-at-point):

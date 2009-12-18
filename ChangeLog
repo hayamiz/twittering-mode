@@ -51,6 +51,12 @@
 	(twittering-http-post-default-sentinel): use the same argument
 	format of http-get-default-sentinel
 
+2009-12-18  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-assist-mode-*): renamed to
+	twittering-minor-mode-*
+	(twittering-minor-mode-map): new key bindings: C-c t *
+
 2009-12-16  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-tinyurl-replace-at-point):

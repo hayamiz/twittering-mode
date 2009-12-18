@@ -159,6 +159,11 @@ Items:
 
 (defvar twittering-notify-successful-http-get t)
 
+(defvar twittering-use-ssl t
+  "Use SSL connection if this variable is non-nil.
+
+SSL connections use 'curl' command as a backend.")
+
 (defvar twittering-buffer "*twittering*")
 (defun twittering-buffer ()
   (twittering-get-or-generate-buffer twittering-buffer))
@@ -509,8 +514,116 @@ Otherwise, they are retrieved by `url-retrieve'.")
 ;;; Basic HTTP functions
 ;;;
 
-(defun twittering-make-http-request (host method method-class
-					  &optional parameters)
+(defun twittering-find-curl-program ()
+  "Returns an appropriate 'curl' program pathname or nil if not found."
+  (or (executable-find "curl")
+      (let ((windows-p (find system-type '(windows-nt)))
+	    (curl.exe
+	     (expand-file-name
+	      "curl.exe"
+	      (expand-file-name
+	       "win-curl"
+	       (file-name-directory (symbol-file 'twit))))))
+	     (and windows-p
+		  (file-exists-p curl.exe) curl.exe))))
+
+(defun twittering-start-http-session
+  (method headers host port path parameters
+	       &optional noninteractive sentinel)
+  "
+METHOD    : http method
+HEADERS   : http request heades in assoc list
+HOST      : remote host name
+PORT      : destination port number. nil means default port(http: 80, https: 443)
+PATH      : http request path
+PARAMETERS: http request parameters (query string)
+"
+  (block nil
+    (unless (find http-method '("POST" "GET") :test 'equal)
+      (error (format "Unknown HTTP method: %s" method)))
+    (unless (string-match "^/" path)
+      (error (format "Invalid HTTP path: %s" path)))
+    
+    (unless (assoc "Host" headers)
+      (setq headers (cons `("Host" . ,host) headers)))
+    (unless (assoc "User-Agent" headers)
+      (setq headers (cons `("User-Agent" . ,(twittering-user-agent))
+			  headers)))
+
+    (let ((curl-program (twittering-find-curl-program)))
+      (if (and (not curl-program) twittering-use-ssl)
+	  (if (yes-or-no-p "HTTPS(SSL) is not available. Use HTTP instead?")
+	      (setq twittering-use-ssl nil)
+	    (message "Request canceled")
+	    (return)))
+      (if (and twittering-use-ssl
+	       (not twittering-proxy-use))
+	  (twittering-start-http-ssl-session
+	   curl-program method headers host port path parameters)
+	(twittering-start-http-non-ssl-session
+	 method headers host port path parameters)))))
+
+(defun twittering-start-http-ssl-session
+  (curl-program method headers host port path parameters
+	       &optional noninteractive sentinel)
+  ;; TODO: use curl
+  )
+
+;; TODO: proxy
+(defun twittering-start-http-non-ssl-session
+  (method headers host port path parameters
+	       &optional noninteractive sentinel)
+  (let* ((request (twittering-make-http-request
+		   method headers host port path parameters))
+	 (request-str
+	  (format "%s %s HTTP/1.1\r\n%s\r\n\r\n"
+		  (request :method)
+		  (request :uri)
+		  (request :headers-string))))
+    ;; TODO: send string with emacs network API
+  )
+
+;;; TODO: proxy
+(defun twittering-make-http-request
+  (method headers host port path parameters)
+  "Returns an anonymous function, which holds request data.
+
+A returned function, say REQUEST, is used in this way:
+  (REQUEST :schema) ; => \"http\" or \"https\"
+  (REQUEST :uri) ; => \"http://twitter.com/user_timeline\"
+  (REQUEST :query-string) ; => \"status=hello+twitter&source=twmode\"
+  ...
+
+Available keywords:
+  :method
+  :host
+  :port
+  :headers
+  :headers-string
+  :schema
+  :uri
+  "
+  (let* ((schema (if twittering-use-ssl "http" "https"))
+	 (port (if port port
+		 (if 
+	 (headers-string
+	  (mapconcat (lambda (pair)
+		       (format "%s: %s" (car pair) (cdr pair)))
+		     headers "\r\n"))
+	 (uri (format "%s://%s"
+	 )
+    (lexical-let ((data `((:method . ,method)
+			  (:host . ,host)
+			  (:port . ,port)
+			  (:headers . ,headers)
+			  (:headers-string . ,headers-string)
+			  (:schema . ,schema)
+			  (:uri . ,uri)
+			  )))
+      (lambda (key)
+	(let ((pair (assoc key data)))
+	  (if pair (cdr pair)
+	    (error (format "No such key in HTTP request data: %s" key))))))))
   (let ((nl "\r\n")
 	request)
     (setq request
@@ -569,33 +682,34 @@ Otherwise, they are retrieved by `url-retrieve'.")
   (host method &optional noninteractive parameters sentinel)
   (if (null sentinel) (setq sentinel 'twittering-http-get-default-sentinel))
 
-  (let ((server host)
-	(port "80")
-	(proxy-user twittering-proxy-user)
-	(proxy-password twittering-proxy-password)
-	(temp-buffer (generate-new-buffer "*twmode-http-buffer*"))
-	proc)
-    (condition-case get-error
-	(progn
-	  (if (and twittering-proxy-use twittering-proxy-server)
-	      (setq server twittering-proxy-server
-		    port (if (integerp twittering-proxy-port)
-			     (int-to-string twittering-proxy-port)
-			   twittering-proxy-port))
-	    )
-	  (setq proc
-		(open-network-stream
-		 "network-connection-process" temp-buffer
-		 server (string-to-number port)))
-          (lexical-let ((temp-buffer temp-buffer)
-			(sentinel sentinel)
-			(noninteractive noninteractive))
-            (set-process-sentinel proc (lambda (&rest args) (apply sentinel temp-buffer noninteractive args))))
-	  (process-send-string
-	   proc
-	   (twittering-make-http-request host "GET" method parameters)))
-      (error
-       (message (format "Failure: HTTP GET: %s" get-error)) nil))))
+;;  (let ((server host)
+;;	(port "80")
+;;	(proxy-user twittering-proxy-user)
+;;	(proxy-password twittering-proxy-password)
+;;	(temp-buffer (generate-new-buffer "*twmode-http-buffer*"))
+;;	proc)
+;;    (condition-case get-error
+;;	(progn
+;;	  (if (and twittering-proxy-use twittering-proxy-server)
+;;	      (setq server twittering-proxy-server
+;;		    port (if (integerp twittering-proxy-port)
+;;			     (int-to-string twittering-proxy-port)
+;;			   twittering-proxy-port))
+;;	    )
+;;	  (setq proc
+;;		(open-network-stream
+;;		 "network-connection-process" temp-buffer
+;;		 server (string-to-number port)))
+;;          (lexical-let ((temp-buffer temp-buffer)
+;;			(sentinel sentinel)
+;;			(noninteractive noninteractive))
+;;            (set-process-sentinel proc (lambda (&rest args) (apply sentinel temp-buffer noninteractive args))))
+;;	  (process-send-string
+;;	   proc
+;;	   (twittering-make-http-request host "GET" method parameters)))
+;;      (error
+;;       (message (format "Failure: HTTP GET: %s" get-error)) nil)))
+  )
 
 (defun twittering-created-at-to-seconds (created-at)
   (let ((encoded-time (apply 'encode-time (parse-time-string created-at))))
@@ -883,31 +997,32 @@ PARAMETERS is alist of URI parameters.
  ex) ((\"mode\" . \"view\") (\"page\" . \"6\")) => <URI>?mode=view&page=6"
   (if (null sentinel) (setq sentinel 'twittering-http-post-default-sentinel))
 
-  (let ((server host)
-	(port "80")
-	(proxy-user twittering-proxy-user)
-	(proxy-password twittering-proxy-password)
-	(temp-buffer (generate-new-buffer "*twmode-http-buffer*"))
-	proc)
-    (progn
-      (if (and twittering-proxy-use twittering-proxy-server)
-	  (setq server twittering-proxy-server
-		port (if (integerp twittering-proxy-port)
-			 (int-to-string twittering-proxy-port)
-		       twittering-proxy-port))
-	)
-      (setq proc
-	    (open-network-stream
-	     "network-connection-process" temp-buffer
-	     server (string-to-number port)))
-      (lexical-let ((temp-buffer temp-buffer)
-		    (sentinel sentinel))
-	(set-process-sentinel proc
-			      (lambda (&rest args)
-				(apply sentinel temp-buffer args))))
-      (process-send-string
-       proc
-       (twittering-make-http-request host "POST" method parameters)))))
+;;  (let ((server host)
+;;	(port "80")
+;;	(proxy-user twittering-proxy-user)
+;;	(proxy-password twittering-proxy-password)
+;;	(temp-buffer (generate-new-buffer "*twmode-http-buffer*"))
+;;	proc)
+;;    (progn
+;;      (if (and twittering-proxy-use twittering-proxy-server)
+;;	  (setq server twittering-proxy-server
+;;		port (if (integerp twittering-proxy-port)
+;;			 (int-to-string twittering-proxy-port)
+;;		       twittering-proxy-port))
+;;	)
+;;      (setq proc
+;;	    (open-network-stream
+;;	     "network-connection-process" temp-buffer
+;;	     server (string-to-number port)))
+;;      (lexical-let ((temp-buffer temp-buffer)
+;;		    (sentinel sentinel))
+;;	(set-process-sentinel proc
+;;			      (lambda (&rest args)
+;;				(apply sentinel temp-buffer args))))
+;;      (process-send-string
+;;       proc
+;;       (twittering-make-http-request host "POST" method parameters))))
+  )
 
 (defun twittering-http-post-default-sentinel (temp-buffer proc stat &optional suc-msg)
 

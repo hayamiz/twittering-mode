@@ -9,7 +9,7 @@
 ;;         Tsuyoshi CHO <Tsuyoshi.CHO+develop@Gmail.com>
 ;;         Alberto Garcia  <agarcia@igalia.com>
 ;; Created: Sep 4, 2007
-;; Version: 0.4
+;; Version: 0.9
 ;; Keywords: twitter web
 ;; URL: http://github.com/hayamiz/twittering-mode/
 
@@ -48,7 +48,7 @@
 (require 'mm-url)
 (require 'ffap)
 
-(defconst twittering-mode-version "0.8")
+(defconst twittering-mode-version "0.9")
 (defconst twittering-max-number-of-tweets-on-retrieval 200
   "The maximum number of `twittering-number-of-tweets-on-retrieval'.")
 

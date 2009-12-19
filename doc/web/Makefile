@@ -1,11 +1,14 @@
 
-RM ?= rm -f
+CATALOGS := ja.po
+MARKDOWN_DOCS :=				\
+	index.text				\
+	how-to-contribute.text			\
+	screenshot.text
+
 PUBLISH := ./publish.rb
-MARKDOWN_DOCS := index.text how-to-contribute.text
+RM ?= rm -f
 HTML_DOCS := $(subst .text,.html,$(MARKDOWN_DOCS))
 HTML_ASSETS := style.css images
-CATALOGS := ja.po
-
 
 .PHONY: all clean upload update-po publish
 

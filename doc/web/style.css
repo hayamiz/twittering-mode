@@ -106,15 +106,18 @@ letter-spacing: -2pt;
 font-weight: 100;
 padding : 10px 0 15px 0;
 }
+
 .left h3 {
 text-decoration: underline;
-line-height: 20pt;
+line-height: 22pt;
+margin: 0 0 5pt 0;
 }
 
 .left h4 {
 line-height: 20pt;
 border-left: 10px solid gray; 
 padding-left: 5px;
+margin: 0 0 5pt 0;
 }
 
 .left ul {

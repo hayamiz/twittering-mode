@@ -1,0 +1,28 @@
+
+# Screenshots
+
+## Timeline
+
+### Friends timeline
+
+#### Without icons
+
+![](./images/screen-friends-no-icon.png)
+
+#### With icons
+![](./images/screen-friends.png)
+
+### User's timeline
+
+![](./images/screen-user.png)
+
+### Supported timelines
+
+- Friends timeline
+- User's timeline
+- Replies
+- Public timeline
+- Lists
+
+[&laquo; Back to top](./index.html)
+

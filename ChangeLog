@@ -1,3 +1,10 @@
+2009-12-20  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-update-mode-line): add
+	(twittering-toggle-proxy, twittering-icon-mode)
+	(twittering-scroll-mode, twittering-jojo-mode): use
+	update-mode-line
+
 2009-12-19  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-use-ssl): add

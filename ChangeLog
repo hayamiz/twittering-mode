@@ -345,6 +345,34 @@
 	(twittering-render-timeline): remove unnecessary binding of the
 	variable `fill-column'.
 
+2010-01-22  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el: Add search support (which was originally
+	written by Kensuke Matsuzaki in December 2009)
+
+	* twittering-mode.el (twittering-json-to-status-datum): Add code
+	for native retweets.
+	(twittering-http-get-search-sentinel): Sync with HEAD.
+	(twittering-get-response-body-string): Likewise.
+
+	* twittering-mode.el (twittering-get-tweets): Rewrite to match
+	this to the new-timeline spec.
+	(twittering-get-search): Call `twittering-get-tweets' instead of
+	`twittering-http-get'
+	(twittering-search): Call `twittering-get-search' instead of
+	`twittering-get-tweets'.
+
+	* twittering-mode.el (twittering-timeline-spec-to-string): Add a
+	condition for search-mode.
+	(twittering-extract-timeline-spec): Likewise.
+	(twittering-timeline-spec-to-host-method): Likewise.
+	(twittering-host-method-to-timeline-spec): Likewise.
+
+	* twittering-mode.el (twittering-http-get): Add an adjusting code.
+	In search-mode, a `method' variable is now contains a query word
+	for internal use. For this reason, we must adjust it before pass
+	it into `twittering-start-http-session'.
+
 2010-01-21  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el: Add a fail statement to work again under

@@ -1,16 +1,20 @@
 
-== A Twitter client for Emacs ==
+# Twittering-mode: a Twitter client for Emacs
 
-== Authors & Contributors ==
-Y. Hayamizu
-naoya_t
-Tsuyoshi CHO
-Alberto Garcia
-やたがわ(yata)
-高山智也
-松尾(cvmat)
-青田(naota)
-Jaemok Jeong(jmjeong)
+- web: http://twmode.sf.net
+- github: http://github.com/hayamiz/twittering-mode
 
-== See also ==
-http://www.emacswiki.org/emacs-en/TwitteringMode
+## Authors & Contributors
+- Y. Hayamizu
+- naoya_t
+- Tsuyoshi CHO
+- Alberto Garcia
+- やたがわ(yata)
+- 高山智也
+- 松尾(cvmat)
+- 青田(naota)
+- Jaemok Jeong(jmjeong)
+
+## See also
+
+- http://www.emacswiki.org/emacs-en/TwitteringMode

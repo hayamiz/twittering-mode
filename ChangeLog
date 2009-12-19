@@ -1,3 +1,13 @@
+2009-12-19  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-use-ssl): add
+	(twittering-find-curl-program): add
+	(twittering-start-http-ssl-session): add
+	(twittering-start-http-non-ssl-session): add
+	(twittering-http-application-headers): add
+	(twittering-http-get): rewritten by using start-http-session
+	(twittering-http-post): rewritten by using start-http-session
+
 2009-12-16  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-tinyurl-replace-at-point):

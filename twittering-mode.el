@@ -370,6 +370,11 @@ Otherwise, they are retrieved by `url-retrieve'.")
 	     (newline)
 	     ,obsym)
 	 ,obsym))))
+(defun debug-printf (fmt &rest args)
+  (when twittering-debug-mode
+    (with-current-buffer (twittering-debug-buffer)
+      (insert (concat "[debug] " (apply 'format fmt args)))
+      (newline))))
 
 (defun twittering-debug-mode ()
   (interactive)
@@ -794,6 +799,7 @@ Available keywords:
 
 (defun twittering-http-get-default-sentinel (temp-buffer noninteractive proc stat &optional suc-msg)
   (unwind-protect
+      (debug-printf "get-default-sentinel: proc=%s stat=%s" proc stat)
       (let ((header (twittering-get-response-header temp-buffer))
 	    (body (twittering-get-response-body temp-buffer))
 	    (status nil)
@@ -1092,7 +1098,8 @@ PARAMETERS is alist of URI parameters.
 			 (t (message "Response status code: %s" status)))
 	    )
 	(error (message (prin1-to-string err-signal))))
-    (kill-buffer temp-buffer))
+    (unless twittering-debug-mode
+      (kill-buffer temp-buffer)))
   )
 
 (defun twittering-get-response-header (buffer)

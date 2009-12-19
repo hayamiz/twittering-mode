@@ -214,6 +214,7 @@ SSL connections use 'curl' command as a backend.")
   (interactive)
   (setq twittering-proxy-use
 	(not twittering-proxy-use))
+  (twittering-update-mode-line)
   (message "%s %s"
 	   "Use Proxy:"
 	   (if twittering-proxy-use
@@ -275,7 +276,7 @@ directory. You should change through function'twittering-icon-mode'")
 		(if (not (file-directory-p twittering-tmp-dir))
 		    (make-directory twittering-tmp-dir))
 		t)))))
-  (force-mode-line-update)
+  (twittering-update-mode-line)
   (twittering-render-timeline))
 
 (defun twittering-scroll-mode (&optional arg)
@@ -284,7 +285,7 @@ directory. You should change through function'twittering-icon-mode'")
 	(if (null arg)
 	    (not twittering-scroll-mode)
 	  (> (prefix-numeric-value arg) 0)))
-  (force-mode-line-update))
+  (twittering-update-mode-line))
 
 (defun twittering-jojo-mode (&optional arg)
   (interactive)
@@ -292,7 +293,7 @@ directory. You should change through function'twittering-icon-mode'")
 	(if (null arg)
 	    (not twittering-jojo-mode)
 	  (> (prefix-numeric-value arg) 0)))
-  (force-mode-line-update))
+  (twittering-update-mode-line))
 
 (defvar twittering-image-stack nil)
 (defvar twittering-image-type-cache nil)
@@ -468,9 +469,9 @@ Otherwise, they are retrieved by `url-retrieve'.")
   (defface twittering-uri-face
     `((t nil)) "" :group 'faces)
   (set-face-attribute 'twittering-uri-face nil :underline t)
-  (add-to-list 'minor-mode-alist '(twittering-icon-mode " tw-icon"))
-  (add-to-list 'minor-mode-alist '(twittering-scroll-mode " tw-scroll"))
-  (add-to-list 'minor-mode-alist '(twittering-jojo-mode " tw-jojo"))
+;;   (add-to-list 'minor-mode-alist '(twittering-icon-mode " tw-icon"))
+;;   (add-to-list 'minor-mode-alist '(twittering-scroll-mode " tw-scroll"))
+;;   (add-to-list 'minor-mode-alist '(twittering-jojo-mode " tw-jojo"))
   (setq twittering-username-active twittering-username)
   (setq twittering-password-active twittering-password)
   )
@@ -495,7 +496,7 @@ Otherwise, they are retrieved by `url-retrieve'.")
       `(ucs-to-char ,num)
     `(decode-char 'ucs ,num)))
 
-(defvar twittering-mode-string "Twittering mode")
+(defvar twittering-mode-string "twittering-mode")
 
 (defvar twittering-mode-hook nil
   "Twittering-mode hook.")
@@ -509,12 +510,35 @@ Otherwise, they are retrieved by `url-retrieve'.")
   (twittering-mode-init-variables)
   (use-local-map twittering-mode-map)
   (setq major-mode 'twittering-mode)
-  (setq mode-name twittering-mode-string)
+  (twittering-update-mode-line)
   (set-syntax-table twittering-mode-syntax-table)
   (run-hooks 'twittering-mode-hook)
   (font-lock-mode -1)
   (twittering-stop)
   (twittering-start))
+
+(defun twittering-update-mode-line ()
+  "Update mode line"
+  (let (enabled-options)
+    (when twittering-jojo-mode
+      (push "jojo" enabled-options))
+    (when twittering-icon-mode
+      (push "icon" enabled-options))
+    (when twittering-scroll-mode
+      (push "scroll" enabled-options))
+    (when twittering-proxy-use
+      (push "proxy" enabled-options))
+    (when twittering-use-ssl
+      (push "ssl" enabled-options))
+    (setq mode-name
+	  (concat twittering-mode-string
+		  (if enabled-options
+		      (concat "["
+			      (mapconcat 'identity enabled-options ",")
+			      "]")
+		    ""))))
+  (force-mode-line-update)
+  )
 
 ;;;
 ;;; Basic HTTP functions

@@ -7,6 +7,8 @@
 	(twittering-http-application-headers): add
 	(twittering-http-get): rewritten by using start-http-session
 	(twittering-http-post): rewritten by using start-http-session
+	(twittering-http-post-default-sentinel): use the same argument
+	format of http-get-default-sentinel
 
 2009-12-16  Yuto Hayamizu  <y.hayamizu@gmail.com>
 

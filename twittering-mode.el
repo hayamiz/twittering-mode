@@ -539,7 +539,7 @@ PATH      : http request path
 PARAMETERS: http request parameters (query string)
 "
   (block nil
-    (unless (find http-method '("POST" "GET") :test 'equal)
+    (unless (find method '("POST" "GET") :test 'equal)
       (error (format "Unknown HTTP method: %s" method)))
     (unless (string-match "^/" path)
       (error (format "Invalid HTTP path: %s" path)))
@@ -559,14 +559,57 @@ PARAMETERS: http request parameters (query string)
       (if (and twittering-use-ssl
 	       (not twittering-proxy-use))
 	  (twittering-start-http-ssl-session
-	   curl-program method headers host port path parameters)
+	   curl-program method headers host port path parameters
+	   noninteractive sentinel)
 	(twittering-start-http-non-ssl-session
-	 method headers host port path parameters)))))
+	 method headers host port path parameters
+	 noninteractive sentinel)))))
 
 (defun twittering-start-http-ssl-session
   (curl-program method headers host port path parameters
-	       &optional noninteractive sentinel)
+		&optional noninteractive sentinel)
   ;; TODO: use curl
+  (let* ((request (twittering-make-http-request
+		   method headers host port path parameters))
+	 (curl-args
+	  `("--include" "--silent"
+	    ,@(mapcan (lambda (pair)
+			(list "-H"
+			      (format "%s: %s"
+				      (car pair) (cdr pair))))
+		      headers)
+	    )))
+    (flet ((request (key) (funcall request key)))
+      (setq curl-args `(,@curl-args
+			,(if parameters
+			     (concat (request :uri) "?"
+				     (request :query-string))
+			   (request :uri))))
+      (when (string-equal "POST" method)
+	(setq curl-args `(,@curl-args
+			  ,@(mapcan (lambda (pair)
+				      (list
+				       "-d"
+				       (format "%s=%s"
+					       (twittering-percent-encode
+						(car pair))
+					       (twittering-percent-encode
+						(cdr pair)))))
+				    parameters)))))
+    (debug-print curl-args)
+    (lexical-let ((temp-buffer
+		   (generate-new-buffer "*twmode-http-buffer*"))
+		  (sentinel sentinel))
+      (let ((curl-process
+	     (apply 'start-process
+		    "*twmode-curl*"
+		    temp-buffer
+		    curl-program
+		    curl-args)))
+	(set-process-sentinel
+	 curl-process
+	 (lambda (&rest args)
+	   (apply sentinel temp-buffer noninteractive args))))))
   )
 
 ;; TODO: proxy
@@ -581,7 +624,7 @@ PARAMETERS: http request parameters (query string)
 		  (request :uri)
 		  (request :headers-string))))
     ;; TODO: send string with emacs network API
-  )
+  ))
 
 ;;; TODO: proxy
 (defun twittering-make-http-request
@@ -589,9 +632,9 @@ PARAMETERS: http request parameters (query string)
   "Returns an anonymous function, which holds request data.
 
 A returned function, say REQUEST, is used in this way:
-  (REQUEST :schema) ; => \"http\" or \"https\"
-  (REQUEST :uri) ; => \"http://twitter.com/user_timeline\"
-  (REQUEST :query-string) ; => \"status=hello+twitter&source=twmode\"
+  (funcall REQUEST :schema) ; => \"http\" or \"https\"
+  (funcall REQUEST :uri) ; => \"http://twitter.com/user_timeline\"
+  (funcall REQUEST :query-string) ; => \"status=hello+twitter&source=twmode\"
   ...
 
 Available keywords:
@@ -602,15 +645,32 @@ Available keywords:
   :headers-string
   :schema
   :uri
+  :query-string
   "
-  (let* ((schema (if twittering-use-ssl "http" "https"))
-	 (port (if port port
-		 (if 
+  (let* ((schema (if twittering-use-ssl "https" "http"))
+	 (default-port (if twittering-use-ssl "443" "80"))
+	 (port (if port (format "%s" port) nil))
 	 (headers-string
 	  (mapconcat (lambda (pair)
 		       (format "%s: %s" (car pair) (cdr pair)))
 		     headers "\r\n"))
-	 (uri (format "%s://%s"
+	 (uri (format "%s://%s%s%s"
+		      schema
+		      host
+		      (if port
+			  (if (string-equal port default-port)
+			      ""
+			    (concat ":" port))
+			"")
+		      path))
+	 (query-string
+	  (mapconcat (lambda (pair)
+		       (format
+			"%s=%s"
+			(twittering-percent-encode (car pair))
+			(twittering-percent-encode (cdr pair))))
+		     parameters
+		     "&"))
 	 )
     (lexical-let ((data `((:method . ,method)
 			  (:host . ,host)
@@ -619,68 +679,55 @@ Available keywords:
 			  (:headers-string . ,headers-string)
 			  (:schema . ,schema)
 			  (:uri . ,uri)
+			  (:query-string . ,query-string)
 			  )))
       (lambda (key)
 	(let ((pair (assoc key data)))
 	  (if pair (cdr pair)
-	    (error (format "No such key in HTTP request data: %s" key))))))))
-  (let ((nl "\r\n")
-	request)
-    (setq request
-	  (concat method " http://" host "/" method-class ".xml"
-	   (when parameters
-		    (concat "?"
-			    (mapconcat
-			     (lambda (param-pair)
-			       (format "%s=%s"
-				       (twittering-percent-encode
-					(car param-pair))
-				       (twittering-percent-encode
-					(cdr param-pair))))
-			     parameters
-			     "&")))
-		  " HTTP/1.1" nl
-		  "Host: " host nl
-		  "User-Agent: " (twittering-user-agent) nl
-		  "Authorization: Basic "
-		  (base64-encode-string
-		   (concat
-		    (twittering-get-username) ":" (twittering-get-password)))
-		  nl
-		  (when (string= "GET" method)
-		    (concat
-		     "Accept: text/xml"
-		     ",application/xml"
-		     ",application/xhtml+xml"
-		     ",application/html;q=0.9"
-		     ",text/plain;q=0.8"
-		     ",image/png,*/*;q=0.5" nl
-		     "Accept-Charset: utf-8;q=0.7,*;q=0.7"
-		     nl))
-		  (when (string= "POST" method)
-		    (concat
-		     "Content-Type: text/plain" nl
-		     "Content-Length: 0" nl))
-		  (when twittering-proxy-use
-		    (concat
-		     (when twittering-proxy-keep-alive
-		       (concat "Proxy-Connection: Keep-Alive" nl))
-		     (when (and twittering-proxy-user
-				twittering-proxy-password)
-		       (concat
-			"Proxy-Authorization: Basic "
+	    (error (format "No such key in HTTP request data: %s" key)))))
+      )))
+
+(defun twittering-http-application-headers
+  (&optional method headers)
+  "Retuns an assoc list of HTTP headers for twittering-mode.
+"
+  (unless method (setq method "GET"))
+
+  (let ((headers headers))
+    (push (cons "User-Agent" (twittering-user-agent)) headers)
+    (push (cons "Authorization"
+		(concat "Basic "
 			(base64-encode-string
 			 (concat
-			  twittering-proxy-user ":" twittering-proxy-password))
-			nl)
-		       )))
-		  nl))
-    (debug-print (concat method "Request\n" request))
-    request))
+			  (twittering-get-username)
+			  ":"
+			  (twittering-get-password)))))
+	  headers)
+    (when (string-equal "GET" method)
+      (push (cons "Accept"
+		  (concat
+		   "text/xml"
+		   ",application/xml"
+		   ",application/xhtml+xml"
+		   ",application/html;q=0.9"
+		   ",text/plain;q=0.8"
+		   ",image/png,*/*;q=0.5"))
+	    headers)
+      (push (cons "Accept-Charset" "utf-8;q=0.7,*;q=0.7")
+	    headers))
+    (when (string-equal "POST" method)
+      (push (cons "Content-Type" "text/plain") headers))
+
+    headers
+    ))
 
 (defun twittering-http-get
   (host method &optional noninteractive parameters sentinel)
   (if (null sentinel) (setq sentinel 'twittering-http-get-default-sentinel))
+
+  (twittering-start-http-session
+   "GET" (twittering-http-application-headers "GET")
+   host nil (concat "/" method ".xml") parameters noninteractive sentinel))
 
 ;;  (let ((server host)
 ;;	(port "80")
@@ -709,7 +756,6 @@ Available keywords:
 ;;	   (twittering-make-http-request host "GET" method parameters)))
 ;;      (error
 ;;       (message (format "Failure: HTTP GET: %s" get-error)) nil)))
-  )
 
 (defun twittering-created-at-to-seconds (created-at)
   (let ((encoded-time (apply 'encode-time (parse-time-string created-at))))
@@ -997,6 +1043,10 @@ PARAMETERS is alist of URI parameters.
  ex) ((\"mode\" . \"view\") (\"page\" . \"6\")) => <URI>?mode=view&page=6"
   (if (null sentinel) (setq sentinel 'twittering-http-post-default-sentinel))
 
+  (twittering-start-http-session
+   "POST" (twittering-http-application-headers "POST")
+   host nil (concat "/" method ".xml") parameters noninteractive sentinel))
+
 ;;  (let ((server host)
 ;;	(port "80")
 ;;	(proxy-user twittering-proxy-user)
@@ -1022,7 +1072,7 @@ PARAMETERS is alist of URI parameters.
 ;;      (process-send-string
 ;;       proc
 ;;       (twittering-make-http-request host "POST" method parameters))))
-  )
+
 
 (defun twittering-http-post-default-sentinel (temp-buffer proc stat &optional suc-msg)
 

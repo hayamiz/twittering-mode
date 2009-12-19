@@ -366,6 +366,7 @@ Otherwise, they are retrieved by `url-retrieve'.")
     `(let ((,obsym ,obj))
        (if twittering-debug-mode
 	   (with-current-buffer (twittering-debug-buffer)
+	     (insert "[debug] ")
 	     (insert (prin1-to-string ,obsym))
 	     (newline)
 	     ,obsym)
@@ -522,7 +523,7 @@ Otherwise, they are retrieved by `url-retrieve'.")
 (defun twittering-find-curl-program ()
   "Returns an appropriate 'curl' program pathname or nil if not found."
   (or (executable-find "curl")
-      (let ((windows-p (find system-type '(windows-nt)))
+      (let ((windows-p (find system-type '(windows-nt cygwin)))
 	    (curl.exe
 	     (expand-file-name
 	      "curl.exe"
@@ -561,8 +562,8 @@ PARAMETERS: http request parameters (query string)
 	      (setq twittering-use-ssl nil)
 	    (message "Request canceled")
 	    (return)))
-      (if (and twittering-use-ssl
-	       (not twittering-proxy-use))
+      
+      (if twittering-use-ssl
 	  (twittering-start-http-ssl-session
 	   curl-program method headers host port path parameters
 	   noninteractive sentinel)
@@ -584,23 +585,30 @@ PARAMETERS: http request parameters (query string)
 				      (car pair) (cdr pair))))
 		      headers)
 	    )))
+    (when twittering-proxy-use
+      (nconc curl-args `("-x" ,(format "%s:%s" twittering-proxy-server
+					 twittering-proxy-port)))
+      (when (and twittering-proxy-user
+		 twittering-proxy-password)
+	(nconc curl-args `("-U" ,(format "%s:%s" twittering-proxy-user
+					   twittering-proxy-password)))))
+    
     (flet ((request (key) (funcall request key)))
-      (setq curl-args `(,@curl-args
-			,(if parameters
-			     (concat (request :uri) "?"
-				     (request :query-string))
-			   (request :uri))))
+      (nconc curl-args `(,(if parameters
+			      (concat (request :uri) "?"
+				      (request :query-string))
+			    (request :uri))))
       (when (string-equal "POST" method)
-	(setq curl-args `(,@curl-args
-			  ,@(mapcan (lambda (pair)
-				      (list
-				       "-d"
-				       (format "%s=%s"
-					       (twittering-percent-encode
-						(car pair))
-					       (twittering-percent-encode
-						(cdr pair)))))
-				    parameters)))))
+	(nconc curl-args 
+	       `(,@(mapcan (lambda (pair)
+			     (list
+			      "-d"
+			      (format "%s=%s"
+				      (twittering-percent-encode
+				       (car pair))
+				      (twittering-percent-encode
+				       (cdr pair)))))
+			   parameters)))))
     (debug-print curl-args)
     (lexical-let ((temp-buffer
 		   (generate-new-buffer "*twmode-http-buffer*"))
@@ -722,7 +730,21 @@ Available keywords:
 	    headers))
     (when (string-equal "POST" method)
       (push (cons "Content-Type" "text/plain") headers))
-
+    (when twittering-proxy-use
+      (when twittering-proxy-keep-alive
+	(push (cons "Proxy-Connection" "Keep-Alive")
+	      headers))
+      (when (and twittering-proxy-user
+		 twittering-proxy-password)
+	(push (cons "Proxy-Authorization"
+		    (concat
+		     "Basic "
+		     (base64-encode-string
+		      (concat
+		       twittering-proxy-user
+		       ":"
+		       twittering-proxy-password))))
+	      headers)))
     headers
     ))
 
@@ -833,7 +855,7 @@ Available keywords:
 		  (message (if suc-msg suc-msg "Success: Get."))))
 	       (t (message status))))
 	  (message "Failure: Bad http response.")))
-    (when (buffer-live-p temp-buffer)
+    (when (and (not twittering-debug-mode) (buffer-live-p temp-buffer))
       (kill-buffer temp-buffer)))
   )
 
@@ -1106,6 +1128,16 @@ PARAMETERS is alist of URI parameters.
   "Exract HTTP response header from HTTP response.
 `buffer' may be a buffer or the name of an existing buffer which contains the HTTP response."
   (if (stringp buffer) (setq buffer (get-buffer buffer)))
+  
+  ;; FIXME:
+  ;; curl prints HTTP proxy response header, so strip it
+  (save-excursion
+    (set-buffer buffer)
+    (beginning-of-buffer)
+    (when (search-forward-regexp
+	   "HTTP/1\\.[01] 200 Connection established\r\n\r\n" nil t)
+      (delete-region (point-min) (point))))
+
   (save-excursion
     (set-buffer buffer)
     (let ((content (buffer-string)))

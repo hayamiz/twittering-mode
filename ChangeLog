@@ -273,6 +273,10 @@
 	for reading timeline specification from the minibuffer.
 	(twittering-get-twits-with-timeline-spec): Add new function for
 	retrieving tweets with timeline specification.
+	(twittering-visit-timeline): Add new function for visiting a
+	timeline.
+	(twittering-mode-map): The key "V" is bound to
+	'twittering-visit-timeline'.
 
 2009-12-20  Yuto Hayamizu  <y.hayamizu@gmail.com>
 

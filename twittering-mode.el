@@ -544,7 +544,7 @@ Otherwise, they are retrieved by `url-retrieve'.")
       (define-key km "g" 'twittering-current-timeline)
       (define-key km "d" 'twittering-direct-message)
       (define-key km "v" 'twittering-other-user-timeline)
-      (define-key km "V" 'twittering-other-user-timeline-interactive)
+      (define-key km "V" 'twittering-visit-timeline)
       (define-key km "L" 'twittering-other-user-list-interactive)
       ;; (define-key km "j" 'next-line)
       ;; (define-key km "k" 'previous-line)
@@ -2018,6 +2018,15 @@ following symbols;
 (defun twittering-unfavorite ()
   (interactive)
   (twittering-favorite t))
+
+(defun twittering-visit-timeline (&optional timeline-spec initial)
+  (interactive)
+  (let ((timeline-spec
+	 (or timeline-spec
+	     (twittering-read-timeline-spec-with-completion
+	      "timeline: " initial))))
+    (when timeline-spec
+      (twittering-get-twits-with-timeline-spec timeline-spec))))
 
 (defun twittering-other-user-timeline ()
   (interactive)

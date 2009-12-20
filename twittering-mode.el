@@ -2082,6 +2082,27 @@ following symbols;
 	nil
       listname)))
 
+(defun twittering-read-timeline-spec-with-completion
+  (prompt initial)
+  (let* ((dummy-hist
+	  (append (twittering-make-list-from-assoc
+		   'user-screen-name twittering-timeline-data)
+		  twittering-timeline-history))
+	 (spec (completing-read prompt dummy-hist
+				nil nil initial 'dummy-hist)))
+    (cond
+     ((string-match "^\\([^/]+\\)/$" spec)
+      (let* ((username (match-string 1 spec))
+	     (list-index (twittering-get-list-index-sync username))
+	     (listname (if list-index
+			   (twittering-read-list-name username list-index)
+			 nil)))
+	(if listname
+	    (concat username "/" listname)
+	  nil)))
+     ((string= "" spec) nil)
+     (t spec))))
+
 (defun twittering-get-username ()
   (or twittering-username-active
       (setq twittering-username-active (read-string "your twitter username: "))))

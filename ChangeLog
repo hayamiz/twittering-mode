@@ -269,6 +269,8 @@
 	list synchronously.
 	(twittering-read-list-name): Add new function for reading a list
 	name from the minibuffer.
+	(twittering-read-timeline-spec-with-completion): Add new function
+	for reading timeline specification from the minibuffer.
 
 2009-12-20  Yuto Hayamizu  <y.hayamizu@gmail.com>
 

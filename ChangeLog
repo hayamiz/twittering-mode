@@ -271,6 +271,8 @@
 	name from the minibuffer.
 	(twittering-read-timeline-spec-with-completion): Add new function
 	for reading timeline specification from the minibuffer.
+	(twittering-get-twits-with-timeline-spec): Add new function for
+	retrieving tweets with timeline specification.
 
 2009-12-20  Yuto Hayamizu  <y.hayamizu@gmail.com>
 

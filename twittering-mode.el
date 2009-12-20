@@ -1693,6 +1693,14 @@ following symbols;
       (twittering-retrieve-image twittering-image-stack)
     ))
 
+(defun twittering-get-twits-with-timeline-spec
+  (timeline-spec &optional noninteractive id)
+  (let ((pair (twittering-get-host-method-from-timeline-spec timeline-spec)))
+    (when pair
+      (let ((host (car pair))
+	    (method (cadr pair)))
+	(twittering-get-twits host method noninteractive id)))))
+
 (defun twittering-retrieve-image (images)
   (if twittering-use-wget
       (twittering-retrieve-image-with-wget images)
@@ -2085,9 +2093,10 @@ following symbols;
 (defun twittering-read-timeline-spec-with-completion
   (prompt initial)
   (let* ((dummy-hist
-	  (append (twittering-make-list-from-assoc
-		   'user-screen-name twittering-timeline-data)
-		  twittering-timeline-history))
+	  (delete-dups
+	   (append twittering-timeline-history
+		   (twittering-make-list-from-assoc
+		    'user-screen-name twittering-timeline-data))))
 	 (spec (completing-read prompt dummy-hist
 				nil nil initial 'dummy-hist)))
     (cond

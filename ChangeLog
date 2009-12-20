@@ -1,3 +1,9 @@
+2009-12-21  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-icon-path): `require' is added.
+	(twittering-tinyurl-get, twittering-retrieve-image-without-wget):
+	The dependency on `mm-url' is removed by using `url' library.
+
 2009-12-20  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-update-mode-line): add

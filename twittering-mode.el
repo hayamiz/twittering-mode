@@ -45,8 +45,6 @@
 (require 'cl)
 (require 'xml)
 (require 'parse-time)
-(require 'mm-url)
-(require 'ffap)
 
 (defconst twittering-mode-version "0.9")
 (defconst twittering-max-number-of-tweets-on-retrieval 200
@@ -897,6 +895,7 @@ Available keywords:
     ))
 
 (defun twittering-icon-path (icon-url)
+  (require 'ffap)
   (concat (md5 icon-url nil nil 'iso-2022-7bit)
 	  (or (ffap-file-suffix icon-url) ".img")))
 
@@ -1427,6 +1426,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 
 (defun twittering-tinyurl-get (longurl)
   "Tinyfy LONGURL"
+  (require 'url)
   (let ((api (cdr (assoc twittering-tinyurl-service
 			 twittering-tinyurl-services-map))))
     (unless api
@@ -1436,9 +1436,14 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 			   (symbol-name (car x)))
 			 twittering-tinyurl-servies-map ", "))))
     (if longurl
-	(with-temp-buffer
-	  (mm-url-insert (concat api longurl))
-	  (buffer-substring (point-min) (point-at-eol)))
+	(save-excursion
+	  (let ((buffer (url-retrieve-synchronously (concat api longurl))))
+	    (set-buffer buffer)
+	    (url-insert buffer)
+	    (prog1
+		(buffer-substring (point-min) (point))
+	      (kill-buffer buffer)
+	      )))
       nil)))
 
 (defun twittering-tinyurl-replace-at-point ()
@@ -1521,20 +1526,12 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 
 (defun twittering-retrieve-image-without-wget (image-urls)
   (require 'url)
-  (dolist (url image-urls)
-    (let ((file (concat twittering-tmp-dir "/" (twittering-icon-path url))))
+  (mapc
+   (lambda (url)
+     (let ((file (concat twittering-tmp-dir "/" (twittering-icon-path url))))
       (unless (file-exists-p file)
-	(url-retrieve
-	 url `(lambda (status)
-		(let ((coding-system-for-write 'binary)
-		      (require-final-newline nil))
-		  (goto-char (point-min))
-		  (search-forward-regexp "^$")
-		  (goto-char (1+ (point)))
-		  (delete-region (point-min) (point))
-		  (write-file ,file)
-		  (kill-buffer (current-buffer)))))
-	))))
+	(url-copy-file url file))))
+   image-urls))
 
 (defun twittering-retrieve-image-with-wget (image-urls)
   (dolist (url image-urls)

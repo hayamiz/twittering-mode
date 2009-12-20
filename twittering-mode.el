@@ -666,9 +666,9 @@ PARAMETERS: http request parameters (query string)
 	     (server (if twittering-proxy-use
 			 twittering-proxy-server
 		       (request :host)))
-	     (port (format "%s" (if twittering-proxy-use
-				    twittering-proxy-port
-				  (request :port))))
+	     (port (if twittering-proxy-use
+		       twittering-proxy-port
+		     (request :port)))
 	     (temp-buffer (generate-new-buffer "*twmode-http-buffer*"))
 	     (proc (open-network-stream
 		    "network-connection-process" temp-buffer server port))
@@ -706,8 +706,8 @@ Available keywords:
   :query-string
   "
   (let* ((schema (if twittering-use-ssl "https" "http"))
-	 (default-port (if twittering-use-ssl "443" "80"))
-	 (port (if port (format "%s" port) default-port))
+	 (default-port (if twittering-use-ssl 443 80))
+	 (port (if port port default-port))
 	 (headers-string
 	  (mapconcat (lambda (pair)
 		       (format "%s: %s" (car pair) (cdr pair)))
@@ -716,9 +716,9 @@ Available keywords:
 		      schema
 		      host
 		      (if port
-			  (if (string-equal port default-port)
+			  (if (equal port default-port)
 			      ""
-			    (concat ":" port))
+			    (format ":%s" port))
 			"")
 		      path))
 	 (query-string

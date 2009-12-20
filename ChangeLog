@@ -252,6 +252,9 @@
 	* twittering-mode.el (twittering-get-host-method-from-timeline-spec)
 	(twittering-get-timeline-spec): Add new functions for timeline
 	specification.
+	(twittering-update-mode-line): Shows timeline specification.
+	(twittering-render-timeline): Invokes
+	`twittering-update-mode-line' to update the mode-line.
 
 2009-12-20  Yuto Hayamizu  <y.hayamizu@gmail.com>
 

@@ -262,6 +262,13 @@
 	(twittering-http-get-default-sentinel): Invokes
 	`twittering-add-timeline-history' to update history when
 	retrieving tweets successfully.
+	(twittering-other-user-list-interactive): The codes for retrieving
+	list index synchronously are extracted as the new function
+	`twittering-get-list-sync'.
+	(twittering-get-list-index-sync): Add new function for retrieving
+	list synchronously.
+	(twittering-read-list-name): Add new function for reading a list
+	name from the minibuffer.
 
 2009-12-20  Yuto Hayamizu  <y.hayamizu@gmail.com>
 

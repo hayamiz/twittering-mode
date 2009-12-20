@@ -1628,6 +1628,20 @@ following symbols;
 		       t nil
 		       'twittering-http-get-list-index-sentinel))
 
+(defun twittering-get-list-index-sync (username)
+  (setq twittering-list-index-retrieved nil)
+  (twittering-get-list-index username)
+  (while (not twittering-list-index-retrieved)
+    (sit-for 0.1))
+  (cond
+   ((stringp twittering-list-index-retrieved)
+    (if (string= "" twittering-list-index-retrieved)
+	(message (concat username " has no list"))
+      (message twittering-list-index-retrieved))
+    nil)
+   ((listp twittering-list-index-retrieved)
+    twittering-list-index-retrieved)))
+
 (defun twittering-manage-friendships (method username)
   (twittering-http-post "twitter.com"
 			(concat "friendships/" method)
@@ -2026,25 +2040,11 @@ following symbols;
 		   "whose list: "
 		   (get-text-property (point) 'username)
 		   'twittering-user-history)))
-    (if (> (length username) 0)
-	(progn
-	  (setq twittering-list-index-retrieved nil)
-	  (twittering-get-list-index username)
-	  (while (not twittering-list-index-retrieved)
-	    (sit-for 0.1))
-	  (cond
-	   ((listp twittering-list-index-retrieved)
-	    (let ((choice (completing-read
-			   (concat username "'s list: ")
-			   twittering-list-index-retrieved
-			   nil t "")))
-	      (when (and choice (not (string= "" choice)))
-		(twittering-get-list username choice))))
-	   ((stringp twittering-list-index-retrieved)
-	    (if (string= "" twittering-list-index-retrieved)
-		(message (concat username " have no list"))
-	      (message twittering-list-index-retrieved)))))
-      (message "No user selected"))))
+    (if (string= "" username)
+	(message "No user selected")
+      (let ((list-name (twittering-read-list-name username)))
+	(when list-name
+	  (twittering-get-list username list-name))))))
 
 (defun twittering-direct-message ()
   (interactive)
@@ -2069,6 +2069,18 @@ following symbols;
 			    'user-screen-name twittering-timeline-data)
 			   twittering-user-history)
 		   nil nil init-user history))
+
+(defun twittering-read-list-name (username &optional list-index)
+  (let* ((list-index (or list-index
+			 (twittering-get-list-index-sync username)))
+	 (prompt (concat username "'s list: "))
+	 (listname
+	  (if list-index
+	      (completing-read prompt list-index nil t nil)
+	    nil)))
+    (if (string= "" listname)
+	nil
+      listname)))
 
 (defun twittering-get-username ()
   (or twittering-username-active

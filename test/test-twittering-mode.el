@@ -147,6 +147,47 @@
 			      '(("%" . "\n"))))
   )
 
+(defcase timeline-spec nil nil
+  (defun test-restore-timeline-spec(spec)
+    (string-equal
+     spec
+     (apply 'twittering-get-timeline-spec
+            (twittering-get-host-method-from-timeline-spec spec))))
+  (defun test-restore-host-method(host method)
+    (equal (list host method)
+            (twittering-get-host-method-from-timeline-spec
+             (twittering-get-timeline-spec host method))))
+  (test-assert-ok (test-restore-timeline-spec "~"))
+  (test-assert-ok (test-restore-timeline-spec "@"))
+  (test-assert-ok (test-restore-timeline-spec "-"))
+  (test-assert-ok (test-restore-timeline-spec "USER"))
+  (test-assert-ok (test-restore-timeline-spec "USER/LISTNAME"))
+
+  (test-assert-eq nil (twittering-get-host-method-from-timeline-spec ""))
+
+  (test-assert-ok
+   (test-restore-host-method
+    "twitter.com" "statuses/friends_timeline"))
+  (test-assert-ok
+   (test-restore-host-method
+    "twitter.com" "statuses/replies"))
+  (test-assert-ok
+   (test-restore-host-method
+    "twitter.com" "statuses/public_timeline"))
+  (test-assert-ok
+   (test-restore-host-method
+    "twitter.com" "statuses/user_timeline/USER"))
+  (test-assert-ok
+   (test-restore-host-method
+    "api.twitter.com" "1/USER/lists/LISTNAME/statuses"))
+
+  (test-assert-string-equal
+   "USERNAME"
+   (let ((twittering-username-active "USERNAME"))
+     (twittering-get-timeline-spec
+      "twitter.com" "statuses/user_timeline")))
+  )
+
 (lexical-let ((status (car (get-fixture 'timeline-data))))
   (defcase test-format-status nil nil
     (test-assert-string-equal "hello world"

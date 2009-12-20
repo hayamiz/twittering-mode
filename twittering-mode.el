@@ -79,6 +79,7 @@ The upper limit is `twittering-max-number-of-tweets-on-retrieval'.")
 
 (defvar twittering-tweet-history nil)
 (defvar twittering-user-history nil)
+(defvar twittering-timeline-history nil)
 (defvar twittering-hashtag-history nil)
 
 (defvar twittering-current-hashtag nil
@@ -481,6 +482,13 @@ Otherwise, they are retrieved by `url-retrieve'.")
 	,(concat "1/" username "/lists/" list-name "/statuses" ))))
    (t
     `("twitter.com" ,(concat "statuses/user_timeline/" timeline-spec)))))
+
+(defun twittering-add-timeline-history (&optional timeline-spec)
+  (let ((timeline-spec (or timeline-spec (twittering-get-timeline-spec))))
+    (when
+	(or (null twittering-timeline-history)
+	    (not (string= timeline-spec (car twittering-timeline-history))))
+      (add-to-history 'twittering-timeline-history timeline-spec))))
 
 ;;;
 ;;; Debug mode
@@ -979,6 +987,7 @@ Available keywords:
 			 noninteractive)
 		    (run-hooks 'twittering-new-tweets-hook))
 		(twittering-render-timeline)
+		(twittering-add-timeline-history)
 		(when twittering-notify-successful-http-get
 		  (message (if suc-msg suc-msg "Success: Get."))))
 	       (t (message status))))

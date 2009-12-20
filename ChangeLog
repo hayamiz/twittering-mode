@@ -255,6 +255,13 @@
 	(twittering-update-mode-line): Shows timeline specification.
 	(twittering-render-timeline): Invokes
 	`twittering-update-mode-line' to update the mode-line.
+	(twittering-timeline-history): Add new variable for history of
+	timeline specifications.
+	(twittering-add-timeline-history): Add new function for adding
+	timeline history.
+	(twittering-http-get-default-sentinel): Invokes
+	`twittering-add-timeline-history' to update history when
+	retrieving tweets successfully.
 
 2009-12-20  Yuto Hayamizu  <y.hayamizu@gmail.com>
 

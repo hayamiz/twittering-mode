@@ -3,6 +3,8 @@
 	* twittering-mode.el (twittering-icon-path): `require' is added.
 	(twittering-tinyurl-get, twittering-retrieve-image-without-wget):
 	The dependency on `mm-url' is removed by using `url' library.
+	(twittering-http-application-headers):
+	`Content-Length' is added to `headers'.
 
 2009-12-20  Yuto Hayamizu  <y.hayamizu@gmail.com>
 

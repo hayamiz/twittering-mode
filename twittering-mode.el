@@ -773,6 +773,7 @@ Available keywords:
       (push (cons "Accept-Charset" "utf-8;q=0.7,*;q=0.7")
 	    headers))
     (when (string-equal "POST" method)
+      (push (cons "Content-Length" "0") headers)
       (push (cons "Content-Type" "text/plain") headers))
     (when twittering-proxy-use
       (when twittering-proxy-keep-alive

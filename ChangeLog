@@ -1,3 +1,10 @@
+2009-12-22  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-ucs-to-char): turned into
+	function from macro
+	(twittering-update-lambda, twittering-update-jojo): more portable
+	string expression. Executable only in Japanese environment.
+
 2009-12-21  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-icon-path): `require' is added.

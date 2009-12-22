@@ -489,10 +489,10 @@ Otherwise, they are retrieved by `url-retrieve'.")
 
 ;; If you use Emacs21, decode-char 'ucs will fail unless Mule-UCS is loaded.
 ;; TODO: Show error messages if Emacs 21 without Mule-UCS
-(defmacro twittering-ucs-to-char (num)
+(defun twittering-ucs-to-char (num)
   (if (functionp 'ucs-to-char)
-      `(ucs-to-char ,num)
-    `(decode-char 'ucs ,num)))
+      (ucs-to-char num)
+    (decode-char 'ucs num)))
 
 (defvar twittering-mode-string "twittering-mode")
 
@@ -1590,32 +1590,41 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 
 (defun twittering-update-lambda ()
   (interactive)
-  (twittering-http-post
-   "twitter.com"
-   "statuses/update"
-   `(("status" . (string-as-multibyte
-                  (if (>= emacs-major-version 23)
-                      "\316\273\343\201\213\343\202\217\343\201\204\343\201\204\343\202\210\316\273"
-                    "\222\246\313\222\244\253\222\244\357\222\244\244\222\244\244\222\244\350\222\246\313")))
-     ("source" . "twmode"))))
+  (when (and (string-equal "Japanese" current-language-environment)
+	     (or (> emacs-major-version 21)
+		 (eq 'utf-8 (terminal-coding-system))))
+    (twittering-http-post
+     "twitter.com"
+     "statuses/update"
+     `(("status" . ,(mapconcat
+		     'char-to-string
+		     (mapcar 'twittering-ucs-to-char
+			     '(955 12363 12431 12356 12356 12424 955)) ""))
+       ("source" . "twmode")))))
 
 (defun twittering-update-jojo (usr msg)
-  (if (string-match (string-as-multibyte
-                     (if (>= emacs-major-version 23)
-                         "\346\254\241\343\201\253\\(\343\201\212\345\211\215\\|\350\262\264\346\247\230\\)\343\201\257\343\200\214\\([^\343\200\215]+\\)\343\200\215\343\201\250\350\250\200\343\201\206"
-                       "\222\274\241\222\244\313\\(\222\244\252\222\301\260\\|\222\265\256\222\315\315\\)\222\244\317\222\241\326\\([^\222\241\327]+\\)\222\241\327\222\244\310\222\270\300\222\244\246"))
-		    msg)
-      (twittering-http-post
-       "twitter.com"
-       "statuses/update"
-       `(("status" . ,(concat
-		       "@" usr " "
-		       (match-string-no-properties 2 msg)
-		       (string-as-multibyte
-                        (if (>= emacs-major-version 23)
-                            "\343\200\200\343\201\257\343\201\243!?"
-                          "\222\241\241\222\244\317\222\244\303!?"))))
-	 ("source" . "twmode")))))
+  (when (and (string-equal "Japanese" current-language-environment)
+	     (or (> emacs-major-version 21)
+		 (eq 'utf-8 (terminal-coding-system))))
+    (if (string-match
+	 (mapconcat
+	  'char-to-string
+	  (mapcar 'twittering-ucs-to-char
+		  '(27425 12395 92 40 12362 21069 92 124 36020 27096
+			  92 41 12399 12300 92 40 91 94 12301 93 43 92 
+			  41 12301 12392 35328 12358)) "")
+	 msg)
+	(twittering-http-post
+	 "twitter.com"
+	 "statuses/update"
+	 `(("status" . ,(concat
+			 "@" usr " "
+			 (match-string-no-properties 2 msg)
+			 (string-as-multibyte
+			  (if (>= emacs-major-version 23)
+			      "\343\200\200\343\201\257\343\201\243!?"
+			    "\222\241\241\222\244\317\222\244\303!?"))))
+	   ("source" . "twmode"))))))
 
 (defun twittering-set-current-hashtag (&optional tag)
   (interactive)

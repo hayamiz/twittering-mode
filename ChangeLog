@@ -245,6 +245,11 @@
 	(twittering-http-application-headers):
 	`Content-Length' is added to `headers'.
 
+2009-12-22  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-get-host-method-from-timeline-spec)
+	(twittering-get-timeline-spec): Add more timeline specification.
+
 2009-12-20  Tadashi Matsuo  <tad@mymail.twin.jp>
 
 	* test/test-twittering-mode.el (timeline-spec): add tests for

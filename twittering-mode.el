@@ -797,6 +797,7 @@ Return nil if STR is invalid as a timeline spec."
       (define-key km [mouse-1] 'twittering-click)
       (define-key km "\C-c\C-v" 'twittering-view-user-page)
       (define-key km "g" 'twittering-current-timeline)
+      (define-key km "u" 'twittering-edit-status)
       (define-key km "d" 'twittering-direct-message)
       (define-key km "v" 'twittering-other-user-timeline)
       (define-key km "V" 'twittering-visit-timeline)
@@ -913,7 +914,8 @@ Return nil if STR is invalid as a timeline spec."
 (when twittering-edit-mode-map
   (let ((km twittering-edit-mode-map))
     (define-key km (kbd "C-c C-c") 'twittering-edit-post-status)
-    (define-key km (kbd "C-c C-k") 'twittering-edit-cancel-status)))
+    (define-key km (kbd "C-c C-k") 'twittering-edit-cancel-status)
+    (define-key km (kbd "F4") 'twittering-tinyurl-replace-at-point)))
 
 (defun twittering-edit-close ()
   (kill-buffer (current-buffer))

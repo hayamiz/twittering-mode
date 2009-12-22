@@ -442,7 +442,7 @@ Otherwise, they are retrieved by `url-retrieve'.")
 ;;; Timeline spec functions
 ;;;
 
-(defun twittering-get-timeline-spec(&optional host method)
+(defun twittering-get-timeline-spec (&optional host method)
   (let ((host (or host (twittering-last-host)))
 	(method (or method (twittering-last-method))))
     (cond
@@ -465,7 +465,7 @@ Otherwise, they are retrieved by `url-retrieve'.")
        (t nil)))
      (t nil))))
 
-(defun twittering-get-host-method-from-timeline-spec(timeline-spec)
+(defun twittering-get-host-method-from-timeline-spec (timeline-spec)
   (cond
    ((not (stringp timeline-spec)) nil)
    ((string= "" timeline-spec) nil)

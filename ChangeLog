@@ -552,6 +552,9 @@
 	url-retrieve
 	(twittering-tinyurl-get): fix by cvmat
 
+	* twittering-mode.el (twittering-edit-mode-map): keybind 'u' to
+	twittering-edit-status. F4 to tinyurl
+
 2009-12-22  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-tinyurl-get): retrieves a

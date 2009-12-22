@@ -4,6 +4,7 @@
 	function from macro
 	(twittering-update-lambda, twittering-update-jojo): more portable
 	string expression. Executable only in Japanese environment.
+	(twittering-tinyurl-get): removed unknown function 'url-insert'.
 
 2009-12-21  Tadashi MATSUO  <tad@mymail.twin.jp>
 

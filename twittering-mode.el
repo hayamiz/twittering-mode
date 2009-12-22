@@ -1442,10 +1442,12 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	  (let ((buffer (url-retrieve-synchronously (concat api longurl))))
 	    (set-buffer buffer)
 	    (goto-char (point-min))
-	    (search-forward-regexp "^$")
-	    (prog1
-		(buffer-substring (1+ (point)) (point-max))
-	      (kill-buffer buffer))))
+	    (search-forward-regexp "\r?\n\r?\n")
+	    (let ((start-pt (point)))
+	      (search-forward-regexp "\r?\n")
+	      (prog1
+		  (buffer-substring start-pt (match-beginning 0))
+		(kill-buffer buffer)))))
       nil)))
 
 (defun twittering-tinyurl-replace-at-point ()

@@ -45,7 +45,6 @@
 (require 'cl)
 (require 'xml)
 (require 'parse-time)
-(autoload 'url-insert "url-handlers")
 
 (defconst twittering-mode-version "0.9")
 (defconst twittering-max-number-of-tweets-on-retrieval 200
@@ -1441,12 +1440,12 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
     (if longurl
 	(save-excursion
 	  (let ((buffer (url-retrieve-synchronously (concat api longurl))))
-	    (with-temp-buffer
-	      (url-insert buffer)
-	      (prog1
-		  (buffer-substring (point-min) (point))
-		(kill-buffer buffer)
-		))))
+	    (set-buffer buffer)
+	    (goto-char (point-min))
+	    (search-forward-regexp "^$")
+	    (prog1
+		(buffer-substring (1+ (point)) (point-max))
+	      (kill-buffer buffer))))
       nil)))
 
 (defun twittering-tinyurl-replace-at-point ()

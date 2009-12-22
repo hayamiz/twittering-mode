@@ -250,6 +250,9 @@
 	* twittering-mode.el (twittering-get-host-method-from-timeline-spec)
 	(twittering-get-timeline-spec): Add more timeline specification.
 
+	* test/test-twittering-mode.el (timeline-spec): add more tests for
+	timeline specification.
+
 2009-12-20  Tadashi Matsuo  <tad@mymail.twin.jp>
 
 	* test/test-twittering-mode.el (timeline-spec): add tests for

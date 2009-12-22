@@ -1526,13 +1526,24 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
       (twittering-retrieve-image-with-wget images)
     (twittering-retrieve-image-without-wget images)))
 
-(defun twittering-retrieve-image-without-wget (image-urls)
+(defun twittering-url-copy-file-async(url file)
   (require 'url)
+  (url-retrieve
+   url
+   `(lambda ,(if (<= 22 emacs-major-version) '(status) '())
+      (let ((coding-system-for-write 'binary)
+	    (require-final-newline nil))
+	(goto-char (point-min))
+	(search-forward-regexp "^$")
+	(write-region (1+ (point)) (point-max) ,file)
+	(kill-buffer (current-buffer))))))
+
+(defun twittering-retrieve-image-without-wget (image-urls)
   (mapc
    (lambda (url)
      (let ((file (concat twittering-tmp-dir "/" (twittering-icon-path url))))
-      (unless (file-exists-p file)
-	(url-copy-file url file))))
+       (unless (file-exists-p file)
+	 (twittering-url-copy-file-async url file))))
    image-urls))
 
 (defun twittering-retrieve-image-with-wget (image-urls)

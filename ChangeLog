@@ -2,6 +2,10 @@
 
 	* twittering-mode.el (twittering-tinyurl-get): retrieves a
 	shortened URL without `url-insert'.
+	(twittering-url-copy-file-async): add new
+	function for downloading a file asynchronously.
+	(twittering-retrieve-image-without-wget): retrieves images
+	asynchronously with `twittering-url-copy-file-async'.
 
 2009-12-22  Yuto Hayamizu  <y.hayamizu@gmail.com>
 

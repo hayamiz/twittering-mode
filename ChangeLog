@@ -1,8 +1,11 @@
 2009-12-23  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
+	* test/test-twittering-mode.el (tinyurl): add test for tinyurl
+
 	* twittering-mode.el (twittering-tinyurl-get): fix for emacs22.
 	In emacs22, there's "^M" at the end of a buffer created by
 	url-retrieve
+	(twittering-tinyurl-get): fix by cvmat
 
 2009-12-22  Tadashi MATSUO  <tad@mymail.twin.jp>
 

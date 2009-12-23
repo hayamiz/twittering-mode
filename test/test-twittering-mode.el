@@ -25,6 +25,11 @@
   (test-assert-string-equal "love+plus"
     (twittering-percent-encode "love plus")))
 
+(defcase tinyurl nil nil
+  (test-assert-string-equal "http://tinyurl.com/3xsrg5"
+    (twittering-tinyurl-get "http://example.com/example"))
+  )
+
 (defcase case-string nil nil
   (test-assert-string-equal "Kobayakawa"
     (case-string "Rinko"

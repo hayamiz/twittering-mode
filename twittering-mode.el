@@ -1406,21 +1406,21 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
     (add-hook 'minibuffer-setup-hook 'twittering-setup-minibuffer)
     (add-hook 'minibuffer-exit-hook 'twittering-finish-minibuffer)
     (unwind-protect
-    (while not-posted-p
+	(while not-posted-p
 	  (setq status (read-from-minibuffer prompt status map nil 'twittering-tweet-history nil t))
 	  (let ((status-with-sign (concat status sign-str)))
 	    (if (< 140 (length status-with-sign))
 		(setq prompt "status (too long): ")
 	      (progn
 		(setq prompt "status: ")
-      (when (twittering-status-not-blank-p status)
+		(when (twittering-status-not-blank-p status)
 		  (let ((parameters `(("status" . ,status-with-sign)
-			     ("source" . "twmode")
-			     ,@(if reply-to-id
-				   `(("in_reply_to_status_id"
-				      . ,reply-to-id))))))
-	  (twittering-http-post "twitter.com" "statuses/update" parameters)
-	  (setq not-posted-p nil)))
+				      ("source" . "twmode")
+				      ,@(if reply-to-id
+					    `(("in_reply_to_status_id"
+					       . ,reply-to-id))))))
+		    (twittering-http-post "twitter.com" "statuses/update" parameters)
+		    (setq not-posted-p nil)))
 		))))
       (remove-hook 'minibuffer-setup-hook 'twittering-setup-minibuffer)
       (remove-hook 'minibuffer-exit-hook 'twittering-finish-minibuffer)

@@ -1,3 +1,15 @@
+2009-12-23  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-show-minibuffer-length): New
+	defun to show the number of charactors in minibuffer.
+	(twittering-setup-minibuffer): New defun to add it to
+	`after-change-functions'; invoke via `minibuffer-setup-hook'.
+	(twittering-finish-minibuffer): New defun to remove it from
+	`after-change-functions'; invoke via `minibuffer-exit-hook'.
+
+	* twittering-mode.el (twittering-update-status-from-minibuffer):
+	Set `minibuffer-setup-hook' and `minibuffer-exit-hook' temporarily.
+
 2009-12-23  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* test/test-twittering-mode.el (tinyurl): add test for tinyurl

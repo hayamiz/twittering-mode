@@ -1372,6 +1372,25 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (not (string-match
 	"^\\s-*\\(?:@[-_a-z0-9]+\\(\\s+@[-_a-z0-9]+\\)*\\)?\\s-*$" status)))
  
+(defun twittering-show-minibuffer-length (&optional beg end len)
+  "Show the number of charactors in minibuffer."
+  (when (minibufferp)
+    (let* ((status-len (- (buffer-size) (minibuffer-prompt-width)))
+	   (sign-len (length (twittering-sign-string)))
+	   (mes (if (< 0 sign-len)
+		    (format " (%d=%d+%d)"
+			    (+ status-len sign-len) status-len sign-len)
+		  (format " (%d)" status-len))))
+      (minibuffer-message mes))
+    ))
+
+(defun twittering-setup-minibuffer ()
+  (twittering-show-minibuffer-length)
+  (add-hook 'after-change-functions 'twittering-show-minibuffer-length))
+
+(defun twittering-finish-minibuffer ()
+  (remove-hook 'after-change-functions 'twittering-show-minibuffer-length))
+
 (defun twittering-update-status-from-minibuffer (&optional init-str
 							   reply-to-id)
   (when (and (null init-str)
@@ -1380,24 +1399,31 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (let ((status init-str)
 	(sign-str (twittering-sign-string))
 	(not-posted-p t)
-	(map minibuffer-local-map))
+	(prompt "status: ")
+	(map minibuffer-local-map)
+	(minibuffer-message-timeout t))
     (define-key map (kbd "<f4>") 'twittering-tinyurl-replace-at-point)
+    (add-hook 'minibuffer-setup-hook 'twittering-setup-minibuffer)
+    (add-hook 'minibuffer-exit-hook 'twittering-finish-minibuffer)
+    (unwind-protect
     (while not-posted-p
-      (setq status (read-from-minibuffer "status: " status map nil 'twittering-tweet-history nil t))
-      (while (< 140 (length (concat status sign-str)))
-	(setq status (read-from-minibuffer (format "(%d): "
-						   (- 140 (length (concat status sign-str))))
-					   status map nil 'twittering-tweet-history nil t)))
-
+	  (setq status (read-from-minibuffer prompt status map nil 'twittering-tweet-history nil t))
+	  (let ((status-with-sign (concat status sign-str)))
+	    (if (< 140 (length status-with-sign))
+		(setq prompt "status (too long): ")
+	      (progn
+		(setq prompt "status: ")
       (when (twittering-status-not-blank-p status)
-	(let* ((status-with-sign (concat status sign-str))
-	       (parameters `(("status" . ,status-with-sign)
+		  (let ((parameters `(("status" . ,status-with-sign)
 			     ("source" . "twmode")
 			     ,@(if reply-to-id
 				   `(("in_reply_to_status_id"
 				      . ,reply-to-id))))))
 	  (twittering-http-post "twitter.com" "statuses/update" parameters)
 	  (setq not-posted-p nil)))
+		))))
+      (remove-hook 'minibuffer-setup-hook 'twittering-setup-minibuffer)
+      (remove-hook 'minibuffer-exit-hook 'twittering-finish-minibuffer)
       )))
 
 (defun twittering-get-timeline (method &optional noninteractive id)

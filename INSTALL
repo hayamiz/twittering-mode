@@ -1,0 +1,40 @@
+<!-- -*- mode: markdown -*- -->
+
+Installation Guide
+==================
+
+For Windows users
+-----------------
+
+* For those who do not have cURL binaries:
+  * Copy `twittering-mode.el` and `win-curl` to the same directory,
+    which is included in `load-path` of your Emacs environment.
+  * Proceed to **Set up your Emacs**
+* Others:
+  * Copy `twittering-mode.el` to the directory included in
+    `load-path`.
+  * Proceed to **Set up your Emacs**
+
+For Linux and other Unix users
+------------------------------
+
+* Copy `twittering-mode.el` to the directory included in `load-path`
+  of your Emacs environment.
+* (Optional) Install cURL in your way. For example, `apt-get install
+  curl` would do in Debian and its variants.
+
+Set up your Emacs
+-----------------
+
+* Add following code to your `.emacs`:
+
+    (add-to-list 'load-path "/path/to/installed/dir") ;; if you need
+    (require 'twittering-mode)
+    (setq twittering-username "your twitter ID")
+
+Run twittering-mode
+-------------------
+
+1. Execute `M-x twit` to run twittering-mode.
+2. Enter the password which is prompted.
+3. Your friends' timeline will appear. Enjoy!

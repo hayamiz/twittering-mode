@@ -1,5 +1,13 @@
 2009-12-25  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
+	* twittering-mode.el (twittering-show-minibuffer-length): Replace
+	`minibufferp' by `minibuffer-window-active-p' to work this on
+	Emacs21.
+	(twittering-show-minibuffer-length): Change a message style for
+	Emacs23.
+	
+2009-12-25  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
 	* twittering-mode.el (twittering-tinyurl-get): Fix typo to resolve
 	error "Symbol's value as variable is void". This problem was found
 	by naota.

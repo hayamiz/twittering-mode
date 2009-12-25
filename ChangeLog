@@ -1,3 +1,11 @@
+2009-12-25  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-show-minibuffer-length): disabled
+	on Emacs21 because `minibufferp' is not available.
+	(twittering-update-status-from-minibuffer): set
+	`minibuffer-message-timeout' to `nil'. `t' causes error on
+	Emacs23.
+
 2009-12-23  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-show-minibuffer-length): New

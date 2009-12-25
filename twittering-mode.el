@@ -1374,7 +1374,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
  
 (defun twittering-show-minibuffer-length (&optional beg end len)
   "Show the number of charactors in minibuffer."
-  (when (minibufferp)
+  (when (and (functionp 'minibufferp) (minibufferp))
     (let* ((status-len (- (buffer-size) (minibuffer-prompt-width)))
 	   (sign-len (length (twittering-sign-string)))
 	   (mes (if (< 0 sign-len)
@@ -1401,7 +1401,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	(not-posted-p t)
 	(prompt "status: ")
 	(map minibuffer-local-map)
-	(minibuffer-message-timeout t))
+	(minibuffer-message-timeout nil))
     (define-key map (kbd "<f4>") 'twittering-tinyurl-replace-at-point)
     (add-hook 'minibuffer-setup-hook 'twittering-setup-minibuffer)
     (add-hook 'minibuffer-exit-hook 'twittering-finish-minibuffer)

@@ -1388,10 +1388,10 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 
 (defun twittering-setup-minibuffer ()
   (twittering-show-minibuffer-length)
-  (add-hook 'post-command-hook 'twittering-show-minibuffer-length))
+  (add-hook 'post-command-hook 'twittering-show-minibuffer-length t t))
 
 (defun twittering-finish-minibuffer ()
-  (remove-hook 'post-command-hook 'twittering-show-minibuffer-length))
+  (remove-hook 'post-command-hook 'twittering-show-minibuffer-length t))
 
 (defun twittering-update-status-from-minibuffer (&optional init-str
 							   reply-to-id)
@@ -1405,8 +1405,8 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	(map minibuffer-local-map)
 	(minibuffer-message-timeout nil))
     (define-key map (kbd "<f4>") 'twittering-tinyurl-replace-at-point)
-    (add-hook 'minibuffer-setup-hook 'twittering-setup-minibuffer)
-    (add-hook 'minibuffer-exit-hook 'twittering-finish-minibuffer)
+    (add-hook 'minibuffer-setup-hook 'twittering-setup-minibuffer t)
+    (add-hook 'minibuffer-exit-hook 'twittering-finish-minibuffer t)
     (unwind-protect
 	(while not-posted-p
 	  (setq status (read-from-minibuffer prompt status map nil 'twittering-tweet-history nil t))

@@ -1459,10 +1459,11 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 			 twittering-tinyurl-services-map))))
     (unless api
       (error (concat
-	      "invalid service try one of "
+	      "`twittering-tinyurl-service' was invalid. try one of "
 	      (mapconcat (lambda (x)
 			   (symbol-name (car x)))
-			 twittering-tinyurl-servies-map ", "))))
+			 twittering-tinyurl-services-map ", ")
+	      ".")))
     (if longurl
 	(save-excursion
 	  (let ((buffer (url-retrieve-synchronously (concat api longurl))))

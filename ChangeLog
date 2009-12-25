@@ -1,3 +1,9 @@
+2009-12-25  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-tinyurl-get): Fix typo to resolve
+	error "Symbol's value as variable is void". This problem was found
+	by naota.
+
 2009-12-25  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-show-minibuffer-length): disabled

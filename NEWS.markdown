@@ -1,4 +1,3 @@
-<!-- -*- mode: markdown -*- -->
 
 # NEWS -- The history of twittering-mode
 

@@ -5,7 +5,10 @@
 	Emacs21.
 	(twittering-show-minibuffer-length): Change a message style for
 	Emacs23.
-	
+	(twittering-setup-minibuffer, twittering-finish-minibuffer): Hook
+	`post-command-hook' instead of `after-change-functions' to work in
+	cooperation with SKK.
+
 2009-12-25  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-tinyurl-get): Fix typo to resolve

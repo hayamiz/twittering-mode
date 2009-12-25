@@ -1388,10 +1388,10 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 
 (defun twittering-setup-minibuffer ()
   (twittering-show-minibuffer-length)
-  (add-hook 'after-change-functions 'twittering-show-minibuffer-length))
+  (add-hook 'post-command-hook 'twittering-show-minibuffer-length))
 
 (defun twittering-finish-minibuffer ()
-  (remove-hook 'after-change-functions 'twittering-show-minibuffer-length))
+  (remove-hook 'post-command-hook 'twittering-show-minibuffer-length))
 
 (defun twittering-update-status-from-minibuffer (&optional init-str
 							   reply-to-id)

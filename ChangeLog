@@ -44,7 +44,12 @@
 	* twittering-mode.el (twittering-http-get-list-index-sentinel):
 	Use `search-forward-regexp' instead of `search-forward' to fix a
 	meaningless search.
-	
+
+2009-12-26  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-format-string): reimplement
+	without `block'.
+
 2009-12-26  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-ensure-ca-cert): kludge for ssl

@@ -594,6 +594,33 @@ PARAMETERS: http request parameters (query string)
 	 method headers host port path parameters
 	 noninteractive sentinel)))))
 
+;;; FIXME: file name is hard-coded. More robust way is desired.
+(defun twittering-ensure-ca-cert ()
+  "Create a CA certificate file if it does not exist, and return
+its file name."
+  (let ((file-name (expand-file-name
+		    (format "twmode-twitter-cacert-%s.pem"
+			    (user-login-name))
+		    temporary-file-directory)))
+    (with-temp-file file-name
+      (insert "-----BEGIN CERTIFICATE-----
+MIICkDCCAfmgAwIBAgIBATANBgkqhkiG9w0BAQQFADBaMQswCQYDVQQGEwJVUzEc
+MBoGA1UEChMTRXF1aWZheCBTZWN1cmUgSW5jLjEtMCsGA1UEAxMkRXF1aWZheCBT
+ZWN1cmUgR2xvYmFsIGVCdXNpbmVzcyBDQS0xMB4XDTk5MDYyMTA0MDAwMFoXDTIw
+MDYyMTA0MDAwMFowWjELMAkGA1UEBhMCVVMxHDAaBgNVBAoTE0VxdWlmYXggU2Vj
+dXJlIEluYy4xLTArBgNVBAMTJEVxdWlmYXggU2VjdXJlIEdsb2JhbCBlQnVzaW5l
+c3MgQ0EtMTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAuucXkAJlsTRVPEnC
+UdXfp9E3j9HngXNBUmCbnaEXJnitx7HoJpQytd4zjTov2/KaelpzmKNc6fuKcxtc
+58O/gGzNqfTWK8D3+ZmqY6KxRwIP1ORROhI8bIpaVIRw28HFkM9yRcuoWcDNM50/
+o5brhTMhHD4ePmBudpxnhcXIw2ECAwEAAaNmMGQwEQYJYIZIAYb4QgEBBAQDAgAH
+MA8GA1UdEwEB/wQFMAMBAf8wHwYDVR0jBBgwFoAUvqigdHJQa0S3ySPY+6j/s1dr
+aGwwHQYDVR0OBBYEFL6ooHRyUGtEt8kj2Puo/7NXa2hsMA0GCSqGSIb3DQEBBAUA
+A4GBADDiAVGqx+pf2rnQZQ8w1j7aDRRJbpGTJxQx78T3LUX47Me/okENI7SS+RkA
+Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
+8qIYNMR1pHMc8Y3c7635s3a0kr/clRAevsvIO1qEYBlWlKlV
+-----END CERTIFICATE-----"))
+    file-name))
+
 (defun twittering-start-http-ssl-session
   (curl-program method headers host port path parameters
 		&optional noninteractive sentinel)
@@ -607,7 +634,8 @@ PARAMETERS: http request parameters (query string)
 			      (format "%s: %s"
 				      (car pair) (cdr pair))))
 		      headers)
-	    )))
+	    "--cacert"
+	    ,(twittering-ensure-ca-cert))))
     (when twittering-proxy-use
       (nconc curl-args `("-x" ,(format "%s:%s" twittering-proxy-server
 					 twittering-proxy-port)))

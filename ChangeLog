@@ -1,3 +1,10 @@
+2009-12-26  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-ensure-ca-cert): kludge for ssl
+	certificate problem.
+	(twittering-start-http-ssl-session): use
+	`twittering-ensure-ca-cert'
+
 2009-12-25  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-show-minibuffer-length): Replace

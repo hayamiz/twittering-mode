@@ -53,6 +53,8 @@
 	table with a context alist.
 	(twittering-retweet): replacement table is adapted to the new
 	`twittering-format-string'.
+	(twittering-format-status): reimplement with
+	`twittering-format-string'.
 
 2009-12-26  Yuto Hayamizu  <y.hayamizu@gmail.com>
 

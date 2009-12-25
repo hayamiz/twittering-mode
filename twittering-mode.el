@@ -961,18 +961,6 @@ image are displayed."
       `(display ,image-spec))))
 
 (defun twittering-format-status (status format-str)
-  ;; Formatting strategy:
-  ;; 
-  ;; 1. Search the special character '%' in format-str, expand it with
-  ;; corresponding string(such as username, image, description, ...),
-  ;; and pushes it on 'result' until the end of format-str.
-  ;; 2. concat strings in 'result' together
-  ;;
-  ;; Example:
-  ;;  format-str: "%s, %@:\n %t", where screen name is "hayamiz",
-  ;;    timestamp is "1 minute ago", and text is "hello, world"
-  ;;  result: ("hello, world" ":\n " "1 minute ago" ", " "hayamiz")
-  ;;
   (flet ((attr (key)
 	       (assocref key status))
 	 (profile-image
@@ -993,123 +981,94 @@ image are displayed."
 			   (twittering-make-display-spec-for-icon fullpath)))
 		      (set-text-properties 1 2 display-spec icon-string))
 		    icon-string)
-		  )))))
-    (let ((cursor 0)
-	  (result ())
-	  c
-	  found-at)
-      (setq cursor 0)
-      (setq result '())
-      (while (setq found-at (string-match "%\\(C{\\([^}]+\\)}\\|[A-Za-z#@']\\)"
-					  format-str cursor))
-	(setq c (string-to-char (match-string-no-properties 1 format-str)))
-	(if (> found-at cursor)
-	    (list-push (substring format-str cursor found-at) result)
-	  "|")
-	(setq cursor (match-end 1))
-
-	(case c
-	  ((?s)                         ; %s - screen_name
-	   (list-push (attr 'user-screen-name) result))
-	  ((?S)                         ; %S - name
-	   (list-push (attr 'user-name) result))
-	  ((?i)                         ; %i - profile_image
-	   (list-push (profile-image) result))
-	  ((?d)                         ; %d - description
-	   (list-push (attr 'user-description) result))
-	  ((?l)                         ; %l - location
-	   (list-push (attr 'user-location) result))
-	  ((?L)                         ; %L - " [location]"
-	   (let ((location (attr 'user-location)))
-	     (unless (or (null location) (string= "" location))
-	       (list-push (concat " [" location "]") result)) ))
-	  ((?u)                         ; %u - url
-	   (list-push (attr 'user-url) result))
-	  ((?j)                         ; %j - user.id
-	   (list-push (attr 'user-id) result))
-	  ((?r)				; %r - in_reply_to_status_id
-	   (let ((reply-id (attr 'in-reply-to-status-id))
-		 (reply-name (attr 'in-reply-to-screen-name)))
-	     (unless (or (null reply-id) (string= "" reply-id)
-			 (null reply-name) (string= "" reply-name))
-	       (let ((in-reply-to-string (format "in reply to %s" reply-name))
-		     (url (twittering-get-status-url reply-name reply-id)))
-		 (add-text-properties
-		  0 (length in-reply-to-string)
-		  `(mouse-face highlight
-			       face twittering-uri-face
-			       uri ,url)
-		  in-reply-to-string)
-		 (list-push (concat " " in-reply-to-string) result)))))
-	  ((?p)                         ; %p - protected?
-	   (let ((protected (attr 'user-protected)))
-	     (when (string= "true" protected)
-	       (list-push "[x]" result))))
-	  ((?c)                     ; %c - created_at (raw UTC string)
-	   (list-push (attr 'created-at) result))
-	  ((?C)	    ; %C{time-format-str} - created_at (formatted with
-					; time-format-str)
-	   (list-push (twittering-local-strftime
-		       (or (match-string-no-properties 2 format-str) "%H:%M:%S")
-		       (attr 'created-at))
-		      result))
-	  ((?@)                         ; %@ - X seconds ago
-	   (let ((created-at
-		  (apply
-		   'encode-time
-		   (parse-time-string (attr 'created-at))))
-		 (now (current-time)))
-	     (let ((secs (+ (* (- (car now) (car created-at)) 65536)
-			    (- (cadr now) (cadr created-at))))
-		   time-string url)
-	       (setq time-string
-		     (cond ((< secs 5) "less than 5 seconds ago")
-			   ((< secs 10) "less than 10 seconds ago")
-			   ((< secs 20) "less than 20 seconds ago")
-			   ((< secs 30) "half a minute ago")
-			   ((< secs 60) "less than a minute ago")
-			   ((< secs 150) "1 minute ago")
-			   ((< secs 2400) (format "%d minutes ago"
-						  (/ (+ secs 30) 60)))
-			   ((< secs 5400) "about 1 hour ago")
-			   ((< secs 84600) (format "about %d hours ago"
-						   (/ (+ secs 1800) 3600)))
-			   (t (format-time-string "%I:%M %p %B %d, %Y"
-						  created-at))))
-	       (setq url (twittering-get-status-url (attr 'user-screen-name)
-						    (attr 'id)))
-	       ;; make status url clickable
-	       (add-text-properties
-		0 (length time-string)
-		`(mouse-face highlight
-			     face twittering-uri-face
-			     uri ,url)
-		time-string)
-	       (list-push time-string result))))
-	  ((?t)                         ; %t - text
-	   (list-push                   ;(clickable-text)
-	    (attr 'text)
-	    result))
-	  ((?')                         ; %' - truncated
-	   (let ((truncated (attr 'truncated)))
-	     (when (string= "true" truncated)
-	       (list-push "..." result))))
-	  ((?f)                         ; %f - source
-	   (list-push (attr 'source) result))
-	  ((?#)                         ; %# - id
-	   (list-push (attr 'id) result))
-	  (t
-	   (list-push (char-to-string c) result)))
-	)
-      (list-push (substring format-str cursor) result)
-      (let ((formatted-status (apply 'concat (nreverse result))))
-	(add-text-properties 0 (length formatted-status)
-			     `(username ,(attr 'user-screen-name)
-					id ,(attr 'id)
-					text ,(attr 'text))
-			     formatted-status)
-	formatted-status)
-      )))
+		  ))))
+	 (make-string-with-url-property
+	  (str url)
+	  (let ((result (copy-sequence str)))
+	    (add-text-properties
+	     0 (length result)
+	     `(mouse-face highlight face twittering-uri-face uri ,url)
+	     result)
+	    result)))
+    (let* ((replace-table
+	    `(("%" . "%")
+	      ("#" . ,(attr 'id))
+	      ("'" . ,(if (string= "true" (attr 'truncated)) "..." ""))
+	      ("@" .
+	       ,(let* ((created-at
+			(apply
+			 'encode-time
+			 (parse-time-string (attr 'created-at))))
+		       (now (current-time))
+		       (secs (+ (* (- (car now) (car created-at)) 65536)
+				(- (cadr now) (cadr created-at))))
+		       (time-string
+			(cond
+			 ((< secs 5) "less than 5 seconds ago")
+			 ((< secs 10) "less than 10 seconds ago")
+			 ((< secs 20) "less than 20 seconds ago")
+			 ((< secs 30) "half a minute ago")
+			 ((< secs 60) "less than a minute ago")
+			 ((< secs 150) "1 minute ago")
+			 ((< secs 2400) (format "%d minutes ago"
+						(/ (+ secs 30) 60)))
+			 ((< secs 5400) "about 1 hour ago")
+			 ((< secs 84600) (format "about %d hours ago"
+						 (/ (+ secs 1800) 3600)))
+			 (t (format-time-string "%I:%M %p %B %d, %Y"
+						created-at))))
+		       (url
+			(twittering-get-status-url (attr 'user-screen-name)
+						   (attr 'id))))
+		  ;; make status url clickable
+		  (make-string-with-url-property time-string url)))
+	      ("C\\({\\([^}]*\\)}\\)?" .
+	       (lambda (context)
+		 (let ((str (cdr (assq 'following-string context)))
+		       (match-data (cdr (assq 'match-data context))))
+		   (let* ((time-format
+			   (or (match-string 2 str) "%H:%M:%S"))
+			  (created-at
+			   (apply 'encode-time
+				  (parse-time-string (attr 'created-at)))))
+		     (format-time-string time-format created-at)))))
+	      ("c" . ,(attr 'created-at))
+	      ("d" . ,(attr 'user-description))
+	      ("f" . ,(attr 'source))
+	      ("i" . (lambda (context) (profile-image)))
+	      ("j" . ,(attr 'user-id))
+	      ("L" . ,(let ((location (or (attr 'user-location) "")))
+			(if (not (string= "" location))
+			    (concat " [" location "]")
+			  "")))
+	      ("l" . ,(attr 'user-location))
+	      ("p" . ,(if (string= "true" (attr 'user-protected))
+			  "[x]"
+			""))
+	      ("r" .
+	       ,(let ((reply-id (or (attr 'in-reply-to-status-id) ""))
+		      (reply-name (or (attr 'in-reply-to-screen-name) "")))
+		  (if (or (string= "" reply-id) (string= "" reply-name))
+		      ""
+		    (let ((in-reply-to-string
+			   (concat "in reply to " reply-name))
+			  (url
+			   (twittering-get-status-url reply-name reply-id)))
+		      (concat " "
+			      (make-string-with-url-property
+			       in-reply-to-string url))))))
+	      ("S" . ,(attr 'user-name))
+	      ("s" . ,(attr 'user-screen-name))
+	      ("t" . ,(attr 'text))
+	      ("u" . ,(attr 'user-url))
+	      ))
+	   (formatted-status
+	    (twittering-format-string format-str "%" replace-table)))
+      (add-text-properties
+       0 (length formatted-status)
+       `(username ,(attr 'user-screen-name) id ,(attr 'id) text ,(attr 'text))
+       formatted-status)
+      formatted-status)))
 
 (defun twittering-http-post
   (host method &optional parameters contents sentinel)

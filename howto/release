@@ -1,11 +1,5 @@
 <!-- -*- mode: markdown -*- -->
 
-# Version numbers
-
-(Not decided)
-
-Version numbers are based on date. For example, if the new version is released on December 1986, the version number is *1986-DEC*. If there are more than two releases in a month, version numbers are *1986-DEC*, *1986-DEC-1*, *1986-DEC-2*, *1986-DEC-3*, ...
-
 # What to do on a release
 
 - Fix the new version number based on the rule above and update `/VERSION`.

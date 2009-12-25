@@ -49,6 +49,10 @@
 
 	* twittering-mode.el (twittering-format-string): reimplement
 	without `block'.
+	(twittering-format-string): invokes a function in replacement
+	table with a context alist.
+	(twittering-retweet): replacement table is adapted to the new
+	`twittering-format-string'.
 
 2009-12-26  Yuto Hayamizu  <y.hayamizu@gmail.com>
 

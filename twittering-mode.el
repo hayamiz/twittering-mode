@@ -1772,7 +1772,15 @@ a pair is matched, replace the prefix and the matched string with a
 string generated from TO.
 If TO is a string, the matched string is replaced with TO.
 If TO is a function, the matched string is replaced with the
-return value of (funcall TO the-following-string the-match-data).
+return value of (funcall TO CONTEXT), where CONTEXT is an alist.
+Each element of CONTEXT is (KEY . VALUE) and KEY is one of the
+following symbols;
+  'following-string  --the matched string following the prefix
+  'match-data --the match-data for the regexp FROM.
+  'prefix --PREFIX.
+  'replacement-table --REPLACEMENT-TABLE.
+  'from --FROM.
+  'processed-string --the already processed string.
 "
   (let ((current-pos 0)
 	(result "")
@@ -1798,7 +1806,13 @@ return value of (funcall TO the-following-string the-match-data).
 		      (output
 		       (if (stringp value)
 			   value
-			 (funcall value following-string (match-data)))))
+			 (funcall value
+				  `((following-string . ,following-string)
+				    (match-data . ,(match-data))
+				    (prefix . ,prefix)
+				    (replacement-table . ,replacement-table)
+				    (from . ,key)
+				    (processed-string . ,result))))))
 		  (setq found t)
 		  (setq current-pos next-pos)
 		  (setq result (concat result output)))
@@ -1825,9 +1839,11 @@ return value of (funcall TO the-following-string the-match-data).
 	       ("t" . ,text)
 	       ("#" . ,id)
 	       ("C{\\([^}]*\\)}" .
-		(lambda (str match-data)
-		  (store-match-data match-data)
-		  (format-time-string (match-string 1 str) ',retweet-time)))
+		(lambda (context)
+		  (let ((str (cdr (assq 'following-string context)))
+			(match-data (cdr (assq 'match-data context))))
+		    (store-match-data match-data)
+		    (format-time-string (match-string 1 str) ',retweet-time))))
 	       ))
 	    )
 	(twittering-update-status-from-minibuffer

@@ -14,7 +14,7 @@ check:
 	./test/run-test.sh
 
 clean : 
-	rm -f twittering-mode.elc README
+	rm -f twittering-mode.elc README NEWS *.zip *.tar.gz
 
 DISTRIB_DIR = twittering-mode-$$(cat VERSION)
 
@@ -24,6 +24,9 @@ NEWS: NEWS.markdown
 	cp $< $@
 release: $(DISTRIB_FILES)
 	@(! [ -z "$${SF_USERNAME}" ] || (echo "Environmental variable 'SF_USERNAME', which is a username of sf.net, is required."; false))
+	@echo -n "updated VERSION and LAST-VERSION files? [y or n]: "; read ans; [ "$${ans}" = "y" ]
+	@echo -n "wrote NEWS.markdown file? [y or n]: "; read ans; [ "$${ans}" = "y" ]
+	@echo -n "made a tag '$(DISTRIB_DIR)'? [y or n]: "; read ans; [ "$${ans}" = "y" ]
 	ruby misc/vernum-updater.rb \
 	  --prev-version=$$(cat LAST-VERSION) --next-version=$$(cat VERSION) \
 	  VERSION twittering-mode.el doc/web/index.html

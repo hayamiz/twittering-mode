@@ -1915,7 +1915,7 @@ return value of (funcall TO the-following-string the-match-data).
 			   (concat username "'s list: ")
 			   twittering-list-index-retrieved
 			   nil t "")))
-	      (when choice
+	      (when (and choice (not (string= "" choice)))
 		(twittering-get-list username choice))))
 	   ((stringp twittering-list-index-retrieved)
 	    (if (string= "" twittering-list-index-retrieved)

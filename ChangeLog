@@ -7,6 +7,9 @@
 	* twittering-mode.el (twittering-setup-minibuffer): Remove an
 	unnecessary call.
 
+	* twittering-mode.el (twittering-other-user-list-interactive): Fix
+	condition to detect a cancel.
+
 2009-12-26  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-ensure-ca-cert): kludge for ssl

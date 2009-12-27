@@ -1164,8 +1164,11 @@ PARAMETERS is alist of URI parameters.
 
   (save-excursion
     (set-buffer buffer)
-    (let ((content (buffer-string)))
-      (substring content 0 (string-match "\r?\n\r?\n" content)))))
+    (let* ((start (point))
+	   (end (if (search-forward-regexp "\r?\n\r?\n")
+		    (match-end 0)
+		  current)))
+      (buffer-substring start end))))
 
 (defun twittering-get-response-body (buffer)
   "Exract HTTP response body from HTTP response, parse it as XML, and return a
@@ -1173,10 +1176,10 @@ XML tree as list. `buffer' may be a buffer or the name of an existing buffer. "
   (if (stringp buffer) (setq buffer (get-buffer buffer)))
   (save-excursion
     (set-buffer buffer)
-    (let ((content (buffer-string)))
-	(xml-parse-region (+ (string-match "\r?\n\r?\n" content)
-			     (length (match-string 0 content)))
-			  (point-max)))
+    (let ((start (if (search-forward-regexp "\r?\n\r?\n" nil t)
+		     (match-end 0)
+		   (point))))
+      (xml-parse-region start (point-max)))
       ))
 
 (defun twittering-cache-status-datum (status-datum &optional data-var)

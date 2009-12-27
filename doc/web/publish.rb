@@ -29,7 +29,6 @@ def header(options)
   b = binding
   eval("include ERB::Util", b)
   options[:data].each do |data|
-    p data
     eval(data, b)
   end
   erb = if options[:header]

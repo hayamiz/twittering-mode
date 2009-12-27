@@ -1,3 +1,8 @@
+2009-12-27  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-show-minibuffer-length): keeps
+	activated mark from being forcefully deactivated.
+
 2009-12-27  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* test/run-test.sh: add. invoke unit test for each emacsen

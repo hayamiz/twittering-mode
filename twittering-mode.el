@@ -1408,7 +1408,10 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 (defun twittering-show-minibuffer-length (&optional beg end len)
   "Show the number of charactors in minibuffer."
   (when (minibuffer-window-active-p (selected-window))
-    (let* ((status-len (- (buffer-size) (minibuffer-prompt-width)))
+    (if (and transient-mark-mode deactivate-mark)
+	(deactivate-mark))
+    (let* ((deactivate-mark deactivate-mark)
+	   (status-len (- (buffer-size) (minibuffer-prompt-width)))
 	   (sign-len (length (twittering-sign-string)))
 	   (mes (if (< 0 sign-len)
 		    (format "%d=%d+%d"

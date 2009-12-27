@@ -853,10 +853,10 @@ Available keywords:
 		(save-excursion
 		  (set-buffer temp-buffer)
 		  (goto-char (point-min))
-		  (search-forward "\r?\n\r?\n" nil t)
-		  (while (re-search-forward
-			  "<slug>\\([-a-zA-Z0-9_]+\\)</slug>" nil t)
-		    (push (match-string 1) indexes))
+		  (if (search-forward-regexp "\r?\n\r?\n" nil t)
+		      (while (re-search-forward
+			      "<slug>\\([-a-zA-Z0-9_]+\\)</slug>" nil t)
+			(push (match-string 1) indexes)))
 		  (if indexes
 		      (setq twittering-list-index-retrieved indexes)
 		    (setq twittering-list-index-retrieved ""))))

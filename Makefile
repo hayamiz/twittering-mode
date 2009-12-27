@@ -1,25 +1,15 @@
 
 EMACS ?= emacs
 
-.PHONY: all unit-test clean update-po
+.PHONY: all clean update-po check
 
 all:
 
 update-po:
 	$(MAKE) -C doc update-po
 
-# batchtest : twittering-mode.el
-# 	$(EMACS21) --no-init-file --batch -f batch-byte-compile twittering-mode.el
-# 	rm twittering-mode.elc
-# 	$(EMACS22) --no-init-file --batch -f batch-byte-compile twittering-mode.el
-# 	rm twittering-mode.elc
-# 
-# test : twittering-mode.el
-# 	$(EMACS21) -q -l local.test-emacs21.el &
-# 	$(EMACS22) -q -l local.test-emacs22.el &
-
-unit-test: test/run-test.el
-	$(EMACS) --batch -Q -l $<
+check:
+	./test/run-test.sh
 
 clean : 
 	rm twittering-mode.elc

@@ -1,5 +1,12 @@
 2009-12-27  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
+	* test/run-test.sh: add. invoke unit test for each emacsen
+
+	* Makefile (check): add check rule.
+
+	* test/el-test-runner.el (twittering-run-test): exit with
+	appropriate status code.
+
 	* test.el (test-transform-body): add. transforms the body of
 	`defcase' recursively
 	(defcase): use `test-transform-body'

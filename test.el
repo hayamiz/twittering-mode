@@ -307,6 +307,7 @@ expressions"
   (dolist (case-name (test-args-to-list cases))
     (funcall (gethash case-name test-cases))))
 
+(defvar test-last-summary nil)
 (defun test-run-and-summarize (cases)
   "Run test cases in CASES and print summary."
   (let ((total-succ 0)
@@ -315,6 +316,8 @@ expressions"
       (let ((summary (funcall (gethash case-name test-cases))))
 	(incf total-succ (car summary))
 	(incf total-fail (cadr summary))))
+    (setq test-last-summary
+	  `((succ . ,total-succ) (fail . ,total-fail)))
     (princ "#  ")
     (princ (format "Total: %d pass, %d fail." total-succ total-fail))))
 

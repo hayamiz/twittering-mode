@@ -1160,10 +1160,7 @@ PARAMETERS is alist of URI parameters.
     (goto-char (point-min))
     (when (search-forward-regexp
 	   "HTTP/1\\.[01] 200 Connection established\r\n\r\n" nil t)
-      (delete-region (point-min) (point))))
-
-  (save-excursion
-    (set-buffer buffer)
+      (delete-region (point-min) (point)))
     (let* ((start (point))
 	   (end (if (search-forward-regexp "\r?\n\r?\n")
 		    (match-end 0)

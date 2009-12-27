@@ -261,6 +261,9 @@ directly. You should change through function'twittering-icon-mode'")
 
 (make-variable-buffer-local 'twittering-icon-mode)
 (defun twittering-icon-mode (&optional arg)
+  "Toggle display of icon images on timelines.
+With a numeric argument, if the argument is positive, turn on
+icon mode; otherwise, turn off icon mode."
   (interactive)
   (setq twittering-icon-mode
 	(if twittering-icon-mode

@@ -1,5 +1,89 @@
 
-(defcase percent-encode nil nil
+(defcase test-version nil nil
+  (test-assert-string-match "^twittering-mode-v[0-9]+\\(\\.[0-9]+\\)*"
+    (twittering-mode-version)))
+
+(defcase test-buffer nil nil
+  (test-assert-ok (bufferp (twittering-buffer)))
+  (test-assert-ok (buffer-live-p (twittering-buffer)))
+  (test-assert-string-match (regexp-opt (list twittering-buffer))
+    (buffer-name (twittering-buffer))))
+
+(defcase test-assocref nil nil
+  (test-assert-eq 'bar (assocref 'foo '((baz . qux) (foo . bar))))
+  (test-assert-eq nil (assocref 'quxx '((baz . qux) (foo . bar)))))
+
+(defcase test-toggle-proxy nil nil
+  (setq twittering-proxy-use nil)
+  (twittering-toggle-proxy)
+  (test-assert-ok twittering-proxy-use)
+  (twittering-toggle-proxy)
+  (test-assert-ok (not twittering-proxy-use)))
+
+(defcase test-sign-string nil nil
+  (setq twittering-sign-simple-string nil)
+  (test-assert-string-equal ""
+    (twittering-sign-string))
+
+  (setq twittering-sign-simple-string "")
+  (test-assert-string-equal " []"
+    (twittering-sign-string))
+
+  (setq twittering-sign-simple-string "foo")
+  (test-assert-string-equal " [foo]"
+    (twittering-sign-string))
+
+  (setq twittering-sign-string-function (lambda () "foo"))
+  (test-assert-string-equal "foo"
+    (twittering-sign-string))
+  )
+
+(defcase test-user-agent nil nil
+  (test-assert-string-equal (format "Emacs/%d.%d Twittering-mode/%s"
+				    emacs-major-version
+				    emacs-minor-version
+				    twittering-mode-version)
+    (twittering-user-agent))
+  (setq twittering-user-agent-function
+	(lambda () "foo user agent"))
+  (test-assert-string-equal "foo user agent"
+    (twittering-user-agent))
+  )
+
+(defcase test-icon-mode nil nil
+  (setq twittering-icon-mode nil)
+  (twittering-icon-mode)
+  (test-assert-ok twittering-icon-mode)
+  (test-assert-ok (file-directory-p twittering-tmp-dir))
+  (twittering-icon-mode)
+  (test-assert-ok (not twittering-icon-mode))
+  (twittering-icon-mode nil)
+  (test-assert-ok twittering-icon-mode)
+  (twittering-icon-mode t)
+  (test-assert-ok twittering-icon-mode)
+  (twittering-icon-mode -1)
+  (test-assert-ok (not twittering-icon-mode))
+  (twittering-icon-mode 1)
+  (test-assert-ok twittering-icon-mode)
+  )
+
+(defcase test-scroll-mode nil nil
+  (setq twittering-scroll-mode nil)
+  (twittering-scroll-mode)
+  (test-assert-ok twittering-scroll-mode)
+  (twittering-scroll-mode)
+  (test-assert-ok (not twittering-scroll-mode))
+  (twittering-scroll-mode nil)
+  (test-assert-ok twittering-scroll-mode)
+  (twittering-scroll-mode t)
+  (test-assert-ok twittering-scroll-mode)
+  (twittering-scroll-mode 1)
+  (test-assert-ok twittering-scroll-mode)
+  (twittering-scroll-mode -1)
+  (test-assert-ok (not twittering-scroll-mode)))
+  
+
+(defcase test-percent-encode nil nil
   (test-assert-string-equal "Rinko"
     (twittering-percent-encode "Rinko"))
   
@@ -59,24 +143,6 @@
   (test-assert-string-equal "new\nline"
     (twittering-format-string "new~%line" "~"
 			      '(("%" . "\n"))))
-  )
-
-(defcase sign-string nil nil
-    (setq twittering-sign-simple-string nil)
-    (test-assert-string-equal ""
-      (twittering-sign-string))
-
-    (setq twittering-sign-simple-string "")
-    (test-assert-string-equal " []"
-      (twittering-sign-string))
-
-    (setq twittering-sign-simple-string "foo")
-    (test-assert-string-equal " [foo]"
-      (twittering-sign-string))
-
-    (setq twittering-sign-string-function (lambda () "foo"))
-    (test-assert-string-equal "foo"
-      (twittering-sign-string))
   )
 
 (defcase test-find-curl-program nil nil

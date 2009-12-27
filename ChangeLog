@@ -1,3 +1,8 @@
+2009-12-27  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* test/run-test.el (twittering-run-test): colorize resulting
+	outputs
+
 2009-12-27  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-http-post-default-sentinel):

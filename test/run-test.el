@@ -20,8 +20,18 @@
 
   (test-run-all-cases)
   
-  (princ (save-excursion (set-buffer "*test-result*")
-			 (buffer-string)))
+  (save-excursion
+    (set-buffer "*test-result*")
+    (beginning-of-buffer)
+    (while (search-forward-regexp "\\b[0-9]+ pass\\b" nil t)
+      (replace-match
+       (concat "\033[1m\033[32m" (match-string 0) "\033[0m")))
+
+    (beginning-of-buffer)
+    (while (search-forward-regexp "\\b[0-9]+ fail\\b" nil t)
+      (replace-match
+       (concat "\033[1m\033[31m" (match-string 0) "\033[0m")))
+    (princ (buffer-string)))
   (terpri))
 
 (twittering-run-test)

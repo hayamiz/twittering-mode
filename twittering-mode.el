@@ -257,7 +257,7 @@ SSL connections use 'curl' command as a backend.")
 		    temporary-file-directory))
 
 (defvar twittering-icon-mode nil "You MUST NOT CHANGE this variable
-directory. You should change through function'twittering-icon-mode'")
+directly. You should change through function'twittering-icon-mode'")
 
 (make-variable-buffer-local 'twittering-icon-mode)
 (defun twittering-icon-mode (&optional arg)

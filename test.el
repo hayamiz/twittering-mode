@@ -200,6 +200,51 @@
 If PREFIX is non-nil, use it as prefix.  Otherwise, use \"--test--\"."
   (gensym (or prefix "--test--")))
 
+(defun test-transform-body (body fail succ err &optional not-toplevel)
+  "This function transforms the BODY, which is a body of defcase,
+recursively to alternate `test-assert-*' to apropriate
+expressions"
+  (if (not (listp body))
+      body
+    (mapcar
+     (lambda (arg)
+       (cond ((not (listp arg))
+	      arg)
+	     ((not (test-assert-p arg))
+	      (let ((arg (cond
+			  ((listp arg)
+			   (test-transform-body arg fail succ err t))
+			  (t arg))))
+		(if not-toplevel
+		    arg
+		  `(condition-case ,err
+		       ;; do not count as success
+		       ,arg
+		     (error (incf ,fail) ; but count as failure
+			    (test-report-error ',arg ,err))))))
+	     ((test-special-assert-p arg)
+	      `(condition-case ,err
+		   (progn
+		     ,arg
+		     (incf ,succ))
+		 (error (incf ,fail)
+			(test-report-error ',arg ,err))))
+	     (t
+	      `(condition-case ,err
+		   (progn
+		     (test-assert-binary-relation
+			 ;; function to test binary relation
+			 ',(intern
+			    (substring
+			     (symbol-name (car arg))
+			     (length test-assert-method-prefix)))
+		       ;; parameters to above function
+		       ,@(cdr arg))
+		     (incf ,succ))
+		 (error (incf ,fail)
+			(test-report-error ',arg ,err))))))
+     body)))
+
 (defmacro defcase (case-name tags setup &rest body)
   "Define test case which includes one or multiple assertions."
   (let ((tag (test-gensym))
@@ -232,36 +277,7 @@ If PREFIX is non-nil, use it as prefix.  Otherwise, use \"--test--\"."
 		      (when ,setup
 			(funcall ,setup))		
 		      ;; transform `body' of macro during expansion time.
-		      ,@(mapcar
-			 (lambda (arg)
-			   (cond ((not (test-assert-p arg))
-				  `(condition-case ,err
-				       ;; do not count as success
-				       ,arg
-				     (error (incf ,fail) ; but count as failure
-					    (test-report-error ',arg ,err))))
-				 ((test-special-assert-p arg)
-				  `(condition-case ,err
-				       (progn
-					 ,arg
-					 (incf ,succ))
-				     (error (incf ,fail)
-					    (test-report-error ',arg ,err))))
-				 (t
-				  `(condition-case ,err
-				       (progn
-					 (test-assert-binary-relation
-					  ;; function to test binary relation
-					  ',(intern
-					     (substring
-					      (symbol-name (car arg))
-					      (length test-assert-method-prefix)))
-					  ;; parameters to above function
-					  ,@(cdr arg))
-					 (incf ,succ))
-				     (error (incf ,fail)
-					    (test-report-error ',arg ,err))))))
-			 body)
+		      ,@(test-transform-body body fail succ err)
 		      ;; summarize
 		      (princ (format "%s: %d pass, %d fail."
 				     (symbol-name ',case-name)

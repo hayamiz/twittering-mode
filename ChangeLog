@@ -1,5 +1,9 @@
 2009-12-27  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
+	* test.el (test-transform-body): add. transforms the body of
+	`defcase' recursively
+	(defcase): use `test-transform-body'
+
 	* test/run-test.el (twittering-run-test): colorize resulting
 	outputs
 

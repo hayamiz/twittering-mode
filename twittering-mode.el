@@ -862,7 +862,9 @@ Available keywords:
 		    (setq twittering-list-index-retrieved ""))))
 	       (t
 		(setq twittering-list-index-retrieved status)))))))
-    (kill-buffer temp-buffer)))
+    (when (and (not twittering-debug-mode) (buffer-live-p temp-buffer))
+      (kill-buffer temp-buffer)))
+  )
 
 (defun twittering-http-get-default-sentinel (temp-buffer noninteractive proc stat &optional suc-msg)
   (unwind-protect
@@ -1139,7 +1141,7 @@ PARAMETERS is alist of URI parameters.
 			 (t (message "Response status code: %s" status)))
 	    )
 	(error (message (prin1-to-string err-signal))))
-    (unless twittering-debug-mode
+    (when (and (not twittering-debug-mode) (buffer-live-p temp-buffer))
       (kill-buffer temp-buffer)))
   )
 

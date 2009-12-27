@@ -919,7 +919,7 @@ Available keywords:
 	      (insert (twittering-format-status
 		       status twittering-status-format))
 	      (fill-region-as-paragraph
-	       (save-excursion (beginning-of-line) (point)) (point))
+	       (line-beginning-position) (point))
 	      (insert "\n"))
 	    twittering-timeline-data)
       (if (and twittering-image-stack window-system)
@@ -1157,7 +1157,7 @@ PARAMETERS is alist of URI parameters.
   ;; curl prints HTTP proxy response header, so strip it
   (save-excursion
     (set-buffer buffer)
-    (beginning-of-buffer)
+    (goto-char (point-min))
     (when (search-forward-regexp
 	   "HTTP/1\\.[01] 200 Connection established\r\n\r\n" nil t)
       (delete-region (point-min) (point))))

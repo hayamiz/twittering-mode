@@ -5,6 +5,8 @@
 Twittering-mode is an Emacs major mode for Twitter. You can check
 timelines, tweet, mark posts as favorites and so on with Emacs.
 
+[![](http://twitter-badges.s3.amazonaws.com/follow_me-a.png)](http://www.twitter.com/twmode)
+
 ## Screenshot
 
 ![](./images/screen-user.png)

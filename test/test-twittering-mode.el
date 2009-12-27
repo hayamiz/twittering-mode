@@ -1,20 +1,4 @@
 
-;; (deftest case-string twittering-mode
-;;   (assert
-;;    (case-string "Rinko"
-;;      (("Rinko") t)
-;;      (t nil)))
-;;   (assert
-;;    (case-string "Rinko"
-;;      (("Manaka") nil)
-;;      (("Nene" "Rinko") t)
-;;      (t nil)))
-;;   (assert
-;;    (case-string "Nene"
-;;      (("Manaka" "Rinko") nil)
-;;      (t t)))
-;;   )
-
 (defcase percent-encode nil nil
   (test-assert-string-equal "Rinko"
     (twittering-percent-encode "Rinko"))
@@ -94,3 +78,20 @@
     (test-assert-string-equal "foo"
       (twittering-sign-string))
   )
+
+(defcase test-find-curl-program nil nil
+  (test-assert-string-match "curl" (twittering-find-curl-program))
+  (with-temp-buffer
+    (when (twittering-find-curl-program)
+      (test-assert-eq 0
+	(shell-command (format "%s --help" (twittering-find-curl-program) t))))))
+
+(defcase test-ensure-ca-cert nil nil
+  (when (twittering-find-curl-program)
+    (test-assert-eq 0
+      (call-process (twittering-find-curl-program)
+		    nil "hoge" nil
+		    "--cacert"
+		    (twittering-ensure-ca-cert)
+		    "https://twitter.com/"))))
+

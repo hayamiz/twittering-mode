@@ -1,5 +1,6 @@
 
 CATALOGS := ja.po
+LANGS := en ja
 MARKDOWN_DOCS :=				\
 	index.text				\
 	how-to-contribute.text			\
@@ -17,7 +18,9 @@ HTML_ASSETS := style.css images
 all: publish
 
 .text.html: $(PUBLISH)
-	$(PUBLISH) $<
+	$(PUBLISH) -H header.rhtml -F footer.rhtml \
+	  -d lang=\"en\" -d langs="\"$(LANGS)\".split" -d file=\"$@\" \
+	  -o $@ $<
 
 upload: upload.bat
 	@(! [ -z "$${SF_USERNAME}" ] || (echo "Environmental variable 'SF_USERNAME', which is a username of sf.net, is required."; false))
@@ -53,7 +56,10 @@ publish: $(HTML_DOCS) $(CATALOGS)
 	  cp -t $$lang -r $(HTML_ASSETS); \
 	  for text in $(MARKDOWN_DOCS); do \
 	    html=$$(echo $$text|sed 's/.text$$/.html/'); \
-	    $(PUBLISH) -l $$lang -o $$lang/$$html $$text; \
+	    $(PUBLISH) -H header.rhtml -F footer.rhtml \
+	      -d lang=\"$$lang\" -d langs="\"$(LANGS)\".split" \
+	      -d file=\"$$html\" --po-file=$$catalog \
+	      -o $$lang/$$html $$text; \
 	  done; \
 	done
 

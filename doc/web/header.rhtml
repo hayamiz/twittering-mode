@@ -1,0 +1,46 @@
+<%
+lang_menu_items = langs.map do |l|
+  rel_dir = "../#{l}"
+    if lang == "en" && l == "en"
+      rel_dir = "."
+    elsif lang == "en"
+      rel_dir = "./#{l}"
+    elsif l == "en"
+      rel_dir = ".."
+    end
+    "<a href=\"#{rel_dir}/#{file}\"><img src=\"#{rel_dir}/images/lang-#{l}.png\" /></a>"
+  end.join("&nbsp;")
+%>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<%=h lang %>" lang="<%=h lang %>">
+  <head>
+    <title>Twittering-mode</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+  </head>
+  <body>
+<div id="wrap">
+
+<!--
+<div id="header">
+<h1><a href="#">Twittering-mode</a></h1>
+<h2>A major mode for Twitter.</h2>
+</div>
+<div id="top"> </div>
+-->
+<div style="text-align: left; padding-left: 20px;">
+<%= lang_menu_items %>
+</div>
+
+<div id="top"> </div>
+
+<div id="menu">
+<ul>
+<li><a href="./index.html"><img src="./images/logo.png" /></a></li>
+</ul>
+</div>
+
+<div id="content">
+<div class="left">

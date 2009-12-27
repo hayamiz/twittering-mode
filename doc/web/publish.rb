@@ -3,126 +3,121 @@
 
 require 'optparse'
 require 'tempfile'
+require 'erb'
 require 'rubygems'
 require 'bluecloth'
 
 $web_dir = File.dirname(__FILE__)
 
-def header(options)
-  lang = options[:lang]
-  
-  langs = $available_langs.dup
-  # langs.delete(lang)
-  
-  page = File.basename(options[:output] || "index.html")
-    
-  lang_menu_items = langs.map do |l|
-    rel_dir = "../#{l}"
-    if lang == "en" && l == "en"
-      rel_dir = "."
-    elsif lang == "en"
-      rel_dir = "./#{l}"
-    elsif l == "en"
-      rel_dir = ".."
-    end
-
-    "<a href=\"#{rel_dir}/#{page}\"><img src=\"#{rel_dir}/images/lang-#{l}.png\" /></a>"
-  end.join("&nbsp;")
-  
-  ret = <<EOS
+$default_header = <<EOS
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="#{lang}" lang="#{lang}">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja" lang="ja">
   <head>
-    <title>Twittering-mode</title>
+    <title>html document</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <link rel="stylesheet" type="text/css" href="style.css" media="screen" />
   </head>
   <body>
-<div id="wrap">
-
-<!--
-<div id="header">
-<h1><a href="#">Twittering-mode</a></h1>
-<h2>A major mode for Twitter.</h2>
-</div>
-<div id="top"> </div>
--->
-<div style="text-align: left; padding-left: 20px;">
-#{lang_menu_items}
-</div>
-
-<div id="top"> </div>
-
-<div id="menu">
-<ul>
-<li><a href="./index.html"><img src="./images/logo.png" /></a></li>
-</ul>
-</div>
-
-<div id="content">
-<div class="left">
 EOS
 
-  ret
-end
-
-def footer(options)
-  <<EOS
-</div>
-<div style="clear: both;"> </div>
-</div>
-
-<div id="bottom"> </div>
-<div id="footer">
-Designed by <a href="http://www.free-css-templates.com/">Free CSS Templates</a>, Thanks to <a href="http://www.legalhelpers.com/chapter-13-bankruptcy/chapter13.html">Chapter 13 Bankruptcy</a>
-<br />
-<a href="http://www.famfamfam.com/"><img src="images/famfamfam-logo.png" /></a>
-</div>
-</div>
-
+$default_footer = <<EOS
   </body>
 </html>
 EOS
+
+def header(options)
+  b = binding
+  eval("include ERB::Util", b)
+  options[:data].each do |data|
+    p data
+    eval(data, b)
+  end
+  erb = if options[:header]
+          ERB.new(File.open(options[:header]).read)
+        else
+          ERB.new($default_header)
+        end
+  erb.result(b)
 end
 
-$available_langs = ["en"]
-Dir.glob("#{$web_dir}/??.po").map{|f| File.basename(f)}.each do |catalog|
-  lang = catalog.gsub(/\.po$/, '')
-  $available_langs << lang
-end
-$available_langs.sort!.uniq!
-
-unless system("which xml2po 1> /dev/null 2>/dev/null")
-  $stderr.puts("'xml2po' command is required.")
-  $stderr.puts()
-  $stderr.puts("If you are using Debian or Ubuntu,\n'xml2po' can be installed by the following command:\n    apt-get install gnome-doc-utils")
-  exit(1)
+def footer(options)
+  b = binding
+  options[:data].each do |data|
+    eval(data, b)
+  end
+  erb = if options[:footer]
+          ERB.new(File.open(options[:footer]).read)
+        else
+          ERB.new($default_footer)
+        end
+  erb.result(b)
 end
 
 def parse_option(argv)
   opt = OptionParser.new
-  
+  opt.banner = "Usage: #{$0} [options] MARKDOWN-FILE"
+
   options = Hash.new
-  options[:lang] = "en"
-  opt.on('-l LANG', '--lang=LANG',
-         "Language to be translated to (#{$available_langs.join(", ")})") do |v|
-    unless $available_langs.include?(v)
-      $stderr.puts("Unknown language: #{v}")
+  options[:po_file] = nil
+  opt.on('-p', '--po-file=FILE',
+         "\n\t\tTranslate with FILE by gettext") do |v|
+    
+    unless File.exist?(v)
+      $stderr.puts("No such po file: #{v}")
       $stderr.puts()
       puts opt.help()
       exit(1)
     end
-    options[:lang] = v
+    options[:po_file] = v
+
+    unless system("which xml2po 1> /dev/null 2>/dev/null")
+      $stderr.puts("'xml2po' command is required.")
+      $stderr.puts()
+      $stderr.puts("If you are using Debian or Ubuntu,\n'xml2po' can be installed by the following command:\n    apt-get install gnome-doc-utils")
+      exit(1)
+    end
   end
 
   options[:output] = nil
-  opt.on('-o FILE', '--output FILE',
-         'Print resulting text into FILE') do |file|
+  opt.on('-o FILE', '--output=FILE',
+         "\n\t\tPrint resulting text into FILE") do |file|
     options[:output] = file
+  end
+  
+  options[:header] = nil
+  opt.on('-H', '--header=FILE',
+         "\n\t\tHeader ERB template. Define parameters by --data option") do |file|
+    unless File.exist?(file)
+      $stderr.puts("No such file: #{file}")
+      $stderr.puts()
+      puts opt.help()
+      exit(1)
+    end
+    options[:header] = file
+  end
+
+  options[:footer] = nil
+  opt.on('-F', '--footer=FILE',
+         "\n\t\tFooter ERB template. Define parameters by --data option") do |file|
+    unless File.exist?(file)
+      $stderr.puts("No such file: #{file}")
+      $stderr.puts()
+      puts opt.help()
+      exit(1)
+    end
+    options[:footer] = file
+  end
+
+  options[:data] = Array.new
+  opt.on('-d', '--data=NAME=VALUE',
+         "\n\t\tBind VALUE(any ruby expression) to NAME when rendering HTML.") do |data|
+    if data =~ /([^=])=(.+)/
+      options[:data] << data
+    end
   end
 
   opt.parse!(argv)
+
   options
 end
 
@@ -136,14 +131,11 @@ def main(argv)
     next unless File.exist?(arg)
     textfile = File.open(arg)
 
-    unless options[:output]
-      if arg =~ /\.text$/
-        options[:output] = arg.gsub(/\.text$/, ".html")
-      else
-        options[:output] = arg + ".html"
-      end
+    if options[:output]
+      output = File.open(options[:output], "w")
+    else
+      output = $stdout
     end
-    output = File.open(options[:output], "w")
     break
   end
   
@@ -159,8 +151,8 @@ def main(argv)
   tempfile.fsync()
 
   translated_str = nil
-  if options[:lang] != "en"
-    translated_str = `xml2po -k -m xhtml -p #{options[:lang]}.po -o /dev/stdout #{tempfile.path}`
+  if options[:po_file]
+    translated_str = `xml2po -k -m xhtml -p #{options[:po_file]} -o /dev/stdout #{tempfile.path}`
   else
     translated_str = File.open(tempfile.path).read
   end

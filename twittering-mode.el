@@ -1515,7 +1515,6 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 (defun twittering-tinyurl-replace-at-point ()
   "Replace the url at point with a tiny version."
   (interactive)
-  (when (featurep 'mm-url)
   (let ((url-bounds (bounds-of-thing-at-point 'url)))
     (when url-bounds
       (let ((url (twittering-tinyurl-get (thing-at-point 'url))))
@@ -1523,7 +1522,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	  (save-restriction
 	    (narrow-to-region (car url-bounds) (cdr url-bounds))
 	    (delete-region (point-min) (point-max))
-	    (insert url))))))))
+	    (insert url)))))))
 
 ;;;
 ;;; Commands

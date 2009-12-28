@@ -11,7 +11,7 @@ update-po:
 	$(MAKE) -C doc update-po
 
 check:
-	./test/run-test.sh
+	./test/run-test.sh -y
 
 clean : 
 	rm -f twittering-mode.elc README NEWS *.zip *.tar.gz

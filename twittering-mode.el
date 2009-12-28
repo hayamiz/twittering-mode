@@ -50,9 +50,6 @@
 (defconst twittering-max-number-of-tweets-on-retrieval 200
   "The maximum number of `twittering-number-of-tweets-on-retrieval'.")
 
-;; (defconst tinyurl-service-url "http://tinyurl.com/api-create.php?url="
-;;   "service url for tinyurl")
-
 (defvar twittering-tinyurl-service 'tinyurl
   "The service to use. One of 'tinyurl' or 'toly'")
 

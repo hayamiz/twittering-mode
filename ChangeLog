@@ -1,3 +1,13 @@
+2009-12-29  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-get-response-body): Return nil
+	explicitly when a broken XML data passed into `xml-parse-region'.
+	(twittering-http-get-default-sentinel): Adjust callers.
+	(twittering-http-post-default-sentinel): Likewise.
+
+	* twittering-mode.el (twittering-http-post-default-sentinel): Add 
+	`debug-printf' same as `twittering-http-get-default-sentinel'.
+
 2009-12-29  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el: load mule-ucs if needed (emacs21)

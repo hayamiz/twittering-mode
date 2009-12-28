@@ -6,6 +6,9 @@
 	http://d.hatena.ne.jp/imait/20091228/1262004813 and
 	http://www.escafrace.co.jp/blog/09/10/16/1008
 
+	* twittering-mode.el: load 'cl' only at compile
+	time. cf. http://www.gnu.org/software/emacs/manual/html_node/cl/Overview.html
+
 2009-12-28  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-get-response-header)

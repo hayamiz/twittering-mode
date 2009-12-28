@@ -42,7 +42,7 @@
 
 ;;; Code:
 
-(require 'cl)
+(eval-when-compile (require 'cl))
 (require 'xml)
 (require 'parse-time)
 (when (< emacs-major-version 22)

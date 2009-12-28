@@ -44,6 +44,7 @@ Twittering-mode enables you to twit on Emacsen.
 - 青田(naota)
 - Jaemok Jeong(jmjeong)
 - Thomas Danckaert
+- IMAI Toshiyuki
 
  See also
 ----------

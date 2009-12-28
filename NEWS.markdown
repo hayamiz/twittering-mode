@@ -49,3 +49,4 @@
 * Tadasohi MATSUO
 * Thomas Danckaert
 * Tsuyoshi CHO
+* IMAI Toshiyuki

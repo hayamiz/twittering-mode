@@ -43,6 +43,7 @@ Twittering-mode enables you to twit on Emacsen.
 - 松尾(cvmat)
 - 青田(naota)
 - Jaemok Jeong(jmjeong)
+- Thomas Danckaert
 
  See also
 ----------

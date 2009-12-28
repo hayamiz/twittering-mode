@@ -1,3 +1,9 @@
+2009-12-28  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-get-response-header)
+	(twittering-get-response-body): inefficient code were
+	replaced. thanks to Tadashi MATSUO
+
 2009-12-27  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-show-minibuffer-length): keeps

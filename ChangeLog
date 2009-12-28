@@ -1,6 +1,10 @@
 2009-12-29  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el: load mule-ucs if needed (emacs21)
+	(twittering-start-http-ssl-session): add 'Expect: ' header field
+	for avoiding '417 Expectation Failed' HTTP response error. See
+	http://d.hatena.ne.jp/imait/20091228/1262004813 and
+	http://www.escafrace.co.jp/blog/09/10/16/1008
 
 2009-12-28  Yuto Hayamizu  <y.hayamizu@gmail.com>
 

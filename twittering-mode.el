@@ -630,6 +630,9 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
   ;; TODO: use curl
   (let* ((request (twittering-make-http-request
 		   method headers host port path parameters))
+	 (headers (if (assoc "Expect" headers)
+		      headers
+		    (cons '("Expect" . "") headers)))
 	 (curl-args
 	  `("--include" "--silent"
 	    ,@(mapcan (lambda (pair)

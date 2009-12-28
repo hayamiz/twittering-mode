@@ -10,6 +10,19 @@
 (require 'test (expand-file-name "../test.el"
 				 twittering-test-dir))
 
+(defun get-fixture (name)
+  (when (symbolp name)
+    (setq name (symbol-name name)))
+  (let ((fixture-path (expand-file-name
+		       (concat name ".el")
+		       (expand-file-name "fixture" twittering-test-dir))))
+    (if (file-exists-p fixture-path)
+	(with-temp-buffer
+	  (insert-file-contents fixture-path)
+	  (beginning-of-buffer)
+	  (read (current-buffer)))
+      nil)))
+
 (defun twittering-run-test ()
   (interactive)
 

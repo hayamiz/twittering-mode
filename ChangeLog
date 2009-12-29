@@ -1,3 +1,9 @@
+2009-12-30  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-image-type): Don't generate
+	redundant temporary files. The image format is specified by
+	the command line instead of a file extension.
+
 2009-12-30  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-image-type): Don't set a third

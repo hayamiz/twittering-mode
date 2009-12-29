@@ -26,6 +26,9 @@
 * Image file resize with 'convert' program(imagemagick) if available.
 * Unit test framework was introduced.
 * Support 'Proxy-connection: Keep-Alive'.
+* Flexible format string function (twittering-format-string).
+* Refactored 'twittering-format-status' by twitterint-format-string.
+* More efficient HTTP response processing.
 
 ### Bug fixes
 

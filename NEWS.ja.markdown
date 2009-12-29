@@ -26,6 +26,8 @@
 * Imagemagickが利用可能なときは画像のリサイズを行うように
 * 単体テストフレームワークの導入
 * 'Proxy-connection: Keep-Alive'への対応
+* 柔軟な文字列フォーマット関数の導入(twittering-format-string)
+* HTTPレスポンス処理の効率改善
 
 ### バグ修正
 

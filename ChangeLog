@@ -1,3 +1,8 @@
+2009-12-29  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-start-http-session): check if
+	curl can use https or not.
+
 2009-12-29  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-get-response-body): Return nil

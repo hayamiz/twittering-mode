@@ -582,12 +582,22 @@ PARAMETERS: http request parameters (query string)
 			  headers)))
 
     (let ((curl-program (twittering-find-curl-program)))
-      (if (and (not curl-program) twittering-use-ssl)
-	  (if (yes-or-no-p "HTTPS(SSL) is not available. Use HTTP instead?")
-	      (progn (setq twittering-use-ssl nil)
-		     (twittering-update-mode-line))
-	    (message "Request canceled")
-	    (return)))
+      (when twittering-use-ssl
+	(cond 
+	 ((not curl-program)
+	  (if (yes-or-no-p "HTTPS(SSL) is not available because 'cURL' does not exist. Use HTTP instead?")
+	    (progn (setq twittering-use-ssl nil)
+		   (twittering-update-mode-line))
+	  (message "Request canceled")
+	  (return)))
+	 ((not (string-match "^Protocols: .*https"
+			     (shell-command-to-string
+			      (concat curl-program " --version"))))
+	  (if (yes-or-no-p "HTTPS(SSL) is not available because your 'cURL' cannot use HTTPS. Use HTTP instead?")
+	    (progn (setq twittering-use-ssl nil)
+		   (twittering-update-mode-line))
+	  (message "Request canceled")
+	  (return)))))
       
       (if twittering-use-ssl
 	  (twittering-start-http-ssl-session

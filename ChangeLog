@@ -5,6 +5,8 @@
 
 2009-12-29  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
+	* twittering-mode 0.9.0 release
+	
 	* twittering-mode.el (twittering-start-http-session): check if
 	curl can use https or not.
 	(twittering-get-response-body): bug fix: goto the beginning of

@@ -1,21 +1,21 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: twittering-mode HEAD\n"
-"POT-Creation-Date: 2009-12-27 09:44+0900\n"
-"PO-Revision-Date: 2009-12-27 09:58+0900\n"
+"POT-Creation-Date: 2009-12-29 22:14+0900\n"
+"PO-Revision-Date: 2009-12-29 22:18+0900\n"
 "Last-Translator: Yuto Hayamizu <y.hayamizu@gmail.com>\n"
 "Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: index.html:5(title) how-to-contribute.html:5(title)
-#: screenshot.html:5(title)
+#: index.html:7(title) how-to-contribute.html:7(title)
+#: screenshot.html:7(title)
 msgid "Twittering-mode"
 msgstr "Twittering-mode"
 
 #. # Twittering-mode
-#: index.html:39(p)
+#: index.html:41(p)
 msgid ""
 "Twittering-mode is an Emacs major mode for Twitter. You can check timelines, "
 "tweet, mark posts as favorites and so on with Emacs."
@@ -24,33 +24,29 @@ msgstr ""
 "のチェック、投稿、お気に入りなど様々なTwitterの機能をEmacsから使うことができ"
 "ます。"
 
-#: index.html:44(h2)
+#: index.html:46(h2)
 msgid "Screenshot"
 msgstr "スクリーンショット"
 
-#: index.html:48(p)
+#: index.html:50(p)
 msgid "and <a href=\"./screenshot.html\">more</a>"
 msgstr "and <a href=\"./screenshot.html\">more</a>"
 
-#: index.html:50(h2)
+#: index.html:52(h2)
 msgid "Download"
 msgstr "ダウンロード"
 
-#: index.html:52(p)
+#: index.html:55(li)
 msgid ""
-"Currently there's no stable release, but it does <strong>not</strong> mean "
-"twittering-mode is unstable for practical usage."
-msgstr ""
-"現在のところ、安定版リリースはありませんが、開発版でも十分実用的に使用できま"
-"す。"
+"Latest release (2009/12/29): <a href=\"http://sourceforge.net/projects/"
+"twmode/files/\">twittering-mode-0.9.0</a>"
+msgstr "最新のリリース (2009/12/29): <a href=\"http://sourceforge.net/projects/twmode/files/\">twittering-mode-0.9.0</a>"
 
 #: index.html:56(li)
 msgid ""
-"<a href=\"http://github.com/hayamiz/twittering-mode/raw/master/twittering-"
-"mode.el\">twittering-mode.el</a> (development version)"
-msgstr ""
-"<a href=\"http://github.com/hayamiz/twittering-mode/raw/master/twittering-"
-"mode.el\">twittering-mode.el</a> (開発版)"
+"Development version: <a href=\"http://github.com/hayamiz/twittering-mode/"
+"\">GitHub repository</a>"
+msgstr "開発版: <a href=\"http://github.com/hayamiz/twittering-mode/\">GitHubレポジトリ</a>"
 
 #: index.html:60(p)
 msgid ""
@@ -100,7 +96,7 @@ msgstr "レポジトリ"
 msgid "You can clone the git repository:"
 msgstr "次のコマンドを実行することで、gitレポジトリをcloneできます:"
 
-#: index.html:81(code) how-to-contribute.html:41(code)
+#: index.html:81(code) how-to-contribute.html:43(code)
 msgid "git clone git://github.com/hayamiz/twittering-mode.git"
 msgstr "git clone git://github.com/hayamiz/twittering-mode.git"
 
@@ -119,15 +115,15 @@ msgstr "See also"
 msgid "EmacsWiki: TwitteringMode"
 msgstr "EmacsWiki: TwitteringMode"
 
-#: index.html:97(a) how-to-contribute.html:96(a) screenshot.html:68(a)
+#: index.html:97(a) how-to-contribute.html:98(a) screenshot.html:70(a)
 msgid "Free CSS Templates"
 msgstr "Free CSS Templates"
 
-#: index.html:97(a) how-to-contribute.html:96(a) screenshot.html:68(a)
+#: index.html:97(a) how-to-contribute.html:98(a) screenshot.html:70(a)
 msgid "Chapter 13 Bankruptcy"
 msgstr "Chapter 13 Bankruptcy"
 
-#: index.html:96(div) how-to-contribute.html:95(div) screenshot.html:67(div)
+#: index.html:96(div) how-to-contribute.html:97(div) screenshot.html:69(div)
 msgid ""
 "Designed by <placeholder-1></placeholder-1>, Thanks to <placeholder-2></"
 "placeholder-2>\n"
@@ -141,15 +137,15 @@ msgstr ""
 "<a href=\"http://www.famfamfam.com/\"><img src=\"images/famfamfam-logo.png"
 "\" /></a>"
 
-#: how-to-contribute.html:33(h1)
+#: how-to-contribute.html:35(h1)
 msgid "How to contribute to twittering-mode"
 msgstr "twittering-modeの開発に参加する"
 
-#: how-to-contribute.html:35(h2)
+#: how-to-contribute.html:37(h2)
 msgid "Code"
 msgstr "Code"
 
-#: how-to-contribute.html:37(p)
+#: how-to-contribute.html:39(p)
 msgid ""
 "Recommended way is to fork on <a href=\"http://github.com/hayamiz/twittering-"
 "mode\">GitHub</a>. Visit there and click 'fork' button."
@@ -159,20 +155,20 @@ msgstr ""
 "twittering-mode\">GitHub:twittering-mode</a>を開いて、'fork'ボタンをクリック"
 "してください。"
 
-#: how-to-contribute.html:39(p)
+#: how-to-contribute.html:41(p)
 msgid "Of course you can clone the git repository in the ordinary way:"
 msgstr ""
 "もちろん、次のコマンドを実行してgitのレポジトリを直接cloneしても構いません。"
 
-#: how-to-contribute.html:44(h3)
+#: how-to-contribute.html:46(h3)
 msgid "How to create patches"
 msgstr "パッチの作り方"
 
-#: how-to-contribute.html:46(p)
+#: how-to-contribute.html:48(p)
 msgid "We recommend to follow these steps:"
 msgstr "次のような手順でパッチを作る慣例となっています:"
 
-#: how-to-contribute.html:49(li)
+#: how-to-contribute.html:51(li)
 msgid ""
 "Pull the master branch(<code>hayamiz/master</code> on <a href=\"http://"
 "github.com/hayamiz/twittering-mode\">GitHub</a>)."
@@ -180,47 +176,53 @@ msgstr ""
 "マスターブランチ(<a href=\"http://github.com/hayamiz/twittering-mode"
 "\">GitHub</a>レポジトリの<code>hayamiz/master</code>)を取得する"
 
-#: how-to-contribute.html:50(li)
+#: how-to-contribute.html:52(li)
 msgid "Create a <strong>topic branch</strong> and make some modifications."
 msgstr "<strong>トピックブランチ</strong>を作成して、そこに変更を加える"
 
-#: how-to-contribute.html:51(li)
+#: how-to-contribute.html:53(li)
 msgid ""
 "Before sending a patch, <strong>rebase</strong> the topic branch to the "
 "master."
-msgstr "パッチを投稿する前に、トピックブランチをマスターブランチに<strong>rebase</strong>する"
+msgstr ""
+"パッチを投稿する前に、トピックブランチをマスターブランチに<strong>rebase</"
+"strong>する"
 
-#: how-to-contribute.html:52(li)
+#: how-to-contribute.html:54(li)
 msgid ""
 "Now it's ready to <strong>post</strong> your patch. Send a <a href=\"http://"
 "github.com/guides/pull-requests\">pull request</a> on <a href=\"http://"
 "github.com/hayamiz/twittering-mode\">GitHub</a> (if you have forked) and "
 "write a mail to <a href=\"http://sourceforge.net/mail/?group_id=288615"
 "\">twittering-mode ML</a>."
-msgstr "以上で<strong>パッチを投稿する</strong>準備は完了です。(GitHubでforkした人は)<a href=\"http://github.com/guides/pull-requests\">pull request</a>を送って、<a href=\"http://sourceforge.net/mail/?group_id=288615\">メーリングリスト</a>へ投稿しましょう"
+msgstr ""
+"以上で<strong>パッチを投稿する</strong>準備は完了です。(GitHubでforkした人は)"
+"<a href=\"http://github.com/guides/pull-requests\">pull request</a>を送って、"
+"<a href=\"http://sourceforge.net/mail/?group_id=288615\">メーリングリスト</a>"
+"へ投稿しましょう"
 
-#: how-to-contribute.html:56(h4)
+#: how-to-contribute.html:58(h4)
 msgid "Topic branch"
 msgstr "トピックブランチ"
 
-#: how-to-contribute.html:58(p) how-to-contribute.html:62(p)
-#: how-to-contribute.html:66(p)
+#: how-to-contribute.html:60(p) how-to-contribute.html:64(p)
+#: how-to-contribute.html:68(p)
 msgid "(now writing...)"
 msgstr "(準備中...)"
 
-#: how-to-contribute.html:60(h4)
+#: how-to-contribute.html:62(h4)
 msgid "Rebasing a topic branch"
 msgstr "トピックブランチをrebaseする"
 
-#: how-to-contribute.html:64(h4)
+#: how-to-contribute.html:66(h4)
 msgid "Posting your patch"
 msgstr "パッチを投稿する"
 
-#: how-to-contribute.html:68(h2)
+#: how-to-contribute.html:70(h2)
 msgid "Communication"
 msgstr "バグ報告、その他意見など"
 
-#: how-to-contribute.html:70(p)
+#: how-to-contribute.html:72(p)
 msgid ""
 "All your voices should be sent to <a href=\"http://sourceforge.net/mail/?"
 "group_id=288615\">twittering-mode ML</a>."
@@ -229,11 +231,11 @@ msgstr ""
 "net/mail/?group_id=288615\">twittering-modeのメーリングリスト</a>へ投稿してく"
 "ださい。"
 
-#: how-to-contribute.html:72(h3)
+#: how-to-contribute.html:74(h3)
 msgid "Bug reports"
 msgstr "バグ報告"
 
-#: how-to-contribute.html:74(p)
+#: how-to-contribute.html:76(p)
 msgid ""
 "If you find some bugs in twittering-mode, please send a mail with detailed "
 "information to <a href=\"http://sourceforge.net/mail/?group_id=288615"
@@ -243,87 +245,112 @@ msgstr ""
 "mail/?group_id=288615\">メーリングリスト</a>に次に示すような情報を添えて投稿"
 "してください:"
 
-#: how-to-contribute.html:77(li)
+#: how-to-contribute.html:79(li)
 msgid "Platform (Windows, Linux, Mac OS X, ...)"
 msgstr "動作環境(Windows, Linux, Mac OS X, ...)"
 
-#: how-to-contribute.html:78(li)
+#: how-to-contribute.html:80(li)
 msgid ""
 "Kind of Emacs and its version number (GNU Emacs, XEmacs, Carbon Emacs, ...): "
 "you can check it by <code>(emacs-version)&lt;C-j&gt;</code> on "
 "<code>*scratch*</code> buffer."
-msgstr "Emacsの種類とバージョン番号 (GNU Emacs, XEmacs, Carbon Emacs, ...): <code>*scratch*</code>バッファで<code>(emacs-version)&lt;C-j&gt;</code>とタイプすれば確認できます。"
+msgstr ""
+"Emacsの種類とバージョン番号 (GNU Emacs, XEmacs, Carbon Emacs, ...): "
+"<code>*scratch*</code>バッファで<code>(emacs-version)&lt;C-j&gt;</code>とタイ"
+"プすれば確認できます。"
 
-#: how-to-contribute.html:79(li)
+#: how-to-contribute.html:81(li)
 msgid ""
 "What you <em>wanted</em> to do, what you <em>actually did</em>, and what "
 "<em>happened</em>."
-msgstr "<em>何がしたかった</em>のか、<em>実際に行った操作</em>、<em>実際に発生した現象</em>"
+msgstr ""
+"<em>何がしたかった</em>のか、<em>実際に行った操作</em>、<em>実際に発生した現"
+"象</em>"
 
-#: how-to-contribute.html:80(li)
+#: how-to-contribute.html:82(li)
 msgid "Any other information you think it's important."
 msgstr "その他重要であると思われる情報"
 
-#: how-to-contribute.html:84(p)
+#: how-to-contribute.html:86(p)
 msgid ""
 "If you have enough time, please try to reproduce the bug in a minimal "
 "environment. You can launch Emacs without loading any scripts by <code>emacs "
 "-Q</code>. This saves our time so much :)"
-msgstr "もし可能であれば、最小の環境でバグを再現してみてください。<code>emacs -Q</code>でEmacsを起動すれば、.emacsなどの起動スクリプトを一切読み込みません。この環境でバグが再現するかどうかを事前に試してもらえると、バグの原因をつきとめやすくなります。"
+msgstr ""
+"もし可能であれば、最小の環境でバグを再現してみてください。<code>emacs -Q</"
+"code>でEmacsを起動すれば、.emacsなどの起動スクリプトを一切読み込みません。こ"
+"の環境でバグが再現するかどうかを事前に試してもらえると、バグの原因をつきとめ"
+"やすくなります。"
 
-#: how-to-contribute.html:86(h3)
+#: how-to-contribute.html:88(h3)
 msgid "Feature requests and others"
 msgstr "機能追加の要望や、その他の意見"
 
-#: how-to-contribute.html:88(p)
+#: how-to-contribute.html:90(p)
 msgid ""
 "Join <a href=\"http://sourceforge.net/mail/?group_id=288615\">twittering-"
 "mode ML</a> and let's talk!"
-msgstr "<a href=\"http://sourceforge.net/mail/?group_id=288615\">twittering-mode のメーリングリスト</a>を購読して投稿してください。"
+msgstr ""
+"<a href=\"http://sourceforge.net/mail/?group_id=288615\">twittering-mode の"
+"メーリングリスト</a>を購読して投稿してください。"
 
-#: how-to-contribute.html:90(a) screenshot.html:62(a)
+#: how-to-contribute.html:92(a) screenshot.html:64(a)
 msgid "&laquo; Back to top"
 msgstr "&laquo; トップへ戻る"
 
-#: screenshot.html:33(h1)
+#: screenshot.html:35(h1)
 msgid "Screenshots"
 msgstr "スクリーンショット"
 
-#: screenshot.html:35(h2)
+#: screenshot.html:37(h2)
 msgid "Timeline"
 msgstr "タイムライン"
 
-#: screenshot.html:37(h3) screenshot.html:54(li)
+#: screenshot.html:39(h3) screenshot.html:56(li)
 msgid "Friends timeline"
 msgstr "フレンズタイムライン"
 
-#: screenshot.html:39(h4)
+#: screenshot.html:41(h4)
 msgid "Without icons"
 msgstr "アイコン非表示モード"
 
-#: screenshot.html:43(h4)
+#: screenshot.html:45(h4)
 msgid "With icons"
 msgstr "アイコン表示モード"
 
-#: screenshot.html:47(h3) screenshot.html:55(li)
+#: screenshot.html:49(h3) screenshot.html:57(li)
 msgid "User's timeline"
 msgstr "ユーザータイムライン"
 
-#: screenshot.html:51(h3)
+#: screenshot.html:53(h3)
 msgid "Supported timelines"
 msgstr "表示できるタイムライン"
 
-#: screenshot.html:56(li)
+#: screenshot.html:58(li)
 msgid "Replies"
 msgstr "返信"
 
-#: screenshot.html:57(li)
+#: screenshot.html:59(li)
 msgid "Public timeline"
 msgstr "パブリックタイムライン"
 
-#: screenshot.html:58(li)
+#: screenshot.html:60(li)
 msgid "Lists"
 msgstr "リスト"
+
+#~ msgid ""
+#~ "Currently there's no stable release, but it does <strong>not</strong> "
+#~ "mean twittering-mode is unstable for practical usage."
+#~ msgstr ""
+#~ "現在のところ、安定版リリースはありませんが、開発版でも十分実用的に使用でき"
+#~ "ます。"
+
+#~ msgid ""
+#~ "<a href=\"http://github.com/hayamiz/twittering-mode/raw/master/twittering-"
+#~ "mode.el\">twittering-mode.el</a> (development version)"
+#~ msgstr ""
+#~ "<a href=\"http://github.com/hayamiz/twittering-mode/raw/master/twittering-"
+#~ "mode.el\">twittering-mode.el</a> (開発版)"
 
 #, fuzzy
 #~ msgid "Twittering-mode screenshot"

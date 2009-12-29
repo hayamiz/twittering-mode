@@ -15,10 +15,8 @@ and [more](./screenshot.html)
 
 ## Download
 
-Currently there's no stable release, but it does **not** mean
-twittering-mode is unstable for practical usage.
-
-* [twittering-mode.el](http://github.com/hayamiz/twittering-mode/raw/master/twittering-mode.el) (development version)
+* Latest release (2009/12/29): [twittering-mode-0.9.0](http://sourceforge.net/projects/twmode/files/)
+* Development version: [GitHub repository](http://github.com/hayamiz/twittering-mode/)
 
 See the [history](http://github.com/hayamiz/twittering-mode/commits/master/twittering-mode.el).
 

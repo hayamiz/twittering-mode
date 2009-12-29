@@ -32,7 +32,7 @@ release: $(DISTRIB_FILES)
 	ruby misc/vernum-updater.rb \
 	  --prev-version=$$(cat LAST-VERSION) --next-version=$$(cat VERSION) \
 	  VERSION twittering-mode.el doc/web/index.html
-	git commit -a
+	-git commit -a
 	@([ -d $(DISTRIB_DIR) ] && rm -rf $(DISTRIB_DIR)) || true
 	mkdir $(DISTRIB_DIR)
 	cp -r -t $(DISTRIB_DIR)/ $(DISTRIB_FILES)

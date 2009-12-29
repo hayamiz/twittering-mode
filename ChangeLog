@@ -8,6 +8,11 @@
 	* twittering-mode.el (twittering-http-post-default-sentinel): Add 
 	`debug-printf' same as `twittering-http-get-default-sentinel'.
 
+	* twittering-mode.el (twittering-http-post-default-sentinel):
+	Change a regexp pattern for HTTP response status line; same as
+	`twittering-http-get-default-sentinel'.
+	(twittering-http-get-list-index-sentinel): Likewise.
+
 2009-12-29  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el: load mule-ucs if needed (emacs21)

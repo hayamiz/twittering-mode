@@ -846,7 +846,7 @@ Available keywords:
   (temp-buffer noninteractive proc stat &optional suc-msg)
   (unwind-protect
       (let ((header (twittering-get-response-header temp-buffer)))
-	(if (not (string-match "HTTP/1\.[01] \\([a-z0-9 ]+\\)\r?\n" header))
+	(if (not (string-match "HTTP/1\.[01] \\([a-zA-Z0-9 ]+\\)\r?\n" header))
 	    (setq twittering-list-index-retrieved "Failure: Bad http response.")
 	  (let ((status (match-string-no-properties 1 header))
 		(indexes nil))
@@ -1093,7 +1093,7 @@ PARAMETERS is alist of URI parameters.
       (let ((header (twittering-get-response-header temp-buffer))
 	    ;; (body (twittering-get-response-body temp-buffer)) not used now.
 	    (status nil))
-	(if (string-match "HTTP/1\.1 \\([a-z0-9 ]+\\)\r?\n" header)
+	(if (string-match "HTTP/1\.[01] \\([a-zA-Z0-9 ]+\\)\r?\n" header)
 	    (setq status (match-string-no-properties 1 header))
 	  (setq status
 		(progn (string-match "^\\([^\r\n]+\\)\r?\n" header)

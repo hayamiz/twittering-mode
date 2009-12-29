@@ -312,7 +312,7 @@ Otherwise, they are retrieved by `url-retrieve'.")
   (if (and (not (assoc file-name twittering-image-type-cache))
 	   (file-exists-p file-name))
       (if (and twittering-convert-fix-size twittering-use-convert)
-	  (let ((tmpfile (make-temp-file "emacstwit" nil ".png")))
+	  (let ((tmpfile (concat (make-temp-file "emacstwit" nil) ".png")))
 	    (let ((coding-system-for-read 'raw-text)
 		  (coding-system-for-write 'binary))
 	      (call-process twittering-convert-program nil nil nil

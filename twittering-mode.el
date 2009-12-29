@@ -590,9 +590,13 @@ PARAMETERS: http request parameters (query string)
 		   (twittering-update-mode-line))
 	  (message "Request canceled")
 	  (return)))
-	 ((not (string-match "^Protocols: .*https"
-			     (shell-command-to-string
-			      (concat curl-program " --version"))))
+	 ((not (with-temp-buffer
+		 (call-process curl-program
+			       nil (current-buffer) nil
+			       "--version")
+		 (goto-char (point-min))
+		 (search-forward-regexp
+		  "^Protocols: .*https" nil t)))
 	  (if (yes-or-no-p "HTTPS(SSL) is not available because your 'cURL' cannot use HTTPS. Use HTTP instead?")
 	    (progn (setq twittering-use-ssl nil)
 		   (twittering-update-mode-line))

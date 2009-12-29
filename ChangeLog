@@ -5,6 +5,9 @@
 	(twittering-get-response-body): bug fix: goto the beginning of
 	buffer before search-forward. 'xml-parse-region' doesn't return
 	when parsing unbalanced XML.
+	(twittering-start-http-session): Use call-process instead of
+	shell-command-to-string. If 'curl-program' contains space
+	characters, shell-command fails.
 
 2009-12-29  Satoshi Yatagawa  <yata_github@y.hauN.org>
 

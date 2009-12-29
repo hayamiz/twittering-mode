@@ -1143,6 +1143,7 @@ XML tree as list. Return nil when parse failed.
   (if (stringp buffer) (setq buffer (get-buffer buffer)))
   (save-excursion
     (set-buffer buffer)
+    (goto-char (point-min))
     (let ((start (if (search-forward-regexp "\r?\n\r?\n" nil t)
 		     (match-end 0)
 		   (point))))

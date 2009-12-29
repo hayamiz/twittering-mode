@@ -2,6 +2,9 @@
 
 	* twittering-mode.el (twittering-start-http-session): check if
 	curl can use https or not.
+	(twittering-get-response-body): bug fix: goto the beginning of
+	buffer before search-forward. 'xml-parse-region' doesn't return
+	when parsing unbalanced XML.
 
 2009-12-29  Satoshi Yatagawa  <yata_github@y.hauN.org>
 

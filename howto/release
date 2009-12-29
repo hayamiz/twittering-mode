@@ -7,7 +7,7 @@
 - Add new version number to `/NEWS` and describe updates.
 - Update version numbers on web pages(`/doc/web/index.text`).
 - Change the version number in `/VERSION` to next (expected) version number.
-- Make a tag `release-<VERSION>`
+- Make a tag `v<VERSION>`
 - Upload new source files to souceforge.net
 - Publish web pages(`cd doc/web; make upload`).
 - Release announce on MLs.

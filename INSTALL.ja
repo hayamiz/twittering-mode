@@ -1,0 +1,38 @@
+<!-- -*- mode: markdown -*- -->
+
+ インストールの手引き
+======================
+
+ Windows
+---------
+
+* cURLのプログラムを持っていない、またはわからない人:
+  * `twittering-mode.el`と`win-curl`を、Emacsの`load-path`に含まれてい
+    るディレクトリにコピーする
+  * **Emacsの設定** へ進む
+* cURLを持っている人:
+  * `twittering-mode.el`をEmacsの`load-path`に含まれているディレクトリへコピー
+  * **Emacsの設定** へ進む
+
+ Linuxやその他Unix環境
+-----------------------
+
+* `twittering-mode.el`をEmacsの`load-path`に含まれているディレクトリへコピー
+* cURLをインストールする。例えばDebianやその派生ディストリビューション
+  では `apt-get install curl` でcURLがインストールできる
+
+ Emacsの設定
+-------------
+
+* 次のコードを`.emacs`に追加する:
+
+    (add-to-list 'load-path "/path/to/installed/dir") ;; if you need
+    (require 'twittering-mode)
+    (setq twittering-username "your twitter ID")
+
+ twittering-modeを動かす
+-------------------------
+
+1. `M-x twit`を実行
+2. パスワードを入力
+3. Twitterのタイムラインが表示されるはず!

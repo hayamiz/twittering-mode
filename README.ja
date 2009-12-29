@@ -1,0 +1,52 @@
+ Twittering-mode: Emacs用Twitterクライアント
+=============================================
+
+Twittering-modeを使うと、EmacsenからTwitterを利用することができます。
+
+- web: http://twmode.sf.net
+- github: http://github.com/hayamiz/twittering-mode
+
+ 機能
+------
+
+* Twitterの機能への対応状況:
+  * 様々なタイムラインの閲覧
+    * フレンドタイムライン
+    * 返信
+    * ユーザーのタイムライン
+    * パブリックタイムライン
+  * つぶやきの投稿
+    * ダイレクトメッセージ
+    * ReTweet
+    * ハッシュタグ
+    * 署名
+  * フォロー/リムーブ
+  * お気に入り
+* HTTPプロキシ対応
+* HTTPSによる安全な通信
+
+ 動作確認環境
+--------------
+
+- GNU Emacs 21 (一部機能制限あり)
+- GNU Emacs 22, 23
+
+ 作者と協力者
+--------------
+
+- Y. Hayamizu
+- naoya_t
+- Tsuyoshi CHO
+- Alberto Garcia
+- Satoshi Yatagawa
+- 高山智也
+- 松尾(cvmat)
+- 青田(naota)
+- Jaemok Jeong(jmjeong)
+- Thomas Danckaert
+- IMAI Toshiyuki
+
+ 参考
+------
+
+- http://www.emacswiki.org/emacs-en/TwitteringMode

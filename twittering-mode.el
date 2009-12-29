@@ -1135,7 +1135,7 @@ PARAMETERS is alist of URI parameters.
 	   "HTTP/1\\.[01] 200 Connection established\r\n\r\n" nil t)
       (delete-region (point-min) (point)))
     (let* ((start (point))
-	   (end (if (search-forward-regexp "\r?\n\r?\n")
+	   (end (if (search-forward-regexp "\r?\n\r?\n" nil t)
 		    (match-end 0)
 		  current)))
       (buffer-substring start end))))

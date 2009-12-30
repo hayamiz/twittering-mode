@@ -23,6 +23,10 @@
 	  (read (current-buffer)))
       nil)))
 
+(defmacro with-network (&rest body)
+  `(when (getenv "NETWORK")
+     ,@body))
+
 (defun twittering-run-test ()
   (interactive)
 

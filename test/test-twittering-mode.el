@@ -93,11 +93,12 @@
   (test-assert-string-equal "love+plus"
     (twittering-percent-encode "love plus")))
 
-(when (require 'url nil t)
-  (defcase tinyurl nil nil
-    (test-assert-string-equal "http://tinyurl.com/3xsrg5"
-      (twittering-tinyurl-get "http://example.com/example"))
-    ))
+(with-network
+ (when (require 'url nil t)
+   (defcase tinyurl nil nil
+     (test-assert-string-equal "http://tinyurl.com/3xsrg5"
+       (twittering-tinyurl-get "http://example.com/example"))
+     )))
 
 (defcase case-string nil nil
   (test-assert-string-equal "Kobayakawa"
@@ -256,14 +257,18 @@
   (with-temp-buffer
     (when (twittering-find-curl-program)
       (test-assert-eq 0
-	(shell-command (format "%s --help" (twittering-find-curl-program) t))))))
+	(call-process (twittering-find-curl-program)
+		      nil (current-buffer) nil
+		      "--help")))))
 
-(defcase test-ensure-ca-cert nil nil
-  (when (twittering-find-curl-program)
-    (test-assert-eq 0
-      (call-process (twittering-find-curl-program)
-		    nil "hoge" nil
-		    "--cacert"
-		    (twittering-ensure-ca-cert)
-		    "https://twitter.com/"))))
+(with-network
+ (defcase test-ensure-ca-cert nil nil
+   (when (twittering-find-curl-program)
+     (test-assert-eq 0
+       (with-temp-buffer
+	 (call-process (twittering-find-curl-program)
+		       nil (current-buffer) nil
+		       "--cacert"
+		       (twittering-ensure-ca-cert)
+		       "https://twitter.com/"))))))
 

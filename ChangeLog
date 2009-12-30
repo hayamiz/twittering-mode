@@ -4,6 +4,11 @@
 	redundant temporary files. The image format is specified by
 	the command line instead of a file extension.
 
+2009-12-30  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* test/el-test-runner.el (with-network): add macro. body of
+	with-network is executed only when 'NETWORK' env var is set.
+
 2009-12-30  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-image-type): Don't set a third

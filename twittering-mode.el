@@ -1138,6 +1138,7 @@ PARAMETERS is alist of URI parameters.
       (delete-region (point-min) (point)))
     (if (search-forward-regexp "\r?\n\r?\n" nil t)
 	(buffer-substring (point-min) (match-end 0))
+      (message "Failure: invalid HTTP response.")
       "")))
 
 (defun twittering-get-response-body (buffer)
@@ -1154,6 +1155,7 @@ XML tree as list. Return nil when parse failed.
 	      (xml-parse-region start (point-max))
 	    (error (message "Failure: %s" get-error)
 		   nil)))
+      (message "Failure: invalid HTTP response.")
       nil)
     ))
 

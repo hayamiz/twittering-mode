@@ -1,5 +1,7 @@
 2009-12-30  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
+	* test/server.rb: add. Twitter API and Proxy mock server
+
 	* twittering-mode.el (twittering-get-response-header)
 	(twittering-get-response-body): Raise an error on broken
 	responses.

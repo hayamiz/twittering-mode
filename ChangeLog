@@ -1,3 +1,4 @@
+<<<<<<< HEAD:ChangeLog
 2009-12-30  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-get-response-header): Correct a
@@ -10,6 +11,8 @@
 	* twittering-mode.el (twittering-image-type): No temporary files
 	for resing images. Use standard in/out and temporary buffers
 	instead.
+	(twittering-convert-fix-size): set 48px as the default size of
+	icon images.
 
 2009-12-30  Tadashi MATSUO  <tad@mymail.twin.jp>
 

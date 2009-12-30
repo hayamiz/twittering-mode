@@ -299,7 +299,7 @@ icon mode; otherwise, turn off icon mode."
 (defvar twittering-image-stack nil)
 (defvar twittering-image-type-cache nil)
 (defvar twittering-convert-program (executable-find "convert"))
-(defvar twittering-convert-fix-size nil)
+(defvar twittering-convert-fix-size 48)
 (defvar twittering-use-convert (not (null (executable-find "convert")))
   "*This variable makes a sense only if `twittering-convert-fix-size'
 is non-nil. If this variable is non-nil, icon images are converted by

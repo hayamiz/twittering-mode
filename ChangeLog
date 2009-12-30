@@ -14,6 +14,13 @@
 	(twittering-get-response-body): When the function fails to find
 	the tail of header, it returns nil without trying to parse a
 	region.
+	(twittering-find-proxy): add new function for
+	finding proxy.
+	(twittering-setup-proxy): add new function for configuring
+	`twittering-proxy-server' and `twittering-proxy-port' if they have
+	not been configured yet.
+	(twittering-mode-init-variables): invokes
+	`twittering-setup-proxy'.
 
 2009-12-30  Satoshi Yatagawa  <yata_github@y.hauN.org>
 

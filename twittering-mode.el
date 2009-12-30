@@ -203,8 +203,14 @@ SSL connections use 'curl' command as a backend.")
 ;;; Proxy
 (defvar twittering-proxy-use nil)
 (defvar twittering-proxy-keep-alive nil)
-(defvar twittering-proxy-server nil)
-(defvar twittering-proxy-port 8080)
+(defvar twittering-proxy-server nil
+  "*The proxy server for `twittering-mode'.
+If nil, it is initialized on entering `twittering-mode'.
+The port number is specified by `twittering-proxy-port'.")
+(defvar twittering-proxy-port nil
+  "*The port number of a proxy server for `twittering-mode'.
+If nil, it is initialized on entering `twittering-mode'.
+The server is specified by `twittering-proxy-server'.")
 (defvar twittering-proxy-user nil)
 (defvar twittering-proxy-password nil)
 
@@ -360,6 +366,35 @@ Otherwise, they are retrieved by `url-retrieve'.")
 (defun twittering-global-strftime (fmt string)
   (twittering-setftime fmt string t))
 
+(defun twittering-find-proxy(scheme)
+  "Find proxy server and its port for `twittering-mode' and returns
+a cons pair of them.
+SCHEME must be \"http\" or \"https\"."
+  (cond
+   ((require 'url-methods nil t)
+    (url-scheme-register-proxy scheme)
+    (let* ((proxy-service (assoc scheme url-proxy-services))
+           (proxy (if proxy-service (cdr proxy-service) nil)))
+      (if (and proxy
+               (string-match "^\\([^:]+\\):\\([0-9]+\\)$" proxy))
+          (let* ((host (match-string 1 proxy))
+                 (port (string-to-number (match-string 2 proxy))))
+            (cons host port))
+        nil)))
+   (t
+    (let* ((env-var (concat scheme "_proxy"))
+           (env-proxy (or (getenv (upcase env-var))
+                          (getenv (downcase env-var))))
+	   (default-port (if (string= "https" scheme) "443" "80")))
+      (if (and env-proxy
+	       (string-match
+		"^\\(https?://\\)?\\([^:/]+\\)\\(:\\([0-9]+\\)\\)?/?$"
+		env-proxy))
+          (let* ((host (match-string 2 env-proxy))
+		 (port-str (or (match-string 4 env-proxy) default-port))
+		 (port (string-to-number port-str)))
+            (cons host port))
+	nil)))))
 
 (defvar twittering-debug-mode nil)
 (defvar twittering-debug-buffer "*debug*")
@@ -477,7 +512,24 @@ Otherwise, they are retrieved by `url-retrieve'.")
 ;;   (add-to-list 'minor-mode-alist '(twittering-jojo-mode " tw-jojo"))
   (setq twittering-username-active twittering-username)
   (setq twittering-password-active twittering-password)
+  (twittering-setup-proxy)
   )
+
+(defun twittering-setup-proxy()
+  (unless (and twittering-proxy-server twittering-proxy-port)
+    (let ((proxy-info (or (if twittering-use-ssl
+			      (twittering-find-proxy "https"))
+			  (twittering-find-proxy "http"))))
+      (when proxy-info
+	(let ((host (car proxy-info))
+	      (port (cdr proxy-info)))
+	  (setq twittering-proxy-server host)
+	  (setq twittering-proxy-port port)))))
+  (when (and twittering-proxy-use
+	     (null twittering-proxy-server)
+	     (null twittering-proxy-port))
+    (message "Disabling proxy due to lack of configuration.")
+    (setq twittering-proxy-use nil)))
 
 (defmacro case-string (str &rest clauses)
   `(cond

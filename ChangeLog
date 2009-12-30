@@ -1,4 +1,16 @@
 <<<<<<< HEAD:ChangeLog
+<<<<<<< HEAD:ChangeLog
+=======
+2009-12-30  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-get-response-header): On failure,
+	the function returns an empty string instead of the whole contents
+	of the buffer.
+	(twittering-get-response-body): When the function fails to find
+	the tail of header, it returns nil without trying to parse a
+	region.
+
+>>>>>>> 'twittering-get-response-...()' return "" or nil on failure.:ChangeLog
 2009-12-30  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-get-response-header): Correct a

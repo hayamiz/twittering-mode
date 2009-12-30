@@ -1136,11 +1136,9 @@ PARAMETERS is alist of URI parameters.
     (when (search-forward-regexp
 	   "HTTP/1\\.[01] 200 Connection established\r\n\r\n" nil t)
       (delete-region (point-min) (point)))
-    (let* ((start (point))
-	   (end (if (search-forward-regexp "\r?\n\r?\n" nil t)
-		    (match-end 0)
-		  (point-max))))
-      (buffer-substring start end))))
+    (if (search-forward-regexp "\r?\n\r?\n" nil t)
+	(buffer-substring (point-min) (match-end 0))
+      "")))
 
 (defun twittering-get-response-body (buffer)
   "Exract HTTP response body from HTTP response, parse it as XML, and return a
@@ -1150,13 +1148,13 @@ XML tree as list. Return nil when parse failed.
   (save-excursion
     (set-buffer buffer)
     (goto-char (point-min))
-    (let ((start (if (search-forward-regexp "\r?\n\r?\n" nil t)
-		     (match-end 0)
-		   (point))))
-      (condition-case get-error ;; to guard when `xml-parse-region' failed.
-	  (xml-parse-region start (point-max))
-	(error (message "Failure: %s" get-error)
-	       nil)))
+    (if (search-forward-regexp "\r?\n\r?\n" nil t)
+	(let ((start (match-end 0)))
+	  (condition-case get-error ;; to guard when `xml-parse-region' failed.
+	      (xml-parse-region start (point-max))
+	    (error (message "Failure: %s" get-error)
+		   nil)))
+      nil)
     ))
 
 (defun twittering-cache-status-datum (status-datum &optional data-var)

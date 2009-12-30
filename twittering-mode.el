@@ -1139,7 +1139,7 @@ PARAMETERS is alist of URI parameters.
     (let* ((start (point))
 	   (end (if (search-forward-regexp "\r?\n\r?\n" nil t)
 		    (match-end 0)
-		  current)))
+		  (point-max))))
       (buffer-substring start end))))
 
 (defun twittering-get-response-body (buffer)

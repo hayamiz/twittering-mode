@@ -1,3 +1,8 @@
+2009-12-30  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-get-response-header): Correct a
+	reference to an unbound object. This problem was found by highmt.
+
 2009-12-30  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* test/el-test-runner.el (with-network): add macro. body of

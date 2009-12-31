@@ -366,7 +366,7 @@ Otherwise, they are retrieved by `url-retrieve'.")
 (defun twittering-global-strftime (fmt string)
   (twittering-setftime fmt string t))
 
-(defun twittering-find-proxy(scheme)
+(defun twittering-find-proxy (scheme)
   "Find proxy server and its port for `twittering-mode' and returns
 a cons pair of them.
 SCHEME must be \"http\" or \"https\"."
@@ -515,7 +515,7 @@ SCHEME must be \"http\" or \"https\"."
   (twittering-setup-proxy)
   )
 
-(defun twittering-setup-proxy()
+(defun twittering-setup-proxy ()
   (unless (and twittering-proxy-server twittering-proxy-port)
     (let ((proxy-info (or (if twittering-use-ssl
 			      (twittering-find-proxy "https"))

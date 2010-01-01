@@ -2,7 +2,7 @@
 ;;;
 ;;; twittering-mode.el --- Major mode for Twitter
 
-;; Copyright (C) 2007, 2009 Yuto Hayamizu.
+;; Copyright (C) 2007, 2009, 2010 Yuto Hayamizu.
 ;;               2008 Tsuyoshi CHO
 
 ;; Author: Y. Hayamizu <y.hayamizu@gmail.com>

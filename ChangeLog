@@ -1,3 +1,11 @@
+2010-01-02  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-use-show-minibuffer-length): New
+	defvar to enable/disable a function which is show the number of
+	charactors in minibuffer.
+	(twittering-update-status-from-minibuffer): Refer it to add/remove
+	hooks.
+
 2009-12-30  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* test/server.rb: add. Twitter API and Proxy mock server

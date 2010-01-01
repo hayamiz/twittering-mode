@@ -157,6 +157,8 @@ Items:
  %% - %
 ")
 
+(defvar twittering-use-show-minibuffer-length t
+  "*Show current length of minibuffer if this variable is non-nil.")
 (defvar twittering-notify-successful-http-get t)
 
 (defvar twittering-use-ssl t
@@ -1529,8 +1531,9 @@ following symbols;
 	(map minibuffer-local-map)
 	(minibuffer-message-timeout nil))
     (define-key map (kbd "<f4>") 'twittering-tinyurl-replace-at-point)
+    (when twittering-use-show-minibuffer-length
     (add-hook 'minibuffer-setup-hook 'twittering-setup-minibuffer t)
-    (add-hook 'minibuffer-exit-hook 'twittering-finish-minibuffer t)
+      (add-hook 'minibuffer-exit-hook 'twittering-finish-minibuffer t))
     (unwind-protect
 	(while not-posted-p
 	  (setq status (read-from-minibuffer prompt status map nil 'twittering-tweet-history nil t))
@@ -1548,8 +1551,10 @@ following symbols;
 		    (twittering-http-post "twitter.com" "statuses/update" parameters)
 		    (setq not-posted-p nil)))
 		))))
-      (remove-hook 'minibuffer-setup-hook 'twittering-setup-minibuffer)
-      (remove-hook 'minibuffer-exit-hook 'twittering-finish-minibuffer)
+      (when (memq 'twittering-setup-minibuffer minibuffer-setup-hook)
+	(remove-hook 'minibuffer-setup-hook 'twittering-setup-minibuffer))
+      (when (memq 'twittering-finish-minibuffer minibuffer-exit-hook)
+	(remove-hook 'minibuffer-exit-hook 'twittering-finish-minibuffer))
       )))
 
 (defun twittering-get-timeline (method &optional noninteractive id)

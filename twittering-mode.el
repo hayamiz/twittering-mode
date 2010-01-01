@@ -214,15 +214,12 @@ The server is specified by `twittering-proxy-server'.")
 (defvar twittering-proxy-user nil)
 (defvar twittering-proxy-password nil)
 
-(defun twittering-toggle-proxy () ""
+(defun twittering-toggle-proxy ()
   (interactive)
   (setq twittering-proxy-use
 	(not twittering-proxy-use))
   (twittering-update-mode-line)
-  (message "%s %s"
-	   "Use Proxy:"
-	   (if twittering-proxy-use
-	       "on" "off")))
+  (message (if twittering-proxy-use "Use Proxy:on" "Use Proxy:off")))
 
 (defun twittering-user-agent-default-function ()
   "Twittering mode default User-Agent function."
@@ -330,39 +327,41 @@ Otherwise, they are retrieved by `url-retrieve'.")
 			      "png:-")
 		(write-region (point-min) (point-max) file-name)))
 	    (add-to-list 'twittering-image-type-cache `(,file-name . png)))
-      (let* ((file-output (shell-command-to-string (concat "file -b " file-name)))
-      	     (file-type (cond
-      			 ((string-match "JPEG" file-output) 'jpeg)
-      			 ((string-match "PNG" file-output) 'png)
-      			 ((string-match "GIF" file-output) 'gif)
-      			 ((and twittering-use-convert
-			       (string-match "bitmap" file-output))
-      			  (let ((coding-system-for-read 'raw-text)
-      				(coding-system-for-write 'binary))
-      			    (with-temp-buffer
-      			      (set-buffer-multibyte nil)
-      			      (insert-file-contents file-name)
-      			      (call-process-region
-      			       (point-min) (point-max)
-      			       twittering-convert-program
-      			       t (current-buffer) nil
-      			       "bmp:-" "png:-")
-      			      (write-region (point-min) (point-max)
-      					    file-name)))
-      			  'png)
-      			 ((string-match "\\.jpe?g" file-name) 'jpeg)
-      			 ((string-match "\\.png" file-name) 'png)
-      			 ((string-match "\\.gif" file-name) 'gif)
-      			 (t nil))))
-      	(add-to-list 'twittering-image-type-cache `(,file-name . ,file-type)))))
+	(let* ((file-output (shell-command-to-string (concat "file -b " file-name)))
+	       (file-type (cond
+			   ((string-match "JPEG" file-output) 'jpeg)
+			   ((string-match "PNG" file-output) 'png)
+			   ((string-match "GIF" file-output) 'gif)
+			   ((and twittering-use-convert
+				 (string-match "bitmap" file-output))
+			    (let ((coding-system-for-read 'raw-text)
+				  (coding-system-for-write 'binary))
+			      (with-temp-buffer
+				(set-buffer-multibyte nil)
+				(insert-file-contents file-name)
+				(call-process-region
+				 (point-min) (point-max)
+				 twittering-convert-program
+				 t (current-buffer) nil
+				 "bmp:-" "png:-")
+				(write-region (point-min) (point-max)
+					      file-name)))
+			    'png)
+			   ((string-match "\\.jpe?g" file-name) 'jpeg)
+			   ((string-match "\\.png" file-name) 'png)
+			   ((string-match "\\.gif" file-name) 'gif)
+			   (t nil))))
+	  (add-to-list 'twittering-image-type-cache `(,file-name . ,file-type)))))
   (cdr (assoc file-name twittering-image-type-cache)))
 
 (defun twittering-setftime (fmt string uni)
   (format-time-string fmt ; like "%Y-%m-%d %H:%M:%S"
 		      (apply 'encode-time (parse-time-string string))
 		      uni))
+
 (defun twittering-local-strftime (fmt string)
   (twittering-setftime fmt string nil))
+
 (defun twittering-global-strftime (fmt string)
   (twittering-setftime fmt string t))
 
@@ -761,7 +760,8 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 	      (format "%s %s%s HTTP/1.1\r\n%s\r\n\r\n"
 		      (request :method)
 		      (request :uri)
-		      (if parameters (concat "?" (request :query-string))
+		      (if parameters
+			  (concat "?" (request :query-string))
 			"")
 		      (request :headers-string)))
 	     (server (if twittering-proxy-use
@@ -786,8 +786,7 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
   )
 
 ;;; TODO: proxy
-(defun twittering-make-http-request
-  (method headers host port path parameters)
+(defun twittering-make-http-request (method headers host port path parameters)
   "Returns an anonymous function, which holds request data.
 
 A returned function, say REQUEST, is used in this way:
@@ -846,10 +845,8 @@ Available keywords:
 	    (error (format "No such key in HTTP request data: %s" key)))))
       )))
 
-(defun twittering-http-application-headers
-  (&optional method headers)
-  "Retuns an assoc list of HTTP headers for twittering-mode.
-"
+(defun twittering-http-application-headers (&optional method headers)
+  "Retuns an assoc list of HTTP headers for twittering-mode."
   (unless method (setq method "GET"))
 
   (let ((headers headers))
@@ -895,9 +892,9 @@ Available keywords:
     headers
     ))
 
-(defun twittering-http-get
-  (host method &optional noninteractive parameters sentinel)
-  (if (null sentinel) (setq sentinel 'twittering-http-get-default-sentinel))
+(defun twittering-http-get (host method &optional noninteractive parameters sentinel)
+  (if (null sentinel)
+      (setq sentinel 'twittering-http-get-default-sentinel))
 
   (twittering-start-http-session
    "GET" (twittering-http-application-headers "GET")
@@ -910,8 +907,7 @@ Available keywords:
 
 ;; XXX: this is a preliminary implementation because we should parse
 ;; xmltree in the function.
-(defun twittering-http-get-list-index-sentinel
-  (temp-buffer noninteractive proc stat &optional suc-msg)
+(defun twittering-http-get-list-index-sentinel (temp-buffer noninteractive proc stat &optional suc-msg)
   (unwind-protect
       (let ((header (twittering-get-response-header temp-buffer)))
 	(if (not (string-match "HTTP/1\.[01] \\([a-zA-Z0-9 ]+\\)\r?\n" header))
@@ -1140,8 +1136,7 @@ image are displayed."
        formatted-status)
       formatted-status)))
 
-(defun twittering-http-post
-  (host method &optional parameters contents sentinel)
+(defun twittering-http-post (host method &optional parameters contents sentinel)
   "Send HTTP POST request to twitter.com (or api.twitter.com)
 
 HOST is hostname of remote side, twitter.com or api.twitter.com.
@@ -1149,7 +1144,8 @@ METHOD must be one of Twitter API method classes
  (statuses, users or direct_messages).
 PARAMETERS is alist of URI parameters.
  ex) ((\"mode\" . \"view\") (\"page\" . \"6\")) => <URI>?mode=view&page=6"
-  (if (null sentinel) (setq sentinel 'twittering-http-post-default-sentinel))
+  (if (null sentinel)
+      (setq sentinel 'twittering-http-post-default-sentinel))
 
   (twittering-start-http-session
    "POST" (twittering-http-application-headers "POST")
@@ -1178,7 +1174,8 @@ PARAMETERS is alist of URI parameters.
 (defun twittering-get-response-header (buffer)
   "Exract HTTP response header from HTTP response.
 `buffer' may be a buffer or the name of an existing buffer which contains the HTTP response."
-  (if (stringp buffer) (setq buffer (get-buffer buffer)))
+  (if (stringp buffer)
+      (setq buffer (get-buffer buffer)))
   
   ;; FIXME:
   ;; curl prints HTTP proxy response header, so strip it
@@ -1196,7 +1193,8 @@ PARAMETERS is alist of URI parameters.
   "Exract HTTP response body from HTTP response, parse it as XML, and return a
 XML tree as list. Return nil when parse failed.
 `buffer' may be a buffer or the name of an existing buffer. "
-  (if (stringp buffer) (setq buffer (get-buffer buffer)))
+  (if (stringp buffer)
+      (setq buffer (get-buffer buffer)))
   (save-excursion
     (set-buffer buffer)
     (goto-char (point-min))
@@ -1507,7 +1505,6 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 			t nil
 			'twittering-http-get-list-index-sentinel))
 
-
 (defun twittering-manage-friendships (method username)
   (twittering-http-post "twitter.com"
 			(concat "friendships/" method)
@@ -1620,7 +1617,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
       (twittering-retrieve-image-with-wget images)
     (twittering-retrieve-image-without-wget images)))
 
-(defun twittering-url-copy-file-async(url file)
+(defun twittering-url-copy-file-async (url file)
   (require 'url)
   (url-retrieve
    url

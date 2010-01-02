@@ -2,6 +2,7 @@
 
 	* twittering-mode.el (twittering-tinyurl-get): more descriptive
 	error message
+	(twittering-url-copy-file-async): more descriptive error message
 
 2010-01-02  Satoshi Yatagawa  <yata_github@y.hauN.org>
 

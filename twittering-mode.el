@@ -1635,9 +1635,10 @@ following symbols;
       (let ((coding-system-for-write 'binary)
 	    (require-final-newline nil))
 	(goto-char (point-min))
-	(search-forward-regexp "^$")
-	(write-region (1+ (point)) (point-max) ,file)
-	(kill-buffer (current-buffer))))))
+	(if (search-forward-regexp "^$" nil t)
+	    (progn (write-region (1+ (point)) (point-max) ,file)
+		   (kill-buffer (current-buffer)))
+	  (error (format "Failed to get image file: %s" url)))))))
 
 (defun twittering-retrieve-image-without-wget (image-urls)
   (mapc

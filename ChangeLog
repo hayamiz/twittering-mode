@@ -1,3 +1,8 @@
+2010-01-03  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-tinyurl-get): more descriptive
+	error message
+
 2010-01-02  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-use-show-minibuffer-length): New

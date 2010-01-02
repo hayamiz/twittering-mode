@@ -1686,10 +1686,11 @@ following symbols;
 	  (let ((buffer (url-retrieve-synchronously (concat api longurl))))
 	    (set-buffer buffer)
 	    (goto-char (point-min))
-	    (search-forward-regexp "\n\r?\n\\([^\n\r]*\\)")
-	    (prog1
-		(match-string-no-properties 1)
-	      (kill-buffer buffer))))
+	    (if (search-forward-regexp "\n\r?\n\\([^\n\r]*\\)" nil t)
+		(prog1
+		    (match-string-no-properties 1)
+		  (kill-buffer buffer))
+	      (error (format "TinyURL failed: %s" longurl)))))
       nil)))
 
 ;;;

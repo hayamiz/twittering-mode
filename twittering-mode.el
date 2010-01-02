@@ -733,6 +733,7 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
     (debug-print curl-args)
     (lexical-let ((temp-buffer
 		   (generate-new-buffer "*twmode-http-buffer*"))
+		  (noninteractive noninteractive)
 		  (sentinel sentinel))
       (let ((curl-process
 	     (apply 'start-process

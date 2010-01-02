@@ -4,6 +4,13 @@
 	error message
 	(twittering-url-copy-file-async): more descriptive error message
 
+2010-01-02  Alberto Garcia  <agarcia@igalia.com>
+
+	* twittering-mode.el (twittering-start-http-ssl-session):
+	Set noninteractive using lexical-let so the HTTP sentinel can
+	receive its value and `twittering-new-tweets-hook' works
+	correctly.
+
 2010-01-02  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-use-show-minibuffer-length): New

@@ -30,6 +30,7 @@
 	`twittering-get-and-render-timeline'.
 	(twittering-erase-old-statuses): replace `twittering-get-twits' by
 	`twittering-get-and-render-timeline'.
+	(twittering-initial-timeline-spec): new variable.
 
 2010-01-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 

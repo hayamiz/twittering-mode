@@ -107,6 +107,9 @@ dangerous.")
 (defvar twittering-password-active nil
   "Copy of `twittering-password' for internal use.")
 
+(defvar twittering-initial-timeline-spec '(friends)
+  "The initial timeline spec.")
+
 (defvar twittering-last-requested-timeline-spec '(home)
   "The last requested timeline spec.")
 (defvar twittering-last-retrieved-timeline-spec nil
@@ -2028,10 +2031,9 @@ following symbols;
 
 (defun twittering-current-timeline (&optional noninteractive)
   (interactive)
-  (if (not twittering-last-retrieved-timeline-spec)
-      (setq twittering-last-retrieved-timeline-spec '(home)))
-  (twittering-get-and-render-timeline twittering-last-retrieved-timeline-spec
-				      noninteractive))
+  (let ((spec (or twittering-last-retrieved-timeline-spec
+		  twittering-initial-timeline-spec)))
+    (twittering-get-and-render-timeline spec noninteractive)))
 
 (defun twittering-update-status-interactive ()
   (interactive)
@@ -2096,7 +2098,8 @@ following symbols;
   (interactive)
   (setq twittering-timeline-data nil)
   (if (not twittering-last-retrieved-timeline-spec)
-      (setq twittering-last-retrieved-timeline-spec '(home))
+      (setq twittering-last-retrieved-timeline-spec
+	    twittering-initial-timeline-spec)
     (let* ((spec twittering-last-retrieved-timeline-spec)
 	   (pair (twittering-timeline-spec-to-host-method spec))
 	   (host (car pair))

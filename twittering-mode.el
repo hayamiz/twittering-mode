@@ -1834,14 +1834,6 @@ following symbols;
 	(remove-hook 'minibuffer-exit-hook 'twittering-finish-minibuffer))
       )))
 
-(defun twittering-get-timeline (method &optional noninteractive id)
-  (twittering-get-twits "twitter.com"
-			(concat "statuses/" method) noninteractive id))
-
-(defun twittering-get-list (username listname)
-  (twittering-get-twits "api.twitter.com"
-			(concat "1/" username "/lists/" listname "/statuses")))
-
 (defun twittering-get-list-index (username)
   (twittering-http-get "api.twitter.com"
 		       (concat "1/" username "/lists")
@@ -2034,19 +2026,20 @@ following symbols;
 
 (defun twittering-friends-timeline ()
   (interactive)
-  (twittering-get-timeline "friends_timeline"))
+  (twittering-get-twits-with-timeline-spec '(friends)))
 
 (defun twittering-replies-timeline ()
   (interactive)
-  (twittering-get-timeline "replies"))
+  (twittering-get-twits-with-timeline-spec '(replies)))
 
 (defun twittering-public-timeline ()
   (interactive)
-  (twittering-get-timeline "public_timeline"))
+  (twittering-get-twits-with-timeline-spec '(public)))
 
 (defun twittering-user-timeline ()
   (interactive)
-  (twittering-get-timeline "user_timeline"))
+  (twittering-get-twits-with-timeline-spec
+   `(user ,(twittering-get-username))))
 
 (defun twittering-current-timeline-noninteractive ()
   (twittering-current-timeline t))
@@ -2252,16 +2245,15 @@ following symbols;
 
 (defun twittering-other-user-timeline ()
   (interactive)
-  (let ((username (get-text-property (point) 'username))
-	(screen-name-in-text
-	 (get-text-property (point) 'screen-name-in-text)))
-    (cond (screen-name-in-text
-	   (twittering-get-timeline
-	    (concat "user_timeline/" screen-name-in-text)))
-	  (username
-	   (twittering-get-timeline (concat "user_timeline/" username)))
-	  (t
-	   (message "No user selected")))))
+  (let* ((username (get-text-property (point) 'username))
+	 (screen-name-in-text
+	  (get-text-property (point) 'screen-name-in-text))
+	 (spec (cond (screen-name-in-text `(user ,screen-name-in-text))
+		     (username `(user ,username))
+		     (t nil))))
+    (if spec
+	(twittering-get-twits-with-timeline-spec spec)
+      (message "No user selected"))))
 
 (defun twittering-other-user-timeline-interactive ()
   (interactive)
@@ -2270,7 +2262,7 @@ following symbols;
 	  "user: " nil
 	  'twittering-user-history)))
     (if (> (length username) 0)
-	(twittering-get-timeline (concat "user_timeline/" username))
+	(twittering-get-twits-with-timeline-spec `(user ,username))
       (message "No user selected"))))
 
 (defun twittering-other-user-list-interactive ()
@@ -2281,9 +2273,10 @@ following symbols;
 		   'twittering-user-history)))
     (if (string= "" username)
 	(message "No user selected")
-      (let ((list-name (twittering-read-list-name username)))
+      (let* ((list-name (twittering-read-list-name username))
+	     (spec `(list ,username ,list-name)))
 	(when list-name
-	  (twittering-get-list username list-name))))))
+	  (twittering-get-twits-with-timeline-spec spec))))))
 
 (defun twittering-direct-message ()
   (interactive)

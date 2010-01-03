@@ -32,6 +32,8 @@
 	(twittering-read-timeline-spec-string-with-completion): add.
 	(twittering-read-timeline-spec-with-completion): modified for new
 	timeline spec.
+	(twittering-get-timeline, twittering-get-list): replaced with
+	`twittering-get-twits-with-timeline-spec'.
 
 	* test/test-twittering-mode.el (timeline-spec): add tests for new
 	timeline spec.

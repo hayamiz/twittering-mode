@@ -199,6 +199,9 @@ SSL connections use 'curl' command as a backend.")
 (defvar twittering-username-face 'twittering-username-face)
 (defvar twittering-uri-face 'twittering-uri-face)
 
+(defvar twittering-use-native-retweets nil
+  "Post retweets using native retweets if this variable is non-nil.")
+
 ;;;
 ;;; Proxy setting / functions
 ;;;
@@ -2206,6 +2209,12 @@ following symbols;
 
 (defun twittering-retweet ()
   (interactive)
+  (if twittering-use-native-retweets
+      (twittering-native-retweet)
+    (twittering-organic-retweet)))
+
+(defun twittering-organic-retweet ()
+  (interactive)
   (let ((username (get-text-property (point) 'username))
 	(text (get-text-property (point) 'text))
 	(id (get-text-property (point) 'id))
@@ -2253,6 +2262,22 @@ following symbols;
 (defun twittering-unfollow ()
   (interactive)
   (twittering-follow t))
+
+(defun twittering-native-retweet ()
+  (interactive)
+  (let ((id (get-text-property (point) 'id))
+	(text (get-text-property (point) 'text))
+	(len 25))
+    (if id
+	(let ((mes (format "Retweet \"%s\"? "
+			   (if (> (length text) len)
+			       (concat (substring text 0 len) "...")
+			     text))))
+	  (when (y-or-n-p mes)
+	    (twittering-http-post "api.twitter.com"
+			(concat "1/statuses/retweet/" id)
+			`(("source" . "twmode")))))
+      (message "No status selected"))))
 
 (defun twittering-favorite (&optional remove)
   (interactive)

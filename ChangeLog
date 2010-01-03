@@ -158,6 +158,10 @@
 	* test/test-twittering-mode.el (timeline-spec): add tests for new
 	timeline spec.
 
+2010-01-03  Michael D. Ivey <ivey@gweezlebur.com>
+	* twittering-mode.el (twittering-retweet): Add support for native
+	retweets
+
 2010-01-03  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-tinyurl-get): more descriptive

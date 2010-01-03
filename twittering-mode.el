@@ -1905,7 +1905,7 @@ following symbols;
       (twittering-retrieve-image twittering-image-stack)
     ))
 
-(defun twittering-get-twits-with-timeline-spec (spec &optional noninteractive id)
+(defun twittering-get-and-render-timeline (spec &optional noninteractive id)
   (if (twittering-timeline-spec-primary-p spec)
       (let ((pair (twittering-timeline-spec-to-host-method spec)))
 	(when pair
@@ -2026,20 +2026,19 @@ following symbols;
 
 (defun twittering-friends-timeline ()
   (interactive)
-  (twittering-get-twits-with-timeline-spec '(friends)))
+  (twittering-get-and-render-timeline '(friends)))
 
 (defun twittering-replies-timeline ()
   (interactive)
-  (twittering-get-twits-with-timeline-spec '(replies)))
+  (twittering-get-and-render-timeline '(replies)))
 
 (defun twittering-public-timeline ()
   (interactive)
-  (twittering-get-twits-with-timeline-spec '(public)))
+  (twittering-get-and-render-timeline '(public)))
 
 (defun twittering-user-timeline ()
   (interactive)
-  (twittering-get-twits-with-timeline-spec
-   `(user ,(twittering-get-username))))
+  (twittering-get-and-render-timeline `(user ,(twittering-get-username))))
 
 (defun twittering-current-timeline-noninteractive ()
   (twittering-current-timeline t))
@@ -2241,7 +2240,7 @@ following symbols;
 	     (twittering-read-timeline-spec-with-completion
 	      "timeline: " initial))))
     (when timeline-spec
-      (twittering-get-twits-with-timeline-spec timeline-spec))))
+      (twittering-get-and-render-timeline timeline-spec))))
 
 (defun twittering-other-user-timeline ()
   (interactive)
@@ -2252,7 +2251,7 @@ following symbols;
 		     (username `(user ,username))
 		     (t nil))))
     (if spec
-	(twittering-get-twits-with-timeline-spec spec)
+	(twittering-get-and-render-timeline spec)
       (message "No user selected"))))
 
 (defun twittering-other-user-timeline-interactive ()
@@ -2262,7 +2261,7 @@ following symbols;
 	  "user: " nil
 	  'twittering-user-history)))
     (if (> (length username) 0)
-	(twittering-get-twits-with-timeline-spec `(user ,username))
+	(twittering-get-and-render-timeline `(user ,username))
       (message "No user selected"))))
 
 (defun twittering-other-user-list-interactive ()
@@ -2276,7 +2275,7 @@ following symbols;
       (let* ((list-name (twittering-read-list-name username))
 	     (spec `(list ,username ,list-name)))
 	(when list-name
-	  (twittering-get-twits-with-timeline-spec spec))))))
+	  (twittering-get-and-render-timeline spec))))))
 
 (defun twittering-direct-message ()
   (interactive)

@@ -34,6 +34,8 @@
 	timeline spec.
 	(twittering-get-timeline, twittering-get-list): replaced with
 	`twittering-get-twits-with-timeline-spec'.
+	(twittering-get-and-render-timeline): renamed from
+	`twittering-get-twits-with-timeline-spec'.
 
 	* test/test-twittering-mode.el (timeline-spec): add tests for new
 	timeline spec.

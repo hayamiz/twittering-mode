@@ -107,7 +107,10 @@ dangerous.")
 (defvar twittering-password-active nil
   "Copy of `twittering-password' for internal use.")
 
-(defvar twittering-last-timeline-retrieved nil)
+(defvar twittering-last-requested-timeline-spec '(home)
+  "The last requested timeline spec.")
+(defvar twittering-last-retrieved-timeline-spec nil
+  "The last successfully retrieved timeline spec.")
 (defvar twittering-list-index-retrieved nil)
 
 (defvar twittering-new-tweets-count 0
@@ -424,20 +427,6 @@ Otherwise, they are retrieved by `url-retrieve'.")
 (defun twittering-global-strftime (fmt string)
   (twittering-setftime fmt string t))
 
-(defun twittering-last-host ()
-  (twittering-convert-last-timeline-retrieved)
-  (car twittering-last-timeline-retrieved))
-
-(defun twittering-last-method ()
-  (twittering-convert-last-timeline-retrieved)
-  (nth 1 twittering-last-timeline-retrieved))
-
-(defun twittering-convert-last-timeline-retrieved ()
-  "Adjust variable to keep a backward compatibility."
-  (and (stringp twittering-last-timeline-retrieved)
-       (setq twittering-last-timeline-retrieved
-	     `("twitter.com" ,twittering-last-timeline-retrieved))))
-
 ;;;
 ;;; Timeline spec functions
 ;;;
@@ -687,20 +676,12 @@ Return nil if STR is invalid as a timeline spec."
      (t nil)))
    (t nil)))
 
-(defun twittering-last-timeline-spec ()
-  (let ((host (twittering-last-host))
-	(method (twittering-last-method)))
-    (when (and host method)
-      (twittering-host-method-to-timeline-spec host method))))
-
 (defun twittering-last-timeline-spec-string ()
-  (let ((spec (twittering-last-timeline-spec)))
-    (if spec
-	(twittering-timeline-spec-to-string spec t)
-      nil)))
+  (let ((spec twittering-last-retrieved-timeline-spec))
+    (twittering-timeline-spec-to-string spec t)))
 
 (defun twittering-add-timeline-history (&optional timeline-spec)
-  (let* ((spec (or timeline-spec (twittering-last-timeline-spec)))
+  (let* ((spec (or timeline-spec twittering-last-retrieved-timeline-spec))
 	 (spec-string (twittering-timeline-spec-to-string spec t)))
     (when spec-string
       (when (or (null twittering-timeline-history)
@@ -1206,6 +1187,8 @@ Available keywords:
 		(if (and (> twittering-new-tweets-count 0)
 			 noninteractive)
 		    (run-hooks 'twittering-new-tweets-hook))
+		(setq twittering-last-retrieved-timeline-spec
+		      twittering-last-requested-timeline-spec)
 		(twittering-render-timeline)
 		(twittering-add-timeline-history)
 		(when twittering-notify-successful-http-get
@@ -1866,10 +1849,6 @@ following symbols;
 			`(("source" . "twmode"))))
 
 (defun twittering-get-twits (host method &optional noninteractive id)
-  (unless (string= (twittering-last-method) method)
-    (setq twittering-timeline-last-update nil
-	  twittering-timeline-data nil
-	  twittering-last-timeline-retrieved `(,host ,method)))
   (let ((buf (get-buffer twittering-buffer)))
     (if (not buf)
 	(twittering-stop)
@@ -1897,7 +1876,7 @@ following symbols;
 		     "%a, %d %b %Y %H:%M:%S GMT"
 		     twittering-timeline-last-update)))
 	      (add-to-list 'parameters `("since" . ,since)))))
-	(twittering-http-get (twittering-last-host) method
+	(twittering-http-get host method
 			     noninteractive parameters))))
 
   (if (and twittering-icon-mode window-system
@@ -1906,6 +1885,10 @@ following symbols;
     ))
 
 (defun twittering-get-and-render-timeline (spec &optional noninteractive id)
+  (unless (equal spec twittering-last-retrieved-timeline-spec)
+    (setq twittering-timeline-last-update nil
+	  twittering-timeline-data nil
+	  twittering-last-requested-timeline-spec spec))
   (if (twittering-timeline-spec-primary-p spec)
       (let ((pair (twittering-timeline-spec-to-host-method spec)))
 	(when pair
@@ -2045,11 +2028,10 @@ following symbols;
 
 (defun twittering-current-timeline (&optional noninteractive)
   (interactive)
-  (if (not twittering-last-timeline-retrieved)
-      (setq twittering-last-timeline-retrieved
-	    '("twitter.com" "statuses/friends_timeline")))
-  (twittering-get-twits (twittering-last-host) (twittering-last-method)
-			noninteractive))
+  (if (not twittering-last-retrieved-timeline-spec)
+      (setq twittering-last-retrieved-timeline-spec '(home)))
+  (twittering-get-and-render-timeline twittering-last-retrieved-timeline-spec
+				      noninteractive))
 
 (defun twittering-update-status-interactive ()
   (interactive)
@@ -2113,18 +2095,20 @@ following symbols;
 (defun twittering-erase-old-statuses ()
   (interactive)
   (setq twittering-timeline-data nil)
-  (if (not twittering-last-timeline-retrieved)
-      (setq twittering-last-timeline-retrieved
-	    '("twitter.com" "statuses/friends_timeline"))
-    (if (not twittering-timeline-last-update)
-	(twittering-http-get (twittering-last-host) (twittering-last-method))
-      (let* ((system-time-locale "C")
-	     (since
-	      (twittering-global-strftime
-	       "%a, %d %b %Y %H:%M:%S GMT"
-	       twittering-timeline-last-update)))
-	(twittering-http-get (twittering-last-host) (twittering-last-method)
-			     nil `(("since" . ,since)))))))
+  (if (not twittering-last-retrieved-timeline-spec)
+      (setq twittering-last-retrieved-timeline-spec '(home))
+    (let* ((spec twittering-last-retrieved-timeline-spec)
+	   (pair (twittering-timeline-spec-to-host-method spec))
+	   (host (car pair))
+	   (method (cadr pair)))
+      (if (not twittering-timeline-last-update)
+	  (twittering-http-get host method)
+	(let* ((system-time-locale "C")
+	       (since
+		(twittering-global-strftime
+		 "%a, %d %b %Y %H:%M:%S GMT"
+		 twittering-timeline-last-update)))
+	  (twittering-http-get host method nil `(("since" . ,since))))))))
 
 (defun twittering-click ()
   (interactive)
@@ -2368,9 +2352,9 @@ following symbols;
 	(goto-char pos)
       (let ((id (get-text-property (point) 'id)))
         (if id
-	    (twittering-get-twits (twittering-last-host)
-				  (twittering-last-method)
-				  nil id))))))
+	    (twittering-get-and-render-timeline
+	     twittering-last-retrieved-timeline-spec
+	     nil id))))))
 
 (defun twittering-get-next-username-face-pos (pos)
   (interactive)

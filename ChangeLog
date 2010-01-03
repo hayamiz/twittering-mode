@@ -11,6 +11,26 @@
 	receive its value and `twittering-new-tweets-hook' works
 	correctly.
 
+2010-01-04  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-last-requested-timeline-spec):
+	new variable storing the last requested timeline spec.
+	(twittering-last-retrieved-timeline-spec): new variable storing
+	the last successfully retrieved timeline spec.
+	(twittering-last-timeline-retrieved): removed.
+	(twittering-last-host): removed.
+	(twittering-last-method): removed.
+	(twittering-convert-last-timeline-retrieved): removed.
+	(twittering-last-timeline-spec): removed.
+	(twittering-get-twits): do not update the information of the last
+	request.
+	(twittering-get-and-render-timeline): update the information of
+	the last request instead of `twittering-get-twits'.
+	(twittering-current-timeline): replace `twittering-get-twits' by
+	`twittering-get-and-render-timeline'.
+	(twittering-erase-old-statuses): replace `twittering-get-twits' by
+	`twittering-get-and-render-timeline'.
+
 2010-01-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el, test/test-twittering-mode.el: rebase the

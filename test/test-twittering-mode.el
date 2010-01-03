@@ -147,65 +147,55 @@
 			      '(("%" . "\n"))))
   )
 
+(defun test-restore-timeline-spec(spec-str spec)
+  (let ((normalized-spec
+	 (twittering-string-to-timeline-spec
+	  (twittering-timeline-spec-to-string spec)))
+	(spec-from-str
+	 (twittering-string-to-timeline-spec spec-str)))
+    (equal normalized-spec spec-from-str)))
+
 (defcase timeline-spec nil nil
-  (defun test-restore-timeline-spec(spec)
-    (string-equal
-     spec
-     (apply 'twittering-get-timeline-spec
-            (twittering-get-host-method-from-timeline-spec spec))))
-  (defun test-restore-host-method(host method)
-    (equal (list host method)
-            (twittering-get-host-method-from-timeline-spec
-             (twittering-get-timeline-spec host method))))
-  (test-assert-ok (test-restore-timeline-spec "~"))
-  (test-assert-ok (test-restore-timeline-spec "@"))
-  (test-assert-ok (test-restore-timeline-spec "M"))
-  (test-assert-ok (test-restore-timeline-spec "-"))
-  (test-assert-ok (test-restore-timeline-spec "USER"))
-  (test-assert-ok (test-restore-timeline-spec "USER/LISTNAME"))
-  (test-assert-ok (test-restore-timeline-spec "H"))
-  (test-assert-ok (test-restore-timeline-spec "B"))
-  (test-assert-ok (test-restore-timeline-spec "T"))
-  (test-assert-ok (test-restore-timeline-spec "O"))
+  (test-assert-equal
+   (test-restore-timeline-spec
+    "(user+(user/mylist+(@))+:filter/WORD/(USER2+:mentions))"
+    '(merge (user "user")
+	    (merge (list "user" "mylist")
+		   (merge (replies)))
+	    (filter "WORD" (merge (user "USER2")
+				  (mentions)))))
+   t)
+  (test-assert-equal
+   (test-restore-timeline-spec
+    "(user-A+~+((user-B))+(:filter/R+/user-C+(:filter/R3\\//USER-D+:public)))"
+    '(merge (user "user-A")
+	    (home)
+	    (merge (user "user-B")
+		   (filter "R+" (user "user-C")))
+	    (filter "R3/" (user "USER-D"))
+	    (public)))
+   t)
 
-  (test-assert-eq nil (twittering-get-host-method-from-timeline-spec ""))
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ":filter/ABC/user/mylist"
+    '(filter "ABC" (list "user" "mylist")))
+   t)
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ":filter/ABC\\/user/mylist"
+    '(filter "ABC/user" (user "mylist")))
+   t)
 
-  (test-assert-ok
-   (test-restore-host-method
-    "twitter.com" "statuses/friends_timeline"))
-  (test-assert-ok
-   (test-restore-host-method
-    "twitter.com" "statuses/replies"))
-  (test-assert-ok
-   (test-restore-host-method
-    "twitter.com" "statuses/mentions"))
-  (test-assert-ok
-   (test-restore-host-method
-    "twitter.com" "statuses/public_timeline"))
-  (test-assert-ok
-   (test-restore-host-method
-    "twitter.com" "statuses/user_timeline/USER"))
-  (test-assert-ok
-   (test-restore-host-method
-    "api.twitter.com" "1/USER/lists/LISTNAME/statuses"))
-  (test-assert-ok
-   (test-restore-host-method
-    "api.twitter.com" "1/statuses/home_timeline"))
-  (test-assert-ok
-   (test-restore-host-method
-    "api.twitter.com" "1/statuses/retweeted_by_me"))
-  (test-assert-ok
-   (test-restore-host-method
-    "api.twitter.com" "1/statuses/retweeted_to_me"))
-  (test-assert-ok
-   (test-restore-host-method
-    "api.twitter.com" "1/statuses/retweets_of_me"))
-
-  (test-assert-string-equal
-   "USERNAME"
-   (let ((twittering-username-active "USERNAME"))
-     (twittering-get-timeline-spec
-      "twitter.com" "statuses/user_timeline")))
+  (test-assert-equal
+   (test-restore-timeline-spec ":retweeted_by_me" '(retweeted_by_me))
+   t)
+  (test-assert-equal
+   (test-restore-timeline-spec ":retweeted_to_me" '(retweeted_to_me))
+   t)
+  (test-assert-equal
+   (test-restore-timeline-spec ":retweets_of_me" '(retweets_of_me))
+   t)
   )
 
 (lexical-let ((status (car (get-fixture 'timeline-data))))

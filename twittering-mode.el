@@ -442,68 +442,273 @@ Otherwise, they are retrieved by `url-retrieve'.")
 ;;; Timeline spec functions
 ;;;
 
-(defun twittering-get-timeline-spec (&optional host method)
-  (let ((host (or host (twittering-last-host)))
-	(method (or method (twittering-last-method))))
-    (cond
-     ((or (not (stringp host)) (not (stringp method))) nil)
-     ((string= "twitter.com" host)
-      (cond
-       ((string= "statuses/friends_timeline" method) "~")
-       ((string= "statuses/replies" method) "@")
-       ((string= "statuses/mentions" method) "M")
-       ((string= "statuses/public_timeline" method) "-")
-       ((string= "statuses/user_timeline" method) (twittering-get-username))
-       ((string-match "^statuses/user_timeline/\\(.+\\)$" method)
-	(match-string-no-properties 1 method))
-       (t nil)))
-     ((string= "api.twitter.com" host)
-      (cond
-       ((string-match "^1/\\([^/]+\\)/lists/\\([^/]+\\)/statuses" method)
-	(let ((username (match-string-no-properties 1 method))
-	      (listname (match-string-no-properties 2 method)))
-	  (concat username "/" listname)))
-       ((string= "1/statuses/home_timeline" method) "H")
-       ((string= "1/statuses/retweeted_by_me" method) "B")
-       ((string= "1/statuses/retweeted_to_me" method) "T")
-       ((string= "1/statuses/retweets_of_me" method) "O")
-       (t nil)))
-     (t nil))))
+;;; Timeline spec as S-expression
+;;; - (user USER): timeline of the user whose name is USER. USER is a string.
+;;; - (list USER LIST):
+;;;     the list LIST of the user USER. LIST and USER are strings.
+;;;
+;;; - (direct-messages): received direct messages.
+;;; - (direct-messages-sent): sent direct messages.
+;;; - (friends): friends timeline.
+;;; - (home): home timeline.
+;;; - (mentions): mentions timeline.
+;;;     mentions (status containing @username) for the authenticating user.
+;;; - (public): public timeline.
+;;; - (replies): replies.
+;;; - (retweeted_by_me): retweets posted by the authenticating user.
+;;; - (retweeted_to_me): retweets posted by the authenticating user's friends.
+;;; - (retweets_of_me):
+;;;     tweets of the authenticated user that have been retweeted by others.
+;;;
+;;; - (search STRING): the result of searching with query STRING.
+;;; - (merge SPEC1 SPEC2 ...): result of merging timelines SPEC1 SPEC2 ...
+;;; - (filter REGEXP SPEC): timeline filtered with REGEXP.
+;;;
 
-(defun twittering-get-host-method-from-timeline-spec (timeline-spec)
+;;; Timeline spec string
+;;;
+;;; SPEC ::= PRIMARY | COMPOSITE
+;;; PRIMARY ::= USER | LIST | DIRECT-MESSSAGES | DIRECT-MESSSAGES-SENT
+;;;             | FRIENDS | HOME | MENTIONS | PUBLIC | REPLIES
+;;;             | RETWEETED_BY_ME | RETWEETED_TO_ME | RETWEETS_OF_ME
+;;; COMPOSITE ::= MERGE | FILTER
+;;;
+;;; USER ::= /[a-zA-Z0-9_-]+/
+;;; LIST ::= USER "/" LISTNAME
+;;; LISTNAME ::= /[a-zA-Z0-9_-]+/
+;;; DIRECT-MESSSAGES ::= ":direct-messages"
+;;; DIRECT-MESSSAGES-SENT ::= ":direct-messages-sent"
+;;; FRIENDS ::= ":friends"
+;;; HOME ::= ":home" | "~"
+;;; MENTIONS ::= ":mentions"
+;;; PUBLIC ::= ":public"
+;;; REPLIES ::= ":replies" | "@"
+;;; RETWEETED_BY_ME ::= ":retweeted_by_me"
+;;; RETWEETED_TO_ME ::= ":retweeted_to_me"
+;;; RETWEETS_OF_ME ::= ":retweets_of_me"
+;;;
+;;; MERGE ::= "(" MERGED_SPECS ")"
+;;; MERGED_SPECS ::= SPEC | SPEC "+" MERGED_SPECS
+;;; FILTER ::= ":filter/" REGEXP "/" SPEC
+;;;
+
+(defun twittering-timeline-spec-to-string (timeline-spec &optional shorten)
+  "Convert TIMELINE-SPEC into a string.
+If SHORTEN is non-nil, the abbreviated expression will be used."
+  (let ((type (car timeline-spec))
+	(value (cdr timeline-spec)))
+    (cond
+     ;; user
+     ((eq type 'user) (car value))
+     ;; list
+     ((eq type 'list) (concat (car value) "/" (cadr value)))
+     ;; simple
+     ((eq type 'direct-messages) ":direct-messages")
+     ((eq type 'direct-messages-sent) ":direct-messages-sent")
+     ((eq type 'friends) ":friends")
+     ((eq type 'home) (if shorten "~" ":home"))
+     ((eq type 'mentions) ":mentions")
+     ((eq type 'public) ":public")
+     ((eq type 'replies) (if shorten "@" ":replies"))
+     ((eq type 'retweeted_by_me) ":retweeted_by_me")
+     ((eq type 'retweeted_to_me) ":retweeted_to_me")
+     ((eq type 'retweets_of_me) ":retweets_of_me")
+     ;; composite
+     ((eq type 'filter)
+      (let ((regexp (car value))
+	    (spec (cadr value)))
+	(concat ":filter/"
+		(replace-regexp-in-string "/" "\\/" regexp nil t)
+		"/"
+		(twittering-timeline-spec-to-string spec))))
+     ((eq type 'merge)
+      (concat "("
+	      (mapconcat 'twittering-timeline-spec-to-string value "+" )
+	      ")"))
+     (t
+      nil))))
+
+(defun twittering-extract-timeline-spec (str)
+  "Extract one timeline spec from STR.
+Return cons of the spec and the rest string."
   (cond
-   ((not (stringp timeline-spec)) nil)
-   ((string= "" timeline-spec) nil)
-   ((string-match "^~$" timeline-spec)
-    '("twitter.com" "statuses/friends_timeline"))
-   ((string-match "^-$" timeline-spec)
-    '("twitter.com" "statuses/public_timeline"))
-   ((string-match "^@$" timeline-spec)
-    '("twitter.com" "statuses/replies"))
-   ((string-match "^M$" timeline-spec)
-    '("twitter.com" "statuses/mentions"))
-   ((string-match "^\\([^/]+\\)/\\([^/]+\\)$" timeline-spec)
-    (let ((username (match-string 1 timeline-spec))
-	  (list-name (match-string 2 timeline-spec)))
-      `("api.twitter.com"
-	,(concat "1/" username "/lists/" list-name "/statuses" ))))
-   ((string-match "^H$" timeline-spec)
-    '("api.twitter.com" "1/statuses/home_timeline"))
-   ((string-match "^B$" timeline-spec)
-    '("api.twitter.com" "1/statuses/retweeted_by_me"))
-   ((string-match "^T$" timeline-spec)
-    '("api.twitter.com" "1/statuses/retweeted_to_me"))
-   ((string-match "^O$" timeline-spec)
-    '("api.twitter.com" "1/statuses/retweets_of_me"))
+   ((string-match "^\\([a-zA-Z0-9_-]+\\)/\\([a-zA-Z0-9_-]+\\)\\(.*\\)$" str)
+    (let ((user (match-string 1 str))
+	  (listname (match-string 2 str))
+	  (rest (match-string 3 str)))
+      `((list ,user ,listname) . ,rest)))
+   ((string-match "^\\([a-zA-Z0-9_-]+\\)\\(.*\\)$" str)
+    (let ((user (match-string 1 str))
+	  (rest (match-string 2 str)))
+      `((user ,user) . ,rest)))
+   ((string-match "^~" str)
+    `((home) . ,(substring str 1)))
+   ((string-match "^@" str)
+    `((replies) . ,(substring str 1)))
+   ((string-match "^:\\([a-z_-]+\\)\\(.*\\)$" str)
+    (let ((type (match-string 1 str))
+	  (following (match-string 2 str))
+	  (alist '(("direct-messages" . direct-messages)
+		   ("direct-messages-sent" . direct-messages-sent)
+		   ("friends" . friends)
+		   ("home" . home)
+		   ("mentions" . mentions)
+		   ("public" . public)
+		   ("replies" . replies)
+		   ("retweeted_by_me" . retweeted_by_me)
+		   ("retweeted_to_me" . retweeted_to_me)
+		   ("retweets_of_me" . retweets_of_me))))
+      (cond
+       ((assoc type alist)
+	(let ((first-spec (list (cdr (assoc type alist)))))
+	  (cons first-spec following)))
+       ((string= type "filter")
+	(if (string-match "^:filter/\\(.*?[^\\]\\)??/\\(.*\\)$" str)
+	    (let* ((escaped-regexp (or (match-string 1 str) ""))
+		   (regexp
+		    (replace-regexp-in-string "\\\\/" "/"
+					      escaped-regexp nil t))
+		   (following (match-string 2 str))
+		   (pair (twittering-extract-timeline-spec following))
+		   (spec (car pair))
+		   (rest (cdr pair)))
+	      `((filter ,regexp ,spec) . ,rest))
+	  (error (format "\"%s\" has no valid regexp." str))
+	  nil))
+       (t
+	nil))))
+   ((string-match "^(" str)
+    (let* ((rest (concat "+" (substring str 1)))
+	   (result '()))
+      (while (and rest (string-match "^\\+" rest))
+	(let* ((pair (twittering-extract-timeline-spec (substring rest 1)))
+	       (spec (car pair))
+	       (next-rest (cdr pair)))
+	  (setq result (cons spec result))
+	  (setq rest next-rest)))
+      (if (and rest (string-match "^)" rest))
+	  (let ((spec-list
+		 (apply 'append
+			(mapcar (lambda (x) (if (eq 'merge (car x))
+						(cdr x)
+					      (list x)))
+				(reverse result)))))
+	    (if (= 1 (length spec-list))
+		`(,(car spec-list) . ,(substring rest 1))
+	      `((merge ,@spec-list) . ,(substring rest 1))))
+	(if rest
+	    (error (format "\"%s\" lacks a closing parenthesis." str)))
+	nil)))
    (t
-    `("twitter.com" ,(concat "statuses/user_timeline/" timeline-spec)))))
+    nil)
+   ))
+
+(defun twittering-string-to-timeline-spec (spec-str)
+  "Convert STR into a timeline spec.
+Return nil if STR is invalid as a timeline spec."
+  (let ((result-pair (twittering-extract-timeline-spec spec-str)))
+    (if (and result-pair (string= "" (cdr result-pair)))
+	(car result-pair)
+      nil)))
+
+(defun twittering-timeline-spec-primary-p (spec)
+  "Return non-nil if SPEC is a primary timeline spec.
+`primary' means that the spec is not a composite timeline spec such as
+`filter' and `merge'."
+  (let ((primary-spec-types
+	 '(user list
+		direct-messages direct-messages-sent
+		friends home mentions public replies
+		retweeted_by_me retweeted_to_me retweets_of_me))
+	(type (car spec)))
+    (memq type primary-spec-types)))
+
+(defun twittering-timeline-spec-to-host-method (spec)
+  (if (twittering-timeline-spec-primary-p spec)
+      (let ((type (car spec))
+	    (value (cdr spec)))
+	(cond
+	 ((eq type 'user)
+	  (let ((username (car value)))
+	    `("twitter.com" ,(concat "statuses/user_timeline/" username))))
+	 ((eq type 'list)
+	  (let ((username (car value))
+		(list-name (cadr value)))
+	    `("api.twitter.com"
+	      ,(concat "1/" username "/lists/" list-name "/statuses" ))))
+	 ((or (eq type 'direct-messages)
+	      (eq type 'direct-messages-sent))
+	  (error (format "%s has not been supported yet." type)))
+	 ((eq type 'friends)
+	  '("twitter.com" "statuses/friends_timeline"))
+	 ((eq type 'home)
+	  '("api.twitter.com" "1/statuses/home_timeline"))
+	 ((eq type 'mentions)
+	  '("twitter.com" "statuses/mentions"))
+	 ((eq type 'public)
+	  '("twitter.com" "statuses/public_timeline"))
+	 ((eq type 'replies)
+	  '("twitter.com" "statuses/replies"))
+	 ((eq type 'retweeted_by_me)
+	  '("api.twitter.com" "1/statuses/retweeted_by_me"))
+	 ((eq type 'retweeted_to_me)
+	  '("api.twitter.com" "1/statuses/retweeted_to_me"))
+	 ((eq type 'retweets_of_me)
+	  '("api.twitter.com" "1/statuses/retweets_of_me"))
+	 (t
+	  (error "Invalid timeline spec.")
+	  nil)))
+    nil))
+
+(defun twittering-host-method-to-timeline-spec(host method)
+  (cond
+   ((or (not (stringp host)) (not (stringp method))) nil)
+   ((string= host "twitter.com")
+    (cond
+     ((string= method "statuses/friends_timeline") '(friends))
+     ((string= method "statuses/mentions") '(mentions))
+     ((string= method "statuses/replies") '(replies))
+     ((string= method "statuses/public_timeline") '(public_timeline))
+     ((string= method "statuses/user_timeline")
+      `(user ,(twittering-get-username)))
+     ((string-match "^statuses/user_timeline/\\(.+\\)$" method)
+      `(user ,(match-string-no-properties 1 method)))
+     (t nil)))
+   ((string= host "api.twitter.com")
+    (cond
+     ((string= method "1/statuses/home_timeline") '(home))
+     ((string= method "1/statuses/retweeted_by_me") '(retweeted_by_me))
+     ((string= method "1/statuses/retweeted_to_me") '(retweeted_to_me))
+     ((string= method "1/statuses/retweets_of_me") '(retweets_of_me))
+     ((string-match "^1/\\([^/]+\\)/lists/\\([^/]+\\)/statuses" method)
+      (let ((username (match-string-no-properties 1 method))
+	    (listname (match-string-no-properties 2 method)))
+	`(list ,username ,listname)))
+     (t nil)))
+   (t nil)))
+
+(defun twittering-last-timeline-spec ()
+  (let ((host (twittering-last-host))
+	(method (twittering-last-method)))
+    (when (and host method)
+      (twittering-host-method-to-timeline-spec host method))))
+
+(defun twittering-last-timeline-spec-string ()
+  (let ((spec (twittering-last-timeline-spec)))
+    (if spec
+	(twittering-timeline-spec-to-string spec t)
+      nil)))
 
 (defun twittering-add-timeline-history (&optional timeline-spec)
-  (let ((timeline-spec (or timeline-spec (twittering-get-timeline-spec))))
-    (when
-	(or (null twittering-timeline-history)
-	    (not (string= timeline-spec (car twittering-timeline-history))))
-      (add-to-history 'twittering-timeline-history timeline-spec))))
+  (let* ((spec (or timeline-spec (twittering-last-timeline-spec)))
+	 (spec-string (twittering-timeline-spec-to-string spec t)))
+    (when spec-string
+      (when (or (null twittering-timeline-history)
+		(not (string= spec-string (car twittering-timeline-history))))
+	(if (functionp 'add-to-history)
+	    (add-to-history 'twittering-timeline-history spec-string)
+	  (setq twittering-timeline-history
+		(cons spec-string twittering-timeline-history)))))))
 
 ;;;
 ;;; Debug mode
@@ -643,7 +848,7 @@ Otherwise, they are retrieved by `url-retrieve'.")
 (defun twittering-update-mode-line ()
   "Update mode line"
   (let ((enabled-options nil)
-	(timeline-spec (twittering-get-timeline-spec)))
+	(spec-string (twittering-last-timeline-spec-string)))
     (when twittering-jojo-mode
       (push "jojo" enabled-options))
     (when twittering-icon-mode
@@ -655,7 +860,7 @@ Otherwise, they are retrieved by `url-retrieve'.")
     (when twittering-use-ssl
       (push "ssl" enabled-options))
     (setq mode-name
-	  (concat twittering-mode-string ":" timeline-spec
+	  (concat twittering-mode-string ":" spec-string
 		  (if enabled-options
 		      (concat "["
 			      (mapconcat 'identity enabled-options ",")
@@ -1708,13 +1913,15 @@ following symbols;
       (twittering-retrieve-image twittering-image-stack)
     ))
 
-(defun twittering-get-twits-with-timeline-spec
-  (timeline-spec &optional noninteractive id)
-  (let ((pair (twittering-get-host-method-from-timeline-spec timeline-spec)))
-    (when pair
-      (let ((host (car pair))
-	    (method (cadr pair)))
-	(twittering-get-twits host method noninteractive id)))))
+(defun twittering-get-twits-with-timeline-spec (spec &optional noninteractive id)
+  (if (twittering-timeline-spec-primary-p spec)
+      (let ((pair (twittering-timeline-spec-to-host-method spec)))
+	(when pair
+	  (let ((host (car pair))
+		(method (cadr pair)))
+	    (twittering-get-twits host method noninteractive id))))
+    (let ((type (car spec)))
+      (error (format "%s has not been supported yet." type)))))
 
 (defun twittering-retrieve-image (images)
   (if twittering-use-wget
@@ -2114,13 +2321,17 @@ following symbols;
 	nil
       listname)))
 
-(defun twittering-read-timeline-spec-with-completion
-  (prompt initial)
-  (let* ((dummy-hist
-	  (delete-dups
-	   (append twittering-timeline-history
-		   (twittering-make-list-from-assoc
-		    'user-screen-name twittering-timeline-data))))
+(defun twittering-read-timeline-spec-string-with-completion (prompt initial)
+  (let* ((dummy-hist (append twittering-timeline-history
+			     (twittering-make-list-from-assoc
+			      'user-screen-name twittering-timeline-data)))
+	 (dummy-hist
+	  (if (< emacs-major-version 22)
+	      ;; Emacs21 does not have delete-dups().
+	      ;; compeleting-read() of Emacs21 does not accepts candidates as
+	      ;; a list. Candidates must be given as an alist.
+	      (mapcar (lambda (x) (cons x nil)) dummy-hist)
+	    (delete-dups dummy-hist)))
 	 (spec (completing-read prompt dummy-hist
 				nil nil initial 'dummy-hist)))
     (cond
@@ -2135,6 +2346,18 @@ following symbols;
 	  nil)))
      ((string= "" spec) nil)
      (t spec))))
+
+(defun twittering-read-timeline-spec-with-completion (prompt initial)
+  (let ((spec-string
+	 (twittering-read-timeline-spec-string-with-completion
+	  prompt initial)))
+    (if spec-string
+	(let ((spec (twittering-string-to-timeline-spec spec-string)))
+	  (if spec
+	      spec
+	    (message (format "\"%s\" is invalid as a timeline spec."
+			     spec-string))))
+      (message "No timeline specs are selected."))))
 
 (defun twittering-get-username ()
   (or twittering-username-active

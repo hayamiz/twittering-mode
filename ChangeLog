@@ -11,6 +11,31 @@
 	receive its value and `twittering-new-tweets-hook' works
 	correctly.
 
+2010-01-03  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el, test/test-twittering-mode.el: rebase the
+	`timeline-spec' branch. The new timeline spec based on
+	S-expression is introduced.
+
+	* twittering-mode.el (twittering-timeline-spec-to-string): add.
+	(twittering-extract-timeline-spec): add.
+	(twittering-string-to-timeline-spec): add.
+	(twittering-timeline-spec-singlep): add.
+	(twittering-timeline-spec-to-host-method): add.
+	(twittering-host-method-to-timeline-spec): add.
+	(twittering-last-timeline-spec): add.
+	(twittering-last-timeline-spec-string)
+	(twittering-add-timeline-history): modified for new timeline spec.
+	(twittering-update-mode-line): modified for new timeline spec.
+	(twittering-get-twits-with-timeline-spec): modified for new
+	timeline spec.
+	(twittering-read-timeline-spec-string-with-completion): add.
+	(twittering-read-timeline-spec-with-completion): modified for new
+	timeline spec.
+
+	* test/test-twittering-mode.el (timeline-spec): add tests for new
+	timeline spec.
+
 2010-01-02  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-use-show-minibuffer-length): New

@@ -1,3 +1,9 @@
+2010-01-06  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el
+	(twittering-read-timeline-spec-with-completion): return nil for
+	an invalid timeline spec string.
+
 2010-01-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-last-requested-timeline-spec):

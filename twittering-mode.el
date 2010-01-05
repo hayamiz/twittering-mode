@@ -2335,8 +2335,10 @@ following symbols;
 	  (if spec
 	      spec
 	    (message (format "\"%s\" is invalid as a timeline spec."
-			     spec-string))))
-      (message "No timeline specs are selected."))))
+			     spec-string))
+	    nil))
+      (message "No timeline specs are selected.")
+      nil)))
 
 (defun twittering-get-username ()
   (or twittering-username-active

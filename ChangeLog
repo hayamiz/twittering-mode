@@ -3,6 +3,8 @@
 	* twittering-mode.el
 	(twittering-read-timeline-spec-with-completion): return nil for
 	an invalid timeline spec string.
+	(twittering-update-mode-line): the delimiter followed by a
+	timeline spec string on mode-line is changed to a whitespace.
 
 	* test/test-twittering-mode.el (timeline-spec): add tests of
 	timeline spec normalization.

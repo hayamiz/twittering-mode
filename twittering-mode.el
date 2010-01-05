@@ -844,7 +844,7 @@ Return nil if STR is invalid as a timeline spec."
     (when twittering-use-ssl
       (push "ssl" enabled-options))
     (setq mode-name
-	  (concat twittering-mode-string ":" spec-string
+	  (concat twittering-mode-string " " spec-string
 		  (if enabled-options
 		      (concat "["
 			      (mapconcat 'identity enabled-options ",")

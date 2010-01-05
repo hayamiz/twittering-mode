@@ -107,8 +107,8 @@ dangerous.")
 (defvar twittering-password-active nil
   "Copy of `twittering-password' for internal use.")
 
-(defvar twittering-initial-timeline-spec '(friends)
-  "The initial timeline spec.")
+(defvar twittering-initial-timeline-spec-string ":friends"
+  "The initial timeline spec string.")
 
 (defvar twittering-timeline-spec-bookmark nil
   "*Alist for bookmarks of timeline spec.
@@ -122,10 +122,10 @@ For example, if you specify
 then you can use \"$to_me\" as
 \"(:mentions+:retweets_of_me+:direct-messages)\".")
 
-(defvar twittering-last-requested-timeline-spec '(home)
-  "The last requested timeline spec.")
-(defvar twittering-last-retrieved-timeline-spec nil
-  "The last successfully retrieved timeline spec.")
+(defvar twittering-last-requested-timeline-spec-string nil
+  "The last requested timeline spec string.")
+(defvar twittering-last-retrieved-timeline-spec-string nil
+  "The last successfully retrieved timeline spec string.")
 (defvar twittering-list-index-retrieved nil)
 
 (defvar twittering-new-tweets-count 0
@@ -714,13 +714,11 @@ Return nil if STR is invalid as a timeline spec."
      (t nil)))
    (t nil)))
 
-(defun twittering-last-timeline-spec-string ()
-  (let ((spec twittering-last-retrieved-timeline-spec))
-    (twittering-timeline-spec-to-string spec t)))
-
 (defun twittering-add-timeline-history (&optional timeline-spec)
-  (let* ((spec (or timeline-spec twittering-last-retrieved-timeline-spec))
-	 (spec-string (twittering-timeline-spec-to-string spec t)))
+  (let* ((spec-string
+	  (if timeline-spec
+	      (twittering-timeline-spec-to-string timeline-spec t)
+	    twittering-last-retrieved-timeline-spec-string)))
     (when spec-string
       (when (or (null twittering-timeline-history)
 		(not (string= spec-string (car twittering-timeline-history))))
@@ -867,7 +865,7 @@ Return nil if STR is invalid as a timeline spec."
 (defun twittering-update-mode-line ()
   "Update mode line"
   (let ((enabled-options nil)
-	(spec-string (twittering-last-timeline-spec-string)))
+	(spec-string twittering-last-retrieved-timeline-spec-string))
     (when twittering-jojo-mode
       (push "jojo" enabled-options))
     (when twittering-icon-mode
@@ -1225,8 +1223,8 @@ Available keywords:
 		(if (and (> twittering-new-tweets-count 0)
 			 noninteractive)
 		    (run-hooks 'twittering-new-tweets-hook))
-		(setq twittering-last-retrieved-timeline-spec
-		      twittering-last-requested-timeline-spec)
+		(setq twittering-last-retrieved-timeline-spec-string
+		      twittering-last-requested-timeline-spec-string)
 		(twittering-render-timeline)
 		(twittering-add-timeline-history)
 		(when twittering-notify-successful-http-get
@@ -1933,10 +1931,13 @@ following symbols;
       (error
        (format "\"%s\" is invalid as a timeline spec."
 	       (or spec-string original-spec))))
-    (unless (equal spec twittering-last-retrieved-timeline-spec)
+    (unless
+	(and twittering-last-retrieved-timeline-spec-string
+	     (twittering-equal-string-as-timeline
+	      spec-string twittering-last-retrieved-timeline-spec-string))
       (setq twittering-timeline-last-update nil
 	    twittering-timeline-data nil
-	    twittering-last-requested-timeline-spec spec))
+	    twittering-last-requested-timeline-spec-string spec-string))
     (if (twittering-timeline-spec-primary-p spec)
 	(let ((pair (twittering-timeline-spec-to-host-method spec)))
 	  (when pair
@@ -2076,8 +2077,8 @@ following symbols;
 
 (defun twittering-current-timeline (&optional noninteractive)
   (interactive)
-  (let ((spec (or twittering-last-retrieved-timeline-spec
-		  twittering-initial-timeline-spec)))
+  (let ((spec (or twittering-last-retrieved-timeline-spec-string
+		  twittering-initial-timeline-spec-string)))
     (twittering-get-and-render-timeline spec noninteractive)))
 
 (defun twittering-update-status-interactive ()
@@ -2142,10 +2143,11 @@ following symbols;
 (defun twittering-erase-old-statuses ()
   (interactive)
   (setq twittering-timeline-data nil)
-  (if (not twittering-last-retrieved-timeline-spec)
-      (setq twittering-last-retrieved-timeline-spec
-	    twittering-initial-timeline-spec)
-    (let* ((spec twittering-last-retrieved-timeline-spec)
+  (if (not twittering-last-retrieved-timeline-spec-string)
+      (setq twittering-last-retrieved-timeline-spec-string
+	    twittering-initial-timeline-spec-string)
+    (let* ((spec-string twittering-last-retrieved-timeline-spec-string)
+	   (spec (twittering-string-to-timeline-spec spec-string))
 	   (pair (twittering-timeline-spec-to-host-method spec))
 	   (host (car pair))
 	   (method (cadr pair)))
@@ -2270,7 +2272,7 @@ following symbols;
   (let ((timeline-spec
 	 (or timeline-spec
 	     (twittering-read-timeline-spec-with-completion
-	      "timeline: " initial))))
+	      "timeline: " initial t))))
     (when timeline-spec
       (twittering-get-and-render-timeline timeline-spec))))
 
@@ -2400,7 +2402,7 @@ following symbols;
       (let ((id (get-text-property (point) 'id)))
         (if id
 	    (twittering-get-and-render-timeline
-	     twittering-last-retrieved-timeline-spec
+	     twittering-last-retrieved-timeline-spec-string
 	     nil id))))))
 
 (defun twittering-get-next-username-face-pos (pos)

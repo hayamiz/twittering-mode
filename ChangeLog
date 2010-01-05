@@ -14,6 +14,22 @@
 	(twittering-equal-string-as-timeline): add.
 	(twittering-get-and-render-timeline): accept a timeline spec
 	string as well as a S-expression.
+	(twittering-initial-timeline-spec): replaced by
+	`twittering-initial-timeline-spec-string'.
+	(twittering-last-requested-timeline-spec): replaced by
+	`twittering-last-requested-timeline-spec-string'.
+	(twittering-last-retrieved-timeline-spec): replaced by
+	`twittering-last-retrieved-timeline-spec-string'.
+	(twittering-initial-timeline-spec-string): added to replace
+	`twittering-initial-timeline-spec'.
+	(twittering-last-requested-timeline-spec-string): added to replace
+	`twittering-last-requested-timeline-spec'.
+	(twittering-last-retrieved-timeline-spec-string): added to replace
+	`twittering-last-retrieved-timeline-spec'.
+	(twittering-last-timeline-spec-string): removed.
+	(twittering-visit-timeline): call
+	`twittering-get-and-render-timeline' with a timeline spec string
+	just as it has been input by the user.
 
 	* test/test-twittering-mode.el (timeline-spec): add tests of
 	timeline spec normalization.

@@ -1931,13 +1931,13 @@ following symbols;
       (error
        (format "\"%s\" is invalid as a timeline spec."
 	       (or spec-string original-spec))))
+    (setq twittering-last-requested-timeline-spec-string spec-string)
     (unless
 	(and twittering-last-retrieved-timeline-spec-string
 	     (twittering-equal-string-as-timeline
 	      spec-string twittering-last-retrieved-timeline-spec-string))
       (setq twittering-timeline-last-update nil
-	    twittering-timeline-data nil
-	    twittering-last-requested-timeline-spec-string spec-string))
+	    twittering-timeline-data nil))
     (if (twittering-timeline-spec-primary-p spec)
 	(let ((pair (twittering-timeline-spec-to-host-method spec)))
 	  (when pair

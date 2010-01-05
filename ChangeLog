@@ -5,6 +5,10 @@
 	an invalid timeline spec string.
 	(twittering-update-mode-line): the delimiter followed by a
 	timeline spec string on mode-line is changed to a whitespace.
+	(twittering-timeline-spec-bookmark): new variable for timeline
+	spec bookmark.
+	(twittering-extract-timeline-spec): support timeline spec
+	bookmark.
 
 	* test/test-twittering-mode.el (timeline-spec): add tests of
 	timeline spec normalization.

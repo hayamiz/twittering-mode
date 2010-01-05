@@ -110,6 +110,18 @@ dangerous.")
 (defvar twittering-initial-timeline-spec '(friends)
   "The initial timeline spec.")
 
+(defvar twittering-timeline-spec-bookmark nil
+  "*Alist for bookmarks of timeline spec.
+Each element is (NAME . SPEC-STRING), where NAME and SPEC-STRING are
+strings. The bookmark can be referred as \"$NAME\" in timeline spec
+string.
+
+For example, if you specify
+ '((\"FRIENDS\" . \"(USER1+USER2+USER3)\")
+   (\"to_me\" . \"(:mentions+:retweets_of_me+:direct-messages)\")),
+then you can use \"$to_me\" as
+\"(:mentions+:retweets_of_me+:direct-messages)\".")
+
 (defvar twittering-last-requested-timeline-spec '(home)
   "The last requested timeline spec.")
 (defvar twittering-last-retrieved-timeline-spec nil
@@ -520,7 +532,7 @@ If SHORTEN is non-nil, the abbreviated expression will be used."
      (t
       nil))))
 
-(defun twittering-extract-timeline-spec (str)
+(defun twittering-extract-timeline-spec (str &optional unresolved-bookmarks)
   "Extract one timeline spec from STR.
 Return cons of the spec and the rest string."
   (cond
@@ -561,7 +573,8 @@ Return cons of the spec and the rest string."
 		    (replace-regexp-in-string "\\\\/" "/"
 					      escaped-regexp nil t))
 		   (following (substring str (match-end 0)))
-		   (pair (twittering-extract-timeline-spec following))
+		   (pair (twittering-extract-timeline-spec
+			  following unresolved-bookmarks))
 		   (spec (car pair))
 		   (rest (cdr pair)))
 	      `((filter ,regexp ,spec) . ,rest))
@@ -569,12 +582,25 @@ Return cons of the spec and the rest string."
 	  nil))
        (t
 	nil))))
+   ((string-match "^\\$\\([a-zA-Z0-9_-]+\\)" str)
+    (let* ((name (match-string 1 str))
+	   (rest (substring str (match-end 1)))
+	   (value (cdr-safe (assoc name twittering-timeline-spec-bookmark))))
+      (if (member name unresolved-bookmarks)
+	  (error (format "Bookmark \"%s\" includes a recursive reference."
+			 name))
+	(if value
+	    (twittering-extract-timeline-spec
+	     (concat value rest)
+	     (cons name unresolved-bookmarks))
+	  (error (format "Bookmark \"%s\" is undefined." name))))))
    ((string-match "^(" str)
     (let* ((rest (concat "+" (substring str (match-end 0))))
 	   (result '()))
       (while (and rest (string-match "^\\+" rest))
 	(let* ((spec-string (substring rest (match-end 0)))
-	       (pair (twittering-extract-timeline-spec spec-string))
+	       (pair (twittering-extract-timeline-spec
+		      spec-string unresolved-bookmarks))
 	       (spec (car pair))
 	       (next-rest (cdr pair)))
 	  (setq result (cons spec result))

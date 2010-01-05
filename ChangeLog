@@ -4,6 +4,9 @@
 	(twittering-read-timeline-spec-with-completion): return nil for
 	an invalid timeline spec string.
 
+	* test/test-twittering-mode.el (timeline-spec): add tests of
+	timeline spec normalization.
+
 2010-01-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-last-requested-timeline-spec):

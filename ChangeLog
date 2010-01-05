@@ -2,7 +2,9 @@
 
 	* twittering-mode.el
 	(twittering-read-timeline-spec-with-completion): return nil for
-	an invalid timeline spec string.
+	an invalid timeline spec string. The function is unified with
+	`twittering-read-timeline-spec-string-with-completion'. If the
+	argument `as-string' is non-nil, it returns a spec string.
 	(twittering-update-mode-line): the delimiter followed by a
 	timeline spec string on mode-line is changed to a whitespace.
 	(twittering-timeline-spec-bookmark): new variable for timeline

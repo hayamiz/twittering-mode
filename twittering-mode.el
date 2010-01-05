@@ -2327,7 +2327,7 @@ following symbols;
 	nil
       listname)))
 
-(defun twittering-read-timeline-spec-string-with-completion (prompt initial)
+(defun twittering-read-timeline-spec-with-completion (prompt initial &optional as-string)
   (let* ((dummy-hist (append twittering-timeline-history
 			     (twittering-make-list-from-assoc
 			      'user-screen-name twittering-timeline-data)))
@@ -2338,34 +2338,31 @@ following symbols;
 	      ;; a list. Candidates must be given as an alist.
 	      (mapcar (lambda (x) (cons x nil)) dummy-hist)
 	    (delete-dups dummy-hist)))
-	 (spec (completing-read prompt dummy-hist
-				nil nil initial 'dummy-hist)))
+	 (spec-string (completing-read prompt dummy-hist
+				nil nil initial 'dummy-hist))
+	 (spec-string
+	  (if (string-match "^\\([^/]+\\)/$" spec-string)
+	      (let* ((username (match-string 1 spec-string))
+		     (list-index (twittering-get-list-index-sync username))
+		     (listname
+		      (if list-index
+			  (twittering-read-list-name username list-index)
+			nil)))
+		(if listname
+		    (concat username "/" listname)
+		  nil))
+	    spec-string))
+	 (spec (twittering-string-to-timeline-spec spec-string)))
     (cond
-     ((string-match "^\\([^/]+\\)/$" spec)
-      (let* ((username (match-string 1 spec))
-	     (list-index (twittering-get-list-index-sync username))
-	     (listname (if list-index
-			   (twittering-read-list-name username list-index)
-			 nil)))
-	(if listname
-	    (concat username "/" listname)
-	  nil)))
-     ((string= "" spec) nil)
-     (t spec))))
-
-(defun twittering-read-timeline-spec-with-completion (prompt initial)
-  (let ((spec-string
-	 (twittering-read-timeline-spec-string-with-completion
-	  prompt initial)))
-    (if spec-string
-	(let ((spec (twittering-string-to-timeline-spec spec-string)))
-	  (if spec
-	      spec
-	    (message (format "\"%s\" is invalid as a timeline spec."
-			     spec-string))
-	    nil))
-      (message "No timeline specs are selected.")
-      nil)))
+     (spec (if as-string
+	       spec-string
+	     spec))
+     ((string= "" spec-string)
+      (message "No timeline specs are specified.")
+      nil)
+     (t
+      (message "\"%s\" is invalid as a timeline spec." spec-string)
+      nil))))
 
 (defun twittering-get-username ()
   (or twittering-username-active

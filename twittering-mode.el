@@ -1923,18 +1923,28 @@ following symbols;
     ))
 
 (defun twittering-get-and-render-timeline (spec &optional noninteractive id)
-  (unless (equal spec twittering-last-retrieved-timeline-spec)
-    (setq twittering-timeline-last-update nil
-	  twittering-timeline-data nil
-	  twittering-last-requested-timeline-spec spec))
-  (if (twittering-timeline-spec-primary-p spec)
-      (let ((pair (twittering-timeline-spec-to-host-method spec)))
-	(when pair
-	  (let ((host (car pair))
-		(method (cadr pair)))
-	    (twittering-get-twits host method noninteractive id))))
-    (let ((type (car spec)))
-      (error (format "%s has not been supported yet." type)))))
+  (let* ((original-spec spec)
+	 (spec-string (if (stringp spec)
+			  spec
+			(twittering-timeline-spec-to-string spec)))
+	 (spec ;; normalized spec.
+	  (twittering-string-to-timeline-spec spec-string)))
+    (when (null spec)
+      (error
+       (format "\"%s\" is invalid as a timeline spec."
+	       (or spec-string original-spec))))
+    (unless (equal spec twittering-last-retrieved-timeline-spec)
+      (setq twittering-timeline-last-update nil
+	    twittering-timeline-data nil
+	    twittering-last-requested-timeline-spec spec))
+    (if (twittering-timeline-spec-primary-p spec)
+	(let ((pair (twittering-timeline-spec-to-host-method spec)))
+	  (when pair
+	    (let ((host (car pair))
+		  (method (cadr pair)))
+	      (twittering-get-twits host method noninteractive id))))
+      (let ((type (car spec)))
+	(error (format "%s has not been supported yet." type))))))
 
 (defun twittering-retrieve-image (images)
   (if twittering-use-wget

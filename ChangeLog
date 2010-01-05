@@ -12,6 +12,8 @@
 	(twittering-extract-timeline-spec): support timeline spec
 	bookmark.
 	(twittering-equal-string-as-timeline): add.
+	(twittering-get-and-render-timeline): accept a timeline spec
+	string as well as a S-expression.
 
 	* test/test-twittering-mode.el (timeline-spec): add tests of
 	timeline spec normalization.

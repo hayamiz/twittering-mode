@@ -642,6 +642,14 @@ Return nil if STR is invalid as a timeline spec."
 	(type (car spec)))
     (memq type primary-spec-types)))
 
+(defun twittering-equal-string-as-timeline (spec-str1 spec-str2)
+  "Return non-nil if SPEC-STR1 equals SPEC-STR2 as a timeline spec."
+  (if (and (stringp spec-str1) (stringp spec-str2))
+      (let ((spec1 (twittering-string-to-timeline-spec spec-str1))
+	    (spec2 (twittering-string-to-timeline-spec spec-str2)))
+	(equal spec1 spec2))
+    nil))
+
 (defun twittering-timeline-spec-to-host-method (spec)
   (if (twittering-timeline-spec-primary-p spec)
       (let ((type (car spec))

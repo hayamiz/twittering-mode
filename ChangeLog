@@ -1,16 +1,3 @@
-2010-01-03  Yuto Hayamizu  <y.hayamizu@gmail.com>
-
-	* twittering-mode.el (twittering-tinyurl-get): more descriptive
-	error message
-	(twittering-url-copy-file-async): more descriptive error message
-
-2010-01-02  Alberto Garcia  <agarcia@igalia.com>
-
-	* twittering-mode.el (twittering-start-http-ssl-session):
-	Set noninteractive using lexical-let so the HTTP sentinel can
-	receive its value and `twittering-new-tweets-hook' works
-	correctly.
-
 2010-01-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-last-requested-timeline-spec):
@@ -60,6 +47,19 @@
 
 	* test/test-twittering-mode.el (timeline-spec): add tests for new
 	timeline spec.
+
+2010-01-03  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-tinyurl-get): more descriptive
+	error message
+	(twittering-url-copy-file-async): more descriptive error message
+
+2010-01-02  Alberto Garcia  <agarcia@igalia.com>
+
+	* twittering-mode.el (twittering-start-http-ssl-session):
+	Set noninteractive using lexical-let so the HTTP sentinel can
+	receive its value and `twittering-new-tweets-hook' works
+	correctly.
 
 2010-01-02  Satoshi Yatagawa  <yata_github@y.hauN.org>
 

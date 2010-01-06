@@ -620,9 +620,9 @@ PARAMETERS: http request parameters (query string)
 "
   (block nil
     (unless (find method '("POST" "GET") :test 'equal)
-      (error (format "Unknown HTTP method: %s" method)))
+      (error "Unknown HTTP method: %s" method))
     (unless (string-match "^/" path)
-      (error (format "Invalid HTTP path: %s" path)))
+      (error "Invalid HTTP path: %s" path))
     
     (unless (assoc "Host" headers)
       (setq headers (cons `("Host" . ,host) headers)))
@@ -835,7 +835,7 @@ Available keywords:
       (lambda (key)
 	(let ((pair (assoc key data)))
 	  (if pair (cdr pair)
-	    (error (format "No such key in HTTP request data: %s" key)))))
+	    (error "No such key in HTTP request data: %s" key))))
       )))
 
 (defun twittering-http-application-headers (&optional method headers)
@@ -1636,7 +1636,7 @@ following symbols;
 	(if (search-forward-regexp "^$" nil t)
 	    (progn (write-region (1+ (point)) (point-max) ,file)
 		   (kill-buffer (current-buffer)))
-	  (error (format "Failed to get image file: %s" url)))))))
+	  (error "Failed to get image file: %s" url))))))
 
 (defun twittering-retrieve-image-without-wget (image-urls)
   (mapc
@@ -1687,7 +1687,7 @@ following symbols;
 		(prog1
 		    (match-string-no-properties 1)
 		  (kill-buffer buffer))
-	      (error (format "TinyURL failed: %s" longurl)))))
+	      (error "TinyURL failed: %s" longurl))))
       nil)))
 
 ;;;

@@ -12,6 +12,12 @@
 	`format' instead of `concat' to easy understand.
 	(twittering-sign-string-default-function): Likewise.
 
+	* twittering-mode.el (twittering-start-http-session): Remove an
+	unnecessary call to `format' because all arguments of `error' pass
+	to `format'.
+	(twittering-make-http-request): Likewise.
+	(twittering-url-copy-file-async): Likewise.
+
 2010-01-03  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-tinyurl-get): more descriptive

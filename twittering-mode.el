@@ -348,11 +348,8 @@ Otherwise, they are retrieved by `url-retrieve'.")
 
 (defun twittering-user-agent-default-function ()
   "Twittering mode default User-Agent function."
-  (concat "Emacs/"
-	  (int-to-string emacs-major-version) "." (int-to-string
-						   emacs-minor-version)
-	  " "
-	  "Twittering-mode/"
+  (format "Emacs/%d.%d Twittering-mode/%s"
+	  emacs-major-version emacs-minor-version
 	  twittering-mode-version))
 
 (defvar twittering-sign-simple-string nil)
@@ -360,7 +357,7 @@ Otherwise, they are retrieved by `url-retrieve'.")
 (defun twittering-sign-string-default-function ()
   "Tweet append sign string:simple "
   (if twittering-sign-simple-string
-      (concat " [" twittering-sign-simple-string "]")
+      (format " [%s]" twittering-sign-simple-string)
     ""))
 
 (defvar twittering-user-agent-function 'twittering-user-agent-default-function)

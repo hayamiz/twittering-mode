@@ -8,6 +8,10 @@
 	* twittering-mode.el (twittering-start-http-session): Change
 	syntax of question message to fit the GNU Emacs Lisp convention.
 
+	* twittering-mode.el (twittering-user-agent-default-function): Use
+	`format' instead of `concat' to easy understand.
+	(twittering-sign-string-default-function): Likewise.
+
 2010-01-03  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-tinyurl-get): more descriptive

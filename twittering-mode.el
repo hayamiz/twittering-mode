@@ -1517,7 +1517,7 @@ following symbols;
 
 (defun twittering-status-not-blank-p (status)
   (not (string-match
-	"^\\s-*\\(?:@[-_a-z0-9]+\\(\\s+@[-_a-z0-9]+\\)*\\)?\\s-*$" status)))
+	"^\\s-*\\(?:@[-_a-z0-9]+\\(?:\\s-+@[-_a-z0-9]+\\)*\\)?\\s-*$" status)))
  
 (defun twittering-update-status-from-minibuffer (&optional init-str reply-to-id)
   (when (and (null init-str)

@@ -9,6 +9,9 @@
 	* twittering-mode.el (twittering-http-get-list-index-sentinel): Add 
 	`debug-printf' same as `twittering-http-get-default-sentinel'.
 
+	* twittering-mode.el (twittering-status-not-blank-p): Fix and
+	modify a regexp pattern.
+
 2010-01-04  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-get-response-header): Change

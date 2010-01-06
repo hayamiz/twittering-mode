@@ -1,3 +1,14 @@
+2010-01-06  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-http-get-default-sentinel): Move
+	`debug-printf' to outside of `unwind-protect' because we expect
+	that mostly code of this function should be executed by way of
+	BODYFORM of `unwind-protect', not UNWINDFORM.
+	(twittering-http-post-default-sentinel): Likewise.
+
+	* twittering-mode.el (twittering-http-get-list-index-sentinel): Add 
+	`debug-printf' same as `twittering-http-get-default-sentinel'.
+
 2010-01-04  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-get-response-header): Change

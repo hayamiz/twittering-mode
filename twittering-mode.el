@@ -900,8 +900,8 @@ Available keywords:
        (cadr encoded-time))))
 
 (defun twittering-http-get-default-sentinel (temp-buffer noninteractive proc stat &optional suc-msg)
+  (debug-printf "get-default-sentinel: proc=%s stat=%s" proc stat)
   (unwind-protect
-      (debug-printf "get-default-sentinel: proc=%s stat=%s" proc stat)
       (let ((header (twittering-get-response-header temp-buffer))
 	    (body (twittering-get-response-body temp-buffer))
 	    (status nil))
@@ -941,6 +941,7 @@ Available keywords:
 ;; XXX: this is a preliminary implementation because we should parse
 ;; xmltree in the function.
 (defun twittering-http-get-list-index-sentinel (temp-buffer noninteractive proc stat &optional suc-msg)
+  (debug-printf "get-list-index-sentinel: proc=%s stat=%s" proc stat)
   (unwind-protect
       (let ((header (twittering-get-response-header temp-buffer)))
 	(if (not (string-match "HTTP/1\.[01] \\([a-zA-Z0-9 ]+\\)\r?\n" header))
@@ -985,8 +986,8 @@ PARAMETERS is alist of URI parameters.
    host nil (concat "/" method ".xml") parameters noninteractive sentinel))
 
 (defun twittering-http-post-default-sentinel (temp-buffer noninteractive proc stat &optional suc-msg)
+  (debug-printf "post-default-sentinel: proc=%s stat=%s" proc stat)
   (unwind-protect
-      (debug-printf "post-default-sentinel: proc=%s stat=%s" proc stat)
       (let ((header (twittering-get-response-header temp-buffer))
 	    ;; (body (twittering-get-response-body temp-buffer)) not used now.
 	    (status nil))

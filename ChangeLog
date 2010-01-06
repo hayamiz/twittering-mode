@@ -1,3 +1,13 @@
+2010-01-04  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-get-response-header): Change
+	syntax of error message to fit the GNU Emacs Lisp convention.
+	(twittering-get-response-body): Likewise.
+	(twittering-tinyurl-get): Likewise.
+
+	* twittering-mode.el (twittering-start-http-session): Change
+	syntax of question message to fit the GNU Emacs Lisp convention.
+
 2010-01-03  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-tinyurl-get): more descriptive

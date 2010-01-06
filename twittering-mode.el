@@ -637,7 +637,7 @@ PARAMETERS: http request parameters (query string)
       (when twittering-use-ssl
 	(cond 
 	 ((not curl-program)
-	  (if (yes-or-no-p "HTTPS(SSL) is not available because 'cURL' does not exist. Use HTTP instead?")
+	  (if (yes-or-no-p "HTTPS(SSL) is not available because 'cURL' does not exist. Use HTTP instead? ")
 	      (progn (setq twittering-use-ssl nil)
 		     (twittering-update-mode-line))
 	    (message "Request canceled")
@@ -649,7 +649,7 @@ PARAMETERS: http request parameters (query string)
 		 (goto-char (point-min))
 		 (search-forward-regexp
 		  "^Protocols: .*https" nil t)))
-	  (if (yes-or-no-p "HTTPS(SSL) is not available because your 'cURL' cannot use HTTPS. Use HTTP instead?")
+	  (if (yes-or-no-p "HTTPS(SSL) is not available because your 'cURL' cannot use HTTPS. Use HTTP instead? ")
 	      (progn (setq twittering-use-ssl nil)
 		     (twittering-update-mode-line))
 	    (message "Request canceled")
@@ -1023,7 +1023,7 @@ PARAMETERS is alist of URI parameters.
       (delete-region (point-min) (point)))
     (if (search-forward-regexp "\r?\n\r?\n" nil t)
 	(buffer-substring (point-min) (match-end 0))
-      (error "Failure: invalid HTTP response."))))
+      (error "Failure: invalid HTTP response"))))
 
 (defun twittering-get-response-body (buffer)
   "Exract HTTP response body from HTTP response, parse it as XML, and return a
@@ -1040,7 +1040,7 @@ XML tree as list. Return nil when parse failed.
 	      (xml-parse-region start (point-max))
 	    (error (message "Failure: %s" get-error)
 		   nil)))
-      (error "Failure: invalid HTTP response."))
+      (error "Failure: invalid HTTP response"))
     ))
 
 (defun twittering-cache-status-datum (status-datum &optional data-var)
@@ -1677,12 +1677,10 @@ following symbols;
   (let ((api (cdr (assoc twittering-tinyurl-service
 			 twittering-tinyurl-services-map))))
     (unless api
-      (error (concat
-	      "`twittering-tinyurl-service' was invalid. try one of "
-	      (mapconcat (lambda (x)
-			   (symbol-name (car x)))
-			 twittering-tinyurl-services-map ", ")
-	      ".")))
+      (error "Invaild `twittering-tinyurl-service'. try one of %s"
+	     (concat (mapconcat (lambda (x)
+				  (symbol-name (car x)))
+				twittering-tinyurl-services-map ", "))))
     (if longurl
 	(save-excursion
 	  (let ((buffer (url-retrieve-synchronously (concat api longurl))))

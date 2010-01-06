@@ -110,10 +110,10 @@ dangerous.")
 (defvar twittering-initial-timeline-spec-string ":friends"
   "The initial timeline spec string.")
 
-(defvar twittering-timeline-spec-bookmark nil
-  "*Alist for bookmarks of timeline spec.
+(defvar twittering-timeline-spec-alias nil
+  "*Alist for aliases of timeline spec.
 Each element is (NAME . SPEC-STRING), where NAME and SPEC-STRING are
-strings. The bookmark can be referred as \"$NAME\" in timeline spec
+strings. The alias can be referred as \"$NAME\" in timeline spec
 string.
 
 For example, if you specify
@@ -532,7 +532,7 @@ If SHORTEN is non-nil, the abbreviated expression will be used."
      (t
       nil))))
 
-(defun twittering-extract-timeline-spec (str &optional unresolved-bookmarks)
+(defun twittering-extract-timeline-spec (str &optional unresolved-aliases)
   "Extract one timeline spec from STR.
 Return cons of the spec and the rest string."
   (cond
@@ -574,7 +574,7 @@ Return cons of the spec and the rest string."
 					      escaped-regexp nil t))
 		   (following (substring str (match-end 0)))
 		   (pair (twittering-extract-timeline-spec
-			  following unresolved-bookmarks))
+			  following unresolved-aliases))
 		   (spec (car pair))
 		   (rest (cdr pair)))
 	      `((filter ,regexp ,spec) . ,rest))
@@ -585,22 +585,22 @@ Return cons of the spec and the rest string."
    ((string-match "^\\$\\([a-zA-Z0-9_-]+\\)" str)
     (let* ((name (match-string 1 str))
 	   (rest (substring str (match-end 1)))
-	   (value (cdr-safe (assoc name twittering-timeline-spec-bookmark))))
-      (if (member name unresolved-bookmarks)
-	  (error (format "Bookmark \"%s\" includes a recursive reference."
+	   (value (cdr-safe (assoc name twittering-timeline-spec-alias))))
+      (if (member name unresolved-aliases)
+	  (error (format "Alias \"%s\" includes a recursive reference."
 			 name))
 	(if value
 	    (twittering-extract-timeline-spec
 	     (concat value rest)
-	     (cons name unresolved-bookmarks))
-	  (error (format "Bookmark \"%s\" is undefined." name))))))
+	     (cons name unresolved-aliases))
+	  (error (format "Alias \"%s\" is undefined." name))))))
    ((string-match "^(" str)
     (let* ((rest (concat "+" (substring str (match-end 0))))
 	   (result '()))
       (while (and rest (string-match "^\\+" rest))
 	(let* ((spec-string (substring rest (match-end 0)))
 	       (pair (twittering-extract-timeline-spec
-		      spec-string unresolved-bookmarks))
+		      spec-string unresolved-aliases))
 	       (spec (car pair))
 	       (next-rest (cdr pair)))
 	  (setq result (cons spec result))

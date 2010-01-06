@@ -32,6 +32,9 @@
 	(twittering-visit-timeline): call
 	`twittering-get-and-render-timeline' with a timeline spec string
 	just as it has been input by the user.
+	(twittering-extract-timeline-spec): `bookmark' is renamed `alias'.
+	(twittering-timeline-spec-alias): this variable replaces
+	`twittering-timeline-spec-bookmark'.
 
 	* test/test-twittering-mode.el (timeline-spec): add tests of
 	timeline spec normalization.

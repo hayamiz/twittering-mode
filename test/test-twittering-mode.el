@@ -147,6 +147,74 @@
 			      '(("%" . "\n"))))
   )
 
+(defun test-restore-timeline-spec(spec-str spec normalized-spec)
+  (let ((spec-from-str
+	 (twittering-string-to-timeline-spec spec-str)))
+    (list
+     (equal (twittering-string-to-timeline-spec
+	     (twittering-timeline-spec-to-string spec))
+	    normalized-spec)
+     (equal normalized-spec spec-from-str))))
+
+(defcase timeline-spec nil nil
+  (test-assert-equal
+   (test-restore-timeline-spec
+    "(user+(user/mylist+(@))+:filter/WORD/(USER2+:mentions))"
+    '(merge (user "user")
+	    (merge (list "user" "mylist")
+		   (merge (replies)))
+	    (filter "WORD" (merge (user "USER2")
+				  (mentions))))
+    '(merge (user "user")
+	    (list "user" "mylist")
+	    (replies)
+	    (filter "WORD" (merge (user "USER2")
+				  (mentions)))))
+   '(t t))
+  (test-assert-equal
+   (test-restore-timeline-spec
+    "(user-A+~+((user-B))+(:filter/R+/user-C+(:filter/R3\\//USER-D+:public)))"
+    '(merge (user "user-A")
+	    (home)
+	    (merge (user "user-B")
+		   (filter "R+" (user "user-C")))
+	    (filter "R3/" (user "USER-D"))
+	    (public))
+    '(merge (user "user-A")
+	    (home)
+	    (user "user-B")
+	    (filter "R+" (user "user-C"))
+	    (filter "R3/" (user "USER-D"))
+	    (public)))
+   '(t t))
+
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ":filter/ABC/user/mylist"
+    '(filter "ABC" (list "user" "mylist"))
+    '(filter "ABC" (list "user" "mylist")))
+   '(t t))
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ":filter/ABC\\/user/mylist"
+    '(filter "ABC/user" (user "mylist"))
+    '(filter "ABC/user" (user "mylist")))
+   '(t t))
+
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ":retweeted_by_me" '(retweeted_by_me)  '(retweeted_by_me))
+   '(t t))
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ":retweeted_to_me" '(retweeted_to_me) '(retweeted_to_me))
+   '(t t))
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ":retweets_of_me" '(retweets_of_me)  '(retweets_of_me))
+   '(t t))
+  )
+
 (lexical-let ((status (car (get-fixture 'timeline-data))))
   (defcase test-format-status nil nil
     (test-assert-string-equal "hello world"

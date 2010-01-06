@@ -12,6 +12,47 @@
 	* twittering-mode.el (twittering-status-not-blank-p): Fix and
 	modify a regexp pattern.
 
+2010-01-06  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el
+	(twittering-read-timeline-spec-with-completion): return nil for
+	an invalid timeline spec string. The function is unified with
+	`twittering-read-timeline-spec-string-with-completion'. If the
+	argument `as-string' is non-nil, it returns a spec string.
+	(twittering-update-mode-line): the delimiter followed by a
+	timeline spec string on mode-line is changed to a whitespace.
+	(twittering-timeline-spec-bookmark): new variable for timeline
+	spec bookmark.
+	(twittering-extract-timeline-spec): support timeline spec
+	bookmark.
+	(twittering-equal-string-as-timeline): add.
+	(twittering-get-and-render-timeline): accept a timeline spec
+	string as well as a S-expression.
+	`twittering-last-requested-timeline-spec' will be updated even if
+	the requested spec essentially equals to the current one.
+	(twittering-initial-timeline-spec): replaced by
+	`twittering-initial-timeline-spec-string'.
+	(twittering-last-requested-timeline-spec): replaced by
+	`twittering-last-requested-timeline-spec-string'.
+	(twittering-last-retrieved-timeline-spec): replaced by
+	`twittering-last-retrieved-timeline-spec-string'.
+	(twittering-initial-timeline-spec-string): added to replace
+	`twittering-initial-timeline-spec'.
+	(twittering-last-requested-timeline-spec-string): added to replace
+	`twittering-last-requested-timeline-spec'.
+	(twittering-last-retrieved-timeline-spec-string): added to replace
+	`twittering-last-retrieved-timeline-spec'.
+	(twittering-last-timeline-spec-string): removed.
+	(twittering-visit-timeline): call
+	`twittering-get-and-render-timeline' with a timeline spec string
+	just as it has been input by the user.
+	(twittering-extract-timeline-spec): `bookmark' is renamed `alias'.
+	(twittering-timeline-spec-alias): this variable replaces
+	`twittering-timeline-spec-bookmark'.
+
+	* test/test-twittering-mode.el (timeline-spec): add tests of
+	timeline spec normalization.
+
 2010-01-04  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-get-response-header): Change
@@ -31,6 +72,56 @@
 	to `format'.
 	(twittering-make-http-request): Likewise.
 	(twittering-url-copy-file-async): Likewise.
+
+2010-01-04  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-last-requested-timeline-spec):
+	new variable storing the last requested timeline spec.
+	(twittering-last-retrieved-timeline-spec): new variable storing
+	the last successfully retrieved timeline spec.
+	(twittering-last-timeline-retrieved): removed.
+	(twittering-last-host): removed.
+	(twittering-last-method): removed.
+	(twittering-convert-last-timeline-retrieved): removed.
+	(twittering-last-timeline-spec): removed.
+	(twittering-get-twits): do not update the information of the last
+	request.
+	(twittering-get-and-render-timeline): update the information of
+	the last request instead of `twittering-get-twits'.
+	(twittering-current-timeline): replace `twittering-get-twits' by
+	`twittering-get-and-render-timeline'.
+	(twittering-erase-old-statuses): replace `twittering-get-twits' by
+	`twittering-get-and-render-timeline'.
+	(twittering-initial-timeline-spec): new variable.
+
+2010-01-03  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el, test/test-twittering-mode.el: rebase the
+	`timeline-spec' branch. The new timeline spec based on
+	S-expression is introduced.
+
+	* twittering-mode.el (twittering-timeline-spec-to-string): add.
+	(twittering-extract-timeline-spec): add.
+	(twittering-string-to-timeline-spec): add.
+	(twittering-timeline-spec-singlep): add.
+	(twittering-timeline-spec-to-host-method): add.
+	(twittering-host-method-to-timeline-spec): add.
+	(twittering-last-timeline-spec): add.
+	(twittering-last-timeline-spec-string)
+	(twittering-add-timeline-history): modified for new timeline spec.
+	(twittering-update-mode-line): modified for new timeline spec.
+	(twittering-get-twits-with-timeline-spec): modified for new
+	timeline spec.
+	(twittering-read-timeline-spec-string-with-completion): add.
+	(twittering-read-timeline-spec-with-completion): modified for new
+	timeline spec.
+	(twittering-get-timeline, twittering-get-list): replaced with
+	`twittering-get-twits-with-timeline-spec'.
+	(twittering-get-and-render-timeline): renamed from
+	`twittering-get-twits-with-timeline-spec'.
+
+	* test/test-twittering-mode.el (timeline-spec): add tests for new
+	timeline spec.
 
 2010-01-03  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
@@ -278,6 +369,47 @@
 	The dependency on `mm-url' is removed by using `url' library.
 	(twittering-http-application-headers):
 	`Content-Length' is added to `headers'.
+
+2009-12-22  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-get-host-method-from-timeline-spec)
+	(twittering-get-timeline-spec): Add more timeline specification.
+
+	* test/test-twittering-mode.el (timeline-spec): add more tests for
+	timeline specification.
+
+2009-12-20  Tadashi Matsuo  <tad@mymail.twin.jp>
+
+	* test/test-twittering-mode.el (timeline-spec): add tests for
+	timeline specification.
+	* twittering-mode.el (twittering-get-host-method-from-timeline-spec)
+	(twittering-get-timeline-spec): Add new functions for timeline
+	specification.
+	(twittering-update-mode-line): Shows timeline specification.
+	(twittering-render-timeline): Invokes
+	`twittering-update-mode-line' to update the mode-line.
+	(twittering-timeline-history): Add new variable for history of
+	timeline specifications.
+	(twittering-add-timeline-history): Add new function for adding
+	timeline history.
+	(twittering-http-get-default-sentinel): Invokes
+	`twittering-add-timeline-history' to update history when
+	retrieving tweets successfully.
+	(twittering-other-user-list-interactive): The codes for retrieving
+	list index synchronously are extracted as the new function
+	`twittering-get-list-sync'.
+	(twittering-get-list-index-sync): Add new function for retrieving
+	list synchronously.
+	(twittering-read-list-name): Add new function for reading a list
+	name from the minibuffer.
+	(twittering-read-timeline-spec-with-completion): Add new function
+	for reading timeline specification from the minibuffer.
+	(twittering-get-twits-with-timeline-spec): Add new function for
+	retrieving tweets with timeline specification.
+	(twittering-visit-timeline): Add new function for visiting a
+	timeline.
+	(twittering-mode-map): The key "V" is bound to
+	'twittering-visit-timeline'.
 
 2009-12-20  Yuto Hayamizu  <y.hayamizu@gmail.com>
 

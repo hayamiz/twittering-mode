@@ -1966,20 +1966,23 @@ following symbols;
       (let ((image-type nil))
 	(with-temp-buffer
 	  (set-buffer-multibyte nil)
-	  (url-insert-file-contents image-url)
-	  (setq image-type (twittering-image-type image-url
-						  (current-buffer)))
-	  (when (and twittering-convert-fix-size twittering-use-convert)
-	    (call-process-region 
-	     (point-min) (point-max)
-	     twittering-convert-program
-	     t t nil
-	     (format "%s:-" image-type) "-resize"
-	     (format "%dx%d" twittering-convert-fix-size
-		     twittering-convert-fix-size)
-	     "png:-")
-	    (setq image-type 'png))
-	  (setq image-data `(,image-type . ,(buffer-string)))
+	  (let ((coding-system-for-read 'binary)
+		(coding-system-for-write 'binary)
+		(require-final-newline nil))
+	    (url-insert-file-contents image-url)
+	    (setq image-type (twittering-image-type image-url
+						    (current-buffer)))
+	    (when (and twittering-convert-fix-size twittering-use-convert)
+	      (call-process-region 
+	       (point-min) (point-max)
+	       twittering-convert-program
+	       t t nil
+	       (format "%s:-" image-type) "-resize"
+	       (format "%dx%d" twittering-convert-fix-size
+		       twittering-convert-fix-size)
+	       "xpm:-")
+	      (setq image-type 'xpm))
+	    (setq image-data `(,image-type . ,(buffer-string))))
 	  (puthash `(,image-url . ,twittering-convert-fix-size)
 		   image-data
 		   twittering-image-data-table))))

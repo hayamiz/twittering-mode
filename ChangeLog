@@ -67,11 +67,13 @@
 	type of a given image.
 	(twittering-make-display-spec-for-icon): Now it receives image URL
 	as an argument.
-	(twittering-retrieve-image): Now it receives image URL
-	as an argument.
+	(twittering-retrieve-image): Now it receives image URL as an
+	argument.
 	(twittering-url-copy-file-async): delete
 	(twittering-retrieve-image-without-wget): delete
 	(twittering-retrieve-image-with-wget): delete
+	(twittering-retrieve-image): changed default image type from png
+	to xpm
 
 	* url-emacs21/*: add url library for emacs21
 	

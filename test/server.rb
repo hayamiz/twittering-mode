@@ -15,8 +15,11 @@ $hiragana = (0x3040..0x309F).to_a
 $katakana = (0x30A0..0x30FF).to_a
 $cjk_kanji = (0x4E00..0x9FFF).to_a
 
-def random_string
-  
+def random_string(chars, length_min, length_max)
+  len = length_min + rand(length_max - length_min + 1)
+  Array.new(len).map{ |x|
+    chars.choice
+  }.pack('U*')
 end
 
 class User
@@ -34,7 +37,7 @@ class User
   def initialize(id)
     @attrs = Hash.new
     @attrs[:id] = id
-    @attrs[:name] = 'a'
+    @attrs[:name] = 
   end
 end
 

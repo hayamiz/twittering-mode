@@ -955,15 +955,15 @@ PARAMETERS: http request parameters (query string)
 	 noninteractive sentinel)))))
 
 ;;; FIXME: file name is hard-coded. More robust way is desired.
+(defvar twittering-cert-file nil)
 (defun twittering-ensure-ca-cert ()
   "Create a CA certificate file if it does not exist, and return
 its file name."
-  (let ((file-name (expand-file-name
-		    (format "twmode-twitter-cacert-%s.pem"
-			    (user-login-name))
-		    temporary-file-directory)))
-    (with-temp-file file-name
-      (insert "-----BEGIN CERTIFICATE-----
+  (if twittering-cert-file
+      twittering-cert-file
+    (let ((file-name (make-temp-file "twmode-cacert")))
+      (with-temp-file file-name
+	(insert "-----BEGIN CERTIFICATE-----
 MIICkDCCAfmgAwIBAgIBATANBgkqhkiG9w0BAQQFADBaMQswCQYDVQQGEwJVUzEc
 MBoGA1UEChMTRXF1aWZheCBTZWN1cmUgSW5jLjEtMCsGA1UEAxMkRXF1aWZheCBT
 ZWN1cmUgR2xvYmFsIGVCdXNpbmVzcyBDQS0xMB4XDTk5MDYyMTA0MDAwMFoXDTIw
@@ -979,7 +979,7 @@ A4GBADDiAVGqx+pf2rnQZQ8w1j7aDRRJbpGTJxQx78T3LUX47Me/okENI7SS+RkA
 Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 8qIYNMR1pHMc8Y3c7635s3a0kr/clRAevsvIO1qEYBlWlKlV
 -----END CERTIFICATE-----"))
-    file-name))
+      (setq twittering-cert-file file-name))))
 
 (defun twittering-start-http-ssl-session (curl-program method headers host port path parameters &optional noninteractive sentinel)
   ;; TODO: use curl
@@ -1519,7 +1519,8 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
    ""))
 
 (defun twittering-url-reserved-p (ch)
-  (or (and (<= ?A ch) (<= ch ?z))
+  (or (and (<= ?A ch) (<= ch ?Z))
+      (and (<= ?a ch) (<= ch ?z))
       (and (<= ?0 ch) (<= ch ?9))
       (eq ?. ch)
       (eq ?- ch)

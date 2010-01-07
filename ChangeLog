@@ -3,6 +3,8 @@
 	* twittering-mode.el (twittering-url-reserved-p): bug fix: some
 	reserved characters considered unreserved. Thanks to IMAI
 	Toshiyuki
+	(twittering-cert-file): add
+	(twittering-ensure-ca-cert): generate temporary file for CA certificate
 
 2010-01-06  Satoshi Yatagawa  <yata_github@y.hauN.org>
 

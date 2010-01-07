@@ -272,3 +272,13 @@
 		       (twittering-ensure-ca-cert)
 		       "https://twitter.com/"))))))
 
+(defcase test-url-reserved-p nil nil
+  (test-assert-ok (twittering-url-reserved-p ?a))
+  (test-assert-ok (twittering-url-reserved-p ?A))
+  (test-assert-ok (twittering-url-reserved-p ?Z))
+  (test-assert-ok (twittering-url-reserved-p ?z))
+  (test-assert-ok (not (twittering-url-reserved-p ?\[)))
+  (test-assert-ok (not (twittering-url-reserved-p ?\])))
+  (test-assert-ok (not (twittering-url-reserved-p ?\\)))
+  (test-assert-ok (not (twittering-url-reserved-p ?^)))
+  (test-assert-ok (not (twittering-url-reserved-p ?`))))

@@ -1222,7 +1222,8 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
    ""))
 
 (defun twittering-url-reserved-p (ch)
-  (or (and (<= ?A ch) (<= ch ?z))
+  (or (and (<= ?A ch) (<= ch ?Z))
+      (and (<= ?a ch) (<= ch ?z))
       (and (<= ?0 ch) (<= ch ?9))
       (eq ?. ch)
       (eq ?- ch)

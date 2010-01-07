@@ -46,8 +46,12 @@
 (require 'xml)
 (require 'parse-time)
 (when (< emacs-major-version 22)
+  (add-to-list 'load-path
+	       (expand-file-name
+		"url-emacs21" (file-name-directory load-file-name)))
   (require 'un-define)
   (set-terminal-coding-system 'utf-8))
+(require 'url)
 
 (defconst twittering-mode-version "0.9.0")
 
@@ -1983,7 +1987,6 @@ following symbols;
 
 (defun twittering-tinyurl-get (longurl)
   "Tinyfy LONGURL"
-  (require 'url)
   (let ((api (cdr (assoc twittering-tinyurl-service
 			 twittering-tinyurl-services-map))))
     (unless api

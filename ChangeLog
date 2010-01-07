@@ -73,6 +73,9 @@
 	(twittering-retrieve-image-without-wget): delete
 	(twittering-retrieve-image-with-wget): delete
 
+	* url-emacs21/*: add url library for emacs21
+	
+
 2010-01-07  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-url-reserved-p): bug fix: some

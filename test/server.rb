@@ -5,6 +5,39 @@ require 'webrick'
 require 'webrick/httpproxy'
 require 'singleton'
 
+$alpha = ('A'..'Z').map{|c|c[0]} + ('a'..'z').map{|c|c[0]}
+$num = ('0'..'9').map{|c|c[0]}
+$alphanum = $alpha + $num
+$screen_name = $alphanum + '_'[0]
+$ascii = (32..126).to_a
+
+$hiragana = (0x3040..0x309F).to_a
+$katakana = (0x30A0..0x30FF).to_a
+$cjk_kanji = (0x4E00..0x9FFF).to_a
+
+def random_string
+  
+end
+
+class User
+  def self.generate(id = nil)
+    @users = Hash.new unless @users
+
+    id = rand(1000000) unless id
+    user = @users[id]
+    unless user
+      user = self.new(id)
+    end
+  end
+
+  attr_accessor :attrs
+  def initialize(id)
+    @attrs = Hash.new
+    @attrs[:id] = id
+    @attrs[:name] = 'a'
+  end
+end
+
 class TwitterAPI
   include Singleton
 
@@ -16,7 +49,9 @@ class TwitterAPI
     format = File.extname(uri.path)
     format = "xml" if format == ""
     format = format.gsub(/^\./, '')
+
     endpoint = uri.path.gsub(/\.[a-z]+$/, '').gsub(/^\//, '')
+
     params = Hash.new
     (uri.query || "").split("&").each do |param|
       if param =~ /([^=]+)=(.+)/

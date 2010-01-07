@@ -281,10 +281,6 @@ SCHEME must be \"http\" or \"https\"."
 (defun twittering-wget-buffer ()
   (twittering-get-or-generate-buffer twittering-wget-buffer))
 
-(defvar twittering-tmp-dir
-  (expand-file-name (concat "twmode-images-" (user-login-name))
-		    temporary-file-directory))
-
 (defvar twittering-icon-mode nil
   "You MUST NOT CHANGE this variable directly.
 You should change through function'twittering-icon-mode'")
@@ -296,19 +292,14 @@ With a numeric argument, if the argument is positive, turn on
 icon mode; otherwise, turn off icon mode."
   (interactive)
   (setq twittering-icon-mode
-	(if twittering-icon-mode
-	    (if (null arg)
-		nil
-	      (> (prefix-numeric-value arg) 0))
-	  (when (or (null arg)
-		    (and arg (> (prefix-numeric-value arg) 0)))
-	    (when (file-writable-p twittering-tmp-dir)
-	      (progn
-		(if (not (file-directory-p twittering-tmp-dir))
-		    (make-directory twittering-tmp-dir))
-		t)))))
+	(if (null arg)
+	    (not twittering-icon-mode)
+	  (> (prefix-numeric-value arg) 0)))
   (twittering-update-mode-line)
   (twittering-render-timeline))
+
+(defvar twittering-image-data-table
+  (make-hash-table :test 'equal))
 
 (defvar twittering-image-stack nil)
 (defvar twittering-image-type-cache nil)
@@ -318,52 +309,36 @@ icon mode; otherwise, turn off icon mode."
   "*This variable makes a sense only if `twittering-convert-fix-size'
 is non-nil. If this variable is non-nil, icon images are converted by
 invoking \"convert\". Otherwise, cropped images are displayed.")
-(defvar twittering-use-wget nil
-  "*If non-nil, icon images are retrieved by invoking \"wget\".
-Otherwise, they are retrieved by `url-retrieve'.")
 
-(defun twittering-image-type (file-name)
-  (if (and (not (assoc file-name twittering-image-type-cache))
-	   (file-exists-p file-name))
-      (if (and twittering-convert-fix-size twittering-use-convert)
-	  (progn
-	    (with-temp-buffer
-	      (let ((coding-system-for-read 'raw-text)
-		    (coding-system-for-write 'binary))
-		(call-process twittering-convert-program
-			      nil (current-buffer) nil
-			      file-name "-resize"
-			      (format "%dx%d" twittering-convert-fix-size
-				      twittering-convert-fix-size)
-			      "png:-")
-		(write-region (point-min) (point-max) file-name)))
-	    (add-to-list 'twittering-image-type-cache `(,file-name . png)))
-	(let* ((file-output (shell-command-to-string (concat "file -b " file-name)))
-	       (file-type (cond
+(defun twittering-image-type (image-url buffer)
+  "Return the type of a given image based on the URL(IMAGE-URL)
+and its contents(BUFFER)"
+  (let ((type-cache (assoc image-url twittering-image-type-cache)))
+    (if type-cache
+	(cdr type-cache)
+      (let ((image-type
+	     (cond
+	      ((executable-find "file")
+	       (with-temp-buffer
+		 (let ((res-buf (current-buffer)))
+		   (save-excursion
+		     (set-buffer buffer)
+		     (call-process-region (point-min) (point-max)
+					  (executable-find "file")
+					  nil res-buf nil "-b" "-")))
+		 (let ((file-output (buffer-string)))
+		   (cond
 			   ((string-match "JPEG" file-output) 'jpeg)
 			   ((string-match "PNG" file-output) 'png)
 			   ((string-match "GIF" file-output) 'gif)
-			   ((and twittering-use-convert
-				 (string-match "bitmap" file-output))
-			    (let ((coding-system-for-read 'raw-text)
-				  (coding-system-for-write 'binary))
-			      (with-temp-buffer
-				(set-buffer-multibyte nil)
-				(insert-file-contents file-name)
-				(call-process-region
-				 (point-min) (point-max)
-				 twittering-convert-program
-				 t (current-buffer) nil
-				 "bmp:-" "png:-")
-				(write-region (point-min) (point-max)
-					      file-name)))
-			    'png)
-			   ((string-match "\\.jpe?g" file-name) 'jpeg)
-			   ((string-match "\\.png" file-name) 'png)
-			   ((string-match "\\.gif" file-name) 'gif)
-			   (t nil))))
-	  (add-to-list 'twittering-image-type-cache `(,file-name . ,file-type)))))
-  (cdr (assoc file-name twittering-image-type-cache)))
+			   ((string-match "bitmap" 'bitmap))
+			   (t nil)))))
+	      ((string-match "\\.jpe?g\\(\\?[^/]+\\)?$" image-url) 'jpeg)
+	      ((string-match "\\.png\\(\\?[^/]+\\)?$" image-url) 'png)
+	      ((string-match "\\.gif\\(\\?[^/]+\\)?$" image-url) 'gif)
+	      (t nil))))
+	(add-to-list 'twittering-image-type-cache `(,image-url . ,image-type))
+	image-type))))
 
 ;;;
 ;;; functions
@@ -1608,17 +1583,18 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (concat (md5 icon-url nil nil 'iso-2022-7bit)
 	  (or (ffap-file-suffix icon-url) ".img")))
 
-(defun twittering-make-display-spec-for-icon (fullpath)
+(defun twittering-make-display-spec-for-icon (image-url)
   "Return the specification for `display' text property, which limits
-the size of an icon image FULLPATH up to FIXED-LENGTH.
+the size of an icon image IMAGE-URL up to FIXED-LENGTH.
 
 If the size of the image exceeds FIXED-LENGTH, the center of the
 image are displayed."
-  (let* ((image-spec
-	  `(image :type ,(twittering-image-type fullpath)
-		  :file ,fullpath)))
+  (let* ((image-data (twittering-retrieve-image image-url))
+	 (image-spec
+	  `(image :type ,(car image-data)
+		  :data ,(cdr image-data))))
     (if (and twittering-convert-fix-size (not twittering-use-convert))
-	(let* ((size (if (file-exists-p fullpath)
+	(let* ((size (if (cdr image-data)
 			 (image-size image-spec t)
 		       '(48 . 48)))
 	       (width (car size))
@@ -1705,21 +1681,17 @@ following symbols;
 	  ()
 	  (let ((profile-image-url (attr 'user-profile-image-url))
 		(icon-string "\n  "))
-	    (if (string-match "/\\([^/?]+\\)\\(?:\\?\\|$\\)" profile-image-url)
-		(let* ((filename (match-string-no-properties 1
-							     profile-image-url))
-		       (fullpath (concat twittering-tmp-dir "/" (twittering-icon-path profile-image-url))))
-		  ;; download icons if does not exist
-		  (if (file-exists-p fullpath)
-		      t
-		    (add-to-list 'twittering-image-stack profile-image-url))
-
-		  (when (and icon-string twittering-icon-mode)
-		    (let ((display-spec
-			   (twittering-make-display-spec-for-icon fullpath)))
-		      (set-text-properties 1 2 display-spec icon-string))
-		    icon-string)
-		  ))))
+	    (unless (gethash
+		     `(,profile-image-url . ,twittering-convert-fix-size)
+		     twittering-image-data-table)
+	      (add-to-list 'twittering-image-stack profile-image-url))
+	    
+	    (when (and icon-string twittering-icon-mode)
+	      (let ((display-spec
+		     (twittering-make-display-spec-for-icon profile-image-url)))
+		(set-text-properties 1 2 display-spec icon-string))
+	      icon-string)
+	    ))
 	 (make-string-with-url-property
 	  (str url)
 	  (let ((result (copy-sequence str)))
@@ -1954,7 +1926,7 @@ following symbols;
 
   (if (and twittering-icon-mode window-system
 	   twittering-image-stack)
-      (twittering-retrieve-image twittering-image-stack)
+      (mapc 'twittering-retrieve-image twittering-image-stack)
     ))
 
 (defun twittering-get-and-render-timeline (spec &optional noninteractive id)
@@ -1983,53 +1955,31 @@ following symbols;
       (let ((type (car spec)))
 	(error "%s has not been supported yet" type)))))
 
-(defun twittering-retrieve-image (images)
-  (if twittering-use-wget
-      (twittering-retrieve-image-with-wget images)
-    (twittering-retrieve-image-without-wget images)))
-
-(defun twittering-url-copy-file-async (url file)
-  (require 'url)
-  (url-retrieve
-   url
-   `(lambda ,(if (<= 22 emacs-major-version) '(status) '())
-      (let ((coding-system-for-write 'binary)
-	    (require-final-newline nil))
-	(goto-char (point-min))
-	(if (search-forward-regexp "^$" nil t)
-	    (progn (write-region (1+ (point)) (point-max) ,file)
-		   (kill-buffer (current-buffer)))
-	  (error "Failed to get image file: %s" url))))))
-
-(defun twittering-retrieve-image-without-wget (image-urls)
-  (mapc
-   (lambda (url)
-     (let ((file (concat twittering-tmp-dir "/" (twittering-icon-path url))))
-       (unless (file-exists-p file)
-	 (twittering-url-copy-file-async url file))))
-   image-urls))
-
-(defun twittering-retrieve-image-with-wget (image-urls)
-  (dolist (url image-urls)
-    (let ((file (concat twittering-tmp-dir "/" (twittering-icon-path url))))
-      (unless (file-exists-p file)
-	(let ((proc
-	       (funcall
-		#'start-process
-		"wget-images"
-		(twittering-wget-buffer)
-		"wget"
-		"--quiet"
-		(format "--directory-prefix=%s" twittering-tmp-dir)
-		"-O" file
-		url)))
-	  (set-process-sentinel
-	   proc
-	   (lambda (proc stat)
-	     (clear-image-cache)
-	     (save-excursion
-	       (set-buffer (twittering-wget-buffer))
-	       ))))))))
+(defun twittering-retrieve-image (image-url)
+  (let ((image-data (gethash `(,image-url . ,twittering-convert-fix-size)
+			     twittering-image-data-table)))
+    (when (not image-data)
+      (let ((image-type nil))
+	(with-temp-buffer
+	  (set-buffer-multibyte nil)
+	  (url-insert-file-contents image-url)
+	  (setq image-type (twittering-image-type image-url
+						  (current-buffer)))
+	  (when (and twittering-convert-fix-size twittering-use-convert)
+	    (call-process-region 
+	     (point-min) (point-max)
+	     twittering-convert-program
+	     t t nil
+	     (format "%s:-" image-type) "-resize"
+	     (format "%dx%d" twittering-convert-fix-size
+		     twittering-convert-fix-size)
+	     "png:-")
+	    (setq image-type 'png))
+	  (setq image-data `(,image-type . ,(buffer-string)))
+	  (puthash `(,image-url . ,twittering-convert-fix-size)
+		   image-data
+		   twittering-image-data-table))))
+    image-data))
 
 (defun twittering-tinyurl-get (longurl)
   "Tinyfy LONGURL"

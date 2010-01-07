@@ -56,6 +56,23 @@
 	* twittering-mode.el (twittering-status-not-blank-p): bug fix:
 	always return nil with strings with trailing newline.
 
+2010-01-08  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-tmp-dir): delete
+	(twittering-icon-mode): don't make temp dir
+	(twittering-image-data-table): add. hash table where image data
+	are stored.  key:(<url> . <size>),value:(<type> . <binary-data>)
+	(twittering-use-wget): delete
+	(twittering-image-type): re-implemented. Now it just returns a
+	type of a given image.
+	(twittering-make-display-spec-for-icon): Now it receives image URL
+	as an argument.
+	(twittering-retrieve-image): Now it receives image URL
+	as an argument.
+	(twittering-url-copy-file-async): delete
+	(twittering-retrieve-image-without-wget): delete
+	(twittering-retrieve-image-with-wget): delete
+
 2010-01-07  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-url-reserved-p): bug fix: some

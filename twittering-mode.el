@@ -1584,11 +1584,6 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
       (goto-char (+ point (if twittering-scroll-mode (- (point-max) end) 0))))
     ))
 
-(defun twittering-icon-path (icon-url)
-  (require 'ffap)
-  (concat (md5 icon-url nil nil 'iso-2022-7bit)
-	  (or (ffap-file-suffix icon-url) ".img")))
-
 (defun twittering-make-display-spec-for-icon (image-url)
   "Return the specification for `display' text property, which limits
 the size of an icon image IMAGE-URL up to FIXED-LENGTH.

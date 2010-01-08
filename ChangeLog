@@ -29,6 +29,8 @@
 	`completing-read' to work on Emacs21; same as
 	`twittering-read-timeline-spec-with-completion'.
 
+	* twittering-mode.el (twittering-icon-path): Delete function.
+
 2010-01-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-http-get-list-index-sentinel):
@@ -87,7 +89,6 @@
 	(twittering-image-type): let case-fold-search is t.
 
 	* url-emacs21/*: add url library for emacs21
-	
 
 2010-01-07  Yuto Hayamizu  <y.hayamizu@gmail.com>
 

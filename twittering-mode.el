@@ -915,12 +915,19 @@ Return nil if STR is invalid as a timeline spec."
   (make-local-variable 'twittering-help-overlay)
   (setq twittering-help-overlay nil)
   (twittering-edit-setup-help)
-  
+  (make-local-variable 'twittering-warning-overlay)
+  (setq twittering-warning-overlay (make-overlay 1 1 nil nil nil))
+  (overlay-put twittering-warning-overlay 'face 'font-lock-warning-face)
+
   (make-local-variable 'twittering-edit-local-history)
   (setq twittering-edit-local-history (cons (buffer-string)
 					    twittering-edit-history))
   (make-local-variable 'twittering-edit-local-history-idx)
   (setq twittering-edit-local-history-idx 0)
+
+  (make-local-variable 'after-change-functions)
+  (add-to-list 'after-change-functions
+	       'twittering-edit-length-check)
   )
 
 (defvar twittering-pre-edit-window-configuration nil)
@@ -933,7 +940,29 @@ Return nil if STR is invalid as a timeline spec."
     (define-key km (kbd "C-c C-k") 'twittering-edit-cancel-status)
     (define-key km (kbd "M-n") 'twittering-edit-next-history)
     (define-key km (kbd "M-p") 'twittering-edit-previous-history)
-    (define-key km (kbd "F4") 'twittering-tinyurl-replace-at-point)))
+    (define-key km (kbd "<f4>") 'twittering-tinyurl-replace-at-point)))
+
+(defun twittering-edit-length-check (&rest args)
+  (let* ((status (twittering-edit-extract-status))
+	 (length (length status)))
+    (setq mode-name
+	  (format "twmode-status-edit[%d/140]" length))
+    (force-mode-line-update)
+    (if (> length 140)
+	(move-overlay twittering-warning-overlay
+		      141 (1+ length))
+      (move-overlay twittering-warning-overlay
+		    1 1))
+    ))
+
+(defun twittering-edit-extract-status ()
+  (if (not (eq major-mode 'twittering-edit-mode))
+      ""
+    (save-excursion
+      (goto-char (point-max))
+      (if (re-search-backward "[^\r\n\t ]" nil t)
+	  (buffer-substring (point-min) (+ 1 (point)))
+	""))))
 
 (defun twittering-edit-setup-help ()
   (let ((help-overlay
@@ -956,18 +985,20 @@ Keymap:
     (set-window-configuration twittering-pre-edit-window-configuration)
     (setq twittering-pre-edit-window-configuration nil)))
 
-(defun twittering-edit-status ()
+(defun twittering-edit-status (&optional init-str)
   (interactive)
   (let ((buf (generate-new-buffer "*twittering-edit*")))
     (setq twittering-pre-edit-window-configuration
 	  (current-window-configuration))
     (pop-to-buffer buf)
     (twittering-edit-mode)
+    (when init-str
+      (insert init-str))
     (message "C-c C-c to post, C-c C-k to cancel")))
 
 (defun twittering-edit-post-status ()
   (interactive)
-  (let ((status (buffer-string)))
+  (let ((status (twittering-edit-extract-status)))
     (setq twittering-edit-history
 	  (cons status twittering-edit-history))
     (if (twittering-status-not-blank-p status)

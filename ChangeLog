@@ -133,6 +133,17 @@
 
 	* twittering-mode.el (twittering-icon-path): Delete function.
 
+2010-01-09  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-edit-mode): setup
+	twittering-warning-overlay and after-change-functions
+	(twittering-edit-length-check): add. check length and set warning
+	overlay if the length exceeds 140 chars.
+	(twittering-edit-mode-map): fix keymap
+	(twittering-edit-extract-status): add. extract status from pop-up
+	buffer by removing trailing whitespace chars.
+	(twittering-edit-post-status): use edit-extract-status.
+
 2010-01-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-http-get-list-index-sentinel):

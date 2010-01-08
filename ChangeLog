@@ -8,6 +8,9 @@
 	(twittering-status-not-blank-p): bug fix: return nil if a status
 	is ended by '@foo'.
 
+	* twittering-mode.el (twittering-make-display-spec-for-icon):
+	returns nil if the type of the image is not supported.
+
 2010-01-09  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-status-to-status-datum): Change

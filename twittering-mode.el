@@ -1585,8 +1585,9 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
     ))
 
 (defun twittering-make-display-spec-for-icon (image-url)
-  "Return the specification for `display' text property, which limits
-the size of an icon image IMAGE-URL up to FIXED-LENGTH.
+  "Return the specification for `display' text property, which
+limits the size of an icon image IMAGE-URL up to FIXED-LENGTH. If
+the type of the image is not supported, nil is returned.
 
 If the size of the image exceeds FIXED-LENGTH, the center of the
 image are displayed."
@@ -1594,22 +1595,24 @@ image are displayed."
 	 (image-spec
 	  `(image :type ,(car image-data)
 		  :data ,(cdr image-data))))
-    (if (and twittering-convert-fix-size (not twittering-use-convert))
-	(let* ((size (if (cdr image-data)
-			 (image-size image-spec t)
-		       '(48 . 48)))
-	       (width (car size))
-	       (height (cdr size))
-	       (fixed-length twittering-convert-fix-size)
-	       (half-fixed-length (/ fixed-length 2))
-	       (slice-spec
-		(if (or (< fixed-length width) (< fixed-length height))
-		    `(slice ,(max 0 (- (/ width 2) half-fixed-length))
-			    ,(max 0 (- (/ height 2) half-fixed-length))
-			    ,fixed-length ,fixed-length)
-		  `(slice 0 0 ,fixed-length ,fixed-length))))
-	  `(display (,image-spec ,slice-spec)))
-      `(display ,image-spec))))
+    (if (not (image-type-available-p (car image-data)))
+	nil
+      (if (and twittering-convert-fix-size (not twittering-use-convert))
+	  (let* ((size (if (cdr image-data)
+			   (image-size image-spec t)
+			 '(48 . 48)))
+		 (width (car size))
+		 (height (cdr size))
+		 (fixed-length twittering-convert-fix-size)
+		 (half-fixed-length (/ fixed-length 2))
+		 (slice-spec
+		  (if (or (< fixed-length width) (< fixed-length height))
+		      `(slice ,(max 0 (- (/ width 2) half-fixed-length))
+			      ,(max 0 (- (/ height 2) half-fixed-length))
+			      ,fixed-length ,fixed-length)
+		    `(slice 0 0 ,fixed-length ,fixed-length))))
+	    `(display (,image-spec ,slice-spec)))
+	`(display ,image-spec)))))
 
 (defun twittering-format-string (string prefix replacement-table)
   "Format STRING according to PREFIX and REPLACEMENT-TABLE.
@@ -1690,7 +1693,8 @@ following symbols;
 	    (when (and icon-string twittering-icon-mode)
 	      (let ((display-spec
 		     (twittering-make-display-spec-for-icon profile-image-url)))
-		(set-text-properties 1 2 display-spec icon-string))
+		(when display-spec
+		  (set-text-properties 1 2 display-spec icon-string)))
 	      icon-string)
 	    ))
 	 (make-string-with-url-property

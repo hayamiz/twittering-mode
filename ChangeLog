@@ -60,6 +60,8 @@
 
 	* twittering-mode.el (twittering-image-type): Try to detect image
 	type with `image-type-from-data' at first.
+	(twittering-retrieve-image): Do not invoke `convert' if Emacs
+	supports the image type and resize is not required.
 
 2010-01-08  Yuto Hayamizu  <y.hayamizu@gmail.com>
 

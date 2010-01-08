@@ -1965,7 +1965,10 @@ following symbols;
   (let ((image-data (gethash `(,image-url . ,twittering-convert-fix-size)
 			     twittering-image-data-table)))
     (when (not image-data)
-      (let ((image-type nil))
+      (let ((image-type nil)
+	    (image-spec nil)
+	    (converted-image-size
+	     `(,twittering-convert-fix-size . ,twittering-convert-fix-size)))
 	(with-temp-buffer
 	  (set-buffer-multibyte nil)
 	  (let ((coding-system-for-read 'binary)
@@ -1974,7 +1977,13 @@ following symbols;
 	    (url-insert-file-contents image-url)
 	    (setq image-type (twittering-image-type image-url
 						    (current-buffer)))
-	    (when (and twittering-convert-fix-size twittering-use-convert)
+	    (setq image-spec `(image :type ,image-type
+				     :data ,(buffer-string)))
+	    (when (and twittering-convert-fix-size twittering-use-convert
+		       (not
+			(and (image-type-available-p image-type)
+			     (equal (image-size image-spec t)
+				    converted-image-size))))
 	      (call-process-region 
 	       (point-min) (point-max)
 	       twittering-convert-program

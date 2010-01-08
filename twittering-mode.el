@@ -1819,9 +1819,13 @@ following symbols;
   (remove-hook 'post-command-hook 'twittering-show-minibuffer-length t))
 
 (defun twittering-status-not-blank-p (status)
-  (not (string-match
-	"^\\s-*\\(?:@[-_a-z0-9]+\\(?:\\s-+@[-_a-z0-9]+\\)*\\)?\\s-*$" status)))
- 
+  (with-temp-buffer
+    (insert status)
+    (goto-char (point-min))
+    (while (re-search-forward "@[-_a-z0-9]+" nil t)
+      nil) ;; skip user name
+    (re-search-forward "[^\n\r \t]+" nil t)))
+
 (defun twittering-update-status-from-minibuffer (&optional init-str reply-to-id)
   (when (and (null init-str)
 	     twittering-current-hashtag)

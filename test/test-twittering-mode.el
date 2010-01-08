@@ -350,3 +350,15 @@
   (test-assert-ok (not (twittering-url-reserved-p ?\\)))
   (test-assert-ok (not (twittering-url-reserved-p ?^)))
   (test-assert-ok (not (twittering-url-reserved-p ?`))))
+
+(defcase test-status-not-blank-p nil nil
+  (test-assert-ok (not (twittering-status-not-blank-p "")))
+  (test-assert-ok (not (twittering-status-not-blank-p "\n")))
+  (test-assert-ok (not (twittering-status-not-blank-p "@foo")))
+  (test-assert-ok (not (twittering-status-not-blank-p "@bar ")))
+  (test-assert-ok (twittering-status-not-blank-p "hello"))
+  (test-assert-ok (twittering-status-not-blank-p "@baz hello"))
+  (test-assert-ok (twittering-status-not-blank-p "@baz\n\nhello"))
+  (test-assert-ok (twittering-status-not-blank-p "\nhello"))
+  (test-assert-ok (twittering-status-not-blank-p "hello\n"))
+  )

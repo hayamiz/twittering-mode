@@ -3,6 +3,11 @@
 	* twittering-mode.el (twittering-use-show-minibuffer-length): Add
 	suggestion into a docstring.
 
+2010-01-08  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-status-not-blank-p): bug fix:
+	always return nil with strings with trailing newline.
+
 2010-01-07  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-url-reserved-p): bug fix: some

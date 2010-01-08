@@ -1,3 +1,13 @@
+2010-01-09  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-http-get-list-index-sentinel):
+	`save-excursion' had no effect because of the following
+	`set-buffer'. This is fixed so that `save-excursion' saves the
+	state of `temp-buffer'.
+	(twittering-get-response-header): Likewise.
+	(twittering-get-response-body): Likewise.
+	(twittering-tinyurl-get): Likewise.
+
 2010-01-08  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-percent-encode): bug fix:

@@ -1255,16 +1255,16 @@ Available keywords:
 	      (case-string
 	       status
 	       (("200 OK")
-		(save-excursion
-		  (set-buffer temp-buffer)
-		  (goto-char (point-min))
-		  (if (search-forward-regexp "\r?\n\r?\n" nil t)
-		      (while (re-search-forward
-			      "<slug>\\([-a-zA-Z0-9_]+\\)</slug>" nil t)
-			(push (match-string 1) indexes)))
-		  (if indexes
-		      (setq twittering-list-index-retrieved indexes)
-		    (setq twittering-list-index-retrieved ""))))
+		(with-current-buffer temp-buffer
+		  (save-excursion
+		    (goto-char (point-min))
+		    (if (search-forward-regexp "\r?\n\r?\n" nil t)
+			(while (re-search-forward
+				"<slug>\\([-a-zA-Z0-9_]+\\)</slug>" nil t)
+			  (push (match-string 1) indexes)))
+		    (if indexes
+			(setq twittering-list-index-retrieved indexes)
+		      (setq twittering-list-index-retrieved "")))))
 	       (t
 		(setq twittering-list-index-retrieved status)))))))
     (when (and (not twittering-debug-mode) (buffer-live-p temp-buffer))
@@ -1314,15 +1314,15 @@ PARAMETERS is alist of URI parameters.
   
   ;; FIXME:
   ;; curl prints HTTP proxy response header, so strip it
-  (save-excursion
-    (set-buffer buffer)
-    (goto-char (point-min))
-    (when (search-forward-regexp
-	   "HTTP/1\\.[01] 200 Connection established\r\n\r\n" nil t)
-      (delete-region (point-min) (point)))
-    (if (search-forward-regexp "\r?\n\r?\n" nil t)
-	(buffer-substring (point-min) (match-end 0))
-      (error "Failure: invalid HTTP response"))))
+  (with-current-buffer buffer
+    (save-excursion
+      (goto-char (point-min))
+      (when (search-forward-regexp
+	     "HTTP/1\\.[01] 200 Connection established\r\n\r\n" nil t)
+	(delete-region (point-min) (point)))
+      (if (search-forward-regexp "\r?\n\r?\n" nil t)
+	  (buffer-substring (point-min) (match-end 0))
+	(error "Failure: invalid HTTP response")))))
 
 (defun twittering-get-response-body (buffer)
   "Exract HTTP response body from HTTP response, parse it as XML, and return a
@@ -1330,17 +1330,17 @@ XML tree as list. Return nil when parse failed.
 `buffer' may be a buffer or the name of an existing buffer. "
   (if (stringp buffer)
       (setq buffer (get-buffer buffer)))
-  (save-excursion
-    (set-buffer buffer)
-    (goto-char (point-min))
-    (if (search-forward-regexp "\r?\n\r?\n" nil t)
-	(let ((start (match-end 0)))
-	  (condition-case get-error ;; to guard when `xml-parse-region' failed.
-	      (xml-parse-region start (point-max))
-	    (error (message "Failure: %s" get-error)
-		   nil)))
-      (error "Failure: invalid HTTP response"))
-    ))
+  (with-current-buffer buffer
+    (save-excursion
+      (goto-char (point-min))
+      (if (search-forward-regexp "\r?\n\r?\n" nil t)
+	  (let ((start (match-end 0)))
+	    (condition-case get-error ;; to guard when `xml-parse-region' failed.
+		(xml-parse-region start (point-max))
+	      (error (message "Failure: %s" get-error)
+		     nil)))
+	(error "Failure: invalid HTTP response"))
+      )))
 
 (defun twittering-cache-status-datum (status-datum &optional data-var)
   "Cache status datum into data-var(default twittering-timeline-data)
@@ -2016,9 +2016,8 @@ following symbols;
 				  (symbol-name (car x)))
 				twittering-tinyurl-services-map ", "))))
     (if longurl
-	(save-excursion
-	  (let ((buffer (url-retrieve-synchronously (concat api longurl))))
-	    (set-buffer buffer)
+	(let ((buffer (url-retrieve-synchronously (concat api longurl))))
+	  (with-current-buffer buffer
 	    (goto-char (point-min))
 	    (if (search-forward-regexp "\n\r?\n\\([^\n\r]*\\)" nil t)
 		(prog1

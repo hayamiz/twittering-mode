@@ -323,6 +323,7 @@ and its contents(BUFFER)"
 	(cdr type-cache)
       (let ((image-type
 	     (cond
+	      ((image-type-from-data (buffer-string)))
 	      ((executable-find "file")
 	       (with-temp-buffer
 		 (let ((res-buf (current-buffer)))

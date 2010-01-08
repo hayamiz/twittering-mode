@@ -56,6 +56,11 @@
 	* twittering-mode.el (twittering-status-not-blank-p): bug fix:
 	always return nil with strings with trailing newline.
 
+2010-01-08  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-image-type): Try to detect image
+	type with `image-type-from-data' at first.
+
 2010-01-08  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-tmp-dir): delete

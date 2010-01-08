@@ -985,7 +985,7 @@ Keymap:
     (set-window-configuration twittering-pre-edit-window-configuration)
     (setq twittering-pre-edit-window-configuration nil)))
 
-(defun twittering-edit-status (&optional init-str)
+(defun twittering-edit-status (&optional init-str reply-to-id)
   (interactive)
   (let ((buf (generate-new-buffer "*twittering-edit*")))
     (setq twittering-pre-edit-window-configuration
@@ -994,6 +994,8 @@ Keymap:
     (twittering-edit-mode)
     (when init-str
       (insert init-str))
+    (make-local-variable 'twittering-reply-to-id)
+    (setq twittering-reply-to-id reply-to-id)
     (message "C-c C-c to post, C-c C-k to cancel")))
 
 (defun twittering-edit-post-status ()
@@ -1003,7 +1005,11 @@ Keymap:
 	  (cons status twittering-edit-history))
     (if (twittering-status-not-blank-p status)
 	(let ((parameters `(("status" . ,status)
-			    ("source" . "twmode"))))
+			    ("source" . "twmode")
+			    ,@(if twittering-reply-to-id
+				  (cons "in_reply_to_status_id"
+					(format "%s" reply-to-id))
+				nil))))
 	  (twittering-http-post "twitter.com" "statuses/update" parameters)
 	  (twittering-edit-close))
       (message "Empty tweet!"))))
@@ -2418,12 +2424,12 @@ variable `twittering-status-format'"
 	(screen-name-in-text
 	 (get-text-property (point) 'screen-name-in-text)))
     (cond (screen-name-in-text
-	   (twittering-update-status-from-minibuffer
+	   (twittering-edit-status
 	    (concat "@" screen-name-in-text " ") id))
 	  (uri-in-text
 	   (browse-url uri-in-text))
 	  (username
-	   (twittering-update-status-from-minibuffer
+	   (twittering-edit-status
 	    (concat "@" username " ") id))
 	  (uri
 	   (browse-url uri)))))
@@ -2469,7 +2475,7 @@ variable `twittering-status-format'"
 		    (format-time-string (match-string 1 str) ',retweet-time))))
 	       ))
 	    )
-	(twittering-update-status-from-minibuffer
+	(twittering-edit-status
 	 (twittering-format-string format-str prefix replace-table))
 	))))
 
@@ -2580,13 +2586,13 @@ variable `twittering-status-format'"
   (interactive)
   (let ((username (get-text-property (point) 'username)))
     (if username
-	(twittering-update-status-from-minibuffer (concat "d " username " ")))))
+	(twittering-edit-status (concat "d " username " ")))))
 
 (defun twittering-reply-to-user ()
   (interactive)
   (let ((username (get-text-property (point) 'username)))
-    (if username
-	(twittering-update-status-from-minibuffer (concat "@" username " ")))))
+    (when username
+      (twittering-edit-status (concat "@" username " ")))))
 
 (defun twittering-make-list-from-assoc (key data)
   (mapcar (lambda (status)

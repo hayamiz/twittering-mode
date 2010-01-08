@@ -143,6 +143,10 @@
 	(twittering-edit-extract-status): add. extract status from pop-up
 	buffer by removing trailing whitespace chars.
 	(twittering-edit-post-status): use edit-extract-status.
+	(twittering-edit-status): takes reply-to-id as a second argument
+	(twittering-enter, twittering-organic-retweet)
+	(twittering-direct-message, twittering-reply-to-user): use
+	twittering-edit-status
 
 2010-01-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 

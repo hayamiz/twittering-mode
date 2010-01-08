@@ -913,16 +913,8 @@ Return nil if STR is invalid as a timeline spec."
   (goto-char (point-min))
   (setq buffer-undo-list nil)
   (make-local-variable 'twittering-help-overlay)
-  (let ((help-overlay (make-overlay (- (point-max) 1) (point-max) nil t t)))
-    (overlay-put help-overlay 'face 'font-lock-comment-face)
-    (overlay-put help-overlay 'display
-		 "---- text under this line is ignored ----
-Keymap:
-  C-c C-c: post a tweet
-  C-c C-k: cancel a tweet
-  M-n    : next history element
-  M-p    : previous history element")
-    (setq twittering-help-overlay help-overlay))
+  (setq twittering-help-overlay nil)
+  (twittering-edit-setup-help)
   
   (make-local-variable 'twittering-edit-local-history)
   (setq twittering-edit-local-history (cons (buffer-string)
@@ -942,6 +934,21 @@ Keymap:
     (define-key km (kbd "M-n") 'twittering-edit-next-history)
     (define-key km (kbd "M-p") 'twittering-edit-previous-history)
     (define-key km (kbd "F4") 'twittering-tinyurl-replace-at-point)))
+
+(defun twittering-edit-setup-help ()
+  (let ((help-overlay
+	 (or twittering-help-overlay
+	     (make-overlay (- (point-max) 1) (point-max) nil t t))))
+    (move-overlay help-overlay (- (point-max) 1) (point-max))
+    (overlay-put help-overlay 'face 'font-lock-comment-face)
+    (overlay-put help-overlay 'display
+		 "---- text under this line is ignored ----
+Keymap:
+  C-c C-c: post a tweet
+  C-c C-k: cancel a tweet
+  M-n    : next history element
+  M-p    : previous history element")
+    (setq twittering-help-overlay help-overlay)))
 
 (defun twittering-edit-close ()
   (kill-buffer (current-buffer))
@@ -984,7 +991,9 @@ Keymap:
       (decf twittering-edit-local-history-idx)
       (erase-buffer)
       (insert (nth twittering-edit-local-history-idx
-		   twittering-edit-local-history)))))
+		   twittering-edit-local-history))
+      (twittering-edit-setup-help)
+      (goto-char (point-min)))))
 
 (defun twittering-edit-previous-history ()
   (interactive)
@@ -997,7 +1006,9 @@ Keymap:
       (incf twittering-edit-local-history-idx)
       (erase-buffer)
       (insert (nth twittering-edit-local-history-idx
-		   twittering-edit-local-history))))
+		   twittering-edit-local-history))
+      (twittering-edit-setup-help)
+      (goto-char (point-min))))
   )
 
 (defun twittering-update-mode-line ()

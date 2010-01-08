@@ -145,6 +145,13 @@
 	(twittering-tinyurl-get): `buffer' are killed even if
 	`search-forward-regexp' fails.
 
+2010-01-09  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-edit-setup-help): add to setup
+	help overlay in pop-up buffer
+	(twittering-edit-next-history, twittering-edit-previous-history):
+	use twittering-edit-setup-help
+
 2010-01-08  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-percent-encode): bug fix:

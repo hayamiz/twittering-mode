@@ -7,6 +7,8 @@
 	(twittering-get-response-header): Likewise.
 	(twittering-get-response-body): Likewise.
 	(twittering-tinyurl-get): Likewise.
+	(twittering-tinyurl-get): `buffer' are killed even if
+	`search-forward-regexp' fails.
 
 2010-01-08  Yuto Hayamizu  <y.hayamizu@gmail.com>
 

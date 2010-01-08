@@ -164,6 +164,9 @@
 	history for pop-up buffer
 	(twittering-edit-mode-map): defined key for next/previous-history
 	(twittering-edit-mode): initialize local variables for history
+	(twittering-edit-mode): setup help string overlay
+	(twittering-edit-post-status): don't close buffer if tweet is
+	empty
 
 2010-01-08  Tadashi MATSUO  <tad@mymail.twin.jp>
 

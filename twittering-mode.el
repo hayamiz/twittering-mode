@@ -906,12 +906,30 @@ Return nil if STR is invalid as a timeline spec."
   (twittering-stop)
   (twittering-start))
 
-(define-derived-mode twittering-edit-mode text-mode "Twittering Status Edit"
+(define-derived-mode twittering-edit-mode text-mode "twmode-status-edit"
   (use-local-map twittering-edit-mode-map)
+
+  (insert "\n\n\n")
+  (goto-char (point-min))
+  (setq buffer-undo-list nil)
+  (make-local-variable 'twittering-help-overlay)
+  (let ((help-overlay (make-overlay (- (point-max) 1) (point-max) nil t t)))
+    (overlay-put help-overlay 'face 'font-lock-comment-face)
+    (overlay-put help-overlay 'display
+		 "---- text under this line is ignored ----
+Keymap:
+  C-c C-c: post a tweet
+  C-c C-k: cancel a tweet
+  M-n    : next history element
+  M-p    : previous history element")
+    (setq twittering-help-overlay help-overlay))
+  
   (make-local-variable 'twittering-edit-local-history)
-  (setq twittering-edit-local-history (cons "" twittering-edit-history))
+  (setq twittering-edit-local-history (cons (buffer-string)
+					    twittering-edit-history))
   (make-local-variable 'twittering-edit-local-history-idx)
-  (setq twittering-edit-local-history-idx 0))
+  (setq twittering-edit-local-history-idx 0)
+  )
 
 (defvar twittering-pre-edit-window-configuration nil)
 
@@ -945,11 +963,12 @@ Return nil if STR is invalid as a timeline spec."
   (let ((status (buffer-string)))
     (setq twittering-edit-history
 	  (cons status twittering-edit-history))
-    (when (twittering-status-not-blank-p status)
-      (let ((parameters `(("status" . ,status)
-			  ("source" . "twmode"))))
-	(twittering-http-post "twitter.com" "statuses/update" parameters))))
-  (twittering-edit-close))
+    (if (twittering-status-not-blank-p status)
+	(let ((parameters `(("status" . ,status)
+			    ("source" . "twmode"))))
+	  (twittering-http-post "twitter.com" "statuses/update" parameters)
+	  (twittering-edit-close))
+      (message "Empty tweet!"))))
 
 (defun twittering-edit-cancel-status ()
   (interactive)

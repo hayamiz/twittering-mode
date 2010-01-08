@@ -177,7 +177,11 @@ Items:
 ")
 
 (defvar twittering-use-show-minibuffer-length t
-  "*Show current length of minibuffer if this variable is non-nil.")
+  "*Show current length of minibuffer if this variable is non-nil.
+
+We suggest that you should set to nil to disable the showing function
+when it conflict with your input method (such as AquaSKK, etc.)")
+
 (defvar twittering-notify-successful-http-get t)
 
 (defvar twittering-use-ssl t

@@ -1,3 +1,8 @@
+2010-01-08  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-use-show-minibuffer-length): Add
+	suggestion into a docstring.
+
 2010-01-07  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-url-reserved-p): bug fix: some

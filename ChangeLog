@@ -74,6 +74,10 @@
 	(twittering-retrieve-image-with-wget): delete
 	(twittering-retrieve-image): changed default image type from png
 	to xpm
+	(twittering-image-type): bug fix in the case of bitmap
+	(twittering-retrieve-image): handle error of determining image
+	type.
+	(twittering-image-type): let case-fold-search is t.
 
 	* url-emacs21/*: add url library for emacs21
 	

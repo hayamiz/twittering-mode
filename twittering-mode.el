@@ -317,7 +317,8 @@ invoking \"convert\". Otherwise, cropped images are displayed.")
 (defun twittering-image-type (image-url buffer)
   "Return the type of a given image based on the URL(IMAGE-URL)
 and its contents(BUFFER)"
-  (let ((type-cache (assoc image-url twittering-image-type-cache)))
+  (let ((type-cache (assoc image-url twittering-image-type-cache))
+	(case-fold-search t))
     (if type-cache
 	(cdr type-cache)
       (let ((image-type
@@ -332,11 +333,11 @@ and its contents(BUFFER)"
 					  nil res-buf nil "-b" "-")))
 		 (let ((file-output (buffer-string)))
 		   (cond
-			   ((string-match "JPEG" file-output) 'jpeg)
-			   ((string-match "PNG" file-output) 'png)
-			   ((string-match "GIF" file-output) 'gif)
-			   ((string-match "bitmap" 'bitmap))
-			   (t nil)))))
+		    ((string-match "JPEG" file-output) 'jpeg)
+		    ((string-match "PNG" file-output) 'png)
+		    ((string-match "GIF" file-output) 'gif)
+		    ((string-match "bitmap" file-output) 'bitmap)
+		    (t nil)))))
 	      ((string-match "\\.jpe?g\\(\\?[^/]+\\)?$" image-url) 'jpeg)
 	      ((string-match "\\.png\\(\\?[^/]+\\)?$" image-url) 'png)
 	      ((string-match "\\.gif\\(\\?[^/]+\\)?$" image-url) 'gif)
@@ -1977,7 +1978,8 @@ following symbols;
 	       (point-min) (point-max)
 	       twittering-convert-program
 	       t t nil
-	       (format "%s:-" image-type) "-resize"
+	       (if image-type (format "%s:-" image-type) "-")
+	       "-resize"
 	       (format "%dx%d" twittering-convert-fix-size
 		       twittering-convert-fix-size)
 	       "xpm:-")

@@ -159,6 +159,11 @@
 
 	* twittering-mode.el (twittering-status-not-blank-p): bug fix:
 	always return nil with strings with trailing newline.
+	(twittering-edit-next-history): add.
+	(twittering-edit-previous-history, twittering-edit-history): add
+	history for pop-up buffer
+	(twittering-edit-mode-map): defined key for next/previous-history
+	(twittering-edit-mode): initialize local variables for history
 
 2010-01-08  Tadashi MATSUO  <tad@mymail.twin.jp>
 

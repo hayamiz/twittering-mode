@@ -907,14 +907,22 @@ Return nil if STR is invalid as a timeline spec."
   (twittering-start))
 
 (define-derived-mode twittering-edit-mode text-mode "Twittering Status Edit"
-  (use-local-map twittering-edit-mode-map))
+  (use-local-map twittering-edit-mode-map)
+  (make-local-variable 'twittering-edit-local-history)
+  (setq twittering-edit-local-history (cons "" twittering-edit-history))
+  (make-local-variable 'twittering-edit-local-history-idx)
+  (setq twittering-edit-local-history-idx 0))
 
 (defvar twittering-pre-edit-window-configuration nil)
+
+(defvar twittering-edit-history nil)
 
 (when twittering-edit-mode-map
   (let ((km twittering-edit-mode-map))
     (define-key km (kbd "C-c C-c") 'twittering-edit-post-status)
     (define-key km (kbd "C-c C-k") 'twittering-edit-cancel-status)
+    (define-key km (kbd "M-n") 'twittering-edit-next-history)
+    (define-key km (kbd "M-p") 'twittering-edit-previous-history)
     (define-key km (kbd "F4") 'twittering-tinyurl-replace-at-point)))
 
 (defun twittering-edit-close ()
@@ -935,6 +943,8 @@ Return nil if STR is invalid as a timeline spec."
 (defun twittering-edit-post-status ()
   (interactive)
   (let ((status (buffer-string)))
+    (setq twittering-edit-history
+	  (cons status twittering-edit-history))
     (when (twittering-status-not-blank-p status)
       (let ((parameters `(("status" . ,status)
 			  ("source" . "twmode"))))
@@ -944,6 +954,32 @@ Return nil if STR is invalid as a timeline spec."
 (defun twittering-edit-cancel-status ()
   (interactive)
   (twittering-edit-close))
+
+(defun twittering-edit-next-history ()
+  (interactive)
+  (if (<= twittering-edit-local-history-idx 0)
+      (message "End of history.")
+    (let ((current-history (nthcdr twittering-edit-local-history-idx
+				   twittering-edit-local-history)))
+      (setcar current-history (buffer-string))
+      (decf twittering-edit-local-history-idx)
+      (erase-buffer)
+      (insert (nth twittering-edit-local-history-idx
+		   twittering-edit-local-history)))))
+
+(defun twittering-edit-previous-history ()
+  (interactive)
+  (if (>= twittering-edit-local-history-idx
+	  (- (length twittering-edit-local-history) 1))
+      (message "Beginning of history.")
+    (let ((current-history (nthcdr twittering-edit-local-history-idx
+				   twittering-edit-local-history)))
+      (setcar current-history (buffer-string))
+      (incf twittering-edit-local-history-idx)
+      (erase-buffer)
+      (insert (nth twittering-edit-local-history-idx
+		   twittering-edit-local-history))))
+  )
 
 (defun twittering-update-mode-line ()
   "Update mode line"

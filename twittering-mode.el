@@ -1007,8 +1007,8 @@ Keymap:
 	(let ((parameters `(("status" . ,status)
 			    ("source" . "twmode")
 			    ,@(if twittering-reply-to-id
-				  (cons "in_reply_to_status_id"
-					(format "%s" reply-to-id))
+				  `(("in_reply_to_status_id" .
+				     ,(format "%s" twittering-reply-to-id)))
 				nil))))
 	  (twittering-http-post "twitter.com" "statuses/update" parameters)
 	  (twittering-edit-close))

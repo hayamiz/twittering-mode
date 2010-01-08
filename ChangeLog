@@ -147,6 +147,7 @@
 	(twittering-enter, twittering-organic-retweet)
 	(twittering-direct-message, twittering-reply-to-user): use
 	twittering-edit-status
+	(twittering-edit-post-status): bug fix.
 
 2010-01-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 

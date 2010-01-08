@@ -86,12 +86,12 @@
 (defcase test-percent-encode nil nil
   (test-assert-string-equal "Rinko"
     (twittering-percent-encode "Rinko"))
-  
   (test-assert-string-equal "%25"
     (twittering-percent-encode "%"))
-  
   (test-assert-string-equal "love+plus"
-    (twittering-percent-encode "love plus")))
+    (twittering-percent-encode "love plus"))
+  (test-assert-string-equal "%0a"
+    (twittering-percent-encode "\n")))
 
 (with-network
  (when (require 'url nil t)

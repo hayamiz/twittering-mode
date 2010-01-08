@@ -1518,7 +1518,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
       ((twittering-url-reserved-p c)
        (char-to-string c))
       ((eq c ? ) "+")
-      (t (format "%%%x" c))))
+      (t (format "%%%02x" c))))
    (encode-coding-string str coding-system)
    ""))
 

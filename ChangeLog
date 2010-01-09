@@ -1,3 +1,8 @@
+2010-01-09  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-status-to-status-datum): Change
+	retweet related variables to local scope from global one.
+
 2010-01-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-http-get-list-index-sentinel):
@@ -158,7 +163,8 @@
 	* test/test-twittering-mode.el (timeline-spec): add tests for new
 	timeline spec.
 
-2010-01-03  Michael D. Ivey <ivey@gweezlebur.com>
+2010-01-03  Michael D. Ivey  <ivey@gweezlebur.com>
+
 	* twittering-mode.el (twittering-retweet): Add support for native
 	retweets
 

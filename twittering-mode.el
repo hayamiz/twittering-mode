@@ -1382,22 +1382,18 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	   user-url
 	   user-protected
 	   regex-index
+	   (retweeted-status-data (cddr (assq 'retweeted_status status-data)))
 	   original-user-name
 	   original-user-screen-name)
 
-      (setq retweeted-status-data (cddr (assq 'retweeted_status status-data)))
-      (setq retweet? (and retweeted-status-data twittering-use-native-retweets))
-
-      (if retweet?
-	  (progn
-	    (setq original-status-data status-data
-		  original-user-data user-data
-		  status-data retweeted-status-data
-		  user-data (cddr (assq 'user status-data))
-		  original-user-screen-name (twittering-decode-html-entities
-					     (assq-get 'screen_name original-user-data))
-		  original-user-name (twittering-decode-html-entities
-				      (assq-get 'name original-user-data)))))
+      ;; save original status and adjust data if status was retweeted
+      (when (and retweeted-status-data twittering-use-native-retweets)
+	(setq original-user-screen-name (twittering-decode-html-entities
+					 (assq-get 'screen_name user-data))
+	      original-user-name (twittering-decode-html-entities
+				  (assq-get 'name user-data)))
+	(setq status-data retweeted-status-data
+	      user-data (cddr (assq 'user retweeted-status-data))))
 
       (setq id (assq-get 'id status-data))
       (setq text (twittering-decode-html-entities

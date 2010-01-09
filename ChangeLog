@@ -3,6 +3,17 @@
 	* twittering-mode.el (twittering-status-to-status-datum): Change
 	retweet related variables to local scope from global one.
 
+	* twittering-mode.el (twittering-extract-timeline-spec): Change
+	syntax of error message to fit the GNU Emacs Lisp convention.
+	(twittering-timeline-spec-to-host-method): Likewise.
+	(twittering-get-and-render-timeline): Likewise.
+
+	* twittering-mode.el (twittering-extract-timeline-spec): Remove an
+	unnecessary call to `format' because all arguments of `error' pass
+	to `format'.
+	(twittering-timeline-spec-to-host-method): Likewise.
+	(twittering-get-and-render-timeline): Likewise.
+
 2010-01-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-http-get-list-index-sentinel):

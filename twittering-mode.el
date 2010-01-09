@@ -583,7 +583,7 @@ Return cons of the spec and the rest string."
 		   (spec (car pair))
 		   (rest (cdr pair)))
 	      `((filter ,regexp ,spec) . ,rest))
-	  (error (format "\"%s\" has no valid regexp." str))
+	  (error "\"%s\" has no valid regexp" str)
 	  nil))
        (t
 	nil))))
@@ -592,13 +592,12 @@ Return cons of the spec and the rest string."
 	   (rest (substring str (match-end 1)))
 	   (value (cdr-safe (assoc name twittering-timeline-spec-alias))))
       (if (member name unresolved-aliases)
-	  (error (format "Alias \"%s\" includes a recursive reference."
-			 name))
+	  (error "Alias \"%s\" includes a recursive reference" name)
 	(if value
 	    (twittering-extract-timeline-spec
 	     (concat value rest)
 	     (cons name unresolved-aliases))
-	  (error (format "Alias \"%s\" is undefined." name))))))
+	  (error "Alias \"%s\" is undefined" name)))))
    ((string-match "^(" str)
     (let* ((rest (concat "+" (substring str (match-end 0))))
 	   (result '()))
@@ -621,7 +620,7 @@ Return cons of the spec and the rest string."
 		`(,(car spec-list) . ,(substring rest 1))
 	      `((merge ,@spec-list) . ,(substring rest 1))))
 	(if rest
-	    (error (format "\"%s\" lacks a closing parenthesis." str)))
+	    (error "\"%s\" lacks a closing parenthesis" str))
 	nil)))
    (t
     nil)
@@ -670,7 +669,7 @@ Return nil if STR is invalid as a timeline spec."
 	      ,(concat "1/" username "/lists/" list-name "/statuses" ))))
 	 ((or (eq type 'direct-messages)
 	      (eq type 'direct-messages-sent))
-	  (error (format "%s has not been supported yet." type)))
+	  (error "%s has not been supported yet" type))
 	 ((eq type 'friends)
 	  '("twitter.com" "statuses/friends_timeline"))
 	 ((eq type 'home)
@@ -688,7 +687,7 @@ Return nil if STR is invalid as a timeline spec."
 	 ((eq type 'retweets_of_me)
 	  '("api.twitter.com" "1/statuses/retweets_of_me"))
 	 (t
-	  (error "Invalid timeline spec.")
+	  (error "Invalid timeline spec")
 	  nil)))
     nil))
 
@@ -1962,9 +1961,8 @@ following symbols;
 	 (spec ;; normalized spec.
 	  (twittering-string-to-timeline-spec spec-string)))
     (when (null spec)
-      (error
-       (format "\"%s\" is invalid as a timeline spec."
-	       (or spec-string original-spec))))
+      (error "\"%s\" is invalid as a timeline spec"
+	     (or spec-string original-spec)))
     (setq twittering-last-requested-timeline-spec-string spec-string)
     (unless
 	(and twittering-last-retrieved-timeline-spec-string
@@ -1979,7 +1977,7 @@ following symbols;
 		  (method (cadr pair)))
 	      (twittering-get-twits host method noninteractive id))))
       (let ((type (car spec)))
-	(error (format "%s has not been supported yet." type))))))
+	(error "%s has not been supported yet" type)))))
 
 (defun twittering-retrieve-image (images)
   (if twittering-use-wget

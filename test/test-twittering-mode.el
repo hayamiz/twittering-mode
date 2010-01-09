@@ -361,4 +361,5 @@
   (test-assert-ok (twittering-status-not-blank-p "@baz\n\nhello"))
   (test-assert-ok (twittering-status-not-blank-p "\nhello"))
   (test-assert-ok (twittering-status-not-blank-p "hello\n"))
+  (test-assert-ok (twittering-status-not-blank-p "@foo hello @bar"))
   )

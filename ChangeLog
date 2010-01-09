@@ -1,7 +1,12 @@
 2010-01-10  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
+	* test/test-twittering-mode.el (test-status-not-blank-p): add a
+	testcase reproducing the bug of twittering-status-not-blank-p.
+
 	* twittering-mode.el (twittering-use-native-retweet): renamed from
 	twittering-use-native-retweets
+	(twittering-status-not-blank-p): bug fix: return nil if a status
+	is ended by '@foo'.
 
 2010-01-09  Satoshi Yatagawa  <yata_github@y.hauN.org>
 

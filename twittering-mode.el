@@ -1848,8 +1848,8 @@ following symbols;
   (with-temp-buffer
     (insert status)
     (goto-char (point-min))
-    (while (re-search-forward "@[-_a-z0-9]+" nil t)
-      nil) ;; skip user name
+    ;; skip user name
+    (re-search-forward "@[-_a-z0-9]+\\([\n\r \t]+@[-_a-z0-9]+\\)*" nil t)
     (re-search-forward "[^\n\r \t]+" nil t)))
 
 (defun twittering-update-status-from-minibuffer (&optional init-str reply-to-id)

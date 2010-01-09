@@ -1002,7 +1002,7 @@ Keymap:
   (interactive)
   (let ((status (twittering-edit-extract-status)))
     (setq twittering-edit-history
-	  (cons status twittering-edit-history))
+	  (cons (concat status "\n\n\n") twittering-edit-history))
     (if (twittering-status-not-blank-p status)
 	(let ((parameters `(("status" . ,status)
 			    ("source" . "twmode")

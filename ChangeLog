@@ -106,6 +106,9 @@
 	twittering-use-native-retweets
 	(twittering-status-not-blank-p): bug fix: return nil if a status
 	is ended by '@foo'.
+	
+	* twittering-mode.el (twittering-edit-post-status): add trailing
+	newlines to new history element because help-overlay need it.
 
 	* twittering-mode.el (twittering-make-display-spec-for-icon):
 	returns nil if the type of the image is not supported.

@@ -2384,11 +2384,16 @@ following symbols;
 	  data))
 
 (defun twittering-read-username-with-completion (prompt init-user &optional history)
-  (completing-read prompt
-		   (append (twittering-make-list-from-assoc
-			    'user-screen-name twittering-timeline-data)
-			   twittering-user-history)
-		   nil nil init-user history))
+  ;; completing-read() of Emacs21 does not accepts candidates as a
+  ;; list. Candidates must be given as an alist.
+  (let ((user-alist (mapcar
+		     (lambda (x) (cons x nil))
+		     (append (twittering-make-list-from-assoc
+			      'user-screen-name twittering-timeline-data)
+			     twittering-user-history))))
+    (when (fboundp 'delete-dups)
+      (delete-dups user-alist))
+    (completing-read prompt user-alist nil nil init-user history)))
 
 (defun twittering-read-list-name (username &optional list-index)
   (let* ((list-index (or list-index

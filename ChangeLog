@@ -19,6 +19,11 @@
 	(twittering-timeline-spec-to-host-method): Likewise.
 	(twittering-get-and-render-timeline): Likewise.
 
+	* twittering-mode.el (twittering-read-username-with-completion):
+	Convert a list of username strings to an alist before calling
+	`completing-read' to work on Emacs21; same as
+	`twittering-read-timeline-spec-with-completion'.
+
 2010-01-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-http-get-list-index-sentinel):

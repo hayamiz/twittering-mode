@@ -1238,8 +1238,9 @@ Available keywords:
 		  (message (if suc-msg suc-msg "Success: Get."))))
 	       (t (message status))))
 	  (message "Failure: Bad http response.")))
-      (when (and (not twittering-debug-mode) (buffer-live-p temp-buffer))
-	(kill-buffer temp-buffer)))
+    ;; unwindforms
+    (when (and (not twittering-debug-mode) (buffer-live-p temp-buffer))
+      (kill-buffer temp-buffer)))
   )
 
 ;; XXX: this is a preliminary implementation because we should parse
@@ -1270,6 +1271,7 @@ Available keywords:
 		      (setq twittering-list-index-retrieved "")))))
 	       (t
 		(setq twittering-list-index-retrieved status)))))))
+    ;; unwindforms
     (when (and (not twittering-debug-mode) (buffer-live-p temp-buffer))
       (kill-buffer temp-buffer)))
   )
@@ -1305,8 +1307,9 @@ PARAMETERS is alist of URI parameters.
 		      (message (if suc-msg suc-msg "Success: Post")))
 		     (t (message "Response status code: %s" status)))
 	)
-      (when (and (not twittering-debug-mode) (buffer-live-p temp-buffer))
-	(kill-buffer temp-buffer)))
+    ;; unwindforms
+    (when (and (not twittering-debug-mode) (buffer-live-p temp-buffer))
+      (kill-buffer temp-buffer)))
   )
 
 (defun twittering-get-response-header (buffer)
@@ -1861,7 +1864,7 @@ following symbols;
 	(minibuffer-message-timeout nil))
     (define-key map (kbd "<f4>") 'twittering-tinyurl-replace-at-point)
     (when twittering-use-show-minibuffer-length
-    (add-hook 'minibuffer-setup-hook 'twittering-setup-minibuffer t)
+      (add-hook 'minibuffer-setup-hook 'twittering-setup-minibuffer t)
       (add-hook 'minibuffer-exit-hook 'twittering-finish-minibuffer t))
     (unwind-protect
 	(while not-posted-p
@@ -1880,6 +1883,7 @@ following symbols;
 		    (twittering-http-post "twitter.com" "statuses/update" parameters)
 		    (setq not-posted-p nil)))
 		))))
+      ;; unwindforms
       (when (memq 'twittering-setup-minibuffer minibuffer-setup-hook)
 	(remove-hook 'minibuffer-setup-hook 'twittering-setup-minibuffer))
       (when (memq 'twittering-finish-minibuffer minibuffer-exit-hook)

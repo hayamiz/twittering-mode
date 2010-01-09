@@ -200,7 +200,7 @@ SSL connections use 'curl' command as a backend.")
 (defvar twittering-username-face 'twittering-username-face)
 (defvar twittering-uri-face 'twittering-uri-face)
 
-(defvar twittering-use-native-retweets nil
+(defvar twittering-use-native-retweet nil
   "Post retweets using native retweets if this variable is non-nil.")
 
 ;;;
@@ -1389,7 +1389,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	   original-user-screen-name)
 
       ;; save original status and adjust data if status was retweeted
-      (when (and retweeted-status-data twittering-use-native-retweets)
+      (when (and retweeted-status-data twittering-use-native-retweet)
 	(setq original-user-screen-name (twittering-decode-html-entities
 					 (assq-get 'screen_name user-data))
 	      original-user-name (twittering-decode-html-entities
@@ -2232,7 +2232,7 @@ following symbols;
 
 (defun twittering-retweet ()
   (interactive)
-  (if twittering-use-native-retweets
+  (if twittering-use-native-retweet
       (twittering-native-retweet)
     (twittering-organic-retweet)))
 

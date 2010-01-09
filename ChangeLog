@@ -1,3 +1,8 @@
+2010-01-10  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-use-native-retweet): renamed from
+	twittering-use-native-retweets
+
 2010-01-09  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-status-to-status-datum): Change

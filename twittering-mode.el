@@ -692,7 +692,7 @@ Return nil if STR is invalid as a timeline spec."
 	  nil)))
     nil))
 
-(defun twittering-host-method-to-timeline-spec(host method)
+(defun twittering-host-method-to-timeline-spec (host method)
   (cond
    ((or (not (stringp host)) (not (stringp method))) nil)
    ((string= host "twitter.com")
@@ -925,13 +925,13 @@ PARAMETERS: http request parameters (query string)
       (error "Unknown HTTP method: %s" method))
     (unless (string-match "^/" path)
       (error "Invalid HTTP path: %s" path))
-    
+
     (unless (assoc "Host" headers)
       (setq headers (cons `("Host" . ,host) headers)))
     (unless (assoc "User-Agent" headers)
       (setq headers (cons `("User-Agent" . ,(twittering-user-agent))
 			  headers)))
-    
+
     (let ((curl-program (twittering-find-curl-program)))
       (when twittering-use-ssl
 	(cond 
@@ -953,7 +953,7 @@ PARAMETERS: http request parameters (query string)
 		     (twittering-update-mode-line))
 	    (message "Request canceled")
 	    (return)))))
-      
+
       (if twittering-use-ssl
 	  (twittering-start-http-ssl-session
 	   curl-program method headers host port path parameters
@@ -1012,7 +1012,7 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 		 twittering-proxy-password)
 	(nconc curl-args `("-U" ,(format "%s:%s" twittering-proxy-user
 					   twittering-proxy-password)))))
-    
+
     (flet ((request (key) (funcall request key)))
       (nconc curl-args `(,(if parameters
 			      (concat (request :uri) "?"
@@ -1315,7 +1315,7 @@ PARAMETERS is alist of URI parameters.
 `buffer' may be a buffer or the name of an existing buffer which contains the HTTP response."
   (if (stringp buffer)
       (setq buffer (get-buffer buffer)))
-  
+
   ;; FIXME:
   ;; curl prints HTTP proxy response header, so strip it
   (with-current-buffer buffer
@@ -1420,7 +1420,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
       (setq user-profile-image-url (assq-get 'profile_image_url user-data))
       (setq user-url (assq-get 'url user-data))
       (setq user-protected (assq-get 'protected user-data))
-      
+
       ;; make username clickable
       (add-text-properties
        0 (length user-name)
@@ -1445,11 +1445,11 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 		  (screen-name (match-string 1 text)))
 	      (when (eq next-pos pos)
 		(return nil))
-	      
+
 	      (add-text-properties
 	       (match-beginning 1) (match-end 1)
 	       `(screen-name-in-text ,screen-name) text)
-	      
+
 	      (setq pos next-pos)))))
 
       ;; make URI clickable

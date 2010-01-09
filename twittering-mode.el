@@ -2409,7 +2409,7 @@ following symbols;
 	 (dummy-hist
 	  (if (< emacs-major-version 22)
 	      ;; Emacs21 does not have delete-dups().
-	      ;; compeleting-read() of Emacs21 does not accepts candidates as
+	      ;; completing-read() of Emacs21 does not accepts candidates as
 	      ;; a list. Candidates must be given as an alist.
 	      (mapcar (lambda (x) (cons x nil)) dummy-hist)
 	    (delete-dups dummy-hist)))

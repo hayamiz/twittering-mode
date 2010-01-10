@@ -17,7 +17,7 @@ HTML_ASSETS := style.css images
 
 all: publish
 
-.text.html: $(PUBLISH)
+.text.html: $(PUBLISH) header.rhtml footer.rhtml
 	$(PUBLISH) -H header.rhtml -F footer.rhtml \
 	  -d lang=\"en\" -d langs="\"$(LANGS)\".split" -d file=\"$@\" \
 	  -o $@ $<

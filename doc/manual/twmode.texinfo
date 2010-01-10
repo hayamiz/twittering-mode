@@ -63,14 +63,109 @@ The document was typeset with
 
 @itemize @bullet
 @item
-Download the latest twittering-mode from http://twmode.sf.net/
+Download the latest twittering-mode from
+@uref{http://twmode.sf.net/,http://twmode.sf.net/}, and expand it.
 @item
-...
+Copy following files and directories to the same directory, which is
+included in your @code{load-path}:
+@itemize @bullet
+@item
+@file{twittering-mode.el}
+@item
+(Windows users only) @file{win-curl/}
+@item
+(Emacs21 or older users only) @file{url-emacs21/}
+@end itemize
+@item
+If you are using GNU Emacs on Windows, you might need following
+libraries in order to display images(png, jpeg, gif):
+@itemize
+@item
+@uref{http://gnuwin32.sourceforge.net/packages/jpeg.htm,GnuWin32 Jpeg}
+@item
+@uref{http://gnuwin32.sourceforge.net/packages/libpng.htm,GnuWin32 LibPng}
+@item
+@uref{http://gnuwin32.sourceforge.net/packages/giflib.htm,GnuWin32 GifLib}
+@item
+Download binaries and copy *.dll files to the directory where
+emacs.exe exists.
+@end itemize
 @end itemize
 
 @section Quick start
 
-quick start
+Add following code to your @file{.emacs}:
+
+@example
+(add-to-list 'load-path "/path/to/installed/dir") ;; if you need
+(require 'twittering-mode)
+@end example
+
+and execute
+
+@example
+M-x twit
+@end example
+
+Then you are prompted to enter your Twitter username and
+password. After that, your friends timeline will appear in
+@code{*twittering*} buffer.
+
+@subheading Browsing timelines
+
+You can see some kinds of timelines on twittering-mode.
+
+@itemize
+@item
+@code{g}: Reload current timeline
+@item
+@code{C-c C-f}: Friends timeline
+@item
+@code{C-c C-r}: Replies
+@item
+@code{V} and enter @var{USERNAME}: Show @var{USERNAME}'s tweets
+@item
+@code{C-c C-u}: Your tweets
+@item
+@code{C-c C-g}: Public timeline
+@end itemize
+
+Following commands help you move around a timeline.
+
+@itemize
+@item
+@code{j}: next tweet.
+@item
+@code{k}: previous tweet.
+@item
+@code{h}: move to left.
+@item
+@code{l}: move to right.
+@item
+@code{i}: on/off icon-mode
+@item
+@code{TAB}: next interesting things(usernames, links ...)
+@item
+@code{G}: go to the end of the buffer
+@item
+@code{H}: go to the beginning of the buffer
+
+@end itemize
+
+@subheading Posting your tweet
+
+@itemize
+@item
+@code{C-c C-s}: Post tweet from minibuffer.
+@end itemize
+
+@subheading And more settings
+
+Some more settings will make your twittering-mode life better.
+
+@example
+(setq twittering-username "YOURNAME")
+@end example
 
 @node Introduction
 @chapter Introduction

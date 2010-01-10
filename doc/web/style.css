@@ -171,6 +171,7 @@ line-height: 30px;
 #top {
 background: #555 url(images/top.jpg) no-repeat;
 padding: 5px 0;
+clear: both;
 }
 #bottom {
 background: #555 url(images/bottom.jpg) no-repeat;

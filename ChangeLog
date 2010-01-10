@@ -1,3 +1,16 @@
+2010-01-11  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-status-format): modify the
+	meaning of the specifier "%t" to remove implicit filling as a
+	paragraph.
+	(twittering-render-timeline): remove implicit filling a text as a
+	paragraph. In addition, a newline as a delimiter is added by
+	`twittering-format-status'.
+	(twittering-format-status): with "%t", fill a text as a paragraph.
+	This function adds a newline at the end of status instead of
+	`twittering-render-timeline'. Then, the newline as a delimiter
+	also has the same text properties as the body of the tweet.
+
 2010-01-10  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-remove-duplicates): add for

@@ -166,7 +166,7 @@ Items:
  %c - created_at (raw UTC string)
  %C{time-format-str} - created_at (formatted with time-format-str)
  %@ - X seconds ago
- %t - text
+ %t - text filled as one paragraph
  %' - truncated
  %f - source
  %# - id
@@ -1606,10 +1606,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
       (erase-buffer)
       (mapc (lambda (status)
 	      (insert (twittering-format-status
-		       status twittering-status-format))
-	      (fill-region-as-paragraph
-	       (line-beginning-position) (point))
-	      (insert "\n"))
+		       status twittering-status-format)))
 	    twittering-timeline-data)
       (if (and twittering-image-stack window-system)
 	  (clear-image-cache))
@@ -1814,9 +1811,20 @@ following symbols;
 
 	      ("S" . ,(attr 'user-name))
 	      ("s" . ,(attr 'user-screen-name))
-	      ("t" . ,(attr 'text))
+	      ("t" .
+	       ,(lambda (context)
+		  (let* ((str (cdr (assq 'processed-string context)))
+			 (prefix (if (string-match "\\([^\n]*\\)\\'" str)
+				     (match-string 1 str)
+				   ""))
+			 (text (concat prefix (attr 'text))))
+		    (with-temp-buffer
+		      (insert text)
+		      (fill-region-as-paragraph (point-min) (point-max))
+		      (buffer-substring (1+ (length prefix)) (point-max))))))
 	      ("u" . ,(attr 'user-url))
 	      ))
+	   (format-str (concat format-str "\n"))
 	   (formatted-status
 	    (twittering-format-string format-str "%" replace-table)))
       (add-text-properties

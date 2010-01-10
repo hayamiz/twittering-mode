@@ -307,7 +307,15 @@ icon mode; otherwise, turn off icon mode."
 
 (defvar twittering-image-stack nil)
 (defvar twittering-image-type-cache nil)
-(defvar twittering-convert-program (executable-find "convert"))
+(defvar twittering-convert-program
+  (let ((program (executable-find "convert")))
+    (and program
+	 (with-temp-buffer
+	   (call-process program nil (current-buffer) nil
+			 "--version")
+	   (goto-char (point-min))
+	   (and (search-forward "ImageMagick" nil t)
+		program)))))
 (defvar twittering-convert-fix-size 48)
 (defvar twittering-use-convert (not (null (executable-find "convert")))
   "*This variable makes a sense only if `twittering-convert-fix-size'

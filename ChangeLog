@@ -1,3 +1,9 @@
+2010-01-10  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-convert-program): checks whether
+	'convert' is a part of ImageMagick. Windows XP has 'convert.exe'
+	in WINDOWS/system32, which is a partition converter.
+
 2010-01-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-status-format): modify the

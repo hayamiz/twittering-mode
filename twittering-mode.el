@@ -317,7 +317,7 @@ icon mode; otherwise, turn off icon mode."
 	   (and (search-forward "ImageMagick" nil t)
 		program)))))
 (defvar twittering-convert-fix-size 48)
-(defvar twittering-use-convert (not (null (executable-find "convert")))
+(defvar twittering-use-convert (not (null twittering-convert-program))
   "*This variable makes a sense only if `twittering-convert-fix-size'
 is non-nil. If this variable is non-nil, icon images are converted by
 invoking \"convert\". Otherwise, cropped images are displayed.")

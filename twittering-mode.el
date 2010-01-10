@@ -307,15 +307,7 @@ icon mode; otherwise, turn off icon mode."
 
 (defvar twittering-image-stack nil)
 (defvar twittering-image-type-cache nil)
-(defvar twittering-convert-program
-  (let ((program (executable-find "convert")))
-    (and program
-	 (with-temp-buffer
-	   (call-process program nil (current-buffer) nil
-			 "--version")
-	   (goto-char (point-min))
-	   (and (search-forward "ImageMagick" nil t)
-		program)))))
+(defvar twittering-convert-program (executable-find "convert"))
 (defvar twittering-convert-fix-size 48)
 (defvar twittering-use-convert (not (null twittering-convert-program))
   "*This variable makes a sense only if `twittering-convert-fix-size'
@@ -881,6 +873,15 @@ Return nil if STR is invalid as a timeline spec."
 ;;   (add-to-list 'minor-mode-alist '(twittering-jojo-mode " tw-jojo"))
   (setq twittering-username-active twittering-username)
   (setq twittering-password-active twittering-password)
+  (when twittering-use-convert
+    (if (null twittering-convert-program)
+	(setq twittering-use-convert nil)
+      (with-temp-buffer
+	(call-process twittering-convert-program nil (current-buffer) nil
+		      "-version")
+	(goto-char (point-min))
+	(if (null (search-forward-regexp "\\(Image\\|Graphics\\)Magick" nil t))
+	    (setq twittering-use-convert nil)))))
   (twittering-setup-proxy)
   )
 

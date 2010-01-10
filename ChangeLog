@@ -1,3 +1,13 @@
+2010-01-11  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-convert-program): initialize
+	without confirming whether `convert' comes from ImageMagick.
+	(twittering-mode-init-variables): confirm whether the found
+	`convert' is a part of ImageMagick or GraphicsMagick if
+	`twittering-use-convert' is non-nil. If the program does not come
+	from ImageMagick or GraphicsMagick, `twittering-use-convert' is
+	changed into nil.
+
 2010-01-10  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-convert-program): checks whether

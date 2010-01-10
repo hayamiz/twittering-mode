@@ -1,3 +1,16 @@
+2010-01-10  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-remove-duplicates): add for
+	portability.
+	(twittering-completing-read): add a modified version of
+	`completing-read' that can accept candidates as a list of a string
+	on Emacs21.
+	(twittering-set-current-hashtag): use `twittering-completing-read'
+	instead of `completing-read'.
+	(twittering-read-username-with-completion): likewise.
+	(twittering-read-list-name): likewise.
+	(twittering-read-timeline-spec-with-completion): likewise.
+
 2010-01-10  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* test/test-twittering-mode.el (test-status-not-blank-p): add a

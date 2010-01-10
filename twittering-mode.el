@@ -429,6 +429,40 @@ and its contents(BUFFER)"
   (twittering-setftime fmt string t))
 
 ;;;
+;;; Utility functions for portability
+;;;
+
+(defun twittering-remove-duplicates (list)
+  "Return a copy of LIST with all duplicate elements removed.
+This is non-destructive version of `delete-dups' which is not
+defined in Emacs21."
+  (if (< emacs-major-version 22)
+      (let ((rest list)
+            (result nil))
+        (while rest
+          (unless (member (car rest) result)
+            (setq result (cons (car rest) result)))
+          (setq rest (cdr rest)))
+        (nreverse result))
+    (delete-dups (copy-sequence list))))
+
+(defun twittering-completing-read (prompt collection &optional predicate require-match initial-input hist def inherit-input-method)
+"Read a string in the minibuffer, with completion.
+This is a modified version of `completing-read' and accepts candidates
+as a list of a string on Emacs21."
+  ;; completing-read() of Emacs21 does not accepts candidates as
+  ;; a list. Candidates must be given as an alist.
+  (let* ((collection (twittering-remove-duplicates collection))
+         (collection
+          (if (and (< emacs-major-version 22)
+                   (listp collection)
+                   (stringp (car collection)))
+              (mapcar (lambda (x) (cons x nil)) collection)
+            collection)))
+    (completing-read prompt collection predicate require-match
+                     initial-input hist def inherit-input-method)))
+
+;;;
 ;;; Timeline spec functions
 ;;;
 
@@ -2126,12 +2160,11 @@ following symbols;
 (defun twittering-set-current-hashtag (&optional tag)
   (interactive)
   (unless tag
-    (setq tag (completing-read "hashtag (blank to clear): #"
-			       twittering-hashtag-history
-			       nil nil
-			       twittering-current-hashtag
-			       'twittering-hashtag-history
-			       ))
+    (setq tag (twittering-completing-read "hashtag (blank to clear): #"
+					  twittering-hashtag-history
+					  nil nil
+					  twittering-current-hashtag
+					  'twittering-hashtag-history))
     (message
      (if (eq 0 (length tag))
 	 (progn (setq twittering-current-hashtag nil)
@@ -2351,16 +2384,11 @@ following symbols;
 	  data))
 
 (defun twittering-read-username-with-completion (prompt init-user &optional history)
-  ;; completing-read() of Emacs21 does not accepts candidates as a
-  ;; list. Candidates must be given as an alist.
-  (let ((user-alist (mapcar
-		     (lambda (x) (cons x nil))
-		     (append (twittering-make-list-from-assoc
-			      'user-screen-name twittering-timeline-data)
-			     twittering-user-history))))
-    (when (fboundp 'delete-dups)
-      (delete-dups user-alist))
-    (completing-read prompt user-alist nil nil init-user history)))
+  (let ((collection
+	 (append (twittering-make-list-from-assoc
+		  'user-screen-name twittering-timeline-data)
+		 twittering-user-history)))
+    (twittering-completing-read prompt collection nil nil init-user history)))
 
 (defun twittering-read-list-name (username &optional list-index)
   (let* ((list-index (or list-index
@@ -2368,7 +2396,7 @@ following symbols;
 	 (prompt (concat username "'s list: "))
 	 (listname
 	  (if list-index
-	      (completing-read prompt list-index nil t nil)
+	      (twittering-completing-read prompt list-index nil t nil)
 	    nil)))
     (if (string= "" listname)
 	nil
@@ -2378,15 +2406,8 @@ following symbols;
   (let* ((dummy-hist (append twittering-timeline-history
 			     (twittering-make-list-from-assoc
 			      'user-screen-name twittering-timeline-data)))
-	 (dummy-hist
-	  (if (< emacs-major-version 22)
-	      ;; Emacs21 does not have delete-dups().
-	      ;; completing-read() of Emacs21 does not accepts candidates as
-	      ;; a list. Candidates must be given as an alist.
-	      (mapcar (lambda (x) (cons x nil)) dummy-hist)
-	    (delete-dups dummy-hist)))
-	 (spec-string (completing-read prompt dummy-hist
-				nil nil initial 'dummy-hist))
+	 (spec-string (twittering-completing-read prompt dummy-hist
+						  nil nil initial 'dummy-hist))
 	 (spec-string
 	  (if (string-match "^\\([^/]+\\)/$" spec-string)
 	      (let* ((username (match-string 1 spec-string))

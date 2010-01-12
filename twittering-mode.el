@@ -166,6 +166,7 @@ Items:
  %c - created_at (raw UTC string)
  %C{time-format-str} - created_at (formatted with time-format-str)
  %@ - X seconds ago
+ %T - raw text
  %t - text filled as one paragraph
  %' - truncated
  %f - source
@@ -1825,6 +1826,7 @@ following symbols;
 
 	      ("S" . ,(attr 'user-name))
 	      ("s" . ,(attr 'user-screen-name))
+	      ("T" . ,(attr 'text))
 	      ("t\\([^\n]*\\)" .
 	       ,(lambda (context)
 		  (let* ((str (cdr (assq 'processed-string context)))

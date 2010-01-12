@@ -9,6 +9,9 @@
 	(twittering-render-timeline): insert a newline as a separator of
 	tweets.
 
+	* twittering-mode.el (twittering-format-status): add new format
+	specifier "%T", which is converted to the raw text.
+
 2010-01-12  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* test/run-test.sh (exit_status): add 'emacs' command to test

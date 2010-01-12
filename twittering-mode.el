@@ -1700,7 +1700,7 @@ following symbols;
 		(value (cdar current-table))
 		(following-string (substring string current-pos))
 		(case-fold-search nil))
-	    (if (string-match (concat "^" key) following-string)
+	    (if (string-match (concat "\\`" key) following-string)
 		(let ((next-pos (+ current-pos (match-end 0)))
 		      (output
 		       (if (stringp value)

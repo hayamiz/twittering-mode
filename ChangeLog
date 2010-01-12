@@ -1,3 +1,9 @@
+2010-01-13  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-format-string): fix the search of
+	the key string following the prefix from a string including
+	newlines.
+
 2010-01-12  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* test/run-test.sh (exit_status): add 'emacs' command to test

@@ -16,6 +16,9 @@
 	specifier "%FILL{...}", which applies `fill-region-as-paragraph'
 	to the strings in braces.
 
+	* twittering-mode.el (twittering-status-format): use '%FILL{...}'
+	and '%T' for the default value instead of '%t'.
+
 2010-01-12  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* test/run-test.sh (exit_status): add 'emacs' command to test

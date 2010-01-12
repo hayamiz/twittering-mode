@@ -147,9 +147,9 @@ tweets received when this hook is run.")
 (defvar twittering-jojo-mode nil)
 (make-variable-buffer-local 'twittering-jojo-mode)
 
-(defvar twittering-status-format "%i %s,  %@:\n  %t // from %f%L%r%R"
+(defvar twittering-status-format "%i %s,  %@:\n%FILL{  %T // from %f%L%r%R}"
   "Format string for rendering statuses.
-Ex. \"%i %s,  %@:\\n  %t // from %f%L%r%R\"
+Ex. \"%i %s,  %@:\\n%FILL{  %T // from %f%L%r%R}\"
 
 Items:
  %s - screen_name

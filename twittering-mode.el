@@ -281,10 +281,6 @@ SCHEME must be \"http\" or \"https\"."
 ;;; to show image files
 ;;;
 
-(defvar twittering-wget-buffer "*twittering-wget-buffer*")
-(defun twittering-wget-buffer ()
-  (twittering-get-or-generate-buffer twittering-wget-buffer))
-
 (defvar twittering-icon-mode nil
   "You MUST NOT CHANGE this variable directly.
 You should change through function'twittering-icon-mode'")

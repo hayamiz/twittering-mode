@@ -9,6 +9,9 @@
 	`twittering-find-curl-program' only when `twittering-use-ssl' is
 	non-nil.
 
+	* twittering-mode.el (twittering-wget-buffer): Delete function.
+	(twittering-wget-buffer): Delete variable.
+
 2010-01-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-convert-program): initialize

@@ -1475,6 +1475,12 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	      (add-text-properties
 	       (match-beginning 1) (match-end 1)
 	       `(screen-name-in-text ,screen-name) text)
+	      (add-text-properties
+	       (match-beginning 1) (match-end 1)
+	       `(mouse-face highlight
+			    uri ,(concat "http://twitter.com/" screen-name)
+			    face twittering-username-face)
+	       text)
 
 	      (setq pos next-pos)))))
 

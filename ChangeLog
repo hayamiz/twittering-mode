@@ -1,3 +1,8 @@
+2010-01-12  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-format-status): fill the text
+	with strings following "%t".
+
 2010-01-12  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* test/test-twittering-mode.el (test-icon-mode): removed use of

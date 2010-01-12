@@ -1824,17 +1824,27 @@ following symbols;
 
 	      ("S" . ,(attr 'user-name))
 	      ("s" . ,(attr 'user-screen-name))
-	      ("t" .
+	      ("t\\([^\n]*\\)" .
 	       ,(lambda (context)
 		  (let* ((str (cdr (assq 'processed-string context)))
 			 (prefix (if (string-match "\\([^\n]*\\)\\'" str)
 				     (match-string 1 str)
-				   ""))
-			 (text (concat prefix (attr 'text))))
-		    (with-temp-buffer
-		      (insert text)
-		      (fill-region-as-paragraph (point-min) (point-max))
-		      (buffer-substring (1+ (length prefix)) (point-max))))))
+				       ""))
+			 (following-str (cdr (assq 'following-string context)))
+			 (from (cdr (assq 'from context)))
+			 (match-data (cdr (assq 'match-data context)))
+			 (replace-prefix (cdr (assq 'prefix context)))
+			 (table (cdr (assq 'replacement-table context))))
+		    (store-match-data match-data)
+		    (let* ((postfix (twittering-format-string
+				     (match-string 1 following-str)
+				     replace-prefix table))
+			   (text (concat prefix (attr 'text) postfix)))
+		      (with-temp-buffer
+			(insert text)
+			(fill-region-as-paragraph (point-min) (point-max))
+			(buffer-substring (1+ (length prefix)) (point-max)))))
+		  ))
 	      ("u" . ,(attr 'user-url))
 	      ))
 	   (format-str (concat format-str "\n"))

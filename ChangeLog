@@ -1,3 +1,8 @@
+2010-01-12  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* test/test-twittering-mode.el (test-icon-mode): removed use of
+	twittering-tmp-dir
+
 2010-01-12  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-start-http-session): Call

@@ -54,7 +54,6 @@
   (setq twittering-icon-mode nil)
   (twittering-icon-mode)
   (test-assert-ok twittering-icon-mode)
-  (test-assert-ok (file-directory-p twittering-tmp-dir))
   (twittering-icon-mode)
   (test-assert-ok (not twittering-icon-mode))
   (twittering-icon-mode nil)

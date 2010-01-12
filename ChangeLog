@@ -4,6 +4,11 @@
 	the key string following the prefix from a string including
 	newlines.
 
+	* twittering-mode.el (twittering-format-status): remove a
+	newline as a separator of tweets.
+	(twittering-render-timeline): insert a newline as a separator of
+	tweets.
+
 2010-01-12  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* test/run-test.sh (exit_status): add 'emacs' command to test

@@ -1619,7 +1619,8 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
       (erase-buffer)
       (mapc (lambda (status)
 	      (insert (twittering-format-status
-		       status twittering-status-format)))
+		       status twittering-status-format))
+	      (insert "\n"))
 	    twittering-timeline-data)
       (if (and twittering-image-stack window-system)
 	  (clear-image-cache))
@@ -1847,7 +1848,6 @@ following symbols;
 		  ))
 	      ("u" . ,(attr 'user-url))
 	      ))
-	   (format-str (concat format-str "\n"))
 	   (formatted-status
 	    (twittering-format-string format-str "%" replace-table)))
       (add-text-properties

@@ -1504,9 +1504,11 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 		 `(mouse-face
 		   highlight
 		   face twittering-uri-face
+		   uri ,(concat "http://twitter.com/" screen-name)
 		   uri-in-text ,(concat "http://twitter.com/" screen-name))
 	       `(mouse-face highlight
 			    face twittering-uri-face
+			    uri ,uri
 			    uri-in-text ,uri))
 	     text))
 	  (setq regex-index (match-end 0)) ))

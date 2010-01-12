@@ -1,3 +1,8 @@
+2010-01-12  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* test/run-test.sh (exit_status): add 'emacs' command to test
+	target emacsen
+
 2010-01-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-format-status): fill the text

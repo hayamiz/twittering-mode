@@ -1,6 +1,6 @@
 #!/bin/bash
 
-emacsen="emacs23 emacs22 emacs21"
+emacsen="emacs emacs23 emacs22 emacs21"
 
 continue_on_error=
 if [ $# -gt 0 ]; then

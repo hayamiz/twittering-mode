@@ -955,10 +955,10 @@ PARAMETERS: http request parameters (query string)
       (setq headers (cons `("User-Agent" . ,(twittering-user-agent))
 			  headers)))
 
-    (let ((curl-program (twittering-find-curl-program)))
+    (let ((curl-program nil))
       (when twittering-use-ssl
 	(cond 
-	 ((not curl-program)
+	 ((not (setq curl-program (twittering-find-curl-program)))
 	  (if (yes-or-no-p "HTTPS(SSL) is not available because 'cURL' does not exist. Use HTTP instead? ")
 	      (progn (setq twittering-use-ssl nil)
 		     (twittering-update-mode-line))

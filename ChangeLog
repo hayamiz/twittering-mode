@@ -12,6 +12,10 @@
 	* twittering-mode.el (twittering-format-status): add new format
 	specifier "%T", which is converted to the raw text.
 
+	* twittering-mode.el (twittering-format-status): add new format
+	specifier "%FILL{...}", which applies `fill-region-as-paragraph'
+	to the strings in braces.
+
 2010-01-12  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* test/run-test.sh (exit_status): add 'emacs' command to test

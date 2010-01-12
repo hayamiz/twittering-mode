@@ -169,6 +169,8 @@ Items:
  %T - raw text
  %t - text filled as one paragraph
  %' - truncated
+ %FILL{...} - strings filled as a paragrah.
+              You can use any other specifiers in braces.
  %f - source
  %# - id
 ")
@@ -1795,6 +1797,24 @@ following symbols;
 		     (format-time-string time-format created-at)))))
 	      ("c" . ,(attr 'created-at))
 	      ("d" . ,(attr 'user-description))
+	      ("FILL{\\(.*?[^%]\\)}" .
+	       ,(lambda (context)
+		  (let* ((str (cdr (assq 'following-string context)))
+			 (match-data (cdr (assq 'match-data context)))
+			 (from (cdr (assq 'from context)))
+			 (prefix (cdr (assq 'prefix context)))
+			 (table (cdr (assq 'replacement-table context)))
+			 (mod-table
+			  (cons '("}" . "}")
+				(delq (assq from table) table))))
+		    (store-match-data match-data)
+		    (let* ((formatted-str
+			    (twittering-format-string
+			     (match-string 1 str) prefix mod-table)))
+		      (with-temp-buffer
+			(insert formatted-str)
+			(fill-region-as-paragraph (point-min) (point-max))
+			(buffer-substring (point-min) (point-max)))))))
 	      ("f" . ,(attr 'source))
 	      ("i" . (lambda (context) (profile-image)))
 	      ("j" . ,(attr 'user-id))

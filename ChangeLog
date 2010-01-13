@@ -859,9 +859,15 @@
 	from twittering-get-count if existing.
 
 2009-11-06  Naohiro Aota  <naota@elisp.net>
+
 	* twittering-mode.el (twittering-image-type): Support bitmap type
 	using `convert'.
 	(twittering-convert-program): New varibale.
+
+2009-11-05  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-render-timeline): Set the
+	`fill-column' locally.
 
 2009-09-01  Alberto Garcia  <agarcia@igalia.com>
 

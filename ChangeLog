@@ -1,3 +1,7 @@
+2010-01-14  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-format-status): add docstring
+
 2010-01-13  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-format-string): fix the search of

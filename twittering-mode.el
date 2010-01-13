@@ -1728,6 +1728,9 @@ following symbols;
     ))
 
 (defun twittering-format-status (status format-str)
+  "Format a string out of a format-str and STATUS.
+Specification of format-str is described in the document for the
+variable `twittering-status-format'"
   (flet ((attr (key)
 	       (assocref key status))
 	 (profile-image

@@ -2682,8 +2682,7 @@ variable `twittering-status-format'"
 (defun twittering-goto-next-status ()
   "Go to next status."
   (interactive)
-  (let ((pos))
-    (setq pos (twittering-get-next-username-face-pos (point)))
+  (let ((pos (twittering-get-next-status-head)))
     (if pos
 	(goto-char pos)
       (let ((id (get-text-property (point) 'id)))
@@ -2692,15 +2691,16 @@ variable `twittering-status-format'"
 	     twittering-last-retrieved-timeline-spec-string
 	     nil id))))))
 
-(defun twittering-get-next-username-face-pos (pos)
-  (interactive)
-  (let ((prop))
-    (catch 'not-found
-      (while (and pos (not (eq prop twittering-username-face)))
-	(setq pos (next-single-property-change pos 'face))
-	(when (eq pos nil) (throw 'not-found nil))
-	(setq prop (get-text-property pos 'face)))
-      pos)))
+(defun twittering-get-next-status-head (&optional pos)
+  "Search forward from POS for the nearest head of a status.
+The return value is nil or a positive integer greater than POS."
+  (let* ((pos (or pos (point)))
+	 (pos (next-single-property-change pos 'id)))
+    (if pos
+	(if (get-text-property pos 'id)
+	    pos
+	  (next-single-property-change pos 'id))
+	nil)))
 
 (defun twittering-goto-previous-status ()
   "Go to previous status."
@@ -2732,10 +2732,10 @@ variable `twittering-status-format'"
   "Go to next status of user."
   (interactive)
   (let ((user-name (twittering-get-username-at-pos (point)))
-	(pos (twittering-get-next-username-face-pos (point))))
+	(pos (twittering-get-next-status-head (point))))
     (while (and (not (eq pos nil))
 		(not (equal (twittering-get-username-at-pos pos) user-name)))
-      (setq pos (twittering-get-next-username-face-pos pos)))
+      (setq pos (twittering-get-next-status-head pos)))
     (if pos
 	(goto-char pos)
       (if user-name

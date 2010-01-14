@@ -435,15 +435,15 @@ and its contents(BUFFER)"
   "Return a copy of LIST with all duplicate elements removed.
 This is non-destructive version of `delete-dups' which is not
 defined in Emacs21."
-  (if (< emacs-major-version 22)
-      (let ((rest list)
-            (result nil))
-        (while rest
-          (unless (member (car rest) result)
-            (setq result (cons (car rest) result)))
-          (setq rest (cdr rest)))
-        (nreverse result))
-    (delete-dups (copy-sequence list))))
+  (if (fboundp 'delete-dups)
+      (delete-dups (copy-sequence list))
+    (let ((rest list)
+	  (result nil))
+      (while rest
+	(unless (member (car rest) result)
+	  (setq result (cons (car rest) result)))
+	(setq rest (cdr rest)))
+      (nreverse result))))
 
 (defun twittering-completing-read (prompt collection &optional predicate require-match initial-input hist def inherit-input-method)
 "Read a string in the minibuffer, with completion.

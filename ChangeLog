@@ -1,3 +1,9 @@
+2010-01-14  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-remove-duplicates): check
+	availability of `delete-dups' by `fboundp' instead of
+	`emacs-major-version'.
+
 2010-01-14  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-format-status): add docstring

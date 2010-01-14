@@ -55,6 +55,15 @@
 	`twittering-get-next-username-face-pos'.
 	(twittering-goto-next-status-of-user): likewise.
 
+	* twittering-mode.el (twittering-get-previous-status-head): add a
+	function finding the previous head of status with `id'
+	property. This replaces
+	`twittering-get-previous-username-face-pos'.
+	(twittering-goto-previous-status): use
+	`twittering-get-previous-status-head' instead of
+	`twittering-get-previous-username-face-pos'.
+	(twittering-goto-previous-status-of-user): likewise.
+
 2010-01-15  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-mode-identity): add. Identify

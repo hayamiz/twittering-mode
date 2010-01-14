@@ -2706,27 +2706,34 @@ The return value is nil or a positive integer greater than POS."
   "Go to previous status."
   (interactive)
   (let* ((current-pos (point))
-         (prev-pos (twittering-get-previous-username-face-pos current-pos)))
+         (prev-pos (twittering-get-previous-status-head current-pos)))
     (if (and prev-pos (not (eq current-pos prev-pos)))
         (goto-char prev-pos)
       (message "Start of status."))))
 
-(defun twittering-get-previous-username-face-pos (pos)
-  (interactive)
-  (let ((prop))
-    (catch 'not-found
-      (while (and pos (not (eq prop twittering-username-face)))
-	(setq pos (previous-single-property-change pos 'face))
-	(when (eq pos nil)
-	  (let ((head-prop (get-text-property (point-min) 'face)))
-	    (if (and
-		 (not (eq prop twittering-username-face))
-		 (eq head-prop twittering-username-face))
-		(setq pos (point-min))
-	      (throw 'not-found nil)
-	      )))
-	(setq prop (get-text-property pos 'face)))
-      pos)))
+(defun twittering-get-previous-status-head (&optional pos)
+  "Search backward from POS for the nearest head of a status.
+The return value is nil or a positive integer less than POS."
+  (let ((current (or pos (point))))
+    (if (eq current (point-min))
+	nil
+      (let ((previous (previous-single-property-change current 'id)))
+	(cond
+	 ((null previous)
+	  (if (get-text-property (point-min) 'id)
+	      (point-min)
+	    nil))
+	 ((get-text-property previous 'id) previous)
+	 (t
+	  ;; `previous' is not placed on either a status or (point-min).
+	  ;; So, `previous-single-property-change' necessarily returns the
+	  ;; position on a status if it succeeds.
+	  (let ((previous (previous-single-property-change previous 'id)))
+	    (if (null previous)
+		(if (get-text-property (point-min) 'id)
+		    (point-min)
+		  nil)
+	      previous))))))))
 
 (defun twittering-goto-next-status-of-user ()
   "Go to next status of user."
@@ -2747,12 +2754,12 @@ The return value is nil or a positive integer greater than POS."
   (interactive)
   (let ((user-name (twittering-get-username-at-pos (point)))
         (prev-pos (point))
-	(pos (twittering-get-previous-username-face-pos (point))))
+	(pos (twittering-get-previous-status-head (point))))
     (while (and (not (eq pos nil))
                 (not (eq pos prev-pos))
 		(not (equal (twittering-get-username-at-pos pos) user-name)))
       (setq prev-pos pos)
-      (setq pos (twittering-get-previous-username-face-pos pos)))
+      (setq pos (twittering-get-previous-status-head pos)))
     (if (and pos
              (not (eq pos prev-pos))
              (equal (twittering-get-username-at-pos pos) user-name))

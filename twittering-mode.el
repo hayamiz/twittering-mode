@@ -10,6 +10,7 @@
 ;;         Alberto Garcia  <agarcia@igalia.com>
 ;; Created: Sep 4, 2007
 ;; Version: 0.9.0
+;; Identity: $Id$
 ;; Keywords: twitter web
 ;; URL: http://github.com/hayamiz/twittering-mode/
 
@@ -54,6 +55,7 @@
 (require 'url)
 
 (defconst twittering-mode-version "0.9.0")
+(defconst twittering-mode-identity "$Id$")
 
 (defun twittering-mode-version ()
   "Display a message for twittering-mode version."

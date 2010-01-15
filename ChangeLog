@@ -3,6 +3,13 @@
 	* twittering-mode.el (twittering-edit-buffer): New defvar.
 	(twittering-update-status-from-pop-up-buffer): Use it.
 
+	* twittering-mode.el (twittering-buffer-active-p): New defun.
+	(twittering-http-get-default-sentinel): Call it to show a
+	non-critical message on minibuffer only when current buffer is
+	twittering-mode related buffer.
+	(twittering-http-post-default-sentinel): Likewise.
+	(twittering-get-response-body): Likewise.
+
 2010-01-15  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-mode-identity): add. Identify

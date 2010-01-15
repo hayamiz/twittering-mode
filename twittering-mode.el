@@ -478,6 +478,14 @@ as a list of a string on Emacs21."
     (completing-read prompt collection predicate require-match
                      initial-input hist def inherit-input-method)))
 
+(defun twittering-buffer-active-p ()
+  "Return t if current buffer is twittering-mode related buffer."
+  (member (buffer-name (current-buffer))
+	  (list twittering-buffer
+		twittering-debug-buffer
+		(and (boundp 'twittering-edit-buffer)
+		     twittering-edit-buffer))))
+
 (defun assocref (item alist)
   (cdr (assoc item alist)))
 
@@ -1429,10 +1437,14 @@ Available keywords:
 		      twittering-last-requested-timeline-spec-string)
 		(twittering-render-timeline)
 		(twittering-add-timeline-history)
-		(when twittering-notify-successful-http-get
+		(when (and (twittering-buffer-active-p)
+			   twittering-notify-successful-http-get)
 		  (message (if suc-msg suc-msg "Success: Get."))))
-	       (t (message status))))
-	  (message "Failure: Bad http response.")))
+	       (t (when (twittering-buffer-active-p)
+		    (message status)))))
+	  (when (twittering-buffer-active-p)
+	    (message "Failure: Bad http response.")))
+	)
     ;; unwindforms
     (when (and (not twittering-debug-mode) (buffer-live-p temp-buffer))
       (kill-buffer temp-buffer)))
@@ -1499,8 +1511,11 @@ PARAMETERS is alist of URI parameters.
 		       (match-string-no-properties 1 header))))
 	(case-string status
 		     (("200 OK")
-		      (message (if suc-msg suc-msg "Success: Post")))
-		     (t (message "Response status code: %s" status)))
+		      (when (twittering-buffer-active-p)
+			(message (if suc-msg suc-msg "Success: Post")))
+		      )
+		     (t (when (twittering-buffer-active-p)
+			  (message "Response status code: %s" status))))
 	)
     ;; unwindforms
     (when (and (not twittering-debug-mode) (buffer-live-p temp-buffer))
@@ -1538,7 +1553,8 @@ XML tree as list. Return nil when parse failed.
 	  (let ((start (match-end 0)))
 	    (condition-case get-error ;; to guard when `xml-parse-region' failed.
 		(xml-parse-region start (point-max))
-	      (error (message "Failure: %s" get-error)
+	      (error (when (twittering-buffer-active-p)
+		       (message "Failure: %s" get-error))
 		     nil)))
 	(error "Failure: invalid HTTP response"))
       )))

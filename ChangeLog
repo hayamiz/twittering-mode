@@ -8,6 +8,17 @@
 
 	* twittering-mode.el (twittering-format-status): add docstring
 
+2010-01-15  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-update-status-function): add
+	(twittering-update-status-from-pop-up-buffer): renamed from
+	twittering-edit-status
+	(twittering-update-status-interactive, twittering-enter)
+	(twittering-organic-retweet, twittering-direct-message): use
+	twittering-update-status-function
+	(twittering-mode-map): bind 'u' to
+	twittering-update-status-interactive
+
 2010-01-13  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-format-string): fix the search of

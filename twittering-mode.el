@@ -210,6 +210,17 @@ SSL connections use 'curl' command as a backend.")
 (defvar twittering-use-native-retweet nil
   "Post retweets using native retweets if this variable is non-nil.")
 
+(defvar twittering-update-status-function
+  'twittering-update-status-from-minibuffer
+  "The function used to posting a tweet. It takes two arguments:
+the first argument INIT-STR is initial text to be edited and the
+second argument REPLY-TO-ID is a user ID of a tweet to which you
+are going to reply.
+
+Twittering-mode provides two functions for updating status:
+* `twittering-update-status-from-minibuffer': edit tweets in minibuffer
+* `twittering-update-status-from-pop-up-buffer': edit tweets in pop-up buffer")
+
 ;;;
 ;;; Proxy setting / functions
 ;;;
@@ -797,7 +808,7 @@ Return nil if STR is invalid as a timeline spec."
       (define-key km [mouse-1] 'twittering-click)
       (define-key km "\C-c\C-v" 'twittering-view-user-page)
       (define-key km "g" 'twittering-current-timeline)
-      (define-key km "u" 'twittering-edit-status)
+      (define-key km "u" 'twittering-update-status-interactive)
       (define-key km "d" 'twittering-direct-message)
       (define-key km "v" 'twittering-other-user-timeline)
       (define-key km "V" 'twittering-visit-timeline)
@@ -985,7 +996,7 @@ Keymap:
     (set-window-configuration twittering-pre-edit-window-configuration)
     (setq twittering-pre-edit-window-configuration nil)))
 
-(defun twittering-edit-status (&optional init-str reply-to-id)
+(defun twittering-update-status-from-pop-up-buffer (&optional init-str reply-to-id)
   (interactive)
   (let ((buf (generate-new-buffer "*twittering-edit*")))
     (setq twittering-pre-edit-window-configuration
@@ -2333,7 +2344,7 @@ variable `twittering-status-format'"
 
 (defun twittering-update-status-interactive ()
   (interactive)
-  (twittering-update-status-from-minibuffer))
+  (funcall twittering-update-status-function))
 
 (defun twittering-update-lambda ()
   (interactive)
@@ -2424,12 +2435,12 @@ variable `twittering-status-format'"
 	(screen-name-in-text
 	 (get-text-property (point) 'screen-name-in-text)))
     (cond (screen-name-in-text
-	   (twittering-edit-status
+	   (funcall twittering-update-status-function
 	    (concat "@" screen-name-in-text " ") id))
 	  (uri-in-text
 	   (browse-url uri-in-text))
 	  (username
-	   (twittering-edit-status
+	   (funcall twittering-update-status-function
 	    (concat "@" username " ") id))
 	  (uri
 	   (browse-url uri)))))
@@ -2475,7 +2486,7 @@ variable `twittering-status-format'"
 		    (format-time-string (match-string 1 str) ',retweet-time))))
 	       ))
 	    )
-	(twittering-edit-status
+	(funcall twittering-update-status-function
 	 (twittering-format-string format-str prefix replace-table))
 	))))
 
@@ -2586,13 +2597,13 @@ variable `twittering-status-format'"
   (interactive)
   (let ((username (get-text-property (point) 'username)))
     (if username
-	(twittering-edit-status (concat "d " username " ")))))
+	(funcall twittering-update-status-function (concat "d " username " ")))))
 
 (defun twittering-reply-to-user ()
   (interactive)
   (let ((username (get-text-property (point) 'username)))
     (when username
-      (twittering-edit-status (concat "@" username " ")))))
+      (funcall twittering-update-status-function (concat "@" username " ")))))
 
 (defun twittering-make-list-from-assoc (key data)
   (mapcar (lambda (status)

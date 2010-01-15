@@ -4,6 +4,8 @@
 	overlay to display help.
 	(twittering-edit-mode, twittering-edit-post-status): do not use
 	newline chars for help-overlay anymore.
+	(twittering-edit-post-status): probihit posting over 140 chars
+	tweets.
 
 2010-01-15  Yuto Hayamizu  <y.hayamizu@gmail.com>
 

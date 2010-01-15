@@ -1044,18 +1044,22 @@ Return nil if STR is invalid as a timeline spec."
 (defun twittering-edit-post-status ()
   (interactive)
   (let ((status (twittering-edit-extract-status)))
-    (setq twittering-edit-history
-	  (cons status twittering-edit-history))
-    (if (twittering-status-not-blank-p status)
-	(let ((parameters `(("status" . ,status)
-			    ("source" . "twmode")
-			    ,@(if twittering-reply-to-id
-				  `(("in_reply_to_status_id" .
-				     ,(format "%s" twittering-reply-to-id)))
-				nil))))
-	  (twittering-http-post "twitter.com" "statuses/update" parameters)
-	  (twittering-edit-close))
-      (message "Empty tweet!"))))
+    (cond
+     ((not (twittering-status-not-blank-p status))
+      (message "Empty tweet!"))
+     ((> (length status) 140)
+      (message "Too long tweet!"))
+     (t
+      (setq twittering-edit-history
+	    (cons status twittering-edit-history))
+      (let ((parameters `(("status" . ,status)
+			  ("source" . "twmode")
+			  ,@(if twittering-reply-to-id
+				`(("in_reply_to_status_id" .
+				   ,(format "%s" twittering-reply-to-id)))
+			      nil))))
+	(twittering-http-post "twitter.com" "statuses/update" parameters)
+	(twittering-edit-close))))))
 
 (defun twittering-edit-cancel-status ()
   (interactive)

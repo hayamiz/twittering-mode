@@ -919,6 +919,10 @@ Return nil if STR is invalid as a timeline spec."
   (twittering-stop)
   (twittering-start))
 
+;;;
+;;; Edit mode
+;;;
+
 (define-derived-mode twittering-edit-mode text-mode "twmode-status-edit"
   (use-local-map twittering-edit-mode-map)
 
@@ -943,8 +947,8 @@ Return nil if STR is invalid as a timeline spec."
 	       'twittering-edit-length-check)
   )
 
+(defvar twittering-edit-buffer "*twittering-edit*")
 (defvar twittering-pre-edit-window-configuration nil)
-
 (defvar twittering-edit-history nil)
 
 (when twittering-edit-mode-map
@@ -1000,7 +1004,7 @@ Keymap:
 
 (defun twittering-update-status-from-pop-up-buffer (&optional init-str reply-to-id)
   (interactive)
-  (let ((buf (generate-new-buffer "*twittering-edit*")))
+  (let ((buf (generate-new-buffer twittering-edit-buffer)))
     (setq twittering-pre-edit-window-configuration
 	  (current-window-configuration))
     (pop-to-buffer buf)

@@ -1,3 +1,13 @@
+2010-01-15  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-edit-setup-help): implement the
+	help message by using text property because overlay cannot forbid
+	inserting strings at the end of the buffer.
+	(twittering-edit-extract-status): find the end of status with text
+	property.
+	(twittering-edit-mode): remove initialization of the variable
+	`twittering-help-overlay'.
+
 2010-01-15  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-edit-buffer): New defvar.

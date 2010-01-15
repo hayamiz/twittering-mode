@@ -956,11 +956,15 @@ Return nil if STR is invalid as a timeline spec."
 (define-derived-mode twittering-edit-mode text-mode "twmode-status-edit"
   (use-local-map twittering-edit-mode-map)
 
-  (insert "\n\n\n")
+  (when (< emacs-major-version 22)
+    ;; Emacs21 always displays the cursor after the text displayed on
+    ;; the current point. By this behaviour, Emacs21 displays the cursor
+    ;; after the help message when the status is empty.
+    ;; To avoid such case, the status is initialized as a whitespace,
+    ;; which is treated as a part of the status unless it is removed.
+    (insert " "))
   (goto-char (point-min))
   (setq buffer-undo-list nil)
-  (make-local-variable 'twittering-help-overlay)
-  (setq twittering-help-overlay nil)
   (twittering-edit-setup-help)
   (make-local-variable 'twittering-warning-overlay)
   (setq twittering-warning-overlay (make-overlay 1 1 nil nil nil))
@@ -1005,26 +1009,38 @@ Return nil if STR is invalid as a timeline spec."
 (defun twittering-edit-extract-status ()
   (if (not (eq major-mode 'twittering-edit-mode))
       ""
-    (save-excursion
-      (goto-char (point-max))
-      (if (re-search-backward "[^\r\n\t ]" nil t)
-	  (buffer-substring (point-min) (+ 1 (point)))
+    (let ((pos (previous-single-property-change
+		(point-max) 'twittering-edit-help)))
+      (if pos
+	  (buffer-substring (point-min) pos)
 	""))))
 
 (defun twittering-edit-setup-help ()
-  (let ((help-overlay
-	 (or twittering-help-overlay
-	     (make-overlay (- (point-max) 1) (point-max) nil t t))))
-    (move-overlay help-overlay (- (point-max) 1) (point-max))
-    (overlay-put help-overlay 'face 'font-lock-comment-face)
-    (overlay-put help-overlay 'display
-		 "---- text under this line is ignored ----
+  (let ((help-body-str
+	 ;; In order to suppress error on `kill-line' etc.,
+	 ;; the help string should be treated as a isolated line.
+	 "\n")
+	(help-str  "@
+---- text under this line is ignored ----
 Keymap:
   C-c C-c: post a tweet
   C-c C-k: cancel a tweet
   M-n    : next history element
-  M-p    : previous history element")
-    (setq twittering-help-overlay help-overlay)))
+  M-p    : previous history element"))
+    (add-text-properties
+     0 (length help-str) '(face font-lock-comment-face) help-str)
+
+    ;; Display the cursor on the head character of `help-str'
+    ;; when the current point is entering `help-body-str'.
+    ;; This property `cursor' may have no effect on Emacs21.
+    (add-text-properties 0 1 '(cursor t) help-str)
+    (add-text-properties
+     0 (length help-body-str)
+     `(read-only t intangible t display ,help-str twittering-edit-help t)
+     help-body-str)
+    (save-excursion
+      (goto-char (point-max))
+      (insert help-body-str))))
 
 (defun twittering-edit-close ()
   (kill-buffer (current-buffer))

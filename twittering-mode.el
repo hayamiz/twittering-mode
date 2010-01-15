@@ -359,8 +359,17 @@ and its contents(BUFFER)"
 	image-type))))
 
 ;;;
-;;; functions
+;;; Utility functions
 ;;;
+
+(defun twittering-get-or-generate-buffer (buffer)
+  (if (bufferp buffer)
+      (if (buffer-live-p buffer)
+	  buffer
+	(generate-new-buffer (buffer-name buffer)))
+    (if (stringp buffer)
+	(or (get-buffer buffer)
+	    (generate-new-buffer buffer)))))
 
 (defun twittering-get-status-url (username id)
   "Generate status URL."
@@ -391,37 +400,36 @@ and its contents(BUFFER)"
   "Return Tweet sign string."
   (funcall twittering-sign-string-function))
 
+(defun twittering-update-mode-line ()
+  "Update mode line"
+  (let ((enabled-options nil)
+	(spec-string twittering-last-retrieved-timeline-spec-string))
+    (when twittering-jojo-mode
+      (push "jojo" enabled-options))
+    (when twittering-icon-mode
+      (push "icon" enabled-options))
+    (when twittering-scroll-mode
+      (push "scroll" enabled-options))
+    (when twittering-proxy-use
+      (push "proxy" enabled-options))
+    (when twittering-use-ssl
+      (push "ssl" enabled-options))
+    (setq mode-name
+	  (concat twittering-mode-string
+		  (if spec-string
+		      (concat " " spec-string)
+		    "")
+		  (if enabled-options
+		      (concat "["
+			      (mapconcat 'identity enabled-options ",")
+			      "]")
+		    ""))))
+  (force-mode-line-update)
+  )
+
 ;;;
-;;; Utility functions
+;;; Utility functions for portability
 ;;;
-
-(defun twittering-get-or-generate-buffer (buffer)
-  (if (bufferp buffer)
-      (if (buffer-live-p buffer)
-	  buffer
-	(generate-new-buffer (buffer-name buffer)))
-    (if (stringp buffer)
-	(or (get-buffer buffer)
-	    (generate-new-buffer buffer)))))
-
-(defun assocref (item alist)
-  (cdr (assoc item alist)))
-
-(defmacro list-push (value listvar)
-  `(setq ,listvar (cons ,value ,listvar)))
-
-(defmacro case-string (str &rest clauses)
-  `(cond
-    ,@(mapcar
-       (lambda (clause)
-	 (let ((keylist (car clause))
-	       (body (cdr clause)))
-	   `(,(if (listp keylist)
-		  `(or ,@(mapcar (lambda (key) `(string-equal ,str ,key))
-				 keylist))
-		't)
-	     ,@body)))
-       clauses)))
 
 ;; If you use Emacs21, decode-char 'ucs will fail unless Mule-UCS is loaded.
 ;; TODO: Show error messages if Emacs 21 without Mule-UCS
@@ -439,10 +447,6 @@ and its contents(BUFFER)"
   (twittering-setftime fmt string nil))
 (defun twittering-global-strftime (fmt string)
   (twittering-setftime fmt string t))
-
-;;;
-;;; Utility functions for portability
-;;;
 
 (defun twittering-remove-duplicates (list)
   "Return a copy of LIST with all duplicate elements removed.
@@ -473,6 +477,25 @@ as a list of a string on Emacs21."
             collection)))
     (completing-read prompt collection predicate require-match
                      initial-input hist def inherit-input-method)))
+
+(defun assocref (item alist)
+  (cdr (assoc item alist)))
+
+(defmacro list-push (value listvar)
+  `(setq ,listvar (cons ,value ,listvar)))
+
+(defmacro case-string (str &rest clauses)
+  `(cond
+    ,@(mapcar
+       (lambda (clause)
+	 (let ((keylist (car clause))
+	       (body (cdr clause)))
+	   `(,(if (listp keylist)
+		  `(or ,@(mapcar (lambda (key) `(string-equal ,str ,key))
+				 keylist))
+		't)
+	     ,@body)))
+       clauses)))
 
 ;;;
 ;;; Timeline spec functions
@@ -1063,33 +1086,6 @@ Keymap:
 		   twittering-edit-local-history))
       (twittering-edit-setup-help)
       (goto-char (point-min))))
-  )
-
-(defun twittering-update-mode-line ()
-  "Update mode line"
-  (let ((enabled-options nil)
-	(spec-string twittering-last-retrieved-timeline-spec-string))
-    (when twittering-jojo-mode
-      (push "jojo" enabled-options))
-    (when twittering-icon-mode
-      (push "icon" enabled-options))
-    (when twittering-scroll-mode
-      (push "scroll" enabled-options))
-    (when twittering-proxy-use
-      (push "proxy" enabled-options))
-    (when twittering-use-ssl
-      (push "ssl" enabled-options))
-    (setq mode-name
-	  (concat twittering-mode-string
-		  (if spec-string
-		      (concat " " spec-string)
-		    "")
-		  (if enabled-options
-		      (concat "["
-			      (mapconcat 'identity enabled-options ",")
-			      "]")
-		    ""))))
-  (force-mode-line-update)
   )
 
 ;;;

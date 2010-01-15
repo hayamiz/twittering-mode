@@ -483,8 +483,7 @@ as a list of a string on Emacs21."
   (member (buffer-name (current-buffer))
 	  (list twittering-buffer
 		twittering-debug-buffer
-		(and (boundp 'twittering-edit-buffer)
-		     twittering-edit-buffer))))
+		twittering-edit-buffer)))
 
 (defun assocref (item alist)
   (cdr (assoc item alist)))

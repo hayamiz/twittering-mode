@@ -10,6 +10,9 @@
 	(twittering-http-post-default-sentinel): Likewise.
 	(twittering-get-response-body): Likewise.
 
+	* twittering-mode.el (twittering-buffer-active-p): Delete an
+	unnecessary code which is added for keep a backward compatibility.
+
 2010-01-15  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-mode-identity): add. Identify

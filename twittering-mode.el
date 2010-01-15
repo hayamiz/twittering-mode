@@ -12,7 +12,7 @@
 ;; Version: HEAD
 ;; Identity: $Id$
 ;; Keywords: twitter web
-;; URL: http://github.com/hayamiz/twittering-mode/
+;; URL: http://twmode.sf.net/
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

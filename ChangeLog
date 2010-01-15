@@ -8,6 +8,10 @@
 	(twittering-edit-mode): remove initialization of the variable
 	`twittering-help-overlay'.
 
+2010-01-15  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el: changed URL
+
 2010-01-15  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-edit-buffer): New defvar.

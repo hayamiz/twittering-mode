@@ -1,3 +1,10 @@
+2010-01-16  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-edit-setup-help): use 0-witdh
+	overlay to display help.
+	(twittering-edit-mode, twittering-edit-post-status): do not use
+	newline chars for help-overlay anymore.
+
 2010-01-15  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el: changed URL

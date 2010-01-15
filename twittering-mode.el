@@ -956,9 +956,6 @@ Return nil if STR is invalid as a timeline spec."
 (define-derived-mode twittering-edit-mode text-mode "twmode-status-edit"
   (use-local-map twittering-edit-mode-map)
 
-  (insert "\n\n\n")
-  (goto-char (point-min))
-  (setq buffer-undo-list nil)
   (make-local-variable 'twittering-help-overlay)
   (setq twittering-help-overlay nil)
   (twittering-edit-setup-help)
@@ -1005,25 +1002,24 @@ Return nil if STR is invalid as a timeline spec."
 (defun twittering-edit-extract-status ()
   (if (not (eq major-mode 'twittering-edit-mode))
       ""
-    (save-excursion
-      (goto-char (point-max))
-      (if (re-search-backward "[^\r\n\t ]" nil t)
-	  (buffer-substring (point-min) (+ 1 (point)))
-	""))))
+    (buffer-string)))
 
 (defun twittering-edit-setup-help ()
-  (let ((help-overlay
-	 (or twittering-help-overlay
-	     (make-overlay (- (point-max) 1) (point-max) nil t t))))
-    (move-overlay help-overlay (- (point-max) 1) (point-max))
-    (overlay-put help-overlay 'face 'font-lock-comment-face)
-    (overlay-put help-overlay 'display
-		 "---- text under this line is ignored ----
-Keymap:
+  (let ((help-str "Keymap:
   C-c C-c: post a tweet
   C-c C-k: cancel a tweet
   M-n    : next history element
-  M-p    : previous history element")
+  M-p    : previous history element
+
+---- text above this line is ignored ----
+")
+	(help-overlay
+	 (or twittering-help-overlay
+	     (make-overlay 1 1 nil nil nil))))
+    
+    (add-text-properties 0 (length help-str) '(face font-lock-comment-face)
+			 help-str)
+    (overlay-put help-overlay 'before-string help-str)
     (setq twittering-help-overlay help-overlay)))
 
 (defun twittering-edit-close ()
@@ -1049,7 +1045,7 @@ Keymap:
   (interactive)
   (let ((status (twittering-edit-extract-status)))
     (setq twittering-edit-history
-	  (cons (concat status "\n\n\n") twittering-edit-history))
+	  (cons status twittering-edit-history))
     (if (twittering-status-not-blank-p status)
 	(let ((parameters `(("status" . ,status)
 			    ("source" . "twmode")

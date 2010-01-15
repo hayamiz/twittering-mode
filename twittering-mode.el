@@ -9,7 +9,7 @@
 ;;         Tsuyoshi CHO <Tsuyoshi.CHO+develop@Gmail.com>
 ;;         Alberto Garcia  <agarcia@igalia.com>
 ;; Created: Sep 4, 2007
-;; Version: 0.9.0
+;; Version: HEAD
 ;; Identity: $Id$
 ;; Keywords: twitter web
 ;; URL: http://github.com/hayamiz/twittering-mode/
@@ -54,7 +54,7 @@
   (set-terminal-coding-system 'utf-8))
 (require 'url)
 
-(defconst twittering-mode-version "0.9.0")
+(defconst twittering-mode-version "HEAD")
 (defconst twittering-mode-identity "$Id$")
 
 (defun twittering-mode-version ()

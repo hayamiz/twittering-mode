@@ -1524,9 +1524,6 @@ PARAMETERS is alist of URI parameters.
 (defun twittering-get-response-header (buffer)
   "Exract HTTP response header from HTTP response.
 `buffer' may be a buffer or the name of an existing buffer which contains the HTTP response."
-  (if (stringp buffer)
-      (setq buffer (get-buffer buffer)))
-
   ;; FIXME:
   ;; curl prints HTTP proxy response header, so strip it
   (with-current-buffer buffer
@@ -1543,8 +1540,6 @@ PARAMETERS is alist of URI parameters.
   "Exract HTTP response body from HTTP response, parse it as XML, and return a
 XML tree as list. Return nil when parse failed.
 `buffer' may be a buffer or the name of an existing buffer. "
-  (if (stringp buffer)
-      (setq buffer (get-buffer buffer)))
   (with-current-buffer buffer
     (save-excursion
       (goto-char (point-min))

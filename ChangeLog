@@ -1,3 +1,10 @@
+2010-01-16  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-get-response-header): Delete an
+	adjusting code bacause `with-current-buffer' that can accept both
+	a buffer and a buffer name.
+	(twittering-get-response-body): Likewise.
+
 2010-01-16  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-format-status): fix incorrect

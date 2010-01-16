@@ -1983,7 +1983,7 @@ variable `twittering-status-format'"
 		     (format-time-string time-format created-at)))))
 	      ("c" . ,(attr 'created-at))
 	      ("d" . ,(attr 'user-description))
-	      ("FILL{\\(.*?[^%]\\)}" .
+	      ("FILL{\\(\\([^{}]*?\\|{.*?[^%]}\\|%}\\)*\\)}" .
 	       ,(lambda (context)
 		  (let* ((str (cdr (assq 'following-string context)))
 			 (match-data (cdr (assq 'match-data context)))

@@ -1,3 +1,9 @@
+2010-01-17  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-format-status): fix the regexp
+	for the specifier "%FILL{...}" to accept pairs of braces inside of
+	"{...}".
+
 2010-01-16  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-get-response-header): Delete an

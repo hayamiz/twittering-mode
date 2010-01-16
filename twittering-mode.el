@@ -171,6 +171,7 @@ Items:
  %T - raw text
  %t - text filled as one paragraph
  %' - truncated
+ %FACE[face-name]{...} - strings decorated with the specified face.
  %FILL{...} - strings filled as a paragrah.
               You can use any other specifiers in braces.
  %f - source
@@ -1983,6 +1984,27 @@ variable `twittering-status-format'"
 		     (format-time-string time-format created-at)))))
 	      ("c" . ,(attr 'created-at))
 	      ("d" . ,(attr 'user-description))
+	      ("FACE\\[\\([a-zA-Z0-9:-]+\\)\\]{\\(\\([^{}]*?\\|{.*?[^%]}\\|%}\\)*\\)}" .
+	       ,(lambda (context)
+		  (let* ((str (cdr (assq 'following-string context)))
+			 (match-data (cdr (assq 'match-data context)))
+			 (from (cdr (assq 'from context)))
+			 (prefix (cdr (assq 'prefix context)))
+			 (table (cdr (assq 'replacement-table context)))
+			 (mod-table
+			  (cons '("}" . "}")
+				(remq (assq from table) table))))
+		    (store-match-data match-data)
+		    (let* ((face-name-str (match-string 1 str))
+			   (face-sym (intern face-name-str))
+			   (braced-str (match-string 2 str))
+			   (formatted-str
+			    (twittering-format-string
+			     braced-str prefix mod-table)))
+		      (add-text-properties
+		       0 (length formatted-str) `(face ,face-sym)
+		       formatted-str)
+		      formatted-str))))
 	      ("FILL{\\(\\([^{}]*?\\|{.*?[^%]}\\|%}\\)*\\)}" .
 	       ,(lambda (context)
 		  (let* ((str (cdr (assq 'following-string context)))

@@ -4,6 +4,10 @@
 	for the specifier "%FILL{...}" to accept pairs of braces inside of
 	"{...}".
 
+	* twittering-mode.el (twittering-format-status): add new format
+	decorator "%FACE[face-name]{...}", which decorates braced strings
+	with the specified face.
+
 2010-01-16  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-get-response-header): Delete an

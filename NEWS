@@ -1,7 +1,66 @@
 
-# NEWS -- The history of twittering-mode
+ NEWS -- The history of twittering-mode
+========================================
 
-## 0.9: 2009-12-29
+ HEAD: XXXX-XX-XX
+------------------
+
+### Important notice
+
+#### Posting tweets with minibuffer is obsolete now.
+
+There's two way to edit and post tweets in twittering-mode: with
+minibuffer (existing way), and with pop-up buffer (new feature!).  You
+can choose it by setting the variable
+`twittering-update-status-function`. Currently its default value is
+the existing way, `twittering-update-status-from-minibuffer`, but in
+next release it will be changed to the new way
+`twittering-update-status-from-pop-up-buffer`.
+
+We recommend you to use the new feature by adding following code to
+your `.emacs`:
+
+    (setq twittering-update-status-function
+          'twittering-update-status-from-pop-up-buffer)
+
+The new feature, pop-up buffer, has several advantages over the
+existing way.
+
+* Not conflicting with input methods.
+* Much less risk of posting halfway typed tweets by error.
+* Visual assertion of length of tweets.
+
+### Improvements
+
+* Introduction of a concept 'timeline spec'.
+* Pop-up buffer to edit and post tweets.
+* Auto proxy setup with environment variables (http_proxy, HTTP_PROXY)
+* Support for official ReTweet.
+* Added some format specifiers of tweets.
+* Displaying image files without temporary files.
+* ...
+
+### Bug fixes
+
+* Avoid SSL certificate error by embedding CA cert in code.
+  * twittering-cert-file
+  * twittering-ensure-ca-cert
+* Fix URI (percent) encoding (thanks to IMAI Toshiyuki).
+  * twittering-url-reserved-p
+  * twittering-percent-encode
+* Improved portability.
+  * twittering-completing-read
+* ...
+* And lots of minor fixes
+
+### Thanks to
+
+* Alberto Garcia
+* IMAI Toshiyuki
+* ...
+
+ 0.9.0: 2009-12-29
+-------------------
 
 ### Improvements
 

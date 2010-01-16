@@ -1,3 +1,9 @@
+2010-01-16  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-format-status): fix incorrect
+	destructive modification of the replacement table for the
+	specifier "%FILL{...}".
+
 2010-01-16  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-edit-setup-help): use 0-witdh

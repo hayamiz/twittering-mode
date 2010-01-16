@@ -1997,7 +1997,7 @@ variable `twittering-status-format'"
 			 (table (cdr (assq 'replacement-table context)))
 			 (mod-table
 			  (cons '("}" . "}")
-				(delq (assq from table) table))))
+				(remq (assq from table) table))))
 		    (store-match-data match-data)
 		    (let* ((formatted-str
 			    (twittering-format-string

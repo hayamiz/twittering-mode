@@ -428,6 +428,17 @@ and its contents(BUFFER)"
   (force-mode-line-update)
   )
 
+(defun twittering-status-id< (id1 id2)
+  (let ((len1 (length id1))
+	(len2 (length id2)))
+    (cond
+     ((= len1 len2) (string< id1 id2))
+     ((< len1 len2) t)
+     (t nil))))
+
+(defun twittering-status-id= (id1 id2)
+  (equal id1 id2))
+
 ;;;
 ;;; Utility functions for portability
 ;;;
@@ -1433,9 +1444,12 @@ Available keywords:
 		(if (and (> twittering-new-tweets-count 0)
 			 noninteractive)
 		    (run-hooks 'twittering-new-tweets-hook))
-		(setq twittering-last-retrieved-timeline-spec-string
-		      twittering-last-requested-timeline-spec-string)
-		(twittering-render-timeline)
+		(let ((same-timeline
+		       (equal twittering-last-retrieved-timeline-spec-string
+			      twittering-last-requested-timeline-spec-string)))
+		  (setq twittering-last-retrieved-timeline-spec-string
+			twittering-last-requested-timeline-spec-string)
+		  (twittering-render-timeline same-timeline))
 		(twittering-add-timeline-history)
 		(when (and (twittering-buffer-active-p)
 			   twittering-notify-successful-http-get)
@@ -1796,24 +1810,70 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 ;;; display functions
 ;;;
 
-(defun twittering-render-timeline ()
+(defun twittering-render-timeline (&optional additional)
   (with-current-buffer (twittering-buffer)
-    (let ((point (point))
-	  (end (point-max))
-	  (fill-column (- (window-width) 4)))
+    (let* ((point (point))
+	   (fill-column (- (window-width) 4)))
       (twittering-update-mode-line)
       (setq buffer-read-only nil)
-      (erase-buffer)
-      (mapc (lambda (status)
-	      (insert (twittering-format-status
+      (when (and additional twittering-scroll-mode (eq point (point-min)))
+	;; If (< (point-min) (point)), the point exists on the same status
+	;; even after insertion by the effect of `save-excursion'.
+	;; However, if (eq (point-min) (point)), the point must be adjusted
+	;; because new statuses are inserted after the original (point-min).
+	(goto-char (min (1+ (point-min)) (point-max))))
+      (save-excursion
+	(unless additional
+	  (erase-buffer))
+	;; Go to the head of the first status.
+	(if (get-text-property (point-min) 'id)
+	    (goto-char (point-min))
+	  (let ((next (twittering-get-next-status-head (point-min))))
+	    (if next
+		(goto-char next)
+	      ;; The current buffer is empty.
+	      (goto-char (point-min)))))
+	(mapc
+	 (lambda (status)
+	   (let* ((id (cdr (assoc 'id status))))
+	     ;; Find where the status should be inserted.
+	     (while
+		 (let* ((buf-id (get-text-property (point) 'id))
+			(next-pos (twittering-get-next-status-head)))
+		   (cond
+		    ((null buf-id)
+		     nil)
+		    ((null next-pos)
+		     ;; Failed to find the next status.
+		     (goto-char (point-max))
+		     nil)
+		    ((twittering-status-id< id buf-id)
+		     (goto-char next-pos)
+		     t)
+		    (t
+		     nil))))
+	     (unless (twittering-status-id= id (get-text-property (point) 'id))
+	       (let ((formatted-status
+		      (twittering-format-status
 		       status twittering-status-format))
-	      (insert "\n"))
-	    twittering-timeline-data)
+		     (separator "\n"))
+		 (insert formatted-status separator)))))
+	 twittering-timeline-data))
       (if (and twittering-image-stack window-system)
 	  (clear-image-cache))
       (setq buffer-read-only t)
       (debug-print (current-buffer))
-      (goto-char (+ point (if twittering-scroll-mode (- (point-max) end) 0))))
+      (if additional
+	  (if twittering-scroll-mode
+	      (when (eq point (point-min))
+		;; Cancel the modification applied before insertion.
+		(goto-char (max (1- (point)) (point-min))))
+	    ;; After additional insertion, the current position exists on the
+	    ;; same status if point != (point-min).
+	    ;; Go to the original position.
+	    (goto-char point))
+	;; Go to the beginning of buffer after full insertion.
+	(goto-char (point-min))))
     ))
 
 (defun twittering-make-display-spec-for-icon (image-url)

@@ -8,6 +8,13 @@
 	decorator "%FACE[face-name]{...}", which decorates braced strings
 	with the specified face.
 
+	* twittering-mode.el (twittering-render-timeline): support
+	additional rendering.
+	(twittering-http-get-default-sentinel): send the additional
+	argument `same-timeline' to `twittering-render-timeline'.
+	(twittering-status-id<): add new function for comparing two ids.
+	(twittering-status-id=): likewise.
+
 2010-01-16  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-get-response-header): Delete an

@@ -446,7 +446,16 @@ and its contents(BUFFER)"
 ;; If you use Emacs21, decode-char 'ucs will fail unless Mule-UCS is loaded.
 ;; TODO: Show error messages if Emacs 21 without Mule-UCS
 (defun twittering-ucs-to-char (num)
-  (if (functionp 'ucs-to-char)
+  ;; Check (featurep 'mucs) is a workaround with navi2ch to avoid
+  ;; error "error in process sentinel: Cannot open load file:
+  ;; unicode".
+  ;; 
+  ;; Details: navi2ch prior to 1.8.3 (which is currently last release
+  ;; version as of 2010-01-18) always define `ucs-to-char' as autoload
+  ;; file "unicode(.el)" (which came from Mule-UCS), hence it breaks
+  ;; `ucs-to-char' under non Mule-UCS environment. The problem is
+  ;; fixed in navi2ch dated 2010-01-16 or later, but not released yet.
+  (if (and (featurep 'mucs) (functionp 'ucs-to-char))
       (ucs-to-char num)
     (decode-char 'ucs num)))
 

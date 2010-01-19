@@ -1,3 +1,10 @@
+2010-01-18  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-ucs-to-char): Add a workaround
+	with navi2ch prior to 1.8.3, which is currently last release
+	version as of 2010-01-18. The problem is fixed in navi2ch dated
+	2010-01-16 or later, but not released yet.
+
 2010-01-17  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-format-status): fix the regexp

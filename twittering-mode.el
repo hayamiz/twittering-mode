@@ -1473,34 +1473,34 @@ Available keywords:
       (kill-buffer temp-buffer)))
   )
 
-;; XXX: this is a preliminary implementation because we should parse
-;; xmltree in the function.
 (defun twittering-http-get-list-index-sentinel (temp-buffer noninteractive proc stat &optional suc-msg)
   (debug-printf "get-list-index-sentinel: proc=%s stat=%s" proc stat)
   (unwind-protect
-      (let ((header (twittering-get-response-header temp-buffer)))
-	(if (not (string-match "HTTP/1\.[01] \\([a-zA-Z0-9 ]+\\)\r?\n" header))
-	    (setq twittering-list-index-retrieved "Failure: Bad http response.")
-	  (let ((status (match-string-no-properties 1 header))
-		(indexes nil))
-	    (if (not (string-match "\r?\nLast-Modified: " header))
-		(setq twittering-list-index-retrieved
-		      (concat status ", but no contents."))
+      (let ((header (twittering-get-response-header temp-buffer))
+	    ;; (body (twittering-get-response-body temp-buffer)) not used now.
+	    (status nil)
+	    (indexes nil)
+	    (mes ""))
+	(if (string-match "HTTP/1\.[01] \\([a-zA-Z0-9 ]+\\)\r?\n" header)
+	    (progn
+	      (setq status (match-string-no-properties 1 header))
 	      (case-string
 	       status
 	       (("200 OK")
+		;; FIXME: this is a preliminary implementation because
+		;; we should parse xmltree here.
 		(with-current-buffer temp-buffer
 		  (save-excursion
 		    (goto-char (point-min))
 		    (if (search-forward-regexp "\r?\n\r?\n" nil t)
 			(while (re-search-forward
 				"<slug>\\([-a-zA-Z0-9_]+\\)</slug>" nil t)
-			  (push (match-string 1) indexes)))
-		    (if indexes
-			(setq twittering-list-index-retrieved indexes)
-		      (setq twittering-list-index-retrieved "")))))
-	       (t
-		(setq twittering-list-index-retrieved status)))))))
+			  (push (match-string 1) indexes))))))
+	       (t (mes status))))
+	  (setq mes "Failure: Bad http response."))
+	(if indexes
+	    (setq twittering-list-index-retrieved indexes)
+	  (setq twittering-list-index-retrieved mes)))
     ;; unwindforms
     (when (and (not twittering-debug-mode) (buffer-live-p temp-buffer))
       (kill-buffer temp-buffer)))

@@ -12,6 +12,9 @@
 	(twittering-http-post-default-sentinel): Likewise.
 	(twittering-http-get-list-index-sentinel): Likewise.
 
+	* twittering-mode.el (twittering-tinyurl-get): Remove an
+	unnecessary call to `concat'.
+
 2010-01-18  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-ucs-to-char): Add a workaround

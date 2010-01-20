@@ -2379,9 +2379,9 @@ variable `twittering-status-format'"
 			 twittering-tinyurl-services-map))))
     (unless api
       (error "Invaild `twittering-tinyurl-service'. try one of %s"
-	     (concat (mapconcat (lambda (x)
-				  (symbol-name (car x)))
-				twittering-tinyurl-services-map ", "))))
+	     (mapconcat (lambda (x)
+			  (symbol-name (car x)))
+			twittering-tinyurl-services-map ", ")))
     (if longurl
 	(let ((buffer (url-retrieve-synchronously (concat api longurl))))
 	  (with-current-buffer buffer

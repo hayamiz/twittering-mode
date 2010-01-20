@@ -1,3 +1,17 @@
+2010-01-20  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-http-get-default-sentinel): Show
+	the reason phrase with status code if status code is not "200";
+	same as `twittering-http-post-default-sentinel'.
+	(twittering-http-get-list-index-sentinel): Likewise.
+
+	* twittering-mode.el (twittering-http-status-line-regexp): New
+	defconst to share this between several functions. The regexp
+	pattern to obey to RFC 2616.
+	(twittering-http-get-default-sentinel): Use it.
+	(twittering-http-post-default-sentinel): Likewise.
+	(twittering-http-get-list-index-sentinel): Likewise.
+
 2010-01-18  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-ucs-to-char): Add a workaround

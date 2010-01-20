@@ -66,6 +66,11 @@
 	(message "%s" version-string)
       version-string)))
 
+(defconst twittering-http-status-line-regexp
+  "HTTP/1\.[01] \\(\\([0-9][0-9][0-9]\\) [^\r\n]+\\)\r?\n"
+  "Regular expression used in \"sentinel\" functions to pick up
+status-code and reason-phrase from the response.")
+
 (defconst twittering-max-number-of-tweets-on-retrieval 200
   "The maximum number of `twittering-number-of-tweets-on-retrieval'.")
 
@@ -1428,13 +1433,15 @@ Available keywords:
   (unwind-protect
       (let ((header (twittering-get-response-header temp-buffer))
 	    (body (twittering-get-response-body temp-buffer))
+	    (status-line nil)
 	    (status nil))
-	(if (string-match "HTTP/1\.[01] \\([a-zA-Z0-9 ]+\\)\r?\n" header)
+	(if (string-match twittering-http-status-line-regexp header)
 	    (when body
-	      (setq status (match-string-no-properties 1 header))
+	      (setq status-line (match-string-no-properties 1 header))
+	      (setq status (match-string-no-properties 2 header))
 	      (case-string
 	       status
-	       (("200 OK")
+	       (("200")
 		(setq twittering-new-tweets-count
 		      (count t (mapcar
 				#'twittering-cache-status-datum
@@ -1464,7 +1471,7 @@ Available keywords:
 			   twittering-notify-successful-http-get)
 		  (message (if suc-msg suc-msg "Success: Get."))))
 	       (t (when (twittering-buffer-active-p)
-		    (message status)))))
+		    (message "Response: %s" status-line)))))
 	  (when (twittering-buffer-active-p)
 	    (message "Failure: Bad http response.")))
 	)
@@ -1478,15 +1485,17 @@ Available keywords:
   (unwind-protect
       (let ((header (twittering-get-response-header temp-buffer))
 	    ;; (body (twittering-get-response-body temp-buffer)) not used now.
+	    (status-line nil)
 	    (status nil)
 	    (indexes nil)
 	    (mes ""))
-	(if (string-match "HTTP/1\.[01] \\([a-zA-Z0-9 ]+\\)\r?\n" header)
+	(if (string-match twittering-http-status-line-regexp header)
 	    (progn
-	      (setq status (match-string-no-properties 1 header))
+	      (setq status-line (match-string-no-properties 1 header))
+	      (setq status (match-string-no-properties 2 header))
 	      (case-string
 	       status
-	       (("200 OK")
+	       (("200")
 		;; FIXME: this is a preliminary implementation because
 		;; we should parse xmltree here.
 		(with-current-buffer temp-buffer
@@ -1496,7 +1505,7 @@ Available keywords:
 			(while (re-search-forward
 				"<slug>\\([-a-zA-Z0-9_]+\\)</slug>" nil t)
 			  (push (match-string 1) indexes))))))
-	       (t (mes status))))
+	       (t (mes (format "Response: %s" status-line)))))
 	  (setq mes "Failure: Bad http response."))
 	(if indexes
 	    (setq twittering-list-index-retrieved indexes)
@@ -1526,20 +1535,21 @@ PARAMETERS is alist of URI parameters.
   (unwind-protect
       (let ((header (twittering-get-response-header temp-buffer))
 	    ;; (body (twittering-get-response-body temp-buffer)) not used now.
+	    (status-line nil)
 	    (status nil))
-	(if (string-match "HTTP/1\.[01] \\([a-zA-Z0-9 ]+\\)\r?\n" header)
-	    (setq status (match-string-no-properties 1 header))
-	  (setq status
-		(progn (string-match "^\\([^\r\n]+\\)\r?\n" header)
-		       (match-string-no-properties 1 header))))
-	(case-string status
-		     (("200 OK")
-		      (when (twittering-buffer-active-p)
-			(message (if suc-msg suc-msg "Success: Post")))
-		      )
-		     (t (when (twittering-buffer-active-p)
-			  (message "Response status code: %s" status))))
-	)
+	(if (string-match twittering-http-status-line-regexp header)
+	    (progn
+	      (setq status-line (match-string-no-properties 1 header))
+	      (setq status (match-string-no-properties 2 header))
+	      (case-string
+	       status
+	       (("200")
+		(when (twittering-buffer-active-p)
+		  (message (if suc-msg suc-msg "Success: Post."))))
+	       (t (when (twittering-buffer-active-p)
+		    (message "Response: %s" status-line)))))
+	  (when (twittering-buffer-active-p)
+	    (message "Failure: Bad http response."))))
     ;; unwindforms
     (when (and (not twittering-debug-mode) (buffer-live-p temp-buffer))
       (kill-buffer temp-buffer)))

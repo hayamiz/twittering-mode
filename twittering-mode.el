@@ -1844,34 +1844,34 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
       (save-excursion
 	(unless additional
 	  (erase-buffer))
-	;; Go to the head of the first status.
-	(twittering-goto-first-status)
-	(mapc
-	 (lambda (status)
-	   (let* ((id (cdr (assoc 'id status))))
-	     ;; Find where the status should be inserted.
-	     (while
-		 (let* ((buf-id (get-text-property (point) 'id))
-			(next-pos (twittering-get-next-status-head)))
-		   (cond
-		    ((null buf-id)
-		     nil)
-		    ((null next-pos)
-		     ;; Failed to find the next status.
-		     (goto-char (point-max))
-		     nil)
-		    ((twittering-status-id< id buf-id)
-		     (goto-char next-pos)
-		     t)
-		    (t
-		     nil))))
-	     (unless (twittering-status-id= id (get-text-property (point) 'id))
-	       (let ((formatted-status
-		      (twittering-format-status
-		       status twittering-status-format))
-		     (separator "\n"))
-		 (insert formatted-status separator)))))
-	 twittering-timeline-data))
+	(let ((pos (twittering-get-first-status-head)))
+	  (mapc
+	   (lambda (status)
+	     (let* ((id (cdr (assoc 'id status))))
+	       ;; Find where the status should be inserted.
+	       (while
+		   (let* ((buf-id (get-text-property pos 'id))
+			  (next-pos (twittering-get-next-status-head pos)))
+		     (cond
+		      ((null buf-id)
+		       nil)
+		      ((null next-pos)
+		       ;; Failed to find the next status.
+		       (setq pos (point-max))
+		       nil)
+		      ((twittering-status-id< id buf-id)
+		       (setq pos next-pos)
+		       t)
+		      (t
+		       nil))))
+	       (unless (twittering-status-id= id (get-text-property pos 'id))
+		 (let ((formatted-status
+			(twittering-format-status
+			 status twittering-status-format))
+		       (separator "\n"))
+		   (goto-char pos)
+		   (insert formatted-status separator)))))
+	   twittering-timeline-data)))
       (if (and twittering-image-stack window-system)
 	  (clear-image-cache))
       (setq buffer-read-only t)

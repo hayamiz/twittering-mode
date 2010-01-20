@@ -887,7 +887,7 @@ Return nil if STR is invalid as a timeline spec."
       (define-key km [backtab] 'twittering-goto-previous-thing)
       (define-key km [backspace] 'backward-char)
       (define-key km "G" 'end-of-buffer)
-      (define-key km "H" 'beginning-of-buffer)
+      (define-key km "H" 'twittering-goto-first-status)
       (define-key km "i" 'twittering-icon-mode)
       (define-key km "s" 'twittering-scroll-mode)
       (define-key km "t" 'twittering-toggle-proxy)
@@ -1845,13 +1845,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	(unless additional
 	  (erase-buffer))
 	;; Go to the head of the first status.
-	(if (get-text-property (point-min) 'id)
-	    (goto-char (point-min))
-	  (let ((next (twittering-get-next-status-head (point-min))))
-	    (if next
-		(goto-char next)
-	      ;; The current buffer is empty.
-	      (goto-char (point-min)))))
+	(twittering-goto-first-status)
 	(mapc
 	 (lambda (status)
 	   (let* ((id (cdr (assoc 'id status))))
@@ -2779,6 +2773,18 @@ variable `twittering-status-format'"
 (defun twittering-get-password ()
   (or twittering-password-active
       (setq twittering-password-active (read-passwd "your twitter password: "))))
+
+(defun twittering-goto-first-status ()
+  "Go to the first status."
+  (interactive)
+  (goto-char (twittering-get-first-status-head)))
+
+(defun twittering-get-first-status-head ()
+  (if (get-text-property (point-min) 'id)
+      (point-min)
+    (or (twittering-get-next-status-head (point-min))
+	;; The current buffer is empty.
+	(point-min))))
 
 (defun twittering-goto-next-status ()
   "Go to next status."

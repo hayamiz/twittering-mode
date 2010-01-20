@@ -18,6 +18,14 @@
 	* twittering-mode.el (twittering-update-jojo): Make a tweet by
 	`twittering-ucs-to-char' instead of `string-as-multibyte'.
 
+2010-01-19  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-get-first-status-head): add.
+	(twittering-goto-first-status): add.
+	(twittering-mode-map): bind `twittering-goto-first-status' to "H"
+	instead of `begininng-of-buffer'.
+	(twittering-render-timeline): use `twittering-goto-first-status'.
+
 2010-01-18  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-ucs-to-char): Add a workaround

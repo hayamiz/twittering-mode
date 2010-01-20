@@ -2491,10 +2491,10 @@ variable `twittering-status-format'"
 	 `(("status" . ,(concat
 			 "@" usr " "
 			 (match-string-no-properties 2 msg)
-			 (string-as-multibyte
-			  (if (>= emacs-major-version 23)
-			      "\343\200\200\343\201\257\343\201\243!?"
-			    "\222\241\241\222\244\317\222\244\303!?"))))
+			 (mapconcat
+			  'char-to-string
+			  (mapcar 'twittering-ucs-to-char
+				  '(12288 12399 12387 33 63)) "")))
 	   ("source" . "twmode"))))))
 
 (defun twittering-set-current-hashtag (&optional tag)

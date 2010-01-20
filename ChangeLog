@@ -15,6 +15,9 @@
 	* twittering-mode.el (twittering-tinyurl-get): Remove an
 	unnecessary call to `concat'.
 
+	* twittering-mode.el (twittering-update-jojo): Make a tweet by
+	`twittering-ucs-to-char' instead of `string-as-multibyte'.
+
 2010-01-18  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-ucs-to-char): Add a workaround

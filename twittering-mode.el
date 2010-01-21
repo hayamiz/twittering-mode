@@ -49,9 +49,13 @@
 (when (< emacs-major-version 22)
   (add-to-list 'load-path
 	       (expand-file-name
-		"url-emacs21" (file-name-directory load-file-name)))
-  (require 'un-define)
-  (set-terminal-coding-system 'utf-8))
+               "url-emacs21" (if load-file-name
+                                 (or (file-name-directory load-file-name)
+                                     ".")
+                               ".")))
+  (if (require 'un-define nil t)
+      (set-terminal-coding-system 'utf-8)
+    (message "your Emacs does not have utf-8 support.")))
 (require 'url)
 
 (defconst twittering-mode-version "HEAD")
@@ -448,8 +452,6 @@ and its contents(BUFFER)"
 ;;; Utility functions for portability
 ;;;
 
-;; If you use Emacs21, decode-char 'ucs will fail unless Mule-UCS is loaded.
-;; TODO: Show error messages if Emacs 21 without Mule-UCS
 (defun twittering-ucs-to-char (num)
   ;; Check (featurep 'mucs) is a workaround with navi2ch to avoid
   ;; error "error in process sentinel: Cannot open load file:
@@ -462,7 +464,11 @@ and its contents(BUFFER)"
   ;; fixed in navi2ch dated 2010-01-16 or later, but not released yet.
   (if (and (featurep 'mucs) (functionp 'ucs-to-char))
       (ucs-to-char num)
-    (decode-char 'ucs num)))
+    ;; If you use Emacs21, decode-char 'ucs will fail unless Mule-UCS
+    ;; is loaded.
+    (or (decode-char 'ucs num)
+	;; TODO: Show error messages if Emacs 21 without Mule-UCS
+	??)))
 
 (defun twittering-setftime (fmt string uni)
   (format-time-string fmt ; like "%Y-%m-%d %H:%M:%S"

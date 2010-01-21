@@ -1,3 +1,11 @@
+2010-01-21  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el: Add a fail statement to work again under
+	Emacs21 without Mule-UCS.
+	(toplevel): Don't abort if require failed.
+	(twittering-ucs-to-char): Return `?' explicitly if `decode-char'
+	failed.
+
 2010-01-21  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-render-timeline): reduce

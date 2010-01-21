@@ -3,6 +3,9 @@
 	* twittering-mode.el (twittering-render-timeline): reduce
 	redundant calls of `goto-char'.
 
+	* twittering-mode.el (twittering-render-timeline): fix logic for
+	inserting statuses not to duplicate the last status.
+
 2010-01-20  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-http-get-default-sentinel): Show

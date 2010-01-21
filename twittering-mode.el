@@ -1850,20 +1850,13 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	     (let* ((id (cdr (assoc 'id status))))
 	       ;; Find where the status should be inserted.
 	       (while
-		   (let* ((buf-id (get-text-property pos 'id))
-			  (next-pos (twittering-get-next-status-head pos)))
-		     (cond
-		      ((null buf-id)
-		       nil)
-		      ((null next-pos)
-		       ;; Failed to find the next status.
-		       (setq pos (point-max))
-		       nil)
-		      ((twittering-status-id< id buf-id)
-		       (setq pos next-pos)
-		       t)
-		      (t
-		       nil))))
+		   (let* ((buf-id (get-text-property pos 'id)))
+		     (if (and buf-id (twittering-status-id< id buf-id))
+			 (let ((next-pos
+				(twittering-get-next-status-head pos)))
+			   (setq pos (or next-pos (point-max)))
+			   next-pos)
+		       nil)))
 	       (unless (twittering-status-id= id (get-text-property pos 'id))
 		 (let ((formatted-status
 			(twittering-format-status

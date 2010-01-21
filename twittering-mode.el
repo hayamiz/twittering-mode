@@ -147,7 +147,7 @@ then you can use \"$to_me\" as
   "Number of new tweets when `twittering-new-tweets-hook' is run")
 
 (defvar twittering-new-tweets-hook nil
-  "Hook run when new twits are received.
+  "Hook run when new tweets are received.
 
 You can read `twittering-new-tweets-count' to get the number of new
 tweets received when this hook is run.")
@@ -2265,7 +2265,7 @@ variable `twittering-status-format'"
 			(concat "favorites/" method "/" id)
 			`(("source" . "twmode"))))
 
-(defun twittering-get-twits (host method &optional noninteractive id)
+(defun twittering-get-tweets (host method &optional noninteractive id)
   (let ((buf (get-buffer twittering-buffer)))
     (if (not buf)
 	(twittering-stop)
@@ -2323,7 +2323,7 @@ variable `twittering-status-format'"
 	  (when pair
 	    (let ((host (car pair))
 		  (method (cadr pair)))
-	      (twittering-get-twits host method noninteractive id))))
+	      (twittering-get-tweets host method noninteractive id))))
       (let ((type (car spec)))
 	(error "%s has not been supported yet" type)))))
 

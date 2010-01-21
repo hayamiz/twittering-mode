@@ -6,6 +6,11 @@
 	(twittering-ucs-to-char): Return `?' explicitly if `decode-char'
 	failed.
 
+	* twittering-mode.el (twittering-get-tweets): Rename from
+	`twittering-get-twits'.
+	(twittering-get-and-render-timeline): Adjust callers.
+	(twittering-new-tweets-hook): Fix a docstring.
+
 2010-01-21  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-render-timeline): reduce

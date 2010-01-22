@@ -2,6 +2,14 @@
 
 	* twittering-mode.el (twittering-home-timeline): Add new funciton.
 
+2010-01-22  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-initial-timeline-spec-string):
+	Change value to ":home" from ":friends".
+
+	* twittering-mode.el (twittering-status-to-status-datum): Don't
+	refer to `twittering-use-native-retweet'.
+
 2010-01-21  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el: Add a fail statement to work again under

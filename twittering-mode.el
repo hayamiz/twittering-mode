@@ -122,7 +122,7 @@ dangerous.")
 (defvar twittering-password-active nil
   "Copy of `twittering-password' for internal use.")
 
-(defvar twittering-initial-timeline-spec-string ":friends"
+(defvar twittering-initial-timeline-spec-string ":home"
   "The initial timeline spec string.")
 
 (defvar twittering-timeline-spec-alias nil
@@ -1634,7 +1634,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	   original-user-screen-name)
 
       ;; save original status and adjust data if status was retweeted
-      (when (and retweeted-status-data twittering-use-native-retweet)
+      (when retweeted-status-data
 	(setq original-user-screen-name (twittering-decode-html-entities
 					 (assq-get 'screen_name user-data))
 	      original-user-name (twittering-decode-html-entities

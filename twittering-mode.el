@@ -2176,7 +2176,7 @@ variable `twittering-status-format'"
 				     replace-prefix table))
 			   (text (concat prefix (attr 'text) postfix)))
 		      (substring (twittering-fill-string text)
-				 (1+ (length prefix)))))
+				 (length prefix))))
 		  ))
 	      ("u" . ,(attr 'user-url))
 	      ))

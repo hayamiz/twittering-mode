@@ -32,6 +32,14 @@
 	* twittering-mode.el (twittering-http-get-list-index-sentinel):
 	Fix a reference to `mes' as a variable, not as a function.
 
+2010-01-22  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-fill-string): add new function
+	for generating filled string.
+	(twittering-format-status): use `twittering-fill-string'.
+	(twittering-render-timeline): remove unnecessary binding of the
+	variable `fill-column'.
+
 2010-01-21  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el: Add a fail statement to work again under

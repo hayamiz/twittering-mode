@@ -451,6 +451,20 @@ and its contents(BUFFER)"
 (defun twittering-status-id= (id1 id2)
   (equal id1 id2))
 
+(defun twittering-fill-string (str &optional column)
+  (let* ((kinsoku-limit 1)
+	 (adjustment (if enable-kinsoku
+			 kinsoku-limit
+		       0))
+	 (temporary-fill-column
+	  (or column
+	      (- (1- (window-width)) adjustment))))
+    (with-temp-buffer
+      (let ((fill-column temporary-fill-column))
+	(insert str)
+	(fill-region-as-paragraph (point-min) (point-max))
+	(buffer-substring (point-min) (point-max))))))
+
 ;;;
 ;;; Utility functions for portability
 ;;;
@@ -1837,8 +1851,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 
 (defun twittering-render-timeline (&optional additional)
   (with-current-buffer (twittering-buffer)
-    (let* ((point (point))
-	   (fill-column (- (window-width) 4)))
+    (let* ((point (point)))
       (twittering-update-mode-line)
       (setq buffer-read-only nil)
       (when (and additional twittering-scroll-mode (eq point (point-min)))
@@ -2092,10 +2105,7 @@ variable `twittering-status-format'"
 		    (let* ((formatted-str
 			    (twittering-format-string
 			     (match-string 1 str) prefix mod-table)))
-		      (with-temp-buffer
-			(insert formatted-str)
-			(fill-region-as-paragraph (point-min) (point-max))
-			(buffer-substring (point-min) (point-max)))))))
+		      (twittering-fill-string formatted-str)))))
 	      ("f" . ,(attr 'source))
 	      ("i" . (lambda (context) (profile-image)))
 	      ("j" . ,(attr 'user-id))
@@ -2144,10 +2154,8 @@ variable `twittering-status-format'"
 				     (match-string 1 following-str)
 				     replace-prefix table))
 			   (text (concat prefix (attr 'text) postfix)))
-		      (with-temp-buffer
-			(insert text)
-			(fill-region-as-paragraph (point-min) (point-max))
-			(buffer-substring (1+ (length prefix)) (point-max)))))
+		      (substring (twittering-fill-string text)
+				 (1+ (length prefix)))))
 		  ))
 	      ("u" . ,(attr 'user-url))
 	      ))

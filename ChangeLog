@@ -10,6 +10,9 @@
 	* twittering-mode.el (twittering-status-to-status-datum): Don't
 	refer to `twittering-use-native-retweet'.
 
+	* twittering-mode.el (twittering-http-get-list-index-sentinel):
+	Fix a reference to `mes' as a variable, not as a function.
+
 2010-01-21  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el: Add a fail statement to work again under

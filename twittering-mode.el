@@ -1511,7 +1511,7 @@ Available keywords:
 			(while (re-search-forward
 				"<slug>\\([-a-zA-Z0-9_]+\\)</slug>" nil t)
 			  (push (match-string 1) indexes))))))
-	       (t (mes (format "Response: %s" status-line)))))
+	       (t (setq mes (format "Response: %s" status-line)))))
 	  (setq mes "Failure: Bad http response."))
 	(if indexes
 	    (setq twittering-list-index-retrieved indexes)

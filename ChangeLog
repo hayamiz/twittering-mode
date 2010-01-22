@@ -21,6 +21,12 @@
 
 	* twittering-mode.el (twittering-home-timeline): Add new funciton.
 
+2010-01-23  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-fill-string): adjust
+	`fill-column' to the minimum width of windows displaying
+	`*twittering*' buffer. Thanks to Naohiro Aota.
+
 2010-01-22  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-initial-timeline-spec-string):

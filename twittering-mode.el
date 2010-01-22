@@ -456,9 +456,13 @@ and its contents(BUFFER)"
 	 (adjustment (if enable-kinsoku
 			 kinsoku-limit
 		       0))
+	 (min-width
+	  (apply 'min
+		 (mapcar 'window-width
+			 (get-buffer-window-list (current-buffer) nil t))))
 	 (temporary-fill-column
 	  (or column
-	      (- (1- (window-width)) adjustment))))
+	      (- (1- min-width) adjustment))))
     (with-temp-buffer
       (let ((fill-column temporary-fill-column))
 	(insert str)

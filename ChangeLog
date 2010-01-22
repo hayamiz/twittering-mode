@@ -1,3 +1,7 @@
+2010-01-23  Naohiro Aota  <naota@elisp.net>
+
+	* twittering-mode.el (twittering-home-timeline): Add new funciton.
+
 2010-01-21  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el: Add a fail statement to work again under

@@ -2427,6 +2427,10 @@ variable `twittering-status-format'"
   (interactive)
   (twittering-get-and-render-timeline '(friends)))
 
+(defun twittering-home-timeline ()
+  (interactive)
+  (twittering-get-and-render-timeline '(home)))
+
 (defun twittering-replies-timeline ()
   (interactive)
   (twittering-get-and-render-timeline '(replies)))

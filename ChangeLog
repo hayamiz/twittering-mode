@@ -27,6 +27,10 @@
 	`fill-column' to the minimum width of windows displaying
 	`*twittering*' buffer. Thanks to Naohiro Aota.
 
+	* twittering-mode.el (twittering-render-timeline): take account of
+	multiple windows displaying `*twittering*' buffer.
+	Thanks to Naohiro Aota.
+
 2010-01-22  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-initial-timeline-spec-string):

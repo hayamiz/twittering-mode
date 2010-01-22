@@ -1855,15 +1855,25 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 
 (defun twittering-render-timeline (&optional additional)
   (with-current-buffer (twittering-buffer)
-    (let* ((point (point)))
+    (let* ((window-list (get-buffer-window-list (current-buffer) nil t))
+	   (point-window-list
+	    (mapcar (lambda (window)
+		      (cons (window-point window) window))
+		    window-list)))
       (twittering-update-mode-line)
       (setq buffer-read-only nil)
-      (when (and additional twittering-scroll-mode (eq point (point-min)))
+      (when (and additional twittering-scroll-mode)
 	;; If (< (point-min) (point)), the point exists on the same status
 	;; even after insertion by the effect of `save-excursion'.
 	;; However, if (eq (point-min) (point)), the point must be adjusted
 	;; because new statuses are inserted after the original (point-min).
-	(goto-char (min (1+ (point-min)) (point-max))))
+	(mapc (lambda (pair)
+		(let ((point (car pair))
+		      (window (cdr pair)))
+		  (when (eq point (point-min))
+		    (set-window-point
+		     window (min (1+ (point-min)) (point-max))))))
+	      point-window-list))
       (save-excursion
 	(unless additional
 	  (erase-buffer))
@@ -1892,17 +1902,24 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	  (clear-image-cache))
       (setq buffer-read-only t)
       (debug-print (current-buffer))
-      (if additional
-	  (if twittering-scroll-mode
-	      (when (eq point (point-min))
-		;; Cancel the modification applied before insertion.
-		(goto-char (max (1- (point)) (point-min))))
-	    ;; After additional insertion, the current position exists on the
-	    ;; same status if point != (point-min).
-	    ;; Go to the original position.
-	    (goto-char point))
-	;; Go to the beginning of buffer after full insertion.
-	(goto-char (point-min))))
+      (mapc
+       (lambda (pair)
+	 (let ((point (car pair))
+	       (window (cdr pair)))
+	   (if additional
+	       (if twittering-scroll-mode
+		   (when (eq point (point-min))
+		     ;; Cancel the modification applied before insertion.
+		     (set-window-point window
+				       (max (1- (window-point window))
+					    (point-min))))
+		 ;; After additional insertion, the current position exists
+		 ;; on the same status if point != (point-min).
+		 ;; Go to the original position.
+		 (set-window-point window point))
+	     ;; Go to the beginning of buffer after full insertion.
+	     (set-window-point window (point-min)))))
+       point-window-list))
     ))
 
 (defun twittering-make-display-spec-for-icon (image-url)

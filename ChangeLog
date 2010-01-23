@@ -309,6 +309,12 @@
 	is non-nil to avoid error "Non-X frame used" under Emacs which is
 	using a text-only terminal.
 
+2010-01-23  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-json-to-status-datum): Don't
+	refer to `twittering-use-native-retweet'; same as
+	`twittering-status-to-status-datum'.
+
 2010-01-23  Naohiro Aota  <naota@elisp.net>
 
 	* twittering-mode.el (twittering-home-timeline): Add new funciton.

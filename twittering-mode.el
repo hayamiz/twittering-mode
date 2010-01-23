@@ -1835,7 +1835,7 @@ If ID of STATUS-DATUM is already in ID-TABLE, return nil. If not, return t."
 	      original-user-screen-name)
 
       ;; save original status and adjust data if status was retweeted
-      (when (and retweeted-status twittering-use-native-retweet)
+      (when retweeted-status
 	(setq original-user-screen-name (twittering-decode-html-entities
 					 (assq-get 'screen_name status))
 	      original-user-name (twittering-decode-html-entities

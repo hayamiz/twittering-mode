@@ -838,13 +838,13 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 	  '("api.twitter.com" "1/statuses/retweets_of_me"))
 	 ((eq type 'search)
 	  (let ((word (car value)))
-	    `("search.twitter.com" ,(concat "search=" word))))
+	    `("search.twitter.com" "search" ,word)))
 	 (t
 	  (error "Invalid timeline spec")
 	  nil)))
     nil))
 
-(defun twittering-host-method-to-timeline-spec (host method)
+(defun twittering-host-method-to-timeline-spec (host method &optional word)
   (cond
    ((or (not (stringp host)) (not (stringp method))) nil)
    ((string= host "twitter.com")
@@ -870,11 +870,7 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 	`(list ,username ,listname)))
      (t nil)))
    ((string= host "search.twitter.com")
-    (cond
-     ((string-match "^search=\\([a-zA-Z0-9_-]+\\)" method)
-      (let ((word (match-string-no-properties 1 method)))
-	`(search ,word)))
-     (t nil)))
+    `(search ,word))
    (t nil)))
 
 (defun twittering-add-timeline-history (&optional timeline-spec)
@@ -1604,12 +1600,6 @@ Available keywords:
       (setq format "xml"))
   (if (null sentinel)
       (setq sentinel 'twittering-http-get-default-sentinel))
-
-  ;; NOTE: in search-mode, a 'method' variable is now contains a query
-  ;; word for internal use. for this reason, we must adjust it before
-  ;; pass it into 'twittering-start-http-session'.
-  (if (string-match "^search=" method)
-      (setq method "search"))
 
   (twittering-start-http-session
    "GET" (twittering-http-application-headers "GET")
@@ -2634,9 +2624,7 @@ variable `twittering-status-format'."
 	  (twittering-stop)
 	  nil)
       (let* ((default-count 20)
-	     (regexp-search-method "^search=\\([a-zA-Z0-9_-]+\\)$")
-	     (do-search-flag (string-match regexp-search-method method))
-	     (prev_word (match-string 1 method))
+	     (do-search-flag (not (null word)))
 	     (max-count (if do-search-flag
 			    100 ;; FIXME: refer to defconst.
 			  twittering-max-number-of-tweets-on-retrieval))
@@ -2651,9 +2639,7 @@ variable `twittering-status-format'."
 	     (parameters nil))
 	(cond
 	 (do-search-flag
-	  (or (require 'json nil t)
-	      (error "A search-mode is currently disabled; need json.el"))
-	  (add-to-list 'parameters (cons "q" (if word word prev_word)))
+	  (add-to-list 'parameters (cons "q" word))
 	  (add-to-list 'parameters (cons "rpp" (number-to-string count)))
 	  (if id
 	      (add-to-list 'parameters `("max_id" . ,id)))
@@ -2683,13 +2669,6 @@ variable `twittering-status-format'."
       ))
   )
 
-(defun twittering-get-search (word)
-  (let ((pair (twittering-timeline-spec-to-host-method `(search ,word))))
-    (when pair
-      (let ((host (car pair))
-	    (method (cadr pair)))
-	(twittering-get-tweets host method nil nil word)))))
-
 (defun twittering-get-and-render-timeline (spec &optional noninteractive id)
   (let* ((retrieved-spec-string twittering-last-retrieved-timeline-spec-string)
 	 (original-spec spec)
@@ -2710,15 +2689,23 @@ variable `twittering-status-format'."
       ;; ignore non-interactive request if a process is waiting for responses.
       t)
      ((twittering-timeline-spec-primary-p spec)
-      (let ((info (twittering-timeline-spec-to-host-method spec)))
+      (let ((info (twittering-timeline-spec-to-host-method spec))
+	    (is-search-spec (eq 'search (car spec))))
 	(when info
 	  (unless is-same-spec
 	    (setq twittering-timeline-last-update nil))
-	  (let* ((host (elt info 0))
-		 (method (elt info 1))
-		 (proc (twittering-get-tweets host method noninteractive id)))
-	    (setq twittering-last-requested-timeline-spec-string spec-string)
-	    (twittering-register-process proc spec)))))
+	  (cond
+	   ((null info) nil)
+	   ((and is-search-spec (not (require 'json nil t)))
+	    (message "search-mode is currently disabled; need json.el."))
+	   (t
+	    (let* ((host (elt info 0))
+		   (method (elt info 1))
+		   (word (and is-search-spec (cadr spec)))
+		   (proc (twittering-get-tweets host method noninteractive
+						id word)))
+	      (setq twittering-last-requested-timeline-spec-string spec-string)
+	      (twittering-register-process proc spec)))))))
      (t
       (let ((type (car spec)))
 	(error "%s has not been supported yet" type))))))
@@ -3131,7 +3118,8 @@ variable `twittering-status-format'."
 	(if (null word)
 	    (setq word (read-from-minibuffer "search: " nil nil nil 'twittering-search-history nil t)))
 	(if (> (length word) 0)
-	    (twittering-get-search word)
+	      (let ((spec `(search ,word)))
+		(twittering-get-and-render-timeline spec))
 	  (message "No query string")))
     (message "search-mode is currently disabled; need json.el.")))
 

@@ -628,8 +628,8 @@ as a list of a string on Emacs21."
 ;;; RETWEETED_TO_ME ::= ":retweeted_to_me"
 ;;; RETWEETS_OF_ME ::= ":retweets_of_me"
 ;;;
-;;; SEARCH ::= ":search=" QUERY_STRING
-;;; QUERY_STRING ::= /[a-zA-Z0-9_-]+/
+;;; SEARCH ::= ":search/" QUERY_STRING "/"
+;;; QUERY_STRING ::= any string, where "/" is escaped by a backslash.
 ;;; MERGE ::= "(" MERGED_SPECS ")"
 ;;; MERGED_SPECS ::= SPEC | SPEC "+" MERGED_SPECS
 ;;; FILTER ::= ":filter/" REGEXP "/" SPEC
@@ -656,7 +656,11 @@ If SHORTEN is non-nil, the abbreviated expression will be used."
      ((eq type 'retweeted_by_me) ":retweeted_by_me")
      ((eq type 'retweeted_to_me) ":retweeted_to_me")
      ((eq type 'retweets_of_me) ":retweets_of_me")
-     ((eq type 'search) (concat ":search=" (car value)))
+     ((eq type 'search)
+      (let ((query (car value)))
+	(concat ":search/"
+		(replace-regexp-in-string "/" "\\/" query nil t)
+		"/")))
      ;; composite
      ((eq type 'filter)
       (let ((regexp (car value))
@@ -707,10 +711,12 @@ Return cons of the spec and the rest string."
 	(let ((first-spec (list (cdr (assoc type alist)))))
 	  (cons first-spec following)))
        ((string= type "search")
-	(if (string-match "^:search=\\([a-zA-Z0-9_-]+\\)" str)
-	    (let ((word (match-string 1 str))
-		  (rest (substring str (match-end 0))))
-	      `((search ,word) . ,rest))))
+	(if (string-match "^:search/\\(.*?[^\\]\\)??/" str)
+	    (let* ((escaped-query (match-string 1 str))
+		   (query (replace-regexp-in-string "\\\\/" "/"
+						    escaped-query nil t))
+		   (rest (substring str (match-end 0))))
+	      `((search ,query) . ,rest))))
        ((string= type "filter")
 	(if (string-match "^:filter/\\(\\(.*?[^\\]\\)??\\(\\\\\\\\\\)*\\)??/"
 			  str)

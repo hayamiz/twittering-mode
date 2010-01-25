@@ -1,3 +1,10 @@
+2010-01-25  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-format-status): Call
+	`twittering-make-display-spec-for-icon' only when `window-system'
+	is non-nil to avoid error "Non-X frame used" under Emacs which is
+	using a text-only terminal.
+
 2010-01-23  Naohiro Aota  <naota@elisp.net>
 
 	* twittering-mode.el (twittering-home-timeline): Add new funciton.

@@ -1997,7 +1997,8 @@ variable `twittering-status-format'"
 		     twittering-image-data-table)
 	      (add-to-list 'twittering-image-stack profile-image-url))
 	    
-	    (when (and icon-string twittering-icon-mode)
+	    (when (and twittering-icon-mode window-system
+		       icon-string)
 	      (let ((display-spec
 		     (twittering-make-display-spec-for-icon profile-image-url)))
 		(when display-spec

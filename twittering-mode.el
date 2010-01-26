@@ -170,7 +170,7 @@ Items:
  %l - location
  %L - \" [location]\"
  %r - \" in reply to user\"
- %R - \" retweeted by user\"
+ %R - \" (retweeted by user)\"
  %u - url
  %j - user.id
  %p - protected?
@@ -1564,11 +1564,10 @@ PARAMETERS is alist of URI parameters.
 (defun twittering-get-response-header (buffer)
   "Exract HTTP response header from HTTP response.
 `buffer' may be a buffer or the name of an existing buffer which contains the HTTP response."
-  ;; FIXME:
-  ;; curl prints HTTP proxy response header, so strip it
   (with-current-buffer buffer
     (save-excursion
       (goto-char (point-min))
+      ;; FIXME: curl prints HTTP proxy response header, so strip it
       (when (search-forward-regexp
 	     "HTTP/1\\.[01] 200 Connection established\r\n\r\n" nil t)
 	(delete-region (point-min) (point)))
@@ -1733,7 +1732,6 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 			    uri-in-text ,uri))
 	     text))
 	  (setq regex-index (match-end 0)) ))
-
 
       ;; make source pretty and clickable
       (if (string-match "<a href=\"\\(.*?\\)\".*?>\\(.*\\)</a>" source)

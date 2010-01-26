@@ -291,6 +291,17 @@
 	additional movement of points for scroll-mode.
 
 2010-01-26  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-status-to-status-datum): Add
+	`original-user-name' and `original-user-screen-name' to return
+	an alist; fix an incomplete merge on 2010-01-22.
+	(twittering-json-to-status-datum): Likewise.
+
+	* twittering-mode.el (twittering-json-to-status-datum): Use
+	`retweeted-status-data' as variable instead of `retweeted-status';
+	same as `twittering-status-to-status-datum'.
+
+2010-01-26  Satoshi Yatagawa  <yata_github@y.hauN.org>
 	
 	* twittering-mode.el (toplevel): Require 'unicode explicitly on
 	Emacs21. See a comment of `twittering-ucs-to-char' for more

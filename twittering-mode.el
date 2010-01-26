@@ -1830,17 +1830,17 @@ If ID of STATUS-DATUM is already in ID-TABLE, return nil. If not, return t."
 	      user-url
 	      user-protected
 	      regex-index
-	      (retweeted-status (cddr (assq 'retweeted_status status)))
+	      (retweeted-status-data (cddr (assq 'retweeted_status status)))
 	      original-user-name
 	      original-user-screen-name)
 
       ;; save original status and adjust data if status was retweeted
-      (when retweeted-status
+      (when retweeted-status-data
 	(setq original-user-screen-name (twittering-decode-html-entities
 					 (assq-get 'screen_name status))
 	      original-user-name (twittering-decode-html-entities
 				  (assq-get 'name status)))
-	(setq status retweeted-status))
+	(setq status retweeted-status-data))
 
       (setq id (format "%1.0f" (assq-get 'id status)))
       (setq text (twittering-decode-html-entities
@@ -1889,7 +1889,9 @@ If ID of STATUS-DATUM is already in ID-TABLE, return nil. If not, return t."
 	     user-description
 	     user-profile-image-url
 	     user-url
-	     user-protected))))))
+	     user-protected
+	     original-user-name
+	     original-user-screen-name))))))
 
 (defun twittering-json-to-status (xmltree)
   (mapcar #'twittering-json-to-status-datum
@@ -1990,7 +1992,9 @@ If ID of STATUS-DATUM is already in ID-TABLE, return nil. If not, return t."
                     user-description
                     user-profile-image-url
                     user-url
-                    user-protected))))))
+                    user-protected
+                    original-user-name
+                    original-user-screen-name))))))
 
 (defun twittering-make-clickable-status-datum (status)
   (flet ((assq-get (item seq)

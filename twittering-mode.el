@@ -53,9 +53,12 @@
                                  (or (file-name-directory load-file-name)
                                      ".")
                                ".")))
-  (if (require 'un-define nil t)
-      (set-terminal-coding-system 'utf-8)
-    (message "your Emacs does not have utf-8 support.")))
+  (and (require 'un-define nil t)
+       ;; the explicitly require 'unicode to update a workaround with
+       ;; navi2ch. see a comment of `twittering-ucs-to-char' for more
+       ;; details.
+       (require 'unicode nil t))
+  (set-terminal-coding-system 'utf-8))
 (require 'url)
 
 (defconst twittering-mode-version "HEAD")
@@ -453,7 +456,7 @@ and its contents(BUFFER)"
 ;;;
 
 (defun twittering-ucs-to-char (num)
-  ;; Check (featurep 'mucs) is a workaround with navi2ch to avoid
+  ;; Check (featurep 'unicode) is a workaround with navi2ch to avoid
   ;; error "error in process sentinel: Cannot open load file:
   ;; unicode".
   ;; 
@@ -462,12 +465,11 @@ and its contents(BUFFER)"
   ;; file "unicode(.el)" (which came from Mule-UCS), hence it breaks
   ;; `ucs-to-char' under non Mule-UCS environment. The problem is
   ;; fixed in navi2ch dated 2010-01-16 or later, but not released yet.
-  (if (and (featurep 'mucs) (functionp 'ucs-to-char))
+  (if (and (featurep 'unicode) (functionp 'ucs-to-char))
       (ucs-to-char num)
-    ;; If you use Emacs21, decode-char 'ucs will fail unless Mule-UCS
-    ;; is loaded.
+    ;; Emacs21 have a partial support for UTF-8 text, so it can decode
+    ;; only parts of a text with Japanese.
     (or (decode-char 'ucs num)
-	;; TODO: Show error messages if Emacs 21 without Mule-UCS
 	??)))
 
 (defun twittering-setftime (fmt string uni)

@@ -1,3 +1,15 @@
+2010-01-26  Satoshi Yatagawa  <yata_github@y.hauN.org>
+	
+	* twittering-mode.el (toplevel): Require 'unicode explicitly on
+	Emacs21. See a comment of `twittering-ucs-to-char' for more
+	details.
+	(twittering-ucs-to-char): Check (featurep 'unicode) instead of
+	(featurep 'mucs).
+	(twittering-ucs-to-char): Update comment.
+
+	* twittering-mode.el (toplevel): On Emacs21, always call
+	`set-terminal-coding-system'.
+
 2010-01-25  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-format-status): Call

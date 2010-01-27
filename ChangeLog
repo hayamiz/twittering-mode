@@ -1,3 +1,9 @@
+2010-01-28  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-render-timeline): simplified by
+	using `insert-before-markers' instead of `insert'. This removes
+	additional movement of points for scroll-mode.
+
 2010-01-26  Satoshi Yatagawa  <yata_github@y.hauN.org>
 	
 	* twittering-mode.el (toplevel): Require 'unicode explicitly on

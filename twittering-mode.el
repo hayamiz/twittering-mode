@@ -1862,18 +1862,6 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 		    window-list)))
       (twittering-update-mode-line)
       (setq buffer-read-only nil)
-      (when (and additional twittering-scroll-mode)
-	;; If (< (point-min) (point)), the point exists on the same status
-	;; even after insertion by the effect of `save-excursion'.
-	;; However, if (eq (point-min) (point)), the point must be adjusted
-	;; because new statuses are inserted after the original (point-min).
-	(mapc (lambda (pair)
-		(let ((point (car pair))
-		      (window (cdr pair)))
-		  (when (eq point (point-min))
-		    (set-window-point
-		     window (min (1+ (point-min)) (point-max))))))
-	      point-window-list))
       (save-excursion
 	(unless additional
 	  (erase-buffer))
@@ -1896,30 +1884,33 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 			 status twittering-status-format))
 		       (separator "\n"))
 		   (goto-char pos)
-		   (insert formatted-status separator)))))
+		   ;; Use `insert-before-markers' in order to keep
+		   ;; which status is pointed by each marker.
+		   (insert-before-markers formatted-status separator)
+		   ;; Now, `pos' points the head of the status.
+		   ;; It must be moved to the current point
+		   ;; in order to skip the status inserted just now.
+		   (setq pos (point))))))
 	   twittering-timeline-data)))
       (if (and twittering-image-stack window-system)
 	  (clear-image-cache))
       (setq buffer-read-only t)
       (debug-print (current-buffer))
-      (mapc
-       (lambda (pair)
-	 (let ((point (car pair))
-	       (window (cdr pair)))
-	   (if additional
-	       (if twittering-scroll-mode
-		   (when (eq point (point-min))
-		     ;; Cancel the modification applied before insertion.
-		     (set-window-point window
-				       (max (1- (window-point window))
-					    (point-min))))
-		 ;; After additional insertion, the current position exists
-		 ;; on the same status if point != (point-min).
-		 ;; Go to the original position.
-		 (set-window-point window point))
-	     ;; Go to the beginning of buffer after full insertion.
-	     (set-window-point window (point-min)))))
-       point-window-list))
+      (cond
+       ((and additional (not twittering-scroll-mode))
+	;; After additional insertion, the current position exists
+	;; on the same status.
+	;; Go to the original position.
+	(mapc (lambda (pair)
+		(let ((point (car pair))
+		      (window (cdr pair)))
+		  (set-window-point window point)))
+	      point-window-list))
+       ((not additional)
+	;; Go to the beginning of buffer after full insertion.
+	(mapc
+	 (lambda (window) (set-window-point window (point-min)))
+	 window-list))))
     ))
 
 (defun twittering-make-display-spec-for-icon (image-url)

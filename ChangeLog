@@ -320,6 +320,11 @@
 	is non-nil to avoid error "Non-X frame used" under Emacs which is
 	using a text-only terminal.
 
+2010-01-25  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-extract-timeline-spec): add new
+	timeline spec string for hashtag.
+
 2010-01-23  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-json-to-status-datum): Don't

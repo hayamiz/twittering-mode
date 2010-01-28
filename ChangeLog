@@ -348,6 +348,11 @@
 	* twittering-mode.el (twittering-format-status): fix an incorrect
 	index on filling text for the specifier "%t".
 
+2010-01-24  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-extract-timeline-spec): support
+	functional alias.
+
 2010-01-23  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-timeline-spec-to-host-method):

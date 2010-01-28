@@ -131,13 +131,24 @@ dangerous.")
 
 (defvar twittering-timeline-spec-alias nil
   "*Alist for aliases of timeline spec.
-Each element is (NAME . SPEC-STRING), where NAME and SPEC-STRING are
-strings. The alias can be referred as \"$NAME\" in timeline spec
-string.
+Each element is (NAME . SPEC-STRING), where NAME is a string and
+SPEC-STRING is a string or a function that returns a timeline spec string.
+
+The alias can be referred as \"$NAME\" or \"$NAME(ARG)\" in timeline spec
+string. If SPEC-STRING is a string, ARG is simly ignored.
+If SPEC-STRING is a function, it is called with a string argument.
+For the style \"$NAME\", the function is called with nil.
+For the style \"$NAME(ARG)\", the function is called with a string ARG.
 
 For example, if you specify
  '((\"FRIENDS\" . \"(USER1+USER2+USER3)\")
-   (\"to_me\" . \"(:mentions+:retweets_of_me+:direct-messages)\")),
+   (\"to_me\" . \"(:mentions+:retweets_of_me+:direct-messages)\")
+   (\"related-to\" .
+            ,(lambda (username)
+               (if username
+                   (format \":search/to:%s OR from:%s OR @%s/\"
+                           username username username)
+                 \":home\")))),
 then you can use \"$to_me\" as
 \"(:mentions+:retweets_of_me+:direct-messages)\".")
 
@@ -740,17 +751,24 @@ Return cons of the spec and the rest string."
        (t
 	(error "\"%s\" is invalid as a timeline spec" str)
 	nil))))
-   ((string-match "^\\$\\([a-zA-Z0-9_-]+\\)" str)
+   ((string-match "^\\$\\([a-zA-Z0-9_-]+\\)\\(?:(\\([^)]*\\))\\)?" str)
     (let* ((name (match-string 1 str))
-	   (rest (substring str (match-end 1)))
-	   (value (cdr-safe (assoc name twittering-timeline-spec-alias))))
+	   (rest (substring str (match-end 0)))
+	   (value (cdr-safe (assoc name twittering-timeline-spec-alias)))
+	   (arg (match-string 2 str)))
       (if (member name unresolved-aliases)
 	  (error "Alias \"%s\" includes a recursive reference" name)
-	(if value
-	    (twittering-extract-timeline-spec
-	     (concat value rest)
-	     (cons name unresolved-aliases))
-	  (error "Alias \"%s\" is undefined" name)))))
+	(cond
+	 ((stringp value)
+	  (twittering-extract-timeline-spec
+	   (concat value rest)
+	   (cons name unresolved-aliases)))
+	 ((functionp value)
+	  (twittering-extract-timeline-spec
+	   (funcall value arg)
+	   (cons name unresolved-aliases)))
+	 (t
+	  (error "Alias \"%s\" is undefined" name))))))
    ((string-match "^(" str)
     (let* ((rest (concat "+" (substring str (match-end 0))))
 	   (result '()))

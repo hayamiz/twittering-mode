@@ -284,6 +284,10 @@
 	argument to `min' for avoiding error "Wrong number of arguments:
 	min, 0".
 
+	* twittering-mode.el (twittering-extract-timeline-spec): On
+	search-mode, return a spec only when the length of `escaped-query'
+	is greater than zero.
+
 2010-01-28  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-render-timeline): simplified by

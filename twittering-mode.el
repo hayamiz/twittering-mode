@@ -728,18 +728,20 @@ Return cons of the spec and the rest string."
 	  (cons first-spec following)))
        ((string= type "search")
 	(if (string-match "^:search/\\(.*?[^\\]\\)??/" str)
-	    (let* ((escaped-query (match-string 1 str))
+	    (let* ((escaped-query (or (match-string 1 str) ""))
 		   (query (replace-regexp-in-string "\\\\/" "/"
 						    escaped-query nil t))
 		   (rest (substring str (match-end 0))))
-	      `((search ,query) . ,rest))))
+	      (if (< 0 (length escaped-query))
+		  `((search ,query) . ,rest)
+		(error "\"%s\" has no valid regexp" str)
+		nil))))
        ((string= type "filter")
 	(if (string-match "^:filter/\\(\\(.*?[^\\]\\)??\\(\\\\\\\\\\)*\\)??/"
 			  str)
 	    (let* ((escaped-regexp (or (match-string 1 str) ""))
-		   (regexp
-		    (replace-regexp-in-string "\\\\/" "/"
-					      escaped-regexp nil t))
+		   (regexp (replace-regexp-in-string "\\\\/" "/"
+						     escaped-regexp nil t))
 		   (following (substring str (match-end 0)))
 		   (pair (twittering-extract-timeline-spec
 			  following unresolved-aliases))

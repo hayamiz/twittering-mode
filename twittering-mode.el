@@ -458,9 +458,12 @@ and its contents(BUFFER)"
 		       0))
 	 (min-width
 	  (apply 'min
-		 (window-width) ;; for avoiding "wrong number of arguments"
-		 (mapcar 'window-width
-			 (get-buffer-window-list (current-buffer) nil t))))
+		 (or
+		  (mapcar 'window-width
+			  (get-buffer-window-list (current-buffer) nil t))
+		  ;; Use `(frame-width)' if no windows display
+		  ;; the current buffer.
+		  `(,(frame-width)))))
 	 (temporary-fill-column
 	  (or column
 	      (- (1- min-width) adjustment))))

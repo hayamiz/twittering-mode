@@ -1,3 +1,8 @@
+2010-01-30  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-fill-string): use `frame-width'
+	only if no windows display the `*twittering*' buffer.
+
 2010-01-29  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-fill-string): Add an extra

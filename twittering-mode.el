@@ -522,7 +522,7 @@ as a list of a string on Emacs21."
   ;; a list. Candidates must be given as an alist.
   (let* ((collection (twittering-remove-duplicates collection))
          (collection
-          (if (and (< emacs-major-version 22)
+          (if (and (> 22 emacs-major-version)
                    (listp collection)
                    (stringp (car collection)))
               (mapcar (lambda (x) (cons x nil)) collection)
@@ -1044,7 +1044,7 @@ Return nil if STR is invalid as a timeline spec."
     (setq mode-name
 	  (format "twmode-status-edit[%d/140]" length))
     (force-mode-line-update)
-    (if (> length 140)
+    (if (< 140 length)
 	(move-overlay twittering-warning-overlay
 		      141 (1+ length))
       (move-overlay twittering-warning-overlay
@@ -1119,7 +1119,7 @@ Return nil if STR is invalid as a timeline spec."
 
 (defun twittering-edit-next-history ()
   (interactive)
-  (if (<= twittering-edit-local-history-idx 0)
+  (if (>= 0 twittering-edit-local-history-idx)
       (message "End of history.")
     (let ((current-history (nthcdr twittering-edit-local-history-idx
 				   twittering-edit-local-history)))
@@ -1271,7 +1271,7 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 			      (concat (request :uri) "?"
 				      (request :query-string))
 			    (request :uri))))
-      (when (string-equal "POST" method)
+      (when (string= "POST" method)
 	(nconc curl-args 
 	       `(,@(mapcan (lambda (pair)
 			     (list
@@ -1408,7 +1408,7 @@ Available keywords:
 			  ":"
 			  (twittering-get-password)))))
 	  headers)
-    (when (string-equal "GET" method)
+    (when (string= "GET" method)
       (push (cons "Accept"
 		  (concat
 		   "text/xml"
@@ -1420,7 +1420,7 @@ Available keywords:
 	    headers)
       (push (cons "Accept-Charset" "utf-8;q=0.7,*;q=0.7")
 	    headers))
-    (when (string-equal "POST" method)
+    (when (string= "POST" method)
       (push (cons "Content-Length" "0") headers)
       (push (cons "Content-Type" "text/plain") headers))
     (when twittering-proxy-use
@@ -1483,7 +1483,7 @@ Available keywords:
 				     (twittering-created-at-to-seconds
 				      (cdr (assoc 'created-at status2)))))
 				(> created-at1 created-at2)))))
-		(if (and (> twittering-new-tweets-count 0)
+		(if (and (< 0 twittering-new-tweets-count)
 			 noninteractive)
 		    (run-hooks 'twittering-new-tweets-hook))
 		(let ((same-timeline
@@ -1604,7 +1604,8 @@ XML tree as list. Return nil when parse failed.
       (goto-char (point-min))
       (if (search-forward-regexp "\r?\n\r?\n" nil t)
 	  (let ((start (match-end 0)))
-	    (condition-case get-error ;; to guard when `xml-parse-region' failed.
+	    ;; to guard when `xml-parse-region' failed.
+	    (condition-case get-error
 		(xml-parse-region start (point-max))
 	      (error (when (twittering-buffer-active-p)
 		       (message "Failure: %s" get-error))
@@ -2237,17 +2238,16 @@ variable `twittering-status-format'"
 	  (let ((status-with-sign (concat status sign-str)))
 	    (if (< 140 (length status-with-sign))
 		(setq prompt "status (too long): ")
-	      (progn
-		(setq prompt "status: ")
-		(when (twittering-status-not-blank-p status)
-		  (let ((parameters `(("status" . ,status-with-sign)
-				      ("source" . "twmode")
-				      ,@(if reply-to-id
-					    `(("in_reply_to_status_id"
-					       . ,reply-to-id))))))
-		    (twittering-http-post "twitter.com" "statuses/update" parameters)
-		    (setq not-posted-p nil)))
-		))))
+	      (setq prompt "status: ")
+	      (when (twittering-status-not-blank-p status)
+		(let ((parameters `(("status" . ,status-with-sign)
+				    ("source" . "twmode")
+				    ,@(if reply-to-id
+					  `(("in_reply_to_status_id"
+					     . ,reply-to-id))))))
+		  (twittering-http-post "twitter.com" "statuses/update" parameters)
+		  (setq not-posted-p nil)))
+	      )))
       ;; unwindforms
       (when (memq 'twittering-setup-minibuffer minibuffer-setup-hook)
 	(remove-hook 'minibuffer-setup-hook 'twittering-setup-minibuffer))
@@ -2479,7 +2479,7 @@ variable `twittering-status-format'"
 
 (defun twittering-update-lambda ()
   (interactive)
-  (when (and (string-equal "Japanese" current-language-environment)
+  (when (and (string= "Japanese" current-language-environment)
 	     (or (> emacs-major-version 21)
 		 (eq 'utf-8 (terminal-coding-system))))
     (twittering-http-post
@@ -2492,7 +2492,7 @@ variable `twittering-status-format'"
        ("source" . "twmode")))))
 
 (defun twittering-update-jojo (usr msg)
-  (when (and (string-equal "Japanese" current-language-environment)
+  (when (and (string= "Japanese" current-language-environment)
 	     (or (> emacs-major-version 21)
 		 (eq 'utf-8 (terminal-coding-system))))
     (if (string-match
@@ -2635,7 +2635,7 @@ variable `twittering-status-format'"
     (unless username
       (setq username (twittering-read-username-with-completion
 		      "who: " "" 'twittering-user-history)))
-    (if (> (length username) 0)
+    (if (< 0 (length username))
 	(when (y-or-n-p (format "%s %s? " mes username))
 	  (twittering-manage-friendships method username))
       (message "No user selected"))))
@@ -2651,7 +2651,7 @@ variable `twittering-status-format'"
 	(len 25))
     (if id
 	(let ((mes (format "Retweet \"%s\"? "
-			   (if (> (length text) len)
+			   (if (< len (length text))
 			       (concat (substring text 0 len) "...")
 			     text))))
 	  (when (y-or-n-p mes)
@@ -2669,7 +2669,7 @@ variable `twittering-status-format'"
     (if id
 	(let ((mes (format "%s \"%s\"? "
 			   (if remove "unfavorite" "favorite")
-			   (if (> (length text) len)
+			   (if (< len (length text))
 			       (concat (substring text 0 len) "...")
 			     text))))
 	  (when (y-or-n-p mes)
@@ -2707,7 +2707,7 @@ variable `twittering-status-format'"
 	 (twittering-read-username-with-completion
 	  "user: " nil
 	  'twittering-user-history)))
-    (if (> (length username) 0)
+    (if (< 0 (length username))
 	(twittering-get-and-render-timeline `(user ,username))
       (message "No user selected"))))
 

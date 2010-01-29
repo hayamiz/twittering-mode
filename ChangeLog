@@ -1,3 +1,9 @@
+2010-01-29  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-fill-string): Add an extra
+	argument to `min' for avoiding error "Wrong number of arguments:
+	min, 0".
+
 2010-01-28  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-render-timeline): simplified by

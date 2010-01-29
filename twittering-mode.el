@@ -458,6 +458,7 @@ and its contents(BUFFER)"
 		       0))
 	 (min-width
 	  (apply 'min
+		 (window-width) ;; for avoiding "wrong number of arguments"
 		 (mapcar 'window-width
 			 (get-buffer-window-list (current-buffer) nil t))))
 	 (temporary-fill-column

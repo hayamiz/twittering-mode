@@ -503,6 +503,38 @@ and its contents (BUFFER)"
 		       (line-beginning-position n))))
 		  (not (pos-visible-in-window-p pos window))))))
 
+(defun twittering-make-passed-time-string
+  (encoded-created-at additional-properties)
+  (let* ((now (current-time))
+	 (secs (+ (* (- (car now) (car encoded-created-at)) 65536)
+		  (- (cadr now) (cadr encoded-created-at))))
+	 (time-string
+	  (cond
+	   ((< secs 5) "less than 5 seconds ago")
+	   ((< secs 10) "less than 10 seconds ago")
+	   ((< secs 20) "less than 20 seconds ago")
+	   ((< secs 30) "half a minute ago")
+	   ((< secs 60) "less than a minute ago")
+	   ((< secs 150) "1 minute ago")
+	   ((< secs 2400) (format "%d minutes ago"
+				  (/ (+ secs 30) 60)))
+	   ((< secs 5400) "about 1 hour ago")
+	   ((< secs 84600) (format "about %d hours ago"
+				   (/ (+ secs 1800) 3600)))
+	   (t (format-time-string "%I:%M %p %B %d, %Y"
+				  encoded-created-at)))))
+    (when (< secs 84600)
+      (put-text-property
+       0 (length time-string)
+       'need-to-be-updated
+       `(twittering-make-passed-time-string
+	 ,encoded-created-at ,additional-properties)
+       time-string))
+    ;; add properties
+    (add-text-properties 0 (length time-string) additional-properties
+			 time-string)
+    time-string))
+
 ;;;
 ;;; Utility functions for portability
 ;;;
@@ -2453,44 +2485,27 @@ variable `twittering-status-format'."
 		  (next-single-property-change 0 'need-to-be-updated str))
 	      (apply 'make-string-with-update-property str func args)
 	    str)))
-    (let* ((replace-table
+    (let* ((common-properties
+	    `(username ,(attr 'user-screen-name)
+		       id ,(attr 'id)
+		       text ,(attr 'text)))
+	   (replace-table
 	    `(("%" . "%")
 	      ("#" . ,(attr 'id))
 	      ("'" . ,(if (string= "true" (attr 'truncated)) "..." ""))
 	      ("@" .
 	       ,(let* ((created-at
 			(apply
-			 'encode-time
-			 (parse-time-string (attr 'created-at))))
-		       (now (current-time))
-		       (secs (+ (* (- (car now) (car created-at)) 65536)
-				(- (cadr now) (cadr created-at))))
-		       (time-string
-			(cond
-			 ((< secs 5) "less than 5 seconds ago")
-			 ((< secs 10) "less than 10 seconds ago")
-			 ((< secs 20) "less than 20 seconds ago")
-			 ((< secs 30) "half a minute ago")
-			 ((< secs 60) "less than a minute ago")
-			 ((< secs 150) "1 minute ago")
-			 ((< secs 2400) (format "%d minutes ago"
-						(/ (+ secs 30) 60)))
-			 ((< secs 5400) "about 1 hour ago")
-			 ((< secs 84600) (format "about %d hours ago"
-						 (/ (+ secs 1800) 3600)))
-			 (t (format-time-string "%I:%M %p %B %d, %Y"
-						created-at))))
-		       (time-string
-			(if (< secs 84600)
-			    (make-string-with-update-property
-			     time-string
-			     'twittering-format-status status "%@")
-			  time-string))
+			 'encode-time (parse-time-string (attr 'created-at))))
 		       (url
 			(twittering-get-status-url (attr 'user-screen-name)
-						   (attr 'id))))
-		  ;; make status url clickable
-		  (make-string-with-url-property time-string url)))
+						   (attr 'id)))
+		       (properties
+			(append `(mouse-face highlight
+					     face twittering-uri-face
+					     uri ,url)
+				common-properties)))
+		  (twittering-make-passed-time-string created-at properties)))
 	      ("C\\({\\([^}]*\\)}\\)?" .
 	       (lambda (context)
 		 (let ((str (cdr (assq 'following-string context)))
@@ -2611,10 +2626,8 @@ variable `twittering-status-format'."
 	      ))
 	   (formatted-status
 	    (twittering-format-string format-str "%" replace-table)))
-      (add-text-properties
-       0 (length formatted-status)
-       `(username ,(attr 'user-screen-name) id ,(attr 'id) text ,(attr 'text))
-       formatted-status)
+      (add-text-properties 0 (length formatted-status) common-properties
+			   formatted-status)
       formatted-status)))
 
 (defun twittering-timer-action (func)

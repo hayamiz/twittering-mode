@@ -603,6 +603,12 @@
 	(twittering-start): start the timer of redisplaying statuses.
 	(twittering-stop): stop the timer of redisplaying statuses.
 
+	* twittering-mode.el (twittering-make-passed-time-string): new
+	function to generate a string displayed as passed time of a
+	status.
+	(twittering-format-status): use
+	`twittering-make-passed-time-string' for the specifier "%@".
+
 2010-01-29  Daiji Kanematsu  <daijik@gmail.com>
 
 	* twittering-mode.el (toplevel): add `easy-menu-define' in order

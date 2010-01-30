@@ -114,6 +114,13 @@ DO NOT SET VALUE MANUALLY.")
 seconds for this variable because the number of API call is
 limited by the hour.")
 
+(defvar twittering-timer-for-redisplaying nil
+  "Timer object for timeline redisplay statuses will be stored here.
+DO NOT SET VALUE MANUALLY.")
+
+(defvar twittering-timer-interval-for-redisplaying 17
+  "The interval of auto redisplaying statuses.")
+
 (defvar twittering-username nil
   "An username of your Twitter account.")
 (defvar twittering-username-active nil
@@ -2202,6 +2209,27 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
       (set-marker end-marker nil))))
 
 ;;;
+;;; Automatic redisplay of statuses on buffer
+;;;
+
+(defun twittering-redisplay-status-on-buffer (&optional buffer)
+  (let ((buffer (or buffer (twittering-buffer)))
+	(deactivate-mark deactivate-mark))
+    (with-current-buffer buffer
+      (save-excursion
+	(twittering-for-each-property-region
+	 'need-to-be-updated
+	 (lambda (beg end value)
+	   (let* ((func (car value))
+		  (args (cdr value))
+		  (updated-str (apply func args))
+		  (buffer-read-only nil))
+	     (delete-region beg end)
+	     (goto-char beg)
+	     (insert updated-str)))
+	 buffer)))))
+
+;;;
 ;;; display functions
 ;;;
 
@@ -2412,7 +2440,19 @@ variable `twittering-status-format'."
 	     0 (length result)
 	     `(mouse-face highlight face twittering-uri-face uri ,url)
 	     result)
-	    result)))
+	    result))
+	 (make-string-with-update-property
+	  (str func &rest args)
+	  (let ((result (copy-sequence str)))
+	    (put-text-property 0 (length result)
+			       'need-to-be-updated `(,func ,@args) result)
+	    result))
+	 (expand-update-property-if-necessary
+	  (str func &rest args)
+	  (if (or (get-text-property 0 'need-to-be-updated str)
+		  (next-single-property-change 0 'need-to-be-updated str))
+	      (apply 'make-string-with-update-property str func args)
+	    str)))
     (let* ((replace-table
 	    `(("%" . "%")
 	      ("#" . ,(attr 'id))
@@ -2440,6 +2480,12 @@ variable `twittering-status-format'."
 						 (/ (+ secs 1800) 3600)))
 			 (t (format-time-string "%I:%M %p %B %d, %Y"
 						created-at))))
+		       (time-string
+			(if (< secs 84600)
+			    (make-string-with-update-property
+			     time-string
+			     'twittering-format-status status "%@")
+			  time-string))
 		       (url
 			(twittering-get-status-url (attr 'user-screen-name)
 						   (attr 'id))))
@@ -2491,7 +2537,12 @@ variable `twittering-status-format'."
 		    (store-match-data match-data)
 		    (let* ((formatted-str
 			    (twittering-format-string
-			     (match-string 1 str) prefix mod-table)))
+			     (match-string 1 str) prefix mod-table))
+			   (formatted-str
+			    (expand-update-property-if-necessary
+			     formatted-str
+			     'twittering-format-status
+			     status (concat "%" str))))
 		      (twittering-fill-string formatted-str)))))
 	      ("f" . ,(attr 'source))
 	      ("i" .
@@ -2830,13 +2881,20 @@ variable `twittering-status-format'."
     (setq twittering-timer
 	  (run-at-time "0 sec"
 		       twittering-timer-interval
-		       #'twittering-timer-action action))))
+		       #'twittering-timer-action action))
+    (setq twittering-timer-for-redisplaying
+	  (run-at-time "0 sec"
+		       twittering-timer-interval-for-redisplaying
+		       #'twittering-redisplay-status-on-buffer))))
 
 (defun twittering-stop ()
   (interactive)
   (when twittering-timer
     (cancel-timer twittering-timer)
-    (setq twittering-timer nil)))
+    (setq twittering-timer nil))
+  (when twittering-timer-for-redisplaying
+    (cancel-timer twittering-timer-for-redisplaying)
+    (setq twittering-timer-for-redisplaying nil)))
 
 (defun twittering-scroll-mode (&optional arg)
   (interactive "P")

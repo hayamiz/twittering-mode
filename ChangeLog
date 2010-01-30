@@ -592,6 +592,17 @@
 	* twittering-mode.el (twittering-for-each-property-region): new
 	function to process each region with a certain property.
 
+	* twittering-mode.el (twittering-timer-for-redisplaying): new
+	variable for timer of redisplaying statuses.
+	(twittering-timer-interval-for-redisplaying): new variable
+	specifying the interval of redisplaying statuses.
+	(twittering-redisplay-status-on-buffer): new function to redisplay
+	statuses on buffer.
+	(twittering-format-status): append `need-to-be-update' property to
+	the specifier "%@" and "%FILL{...}" including "%@".
+	(twittering-start): start the timer of redisplaying statuses.
+	(twittering-stop): stop the timer of redisplaying statuses.
+
 2010-01-29  Daiji Kanematsu  <daijik@gmail.com>
 
 	* twittering-mode.el (toplevel): add `easy-menu-define' in order

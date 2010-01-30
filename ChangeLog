@@ -589,6 +589,9 @@
 	* twittering-mode.el (twittering-fill-string): use `frame-width'
 	only if no windows display the `*twittering*' buffer.
 
+	* twittering-mode.el (twittering-for-each-property-region): new
+	function to process each region with a certain property.
+
 2010-01-29  Daiji Kanematsu  <daijik@gmail.com>
 
 	* twittering-mode.el (toplevel): add `easy-menu-define' in order

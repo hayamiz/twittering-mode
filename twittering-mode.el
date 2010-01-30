@@ -2176,6 +2176,32 @@ BUFFER may be a buffer or the name of an existing buffer."
     ""))
 
 ;;;
+;;; Statuses on buffer
+;;;
+
+(defun twittering-for-each-property-region (prop func &optional buffer interrupt)
+  "Apply FUNC to each region, where property PROP is non-nil, on BUFFER.
+If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
+  (with-current-buffer (or buffer (current-buffer))
+    (let ((beg (point-min))
+	  (end-marker (make-marker)))
+      (set-marker-insertion-type end-marker t)
+      (while
+	  (let* ((value (get-text-property beg prop)))
+	    (if value
+		(let* ((end (next-single-property-change beg prop))
+		       (end (or end (point-max)))
+		       (end-marker (set-marker end-marker end))
+		       (func-result (funcall func beg end value))
+		       (end (marker-position end-marker)))
+		  (when (or (null interrupt) func-result)
+		    (if (get-text-property end prop)
+			(setq beg end)
+		      (setq beg (next-single-property-change end prop)))))
+	      (setq beg (next-single-property-change beg prop)))))
+      (set-marker end-marker nil))))
+
+;;;
 ;;; display functions
 ;;;
 

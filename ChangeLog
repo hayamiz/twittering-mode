@@ -1,3 +1,8 @@
+2010-01-31  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-http-get-default-sentinel):
+	rearranged.
+
 2010-01-30  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-fill-string): use `frame-width'

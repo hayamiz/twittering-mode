@@ -1461,50 +1461,53 @@ Available keywords:
 (defun twittering-http-get-default-sentinel (temp-buffer noninteractive proc stat &optional suc-msg)
   (debug-printf "get-default-sentinel: proc=%s stat=%s" proc stat)
   (unwind-protect
-      (let ((header (twittering-get-response-header temp-buffer))
-	    (body (twittering-get-response-body temp-buffer))
-	    (status-line nil)
-	    (status nil))
-	(if (string-match twittering-http-status-line-regexp header)
-	    (when body
-	      (setq status-line (match-string-no-properties 1 header))
-	      (setq status (match-string-no-properties 2 header))
-	      (case-string
-	       status
-	       (("200")
-		(setq twittering-new-tweets-count
-		      (count t (mapcar
-				#'twittering-cache-status-datum
-				(reverse (twittering-xmltree-to-status
-					  body)))))
-		(setq twittering-timeline-data
-		      (sort twittering-timeline-data
-			    (lambda (status1 status2)
-			      (let ((created-at1
-				     (twittering-created-at-to-seconds
-				      (cdr (assoc 'created-at status1))))
-				    (created-at2
-				     (twittering-created-at-to-seconds
-				      (cdr (assoc 'created-at status2)))))
-				(> created-at1 created-at2)))))
-		(if (and (< 0 twittering-new-tweets-count)
-			 noninteractive)
-		    (run-hooks 'twittering-new-tweets-hook))
-		(let ((same-timeline
-		       (equal twittering-last-retrieved-timeline-spec-string
-			      twittering-last-requested-timeline-spec-string)))
-		  (setq twittering-last-retrieved-timeline-spec-string
-			twittering-last-requested-timeline-spec-string)
-		  (twittering-render-timeline same-timeline))
-		(twittering-add-timeline-history)
-		(when (and (twittering-buffer-active-p)
-			   twittering-notify-successful-http-get)
-		  (message (if suc-msg suc-msg "Success: Get."))))
-	       (t (when (twittering-buffer-active-p)
-		    (message "Response: %s" status-line)))))
-	  (when (twittering-buffer-active-p)
-	    (message "Failure: Bad http response.")))
-	)
+      (let* ((header (twittering-get-response-header temp-buffer))
+	     (body (twittering-get-response-body temp-buffer))
+	     (header-is-valid
+	      (string-match twittering-http-status-line-regexp header))
+	     (status-line (and header-is-valid
+			       (match-string-no-properties 1 header)))
+	     (status (and header-is-valid
+			  (match-string-no-properties 2 header))))
+	(cond
+	 ((and header-is-valid body)
+	  (case-string
+	   status
+	   (("200")
+	    (let* ((reversed-statuses
+		    (twittering-xmltree-to-status body))
+		   (statuses (reverse reversed-statuses)))
+	      (setq twittering-new-tweets-count
+		    (count t (mapcar
+			      #'twittering-cache-status-datum
+			      statuses))))
+	    (setq twittering-timeline-data
+		  (sort twittering-timeline-data
+			(lambda (status1 status2)
+			  (let ((created-at1
+				 (twittering-created-at-to-seconds
+				  (cdr (assoc 'created-at status1))))
+				(created-at2
+				 (twittering-created-at-to-seconds
+				  (cdr (assoc 'created-at status2)))))
+			    (> created-at1 created-at2)))))
+	    (if (and (< 0 twittering-new-tweets-count)
+		     noninteractive)
+		(run-hooks 'twittering-new-tweets-hook))
+	    (let ((same-timeline
+		   (equal twittering-last-retrieved-timeline-spec-string
+			  twittering-last-requested-timeline-spec-string)))
+	      (setq twittering-last-retrieved-timeline-spec-string
+		    twittering-last-requested-timeline-spec-string)
+	      (twittering-render-timeline same-timeline))
+	    (twittering-add-timeline-history)
+	    (when (and (twittering-buffer-active-p)
+		       twittering-notify-successful-http-get)
+	      (message (if suc-msg suc-msg "Success: Get."))))
+	   (t (when (twittering-buffer-active-p)
+		(message "Response: %s" status-line)))))
+	 ((and (not header-is-valid) twittering-buffer-active-p)
+	  (message "Failure: Bad http response."))))
     ;; unwindforms
     (when (and (not twittering-debug-mode) (buffer-live-p temp-buffer))
       (kill-buffer temp-buffer)))

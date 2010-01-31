@@ -8,6 +8,19 @@
 	(twittering-start-http-non-ssl-session): likewise.
 	(twittering-get-tweets): likewise.
 
+	* twittering-mode.el (twittering-process-info-alist): new variable
+	for managing active process and timeline spec being retrieved by
+	the process.
+	(twittering-register-process): new function for registering a pair
+	of process and timeline spec.
+	(twittering-release-process): new function for releasing a process.
+	(twittering-get-timeline-spec-from-process): new function for
+	getting timeline spec retrieved by the given process.
+	(twittering-http-get-default-sentinel): discard statuses if
+	the retrieved spec differs from the last requested one.
+	(twittering-get-and-render-timeline): register a pair of the
+	requested timeline spec and process for retrieving it.
+
 2010-01-30  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-fill-string): use `frame-width'

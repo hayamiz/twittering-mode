@@ -146,6 +146,9 @@ then you can use \"$to_me\" as
   "The last successfully retrieved timeline spec string.")
 (defvar twittering-list-index-retrieved nil)
 
+(defvar twittering-process-info-alist nil
+  "Alist of active process and timeline spec retrieved by the process.")
+
 (defvar twittering-new-tweets-count 0
   "Number of new tweets when `twittering-new-tweets-hook' is run")
 
@@ -845,6 +848,25 @@ Return nil if STR is invalid as a timeline spec."
 		(cons spec-string twittering-timeline-history)))))))
 
 ;;;
+;;; Process info
+;;;
+
+(defun twittering-register-process (proc spec)
+  (add-to-list 'twittering-process-info-alist
+	       `(,proc ,spec)))
+
+(defun twittering-release-process (proc)
+  (let ((spec (twittering-get-timeline-spec-from-process proc)))
+    (setq twittering-process-info-alist
+	  (delete `(,proc ,spec) twittering-process-info-alist))))
+
+(defun twittering-get-timeline-spec-from-process (proc)
+  (let ((entry (assoc proc twittering-process-info-alist)))
+    (if entry
+	(elt entry 1)
+      nil)))
+
+;;;
 ;;; Debug mode
 ;;;
 
@@ -1470,9 +1492,15 @@ Available keywords:
 	     (status-line (and header-is-valid
 			       (match-string-no-properties 1 header)))
 	     (status (and header-is-valid
-			  (match-string-no-properties 2 header))))
+			  (match-string-no-properties 2 header)))
+	     (spec (twittering-get-timeline-spec-from-process proc))
+	     (spec-string (twittering-timeline-spec-to-string spec))
+	     (requested-spec
+	      (twittering-string-to-timeline-spec
+	       twittering-last-requested-timeline-spec-string)))
+	(twittering-release-process proc)
 	(cond
-	 ((and header-is-valid body)
+	 ((and header-is-valid body (equal spec requested-spec))
 	  (case-string
 	   status
 	   (("200")
@@ -2352,9 +2380,11 @@ variable `twittering-status-format'"
     (if (twittering-timeline-spec-primary-p spec)
 	(let ((pair (twittering-timeline-spec-to-host-method spec)))
 	  (when pair
-	    (let ((host (car pair))
-		  (method (cadr pair)))
-	      (twittering-get-tweets host method noninteractive id))))
+	    (let* ((host (car pair))
+		   (method (cadr pair))
+		   (proc (twittering-get-tweets host method
+						noninteractive id)))
+	      (twittering-register-process proc spec))))
       (let ((type (car spec)))
 	(error "%s has not been supported yet" type)))))
 

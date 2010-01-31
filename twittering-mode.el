@@ -1300,7 +1300,8 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 	(set-process-sentinel
 	 curl-process
 	 (lambda (&rest args)
-	   (apply sentinel temp-buffer noninteractive args))))))
+	   (apply sentinel temp-buffer noninteractive args)))
+	curl-process)))
   )
 
 ;; TODO: proxy
@@ -1334,7 +1335,8 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 	   (lambda (&rest args)
 	     (apply sentinel temp-buffer noninteractive args))))
 	(debug-print request-str)
-	(process-send-string proc request-str))))
+	(process-send-string proc request-str)
+	proc)))
   )
 
 ;;; TODO: proxy
@@ -2296,7 +2298,9 @@ variable `twittering-status-format'"
 (defun twittering-get-tweets (host method &optional noninteractive id)
   (let ((buf (get-buffer twittering-buffer)))
     (if (not buf)
-	(twittering-stop)
+	(progn
+	  (twittering-stop)
+	  nil)
       (let* ((default-count 20)
 	     (count twittering-number-of-tweets-on-retrieval)
 	     (count (cond
@@ -2321,13 +2325,12 @@ variable `twittering-status-format'"
 		     "%a, %d %b %Y %H:%M:%S GMT"
 		     twittering-timeline-last-update)))
 	      (add-to-list 'parameters `("since" . ,since)))))
+	(if (and twittering-icon-mode window-system
+		 twittering-image-stack)
+	    (mapc 'twittering-retrieve-image twittering-image-stack))
 	(twittering-http-get host method
 			     noninteractive parameters))))
-
-  (if (and twittering-icon-mode window-system
-	   twittering-image-stack)
-      (mapc 'twittering-retrieve-image twittering-image-stack)
-    ))
+  )
 
 (defun twittering-get-and-render-timeline (spec &optional noninteractive id)
   (let* ((original-spec spec)

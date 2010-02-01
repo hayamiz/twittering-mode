@@ -1664,19 +1664,16 @@ Available keywords:
     (case-string
      status
      (("200")
-      (let* ((body (twittering-get-response-body (buffer-name
-						  (process-buffer proc))))
-	     (spec (twittering-get-timeline-spec-from-process proc))
+      (let* ((spec (twittering-get-timeline-spec-from-process proc))
 	     (spec-string (twittering-timeline-spec-to-string spec))
+	     (statuses (twittering-get-status-from-http-response
+			spec (buffer-name (process-buffer proc))))
 	     (requested-spec
 	      (twittering-string-to-timeline-spec
 	       twittering-last-requested-timeline-spec-string)))
 	(cond
-	 ((and body (equal spec requested-spec))
-	  (let* ((reversed-statuses
-		  (twittering-xmltree-to-status body))
-		 (statuses (reverse reversed-statuses)))
-	    (twittering-add-statuses-to-timeline-data statuses spec))
+	 ((and statuses (equal spec requested-spec))
+	  (twittering-add-statuses-to-timeline-data (reverse statuses) spec)
 	  (let ((same-timeline
 		 (equal twittering-last-retrieved-timeline-spec-string
 			twittering-last-requested-timeline-spec-string)))
@@ -1716,37 +1713,6 @@ Available keywords:
 	      mes
 	      "")) ;; set "" explicitly if user does not have a list.
     nil))
-
-(defun twittering-http-get-search-sentinel (header proc noninteractive &optional suc-msg)
-  (let* ((body (twittering-get-response-body-string (current-buffer)))
-	 (statuses (twittering-json-to-status (json-read-from-string body))))
-    (setq twittering-new-tweets-count
-	  (count t (mapcar
-		    #'twittering-cache-status-datum
-		    (reverse statuses))))
-    (setq twittering-timeline-data
-	  (sort twittering-timeline-data
-		(lambda (status1 status2)
-		  (let ((created-at1
-			 (twittering-created-at-to-seconds
-			  (cdr (assoc 'created-at status1))))
-			(created-at2
-			 (twittering-created-at-to-seconds
-			  (cdr (assoc 'created-at status2)))))
-		    (> created-at1 created-at2)))))
-    (if (and (> twittering-new-tweets-count 0)
-	     noninteractive)
-	(run-hooks 'twittering-new-tweets-hook))
-    (let ((same-timeline
-	   (equal twittering-last-retrieved-timeline-spec-string
-		  twittering-last-requested-timeline-spec-string)))
-      (setq twittering-last-retrieved-timeline-spec-string
-	    twittering-last-requested-timeline-spec-string)
-      (twittering-render-timeline same-timeline))
-    (twittering-add-timeline-history)
-    (if twittering-notify-successful-http-get
-	(if suc-msg suc-msg "Success: Get.")
-      nil)))
 
 (defun twittering-http-post (host method &optional parameters format sentinel)
   "Send HTTP POST request to twitter.com (or api.twitter.com)
@@ -1821,6 +1787,21 @@ Return nil when parse failed.
 	  (buffer-substring (match-end 0) (point-max))
 	(error "Failure: invalid HTTP response"))
       )))
+
+(defun twittering-get-status-from-http-response (spec buffer)
+  "Exract statuses from HTTP response, and return a list.
+Return nil when parse failed.
+`buffer' may be a buffer or the name of an existing buffer. "
+  (cond
+   ((eq 'search (car spec))
+    (let ((body-string (twittering-get-response-body-string buffer)))
+      (when body-string
+	(let ((json-data (json-read-from-string body-string)))
+	  (reverse (twittering-json-to-status json-data))))))
+   (t
+    (let ((body (twittering-get-response-body buffer)))
+      (when body
+	(reverse (twittering-xmltree-to-status body)))))))
 
 (defun twittering-cache-status-datum (status-datum id-table data-var)
   "Cache STATUS-DATUM into DATA-VAR
@@ -2678,9 +2659,7 @@ variable `twittering-status-format'."
 	  (add-to-list 'parameters (cons "rpp" (number-to-string count)))
 	  (if id
 	      (add-to-list 'parameters `("max_id" . ,id)))
-	  (twittering-http-get host method
-			       noninteractive parameters
-			       "json" 'twittering-http-get-search-sentinel))
+	  (twittering-http-get host method noninteractive parameters "json"))
 	 (t
 	  (add-to-list 'parameters
 		       (cons (if (string-match regexp-list-method method)

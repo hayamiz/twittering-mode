@@ -245,6 +245,14 @@
 	rewrite `created-at' by a same name element in `retweeted_status'
 	node.
 
+2010-02-02  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-get-response-body): Add an
+	optional second argument to share code between this and
+	`twittering-get-response-body-string'.
+	(twittering-get-response-body-string): Delete function.
+	(twittering-get-status-from-http-response): Adjust callers.
+
 2010-02-02  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-http-get-default-sentinel): use

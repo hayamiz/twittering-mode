@@ -1758,33 +1758,23 @@ BUFFER may be a buffer or the name of an existing buffer which contains the HTTP
 	  (buffer-substring (point-min) (match-end 0))
 	(error "Failure: invalid HTTP response")))))
 
-(defun twittering-get-response-body (buffer)
-  "Exract HTTP response body from HTTP response, parse it as XML, and return a
-XML tree as list. Return nil when parse failed.
-BUFFER may be a buffer or the name of an existing buffer."
-  (with-current-buffer buffer
-    (save-excursion
-      (goto-char (point-min))
-      (if (search-forward-regexp "\r?\n\r?\n" nil t)
-	  (let ((start (match-end 0)))
-	    ;; to guard when `xml-parse-region' failed.
-	    (condition-case get-error
-		(xml-parse-region start (point-max))
-	      (error (when (twittering-buffer-active-p)
-		       (message "Failure: %s" get-error))
-		     nil)))
-	(error "Failure: invalid HTTP response"))
-      )))
-
-(defun twittering-get-response-body-string (buffer)
-  "Exract HTTP response body from HTTP response, and return a string.
+(defun twittering-get-response-body (buffer &optional func)
+  "Exract HTTP response body from HTTP response.
+If FUNC is non-nil, parse a response body by FUNC and return it.
 Return nil when parse failed.
-`buffer' may be a buffer or the name of an existing buffer. "
+BUFFER may be a buffer or the name of an existing buffer."
+  (if (null func)
+      (setq func 'buffer-substring))
+
   (with-current-buffer buffer
     (save-excursion
       (goto-char (point-min))
       (if (search-forward-regexp "\r?\n\r?\n" nil t)
-	  (buffer-substring (match-end 0) (point-max))
+	  (condition-case get-error
+	      (funcall func (match-end 0) (point-max))
+	    (error (when (twittering-buffer-active-p)
+		     (message "Failure: %s" get-error))
+		   nil))
 	(error "Failure: invalid HTTP response"))
       )))
 
@@ -1794,12 +1784,12 @@ Return nil when parse failed.
 `buffer' may be a buffer or the name of an existing buffer. "
   (cond
    ((eq 'search (car spec))
-    (let ((body-string (twittering-get-response-body-string buffer)))
+    (let ((body-string (twittering-get-response-body buffer)))
       (when body-string
 	(let ((json-data (json-read-from-string body-string)))
 	  (reverse (twittering-json-to-status json-data))))))
    (t
-    (let ((body (twittering-get-response-body buffer)))
+    (let ((body (twittering-get-response-body buffer 'xml-parse-region)))
       (when body
 	(reverse (twittering-xmltree-to-status body)))))))
 

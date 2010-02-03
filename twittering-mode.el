@@ -1687,6 +1687,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	   user-protected
 	   regex-index
 	   (retweeted-status-data (cddr (assq 'retweeted_status status-data)))
+	   original-created-at ;; need not export
 	   original-user-name
 	   original-user-screen-name)
 
@@ -1695,7 +1696,8 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	(setq original-user-screen-name (twittering-decode-html-entities
 					 (assq-get 'screen_name user-data))
 	      original-user-name (twittering-decode-html-entities
-				  (assq-get 'name user-data)))
+				  (assq-get 'name user-data))
+	      original-created-at (assq-get 'created_at status-data))
 	(setq status-data retweeted-status-data
 	      user-data (cddr (assq 'user retweeted-status-data))))
 
@@ -1704,7 +1706,8 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 		  (assq-get 'text status-data)))
       (setq source (twittering-decode-html-entities
 		    (assq-get 'source status-data)))
-      (setq created-at (assq-get 'created_at status-data))
+      (setq created-at (or original-created-at
+			   (assq-get 'created_at status-data)))
       (setq truncated (assq-get 'truncated status-data))
       (setq in-reply-to-status-id
 	    (twittering-decode-html-entities

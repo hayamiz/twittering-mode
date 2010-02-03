@@ -11,6 +11,9 @@
 	(twittering-cache-status-datum): use a hash table of IDs to avoid
 	registering redundant tweets.
 
+	* twittering-mode.el (twittering-status-to-status-datum): fix
+	lacked binding of `source-id' and `source-created-at'.
+
 2010-02-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-http-get-default-sentinel): sort

@@ -1694,7 +1694,9 @@ If ID of STATUS-DATUM is already in ID-TABLE, return nil. If not, return t."
 	   (retweeted-status-data (cddr (assq 'retweeted_status status-data)))
 	   original-created-at ;; need not export
 	   original-user-name
-	   original-user-screen-name)
+	   original-user-screen-name
+	   source-id
+	   source-created-at)
 
       ;; save original status and adjust data if status was retweeted
       (cond

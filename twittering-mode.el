@@ -1506,10 +1506,21 @@ Available keywords:
 	   (("200")
 	    (let* ((reversed-statuses
 		    (twittering-xmltree-to-status body))
-		   (statuses (reverse reversed-statuses)))
+		   (statuses (reverse reversed-statuses))
+		   (id-table (make-hash-table :test 'equal)))
+	      (mapc
+	       (lambda (status)
+		 (let ((id (cdr (assq 'id status)))
+		       (source-id (cdr-safe (assq 'source-id status))))
+		   (puthash id t id-table)
+		   (when source-id
+		     (puthash source-id t id-table))))
+	       twittering-timeline-data)
 	      (setq twittering-new-tweets-count
 		    (count t (mapcar
-			      #'twittering-cache-status-datum
+			      (lambda (status)
+				(twittering-cache-status-datum status
+							       id-table))
 			      statuses))))
 	    (setq twittering-timeline-data
 		  (sort twittering-timeline-data
@@ -1646,24 +1657,17 @@ XML tree as list. Return nil when parse failed.
 	(error "Failure: invalid HTTP response"))
       )))
 
-(defun twittering-cache-status-datum (status-datum &optional data-var)
+(defun twittering-cache-status-datum (status-datum id-table &optional data-var)
   "Cache status datum into data-var(default twittering-timeline-data)
-If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
+If ID of STATUS-DATUM is already in ID-TABLE, return nil. If not, return t."
   (if (null data-var)
       (setf data-var 'twittering-timeline-data))
   (let* ((id (cdr (assq 'id status-datum)))
 	 (source-id (cdr-safe (assq 'source-id status-datum)))
-	 (pred
-	  (if source-id
-	      (lambda (item)
-		(or (twittering-status-id= id (cdr (assq 'id item)))
-		    (twittering-status-id= source-id (cdr (assq 'id item)))
-		    (twittering-status-id= source-id
-					   (cdr-safe (assq 'source-id item)))))
-	    (lambda (item)
-	      (twittering-status-id= id (cdr (assq 'id item)))))))
-    (unless (and (symbol-value data-var)
-		 (find-if pred (symbol-value data-var)))
+	 (retrieved
+	  (or (gethash id id-table)
+	      (and source-id (gethash source-id id-table)))))
+    (unless (and (symbol-value data-var) retrieved)
       (if twittering-jojo-mode
 	  (twittering-update-jojo (cdr (assq 'user-screen-name
 					     status-datum))

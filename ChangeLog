@@ -6,6 +6,11 @@
 	(twittering-cache-status-datum): do not register multiple retweets
 	referring the same tweet.
 
+	* twittering-mode.el (twittering-http-get-default-sentinel): make
+	a hash table for already retrieved IDs.
+	(twittering-cache-status-datum): use a hash table of IDs to avoid
+	registering redundant tweets.
+
 2010-02-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-http-get-default-sentinel): sort

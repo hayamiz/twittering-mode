@@ -1,3 +1,8 @@
+2010-02-03  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-http-get-default-sentinel): sort
+	`twittering-timeline-data' by ID.
+
 2010-02-03  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-status-to-status-datum): Don't

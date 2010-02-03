@@ -1514,13 +1514,9 @@ Available keywords:
 	    (setq twittering-timeline-data
 		  (sort twittering-timeline-data
 			(lambda (status1 status2)
-			  (let ((created-at1
-				 (twittering-created-at-to-seconds
-				  (cdr (assoc 'created-at status1))))
-				(created-at2
-				 (twittering-created-at-to-seconds
-				  (cdr (assoc 'created-at status2)))))
-			    (> created-at1 created-at2)))))
+			  (let ((id1 (cdr (assoc 'id status1)))
+				(id2 (cdr (assoc 'id status2))))
+			    (twittering-status-id< id2 id1)))))
 	    (if (and (< 0 twittering-new-tweets-count)
 		     noninteractive)
 		(run-hooks 'twittering-new-tweets-hook))
@@ -1692,22 +1688,27 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	   original-user-screen-name)
 
       ;; save original status and adjust data if status was retweeted
-      (when retweeted-status-data
+      (cond
+       (retweeted-status-data
 	(setq original-user-screen-name (twittering-decode-html-entities
 					 (assq-get 'screen_name user-data))
 	      original-user-name (twittering-decode-html-entities
 				  (assq-get 'name user-data))
 	      original-created-at (assq-get 'created_at status-data))
-	(setq status-data retweeted-status-data
-	      user-data (cddr (assq 'user retweeted-status-data))))
+	(setq id (assq-get 'id status-data))
+	(setq created-at (assq-get 'created_at status-data))
 
-      (setq id (assq-get 'id status-data))
+	(setq status-data retweeted-status-data
+	      user-data (cddr (assq 'user retweeted-status-data)))
+	)
+       (t
+	(setq id (assq-get 'id status-data))
+	(setq created-at (assq-get 'created_at status-data))))
+
       (setq text (twittering-decode-html-entities
 		  (assq-get 'text status-data)))
       (setq source (twittering-decode-html-entities
 		    (assq-get 'source status-data)))
-      (setq created-at (or original-created-at
-			   (assq-get 'created_at status-data)))
       (setq truncated (assq-get 'truncated status-data))
       (setq in-reply-to-status-id
 	    (twittering-decode-html-entities
@@ -1826,6 +1827,7 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	    user-profile-image-url
 	    user-url
 	    user-protected
+	    original-id
 	    original-user-name
 	    original-user-screen-name)))))
 

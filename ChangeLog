@@ -1,3 +1,11 @@
+2010-02-04  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-status-to-status-datum): assign a
+	retweet the ID issued when it is retweeted. `source-id', which is
+	the ID of the original tweet, is also assigned to the retweet.
+	(twittering-cache-status-datum): do not register multiple retweets
+	referring the same tweet.
+
 2010-02-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-http-get-default-sentinel): sort

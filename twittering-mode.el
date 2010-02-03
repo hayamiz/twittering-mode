@@ -1651,20 +1651,25 @@ XML tree as list. Return nil when parse failed.
 If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
   (if (null data-var)
       (setf data-var 'twittering-timeline-data))
-  (let ((id (cdr (assq 'id status-datum))))
-    (if (or (null (symbol-value data-var))
-	    (not (find-if
-		  (lambda (item)
-		    (string= id (cdr (assq 'id item))))
-		  (symbol-value data-var))))
-	(progn
-	  (if twittering-jojo-mode
-	      (twittering-update-jojo (cdr (assq 'user-screen-name
-						 status-datum))
-				      (cdr (assq 'text status-datum))))
-	  (set data-var (cons status-datum (symbol-value data-var)))
-	  t)
-      nil)))
+  (let* ((id (cdr (assq 'id status-datum)))
+	 (source-id (cdr-safe (assq 'source-id status-datum)))
+	 (pred
+	  (if source-id
+	      (lambda (item)
+		(or (twittering-status-id= id (cdr (assq 'id item)))
+		    (twittering-status-id= source-id (cdr (assq 'id item)))
+		    (twittering-status-id= source-id
+					   (cdr-safe (assq 'source-id item)))))
+	    (lambda (item)
+	      (twittering-status-id= id (cdr (assq 'id item)))))))
+    (unless (and (symbol-value data-var)
+		 (find-if pred (symbol-value data-var)))
+      (if twittering-jojo-mode
+	  (twittering-update-jojo (cdr (assq 'user-screen-name
+					     status-datum))
+				  (cdr (assq 'text status-datum))))
+      (set data-var (cons status-datum (symbol-value data-var)))
+      t)))
 
 (defun twittering-status-to-status-datum (status)
   (flet ((assq-get (item seq)
@@ -1695,12 +1700,17 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	      original-user-name (twittering-decode-html-entities
 				  (assq-get 'name user-data))
 	      original-created-at (assq-get 'created_at status-data))
+
+	;; use id and created-at issued when retweeted.
 	(setq id (assq-get 'id status-data))
 	(setq created-at (assq-get 'created_at status-data))
 
 	(setq status-data retweeted-status-data
 	      user-data (cddr (assq 'user retweeted-status-data)))
-	)
+
+	;; id and created-at of source tweet.
+	(setq source-id (assq-get 'id status-data))
+	(setq source-created-at (assq-get 'created_at status-data)))
        (t
 	(setq id (assq-get 'id status-data))
 	(setq created-at (assq-get 'created_at status-data))))
@@ -1827,9 +1837,10 @@ If STATUS-DATUM is already in DATA-VAR, return nil. If not, return t."
 	    user-profile-image-url
 	    user-url
 	    user-protected
-	    original-id
 	    original-user-name
-	    original-user-screen-name)))))
+	    original-user-screen-name
+	    source-id
+	    source-created-at)))))
 
 (defun twittering-xmltree-to-status (xmltree)
   (mapcar #'twittering-status-to-status-datum

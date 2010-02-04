@@ -14,6 +14,11 @@
 	Use the current hashtag if set; same as
 	`twittering-update-status-from-minibuffer'.
 
+2010-02-05  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-format-status): replace a lacked
+	property by an empty string.
+
 2010-02-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-status-to-status-datum): assign a

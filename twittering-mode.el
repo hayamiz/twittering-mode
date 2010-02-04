@@ -2078,7 +2078,7 @@ following symbols;
 Specification of FORMAT-STR is described in the document for the
 variable `twittering-status-format'."
   (flet ((attr (key)
-	       (assocref key status))
+	       (or (assocref key status) ""))
 	 (profile-image
 	  ()
 	  (let ((profile-image-url (attr 'user-profile-image-url))
@@ -2209,7 +2209,7 @@ variable `twittering-status-format'."
 			       in-reply-to-string url))))))
 	      ("R" .
 	       ,(let ((retweeted-by (attr 'original-user-screen-name)))
-		  (if retweeted-by
+		  (if (not (string= "" retweeted-by))
 		      (concat " (retweeted by " retweeted-by ")")
 		    "")))
 

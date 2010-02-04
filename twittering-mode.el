@@ -1673,6 +1673,9 @@ If ID of STATUS-DATUM is already in ID-TABLE, return nil. If not, return t."
 					     status-datum))
 				  (cdr (assq 'text status-datum))))
       (set data-var (cons status-datum (symbol-value data-var)))
+      (puthash id t id-table)
+      (when source-id
+	(puthash source-id t id-table))
       t)))
 
 (defun twittering-status-to-status-datum (status)

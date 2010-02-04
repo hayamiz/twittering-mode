@@ -214,6 +214,20 @@
 	* twittering-mode.el (twittering-format-status): replace a lacked
 	property by an empty string.
 
+	* twittering-mode.el (twittering-get-status-from-http-response):
+	use ATOM format instead of JSON format.
+	(twittering-atom-xmltree-to-status-datum): new function for
+	converting an entry of ATOM into a status alist.
+	(twittering-atom-xmltree-to-status): new function for converting a
+	XML tree of ATOM into a list of status alists.
+	(twittering-json-to-status-datum): removed.
+	(twittering-json-to-status): removed.
+	(twittering-get-tweets): retrieve "search" timeline in ATOM format
+	instead of JSON format.
+	(twittering-get-and-render-timeline): remove dependence on
+	`json.el'.
+	(twittering-search): likewise.
+
 2010-02-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-status-to-status-datum): assign a

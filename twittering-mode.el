@@ -1784,10 +1784,9 @@ Return nil when parse failed.
 `buffer' may be a buffer or the name of an existing buffer. "
   (cond
    ((eq 'search (car spec))
-    (let ((body-string (twittering-get-response-body buffer)))
-      (when body-string
-	(let ((json-data (json-read-from-string body-string)))
-	  (reverse (twittering-json-to-status json-data))))))
+    (let ((body (twittering-get-response-body buffer 'xml-parse-region)))
+      (when body
+	(reverse (twittering-atom-xmltree-to-status body)))))
    (t
     (let ((body (twittering-get-response-body buffer 'xml-parse-region)))
       (when body
@@ -1812,94 +1811,58 @@ If ID of STATUS-DATUM is already in ID-TABLE, return nil. If not, return t."
 	(puthash source-id t id-table))
       t)))
 
-(defun twittering-json-to-status-datum (status)
-  (flet ((assq-get (item seq)
-		   (cdr (assq item seq))))
-    (let* (id text source created-at truncated
-	      in-reply-to-status-id
-	      in-reply-to-screen-name
-	      user-id user-name
-	      user-screen-name
-	      user-location
-	      user-description
-	      user-profile-image-url
-	      user-url
-	      user-protected
-	      regex-index
-	      (retweeted-status-data (cddr (assq 'retweeted_status status)))
-	      original-user-name
-	      original-user-screen-name)
+(defun twittering-atom-xmltree-to-status-datum (atom-xml-entry)
+  (let* ((id-str (car (cddr (assq 'id atom-xml-entry))))
+	 (time-str (car (cddr (assq 'updated atom-xml-entry))))
+	 (author-str (car (cddr (assq 'name (assq 'author atom-xml-entry))))))
+    `((created-at
+       . ,(if (string-match "\\(.*\\)T\\(.*\\)Z" time-str)
+	      ;; time-str is formatted as
+	      ;; "Combined date and time in UTC:" in ISO 8601.
+	      (format "%s %s +0000"
+		      (match-string 1 time-str) (match-string 2 time-str))
+	    ;; unknown format?
+	    time-str))
+      (id . ,(progn
+	       (string-match ":\\([0-9]+\\)$" id-str)
+	       (match-string 1 id-str)))
+      (source
+       . ,(let ((html (car (cddr (assq 'twitter:source atom-xml-entry)))))
+	    (when (string-match
+		   "<a href=\"\\(.*?\\)\".*?>\\(.*\\)</a>" html)
+	      (let ((uri (match-string-no-properties 1 html))
+		    (caption (match-string-no-properties 2 html)))
+		caption))))
+      (text . ,(car (cddr (assq 'title atom-xml-entry))))
+      ,@(progn
+	  (string-match "^\\([^ ]+\\) (\\(.*\\))$" author-str)
+	  `((user-screen-name . ,(match-string 1 author-str))
+	    (user-name . ,(match-string 2 author-str))))
+      (user-profile-image-url
+       . ,(let* ((link-items
+		  (mapcar
+		   (lambda (item)
+		     (when (eq 'link (car-safe item))
+		       (cadr item)))
+		   atom-xml-entry))
+		 (image-urls
+		  (mapcar
+		   (lambda (item)
+		     (when (member '(rel . "image") item)
+		       (cdr (assq 'href item))))
+		   link-items)))
+	    (car-safe (remq nil image-urls)))))))
 
-      ;; save original status and adjust data if status was retweeted
-      (when retweeted-status-data
-	(setq original-user-screen-name (twittering-decode-html-entities
-					 (assq-get 'screen_name status))
-	      original-user-name (twittering-decode-html-entities
-				  (assq-get 'name status)))
-	(setq status retweeted-status-data))
-
-      (setq id (format "%1.0f" (assq-get 'id status)))
-      (setq text (twittering-decode-html-entities
-		  (assq-get 'text status)))
-      (setq source (twittering-decode-html-entities
-		    (assq-get 'source status)))
-      (setq created-at (assq-get 'created_at status))
-      (setq truncated (assq-get 'truncated status))
-
-      ;;(setq in-reply-to-status-id
-      ;;	    (twittering-decode-html-entities
-      ;;	     (assq-get 'in_reply_to_status_id status-data)))
-      ;;(setq in-reply-to-screen-name
-      ;;	    (twittering-decode-html-entities
-      ;;	     (assq-get 'in_reply_to_screen_name status-data)))
-      ;;(setq user-id (assq-get 'id user-data))
-      ;;(setq user-name (twittering-decode-html-entities
-      ;;		       (assq-get 'from_user status)))
-      (setq user-screen-name (twittering-decode-html-entities
-			      (assq-get 'from_user status)))
-      ;;(setq user-location (twittering-decode-html-entities
-      ;;			   (assq-get 'location user-data)))
-      ;;(setq user-description (twittering-decode-html-entities
-      ;;			      (assq-get 'description user-data)))
-      (setq user-profile-image-url (assq-get 'profile_image_url status))
-
-      ;;(message "%s" user-profile-image-url)
-      ;;(setq user-url (assq-get 'url user-data))
-      ;;(setq user-protected (assq-get 'protected user-data))
-
-      ;; save last update time
-      (when (or (null twittering-timeline-last-update)
-		(< (twittering-created-at-to-seconds
-		    twittering-timeline-last-update)
-		   (twittering-created-at-to-seconds created-at)))
-	(setq twittering-timeline-last-update created-at))
-
-      (twittering-make-clickable-status-datum
-       (mapcar
-	(lambda (sym)
-	  `(,sym . ,(symbol-value sym)))
-	'(id text source created-at truncated
-	     in-reply-to-status-id
-	     in-reply-to-screen-name
-	     user-id user-name user-screen-name user-location
-	     user-description
-	     user-profile-image-url
-	     user-url
-	     user-protected
-	     original-user-name
-	     original-user-screen-name))))))
-
-(defun twittering-json-to-status (xmltree)
-  (mapcar #'twittering-json-to-status-datum
-	  ;; quirk to treat difference between xml.el in Emacs21 and Emacs22
-	  ;; On Emacs22, there may be blank strings
-	  (let* ((ret nil)
-		 (statuses (cdr (assq 'results (cdr xmltree))))
-		 (n (- (length statuses) 1)))
-	    (while (>= n 0)
-	      (setq ret (cons (elt statuses n) ret))
-	      (setq n (- n 1)))
-	    ret)))
+(defun twittering-atom-xmltree-to-status (atom-xmltree)
+  (let ((entry-list
+	 (apply 'append
+		(mapcar (lambda (x)
+		 	  (if (eq (car-safe x) 'entry) `(,x) nil))
+			(cdar atom-xmltree)))))
+    (mapcar (lambda (entry)
+	      (twittering-make-clickable-status-datum
+	       (twittering-atom-xmltree-to-status-datum entry)))
+	    entry-list)))
 
 (defun twittering-status-to-status-datum (status)
   (flet ((assq-get (item seq)
@@ -2649,7 +2612,7 @@ variable `twittering-status-format'."
 	  (add-to-list 'parameters (cons "rpp" (number-to-string count)))
 	  (if id
 	      (add-to-list 'parameters `("max_id" . ,id)))
-	  (twittering-http-get host method noninteractive parameters "json"))
+	  (twittering-http-get host method noninteractive parameters "atom"))
 	 (t
 	  (add-to-list 'parameters
 		       (cons (if (string-match regexp-list-method method)
@@ -2698,18 +2661,13 @@ variable `twittering-status-format'."
 	(when info
 	  (unless is-same-spec
 	    (setq twittering-timeline-last-update nil))
-	  (cond
-	   ((null info) nil)
-	   ((and is-search-spec (not (require 'json nil t)))
-	    (message "search-mode is currently disabled; need json.el."))
-	   (t
-	    (let* ((host (elt info 0))
-		   (method (elt info 1))
-		   (word (and is-search-spec (cadr spec)))
-		   (proc (twittering-get-tweets host method noninteractive
-						id word)))
-	      (setq twittering-last-requested-timeline-spec-string spec-string)
-	      (twittering-register-process proc spec)))))))
+	  (let* ((host (elt info 0))
+		 (method (elt info 1))
+		 (word (and is-search-spec (cadr spec)))
+		 (proc (twittering-get-tweets host method noninteractive
+					      id word)))
+	    (setq twittering-last-requested-timeline-spec-string spec-string)
+	    (twittering-register-process proc spec)))))
      (t
       (let ((type (car spec)))
 	(error "%s has not been supported yet" type))))))
@@ -3117,15 +3075,13 @@ variable `twittering-status-format'."
 
 (defun twittering-search (&optional word)
   (interactive)
-  (if (require 'json nil t)
-      (progn
-	(if (null word)
-	    (setq word (read-from-minibuffer "search: " nil nil nil 'twittering-search-history nil t)))
-	(if (> (length word) 0)
-	      (let ((spec `(search ,word)))
-		(twittering-get-and-render-timeline spec))
-	  (message "No query string")))
-    (message "search-mode is currently disabled; need json.el.")))
+  (let ((word (or word
+		  (read-from-minibuffer "search: " nil nil nil
+					'twittering-search-history nil t))))
+    (if (> (length word) 0)
+	(let ((spec `(search ,word)))
+	  (twittering-get-and-render-timeline spec))
+      (message "No query string"))))
 
 (defun twittering-make-list-from-assoc (key data)
   (mapcar (lambda (status)

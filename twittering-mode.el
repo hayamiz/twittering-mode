@@ -315,7 +315,7 @@ SCHEME must be \"http\" or \"https\"."
 
 (defvar twittering-icon-mode nil
   "You MUST NOT CHANGE this variable directly.
-You should change through function'twittering-icon-mode'")
+You should change through function `twittering-icon-mode'.")
 
 (make-variable-buffer-local 'twittering-icon-mode)
 (defun twittering-icon-mode (&optional arg)
@@ -343,8 +343,8 @@ is non-nil. If this variable is non-nil, icon images are converted by
 invoking \"convert\". Otherwise, cropped images are displayed.")
 
 (defun twittering-image-type (image-url buffer)
-  "Return the type of a given image based on the URL(IMAGE-URL)
-and its contents(BUFFER)"
+  "Return the type of a given image based on the URL (IMAGE-URL)
+and its contents (BUFFER)"
   (let ((type-cache (assoc image-url twittering-image-type-cache))
 	(case-fold-search t))
     (if type-cache
@@ -400,7 +400,7 @@ and its contents(BUFFER)"
 (defvar twittering-sign-simple-string nil)
 
 (defun twittering-sign-string-default-function ()
-  "Tweet append sign string:simple "
+  "Append sign string to tweet."
   (if twittering-sign-simple-string
       (format " [%s]" twittering-sign-simple-string)
     ""))
@@ -417,7 +417,7 @@ and its contents(BUFFER)"
   (funcall twittering-sign-string-function))
 
 (defun twittering-update-mode-line ()
-  "Update mode line"
+  "Update mode line."
   (let ((enabled-options nil)
 	(spec-string twittering-last-retrieved-timeline-spec-string))
     (when twittering-jojo-mode
@@ -743,8 +743,8 @@ Return cons of the spec and the rest string."
    ))
 
 (defun twittering-string-to-timeline-spec (spec-str)
-  "Convert STR into a timeline spec.
-Return nil if STR is invalid as a timeline spec."
+  "Convert SPEC-STR into a timeline spec.
+Return nil if SPEC-STR is invalid as a timeline spec."
   (let ((result-pair (twittering-extract-timeline-spec spec-str)))
     (if (and result-pair (string= "" (cdr result-pair)))
 	(car result-pair)
@@ -1178,7 +1178,7 @@ Return nil if STR is invalid as a timeline spec."
 ;;;
 
 (defun twittering-find-curl-program ()
-  "Returns an appropriate 'curl' program pathname or nil if not found."
+  "Returns an appropriate `curl' program pathname or nil if not found."
   (or (executable-find "curl")
       (let ((windows-p (find system-type '(windows-nt cygwin)))
 	    (curl.exe
@@ -1195,7 +1195,7 @@ Return nil if STR is invalid as a timeline spec."
 METHOD    : http method
 HEADERS   : http request heades in assoc list
 HOST      : remote host name
-PORT      : destination port number. nil means default port(http: 80, https: 443)
+PORT      : destination port number. nil means default port (http: 80, https: 443)
 PATH      : http request path
 PARAMETERS: http request parameters (query string)
 "
@@ -1380,7 +1380,7 @@ Available keywords:
   :schema
   :uri
   :query-string
-  "
+"
   (let* ((schema (if twittering-use-ssl "https" "http"))
 	 (default-port (if twittering-use-ssl 443 80))
 	 (port (if port port default-port))
@@ -1627,7 +1627,7 @@ PARAMETERS is alist of URI parameters.
 
 (defun twittering-get-response-header (buffer)
   "Exract HTTP response header from HTTP response.
-`buffer' may be a buffer or the name of an existing buffer which contains the HTTP response."
+BUFFER may be a buffer or the name of an existing buffer which contains the HTTP response."
   (with-current-buffer buffer
     (save-excursion
       (goto-char (point-min))
@@ -1642,7 +1642,7 @@ PARAMETERS is alist of URI parameters.
 (defun twittering-get-response-body (buffer)
   "Exract HTTP response body from HTTP response, parse it as XML, and return a
 XML tree as list. Return nil when parse failed.
-`buffer' may be a buffer or the name of an existing buffer. "
+BUFFER may be a buffer or the name of an existing buffer."
   (with-current-buffer buffer
     (save-excursion
       (goto-char (point-min))
@@ -1658,7 +1658,7 @@ XML tree as list. Return nil when parse failed.
       )))
 
 (defun twittering-cache-status-datum (status-datum id-table &optional data-var)
-  "Cache status datum into data-var(default twittering-timeline-data)
+  "Cache STATUS-DATUM into DATA-VAR (default twittering-timeline-data)
 If ID of STATUS-DATUM is already in ID-TABLE, return nil. If not, return t."
   (if (null data-var)
       (setf data-var 'twittering-timeline-data))
@@ -2071,9 +2071,9 @@ following symbols;
     ))
 
 (defun twittering-format-status (status format-str)
-  "Format a string out of a format-str and STATUS.
-Specification of format-str is described in the document for the
-variable `twittering-status-format'"
+  "Format a string out of FORMAT-STR and STATUS.
+Specification of FORMAT-STR is described in the document for the
+variable `twittering-status-format'."
   (flet ((attr (key)
 	       (assocref key status))
 	 (profile-image
@@ -2453,7 +2453,7 @@ variable `twittering-status-format'"
     image-data))
 
 (defun twittering-tinyurl-get (longurl)
-  "Tinyfy LONGURL"
+  "Tinyfy LONGURL."
   (let ((api (cdr (assoc twittering-tinyurl-service
 			 twittering-tinyurl-services-map))))
     (unless api

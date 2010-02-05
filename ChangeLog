@@ -1,3 +1,9 @@
+2010-02-05  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-update-status-from-pop-up-buffer):
+	Use the current hashtag if set; same as
+	`twittering-update-status-from-minibuffer'.
+
 2010-02-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-status-to-status-datum): assign a

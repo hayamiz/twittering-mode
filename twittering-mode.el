@@ -1108,6 +1108,9 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 
 (defun twittering-update-status-from-pop-up-buffer (&optional init-str reply-to-id)
   (interactive)
+  (when (and (null init-str)
+	     twittering-current-hashtag)
+    (setq init-str (format " #%s " twittering-current-hashtag)))
   (let ((buf (generate-new-buffer twittering-edit-buffer)))
     (setq twittering-pre-edit-window-configuration
 	  (current-window-configuration))

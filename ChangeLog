@@ -1,3 +1,8 @@
+2010-02-06  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-get-and-render-timeline): ignore
+	non-interactive request if a process is waiting for responses.
+
 2010-02-05  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-update-status-from-pop-up-buffer):

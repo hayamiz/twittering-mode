@@ -2389,32 +2389,38 @@ variable `twittering-status-format'."
   )
 
 (defun twittering-get-and-render-timeline (spec &optional noninteractive id)
-  (let* ((original-spec spec)
+  (let* ((retrieved-spec-string twittering-last-retrieved-timeline-spec-string)
+	 (original-spec spec)
 	 (spec-string (if (stringp spec)
 			  spec
 			(twittering-timeline-spec-to-string spec)))
 	 (spec ;; normalized spec.
-	  (twittering-string-to-timeline-spec spec-string)))
+	  (twittering-string-to-timeline-spec spec-string))
+	 (is-same-spec
+	  (and retrieved-spec-string
+	       (twittering-equal-string-as-timeline spec-string
+						    retrieved-spec-string))))
     (when (null spec)
       (error "\"%s\" is invalid as a timeline spec"
 	     (or spec-string original-spec)))
-    (setq twittering-last-requested-timeline-spec-string spec-string)
-    (unless
-	(and twittering-last-retrieved-timeline-spec-string
-	     (twittering-equal-string-as-timeline
-	      spec-string twittering-last-retrieved-timeline-spec-string))
-      (setq twittering-timeline-last-update nil
-	    twittering-timeline-data nil))
-    (if (twittering-timeline-spec-primary-p spec)
-	(let ((pair (twittering-timeline-spec-to-host-method spec)))
-	  (when pair
-	    (let* ((host (car pair))
-		   (method (cadr pair))
-		   (proc (twittering-get-tweets host method
-						noninteractive id)))
-	      (twittering-register-process proc spec))))
+    (cond
+     ((and noninteractive twittering-process-info-alist)
+      ;; ignore non-interactive request if a process is waiting for responses.
+      t)
+     ((twittering-timeline-spec-primary-p spec)
+      (let ((info (twittering-timeline-spec-to-host-method spec)))
+	(when info
+	  (unless is-same-spec
+	    (setq twittering-timeline-last-update nil
+		  twittering-timeline-data nil))
+	  (let* ((host (elt info 0))
+		 (method (elt info 1))
+		 (proc (twittering-get-tweets host method noninteractive id)))
+	    (setq twittering-last-requested-timeline-spec-string spec-string)
+	    (twittering-register-process proc spec)))))
+     (t
       (let ((type (car spec)))
-	(error "%s has not been supported yet" type)))))
+	(error "%s has not been supported yet" type))))))
 
 (defun twittering-retrieve-image (image-url)
   (let ((image-data (gethash `(,image-url . ,twittering-convert-fix-size)

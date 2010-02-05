@@ -2457,7 +2457,7 @@ variable `twittering-status-format'"
   (let ((api (cdr (assoc twittering-tinyurl-service
 			 twittering-tinyurl-services-map))))
     (unless api
-      (error "Invaild `twittering-tinyurl-service'. try one of %s"
+      (error "Invalid `twittering-tinyurl-service'. try one of %s"
 	     (mapconcat (lambda (x)
 			  (symbol-name (car x)))
 			twittering-tinyurl-services-map ", ")))

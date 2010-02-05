@@ -3,6 +3,11 @@
 	* twittering-mode.el (twittering-get-and-render-timeline): ignore
 	non-interactive request if a process is waiting for responses.
 
+	* twittering-mode.el (twittering-mode): set `buffer-read-only' to
+	t explicitly.
+	(twittering-render-timeline): bind `buffer-read-only' with `let*'
+	locally.
+
 2010-02-05  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-update-status-from-pop-up-buffer):

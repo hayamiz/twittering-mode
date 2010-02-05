@@ -1016,6 +1016,7 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 \\{twittering-mode-map}"
   (interactive)
   (switch-to-buffer (twittering-buffer))
+  (setq buffer-read-only t)
   (kill-all-local-variables)
   (twittering-mode-init-variables)
   (use-local-map twittering-mode-map)
@@ -1925,9 +1926,9 @@ If ID of STATUS-DATUM is already in ID-TABLE, return nil. If not, return t."
 	   (point-window-list
 	    (mapcar (lambda (window)
 		      (cons (window-point window) window))
-		    window-list)))
+		    window-list))
+	   (buffer-read-only nil))
       (twittering-update-mode-line)
-      (setq buffer-read-only nil)
       (save-excursion
 	(unless additional
 	  (erase-buffer))
@@ -1960,7 +1961,6 @@ If ID of STATUS-DATUM is already in ID-TABLE, return nil. If not, return t."
 	   twittering-timeline-data)))
       (if (and twittering-image-stack window-system)
 	  (clear-image-cache))
-      (setq buffer-read-only t)
       (debug-print (current-buffer))
       (cond
        ((and additional (not twittering-scroll-mode))

@@ -1781,16 +1781,14 @@ BUFFER may be a buffer or the name of an existing buffer."
 (defun twittering-get-status-from-http-response (spec buffer)
   "Exract statuses from HTTP response, and return a list.
 Return nil when parse failed.
-`buffer' may be a buffer or the name of an existing buffer. "
-  (cond
-   ((eq 'search (car spec))
-    (let ((body (twittering-get-response-body buffer 'xml-parse-region)))
-      (when body
-	(reverse (twittering-atom-xmltree-to-status body)))))
-   (t
-    (let ((body (twittering-get-response-body buffer 'xml-parse-region)))
-      (when body
-	(reverse (twittering-xmltree-to-status body)))))))
+
+SPEC is timeline-spec which was used to retrieve BUFFER.
+BUFFER may be a buffer or the name of an existing buffer."
+  (let ((body (twittering-get-response-body buffer 'xml-parse-region)))
+    (when body
+      (if (eq 'search (car spec))
+	  (reverse (twittering-atom-xmltree-to-status body))
+	(reverse (twittering-xmltree-to-status body))))))
 
 (defun twittering-cache-status-datum (status-datum id-table data-var)
   "Cache STATUS-DATUM into DATA-VAR

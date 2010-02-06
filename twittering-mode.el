@@ -1525,7 +1525,7 @@ Available keywords:
 	   twittering-last-requested-timeline-spec-string)))
     (twittering-release-process proc)
     (cond
-     ((equal spec requested-spec)
+     ((and body (equal spec requested-spec))
       (let* ((reversed-statuses
 	      (twittering-xmltree-to-status body))
 	     (statuses (reverse reversed-statuses))

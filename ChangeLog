@@ -1,5 +1,17 @@
 2010-02-06  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
+	* twittering-mode.el (twittering-http-default-sentinel): New defun
+	to share code between `twittering-http-get-default-sentinel',
+	`twittering-http-get-list-index-sentinel', and
+	`twittering-http-post-default-sentinel'.
+	(twittering-http-get-default-sentinel): Adjust function.
+	(twittering-http-get-list-index-sentinel): Likewise.
+	(twittering-http-post-default-sentinel): Likewise.
+	(twittering-start-http-ssl-session): Adjust callers.
+	(twittering-start-http-non-ssl-session): Likewise.
+
+2010-02-06  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
 	* twittering-mode.el (twittering-edit-post-status): Don't add
 	parameter `in_reply_to_status_id' if the tweet does not begin
 	with `@'.

@@ -1,3 +1,10 @@
+2010-02-06  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-edit-post-status): Don't add
+	parameter `in_reply_to_status_id' if the tweet does not begin
+	with `@'.
+	(twittering-update-status-from-minibuffer): Likewise.
+
 2010-02-06  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-get-and-render-timeline): ignore

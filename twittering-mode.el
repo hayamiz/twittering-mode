@@ -1135,11 +1135,12 @@ Return nil if SPEC-STR is invalid as a timeline spec."
       (setq twittering-edit-history
 	    (cons status twittering-edit-history))
       (let ((parameters `(("status" . ,status)
-			  ("source" . "twmode")
-			  ,@(if twittering-reply-to-id
-				`(("in_reply_to_status_id" .
-				   ,(format "%s" twittering-reply-to-id)))
-			      nil))))
+			  ("source" . "twmode"))))
+	(when (and twittering-reply-to-id
+		   (string-match "^@[a-zA-Z0-9_-]+" status))
+	  (add-to-list 'parameters
+		       `("in_reply_to_status_id" .
+			 ,(format "%s" twittering-reply-to-id))))
 	(twittering-http-post "twitter.com" "statuses/update" parameters)
 	(twittering-edit-close))))))
 
@@ -2306,11 +2307,13 @@ variable `twittering-status-format'."
 	      (setq prompt "status: ")
 	      (when (twittering-status-not-blank-p status)
 		(let ((parameters `(("status" . ,status-with-sign)
-				    ("source" . "twmode")
-				    ,@(if reply-to-id
-					  `(("in_reply_to_status_id"
-					     . ,reply-to-id))))))
-		  (twittering-http-post "twitter.com" "statuses/update" parameters)
+				    ("source" . "twmode"))))
+		  (when (and reply-to-id
+			     (string-match "^@[a-zA-Z0-9_-]+" status))
+		    (add-to-list 'parameters
+				 `("in_reply_to_status_id" . ,reply-to-id)))
+		  (twittering-http-post "twitter.com" "statuses/update"
+					parameters)
 		  (setq not-posted-p nil)))
 	      )))
       ;; unwindforms
@@ -2557,8 +2560,7 @@ variable `twittering-status-format'."
 	     (or (> emacs-major-version 21)
 		 (eq 'utf-8 (terminal-coding-system))))
     (twittering-http-post
-     "twitter.com"
-     "statuses/update"
+     "twitter.com" "statuses/update"
      `(("status" . ,(mapconcat
 		     'char-to-string
 		     (mapcar 'twittering-ucs-to-char
@@ -2578,8 +2580,7 @@ variable `twittering-status-format'."
 			  41 12301 12392 35328 12358)) "")
 	 msg)
 	(twittering-http-post
-	 "twitter.com"
-	 "statuses/update"
+	 "twitter.com" "statuses/update"
 	 `(("status" . ,(concat
 			 "@" usr " "
 			 (match-string-no-properties 2 msg)

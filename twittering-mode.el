@@ -1476,13 +1476,15 @@ Available keywords:
     headers
     ))
 
-(defun twittering-http-get (host method &optional noninteractive parameters sentinel)
+(defun twittering-http-get (host method &optional noninteractive parameters format sentinel)
+  (if (null format)
+      (setq format "xml"))
   (if (null sentinel)
       (setq sentinel 'twittering-http-get-default-sentinel))
 
   (twittering-start-http-session
    "GET" (twittering-http-application-headers "GET")
-   host nil (concat "/" method ".xml") parameters noninteractive sentinel))
+   host nil (concat "/" method "." format) parameters noninteractive sentinel))
 
 (defun twittering-created-at-to-seconds (created-at)
   (let ((encoded-time (apply 'encode-time (parse-time-string created-at))))
@@ -1579,20 +1581,23 @@ Available keywords:
 	    (setq twittering-list-index-retrieved indexes))))
     nil))
 
-(defun twittering-http-post (host method &optional parameters contents sentinel)
+(defun twittering-http-post (host method &optional parameters format sentinel)
   "Send HTTP POST request to twitter.com (or api.twitter.com)
 
 HOST is hostname of remote side, twitter.com or api.twitter.com.
 METHOD must be one of Twitter API method classes
  (statuses, users or direct_messages).
 PARAMETERS is alist of URI parameters.
- ex) ((\"mode\" . \"view\") (\"page\" . \"6\")) => <URI>?mode=view&page=6"
+ ex) ((\"mode\" . \"view\") (\"page\" . \"6\")) => <URI>?mode=view&page=6
+FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
+  (if (null format)
+      (setq format "xml"))
   (if (null sentinel)
       (setq sentinel 'twittering-http-post-default-sentinel))
 
   (twittering-start-http-session
    "POST" (twittering-http-application-headers "POST")
-   host nil (concat "/" method ".xml") parameters noninteractive sentinel))
+   host nil (concat "/" method "." format) parameters noninteractive sentinel))
 
 (defun twittering-http-post-default-sentinel (header proc noninteractive &optional suc-msg)
   ;; FIXME: we should take a xmltree from current-burrer and parse it
@@ -2295,7 +2300,7 @@ variable `twittering-status-format'."
 (defun twittering-get-list-index (username)
   (twittering-http-get "api.twitter.com"
 		       (concat "1/" username "/lists")
-		       t nil
+		       t nil nil
 		       'twittering-http-get-list-index-sentinel))
 
 (defun twittering-get-list-index-sync (username)

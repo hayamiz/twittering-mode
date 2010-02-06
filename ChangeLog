@@ -1,3 +1,11 @@
+2010-02-07  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-http-get): Add an optional
+	argument for a response data format.
+	(twittering-http-post): Likewise.
+	(twittering-get-list-index): Adjust callers.
+	(twittering-http-post): Delete unused argument `contents'.
+
 2010-02-06  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-http-default-sentinel): New defun

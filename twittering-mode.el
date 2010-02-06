@@ -1578,7 +1578,7 @@ Available keywords:
 		    (goto-char (point-min))
 		    (if (search-forward-regexp "\r?\n\r?\n" nil t)
 			(while (re-search-forward
-				"<slug>\\([-a-zA-Z0-9_]+\\)</slug>" nil t)
+				"<slug>\\([a-zA-Z0-9_-]+\\)</slug>" nil t)
 			  (push (match-string 1) indexes))))))
 	       (t (setq mes (format "Response: %s" status-line)))))
 	  (setq mes "Failure: Bad http response."))
@@ -1772,7 +1772,7 @@ If ID of STATUS-DATUM is already in ID-TABLE, return nil. If not, return t."
       ;; make screen-name in text clickable
       (let ((pos 0))
 	(block nil
-	  (while (string-match "@\\([_a-zA-Z0-9]+\\)" text pos)
+	  (while (string-match "@\\([a-zA-Z0-9_-]+\\)" text pos)
 	    (let ((next-pos (match-end 0))
 		  (screen-name (match-string 1 text)))
 	      (when (eq next-pos pos)
@@ -1794,7 +1794,7 @@ If ID of STATUS-DATUM is already in ID-TABLE, return nil. If not, return t."
       (setq regex-index 0)
       (while regex-index
 	(setq regex-index
-	      (string-match "@\\([_a-zA-Z0-9]+\\)\\|\\(https?://[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+\\)"
+	      (string-match "@\\([a-zA-Z0-9_-]+\\)\\|\\(https?://[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+\\)"
 			    text
 			    regex-index))
 	(when regex-index
@@ -1896,7 +1896,7 @@ If ID of STATUS-DATUM is already in ID-TABLE, return nil. If not, return t."
 	    (found-at nil)
 	    (result '()))
 	(while (setq found-at
-		     (string-match "&\\(#\\([0-9]+\\)\\|\\([A-Za-z]+\\)\\);"
+		     (string-match "&\\(#\\([0-9]+\\)\\|\\([a-zA-Z]+\\)\\);"
 				   encoded-str cursor))
 	  (when (> found-at cursor)
 	    (list-push (substring encoded-str cursor found-at) result))
@@ -2281,7 +2281,7 @@ variable `twittering-status-format'."
     (insert status)
     (goto-char (point-min))
     ;; skip user name
-    (re-search-forward "@[-_a-z0-9]+\\([\n\r \t]+@[-_a-z0-9]+\\)*" nil t)
+    (re-search-forward "@[a-zA-Z0-9_-]+\\([\n\r \t]+@[a-zA-Z0-9_-]+\\)*" nil t)
     (re-search-forward "[^\n\r \t]+" nil t)))
 
 (defun twittering-update-status-from-minibuffer (&optional init-str reply-to-id)

@@ -5,6 +5,12 @@
 	with `@'.
 	(twittering-update-status-from-minibuffer): Likewise.
 
+	* twittering-mode.el (twittering-status-not-blank-p): Fix a regexp
+	pattern for USER.
+	(twittering-status-to-status-datum): Likewise.
+	(twittering-http-get-list-index-sentinel): Change a regexp pattern
+	for LISTNAME.
+
 2010-02-06  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-get-and-render-timeline): ignore

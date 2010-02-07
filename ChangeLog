@@ -3,6 +3,11 @@
 	* test/test-twittering-mode.el (test-format-status): replace the
 	format specifier "%t" with "%T".
 
+	* twittering-mode.el (twittering-extract-timeline-spec): fix the
+	regexp for "filter" timeline spec.
+	* test/test-twittering-mode.el (timeline-spec): add a test for
+	trailing backslashes.
+
 2010-02-07  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-http-get): Add an optional

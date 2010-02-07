@@ -688,7 +688,8 @@ Return cons of the spec and the rest string."
 	(let ((first-spec (list (cdr (assoc type alist)))))
 	  (cons first-spec following)))
        ((string= type "filter")
-	(if (string-match "^:filter/\\(.*?[^\\]\\)??/" str)
+	(if (string-match "^:filter/\\(\\(.*?[^\\]\\)??\\(\\\\\\\\\\)*\\)??/"
+			  str)
 	    (let* ((escaped-regexp (or (match-string 1 str) ""))
 		   (regexp
 		    (replace-regexp-in-string "\\\\/" "/"

@@ -202,6 +202,20 @@
 
   (test-assert-equal
    (test-restore-timeline-spec
+    ":filter/ABC\\\\/user/mylist"
+    '(filter "ABC\\\\" (list "user" "mylist"))
+    '(filter "ABC\\\\" (list "user" "mylist")))
+   '(t t))
+
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ":filter/\\\\/user/mylist"
+    '(filter "\\\\" (list "user" "mylist"))
+    '(filter "\\\\" (list "user" "mylist")))
+   '(t t))
+
+  (test-assert-equal
+   (test-restore-timeline-spec
     ":retweeted_by_me" '(retweeted_by_me)  '(retweeted_by_me))
    '(t t))
   (test-assert-equal

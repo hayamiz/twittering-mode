@@ -11,6 +11,10 @@
 	* twittering-mode.el (twittering-extract-timeline-spec): add error
 	messages for some conditions.
 
+	* twittering-mode.el
+	(twittering-read-timeline-spec-with-completion): fix the regexp
+	for judging whether a list name is required or not.
+
 2010-02-07  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-http-get): Add an optional

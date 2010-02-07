@@ -2839,17 +2839,19 @@ variable `twittering-status-format'."
 	 (spec-string (twittering-completing-read prompt dummy-hist
 						  nil nil initial 'dummy-hist))
 	 (spec-string
-	  (if (string-match "^\\([^/]+\\)/$" spec-string)
-	      (let* ((username (match-string 1 spec-string))
-		     (list-index (twittering-get-list-index-sync username))
-		     (listname
-		      (if list-index
-			  (twittering-read-list-name username list-index)
-			nil)))
-		(if listname
-		    (concat username "/" listname)
-		  nil))
-	    spec-string))
+	  (cond
+	   ((string-match "^\\([a-zA-Z0-9_-]+\\)/$" spec-string)
+	    (let* ((username (match-string 1 spec-string))
+		   (list-index (twittering-get-list-index-sync username))
+		   (listname
+		    (if list-index
+			(twittering-read-list-name username list-index)
+		      nil)))
+	      (if listname
+		  (concat username "/" listname)
+		nil)))
+	   (t
+	    spec-string)))
 	 (spec (twittering-string-to-timeline-spec spec-string)))
     (cond
      (spec (if as-string

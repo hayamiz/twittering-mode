@@ -1582,10 +1582,10 @@ Available keywords:
 	    (push (match-string 1) indexes)))))
      (t
       (setq mes (format "Response: %s" status-line))))
-
-    (if indexes
-	(setq twittering-list-index-retrieved indexes)
-      (setq twittering-list-index-retrieved mes))
+    (setq twittering-list-index-retrieved
+	  (or indexes
+	      mes
+	      "")) ;; return "" explicitly if user does not have a list.
     nil))
 
 (defun twittering-http-post (host method &optional parameters format sentinel)
@@ -2325,7 +2325,7 @@ variable `twittering-status-format'."
   (cond
    ((stringp twittering-list-index-retrieved)
     (if (string= "" twittering-list-index-retrieved)
-	(message (concat username " has no list"))
+	(message "%s does not have a list." username)
       (message twittering-list-index-retrieved))
     nil)
    ((listp twittering-list-index-retrieved)

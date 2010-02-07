@@ -1495,22 +1495,11 @@ Available keywords:
   (debug-printf "http-default-sentinel: proc=%s stat=%s" proc stat)
   (unwind-protect
       (let ((header (twittering-get-response-header temp-buffer))
-	    (status-line nil)
-	    (status nil)
 	    (mes nil))
 	(if (string-match twittering-http-status-line-regexp header)
-	    (progn
-	      (setq status-line (match-string-no-properties 1 header))
-	      (setq status (match-string-no-properties 2 header))
-	      (case-string
-	       status
-	       (("200")
-		(if (and func (fboundp func))
-		    (with-current-buffer temp-buffer
-		      (setq mes (funcall func header proc noninteractive
-					 suc-msg)))))
-	       (t
-		(setq mes (format "Response: %s" status-line)))))
+	    (when (and func (fboundp func))
+	      (with-current-buffer temp-buffer
+		(setq mes (funcall func header proc noninteractive suc-msg))))
 	  (setq mes "Failure: Bad http response."))
 	(when (and mes (twittering-buffer-active-p))
 	  (message mes)))
@@ -1519,66 +1508,84 @@ Available keywords:
       (kill-buffer temp-buffer))))
 
 (defun twittering-http-get-default-sentinel (header proc noninteractive &optional suc-msg)
-  (let* ((body (twittering-get-response-body (current-buffer)))
-	 (spec (twittering-get-timeline-spec-from-process proc))
-	 (spec-string (twittering-timeline-spec-to-string spec))
-	 (requested-spec
-	  (twittering-string-to-timeline-spec
-	   twittering-last-requested-timeline-spec-string)))
-    (twittering-release-process proc)
-    (cond
-     ((and body (equal spec requested-spec))
-      (let* ((reversed-statuses
-	      (twittering-xmltree-to-status body))
-	     (statuses (reverse reversed-statuses))
-	     (id-table (make-hash-table :test 'equal)))
-	(mapc
-	 (lambda (status)
-	   (let ((id (cdr (assq 'id status)))
-		 (source-id (cdr-safe (assq 'source-id status))))
-	     (puthash id t id-table)
-	     (when source-id
-	       (puthash source-id t id-table))))
-	 twittering-timeline-data)
-	(setq twittering-new-tweets-count
-	      (count t (mapcar
-			(lambda (status)
-			  (twittering-cache-status-datum status id-table))
-			statuses))))
-      (setq twittering-timeline-data
-	    (sort twittering-timeline-data
-		  (lambda (status1 status2)
-		    (let ((id1 (cdr (assoc 'id status1)))
-			  (id2 (cdr (assoc 'id status2))))
-		      (twittering-status-id< id2 id1)))))
-      (if (and (< 0 twittering-new-tweets-count)
-	       noninteractive)
-	  (run-hooks 'twittering-new-tweets-hook))
-      (let ((same-timeline
-	     (equal twittering-last-retrieved-timeline-spec-string
-		    twittering-last-requested-timeline-spec-string)))
-	(setq twittering-last-retrieved-timeline-spec-string
-	      twittering-last-requested-timeline-spec-string)
-	(twittering-render-timeline same-timeline))
-      (twittering-add-timeline-history)
-      (if twittering-notify-successful-http-get
-	  (if suc-msg suc-msg "Success: Get.")
-	nil))
+  (let ((status-line (match-string-no-properties 1 header))
+	(status (match-string-no-properties 2 header)))
+    (case-string
+     status
+     (("200")
+      (let* ((body (twittering-get-response-body (current-buffer)))
+	     (spec (twittering-get-timeline-spec-from-process proc))
+	     (spec-string (twittering-timeline-spec-to-string spec))
+	     (requested-spec
+	      (twittering-string-to-timeline-spec
+	       twittering-last-requested-timeline-spec-string)))
+	(twittering-release-process proc)
+	(cond
+	 ((and body (equal spec requested-spec))
+	  (let* ((reversed-statuses
+		  (twittering-xmltree-to-status body))
+		 (statuses (reverse reversed-statuses))
+		 (id-table (make-hash-table :test 'equal)))
+	    (mapc
+	     (lambda (status)
+	       (let ((id (cdr (assq 'id status)))
+		     (source-id (cdr-safe (assq 'source-id status))))
+		 (puthash id t id-table)
+		 (when source-id
+		   (puthash source-id t id-table))))
+	     twittering-timeline-data)
+	    (setq twittering-new-tweets-count
+		  (count t (mapcar
+			    (lambda (status)
+			      (twittering-cache-status-datum status id-table))
+			    statuses))))
+	  (setq twittering-timeline-data
+		(sort twittering-timeline-data
+		      (lambda (status1 status2)
+			(let ((id1 (cdr (assoc 'id status1)))
+			      (id2 (cdr (assoc 'id status2))))
+			  (twittering-status-id< id2 id1)))))
+	  (if (and (< 0 twittering-new-tweets-count)
+		   noninteractive)
+	      (run-hooks 'twittering-new-tweets-hook))
+	  (let ((same-timeline
+		 (equal twittering-last-retrieved-timeline-spec-string
+			twittering-last-requested-timeline-spec-string)))
+	    (setq twittering-last-retrieved-timeline-spec-string
+		  twittering-last-requested-timeline-spec-string)
+	    (twittering-render-timeline same-timeline))
+	  (twittering-add-timeline-history)
+	  (if twittering-notify-successful-http-get
+	      (if suc-msg suc-msg "Success: Get.")
+	    nil))
+	 (t
+	  nil))
+	))
      (t
-      nil))))
+      (format "Response: %s" status-line)))))
 
 (defun twittering-http-get-list-index-sentinel (header proc noninteractive &optional suc-msg)
-  (save-excursion
-    ;; FIXME: this is a preliminary implementation because we should
-    ;; take a xmltree from current-burrer and parse it here.
-    (goto-char (point-min))
-    (when (search-forward-regexp "\r?\n\r?\n" nil t)
-      (let ((indexes nil))
-	(while (re-search-forward
-		"<slug>\\([a-zA-Z0-9_-]+\\)</slug>" nil t)
-	  (push (match-string 1) indexes))
-	(if indexes
-	    (setq twittering-list-index-retrieved indexes))))
+  (let ((status-line (match-string-no-properties 1 header))
+	(status (match-string-no-properties 2 header))
+	(indexes nil)
+	(mes nil))
+    (case-string
+     status
+     (("200")
+      (save-excursion
+	;; FIXME: this is a preliminary implementation because we should
+	;; take a xmltree from current-burrer and parse it here.
+	(goto-char (point-min))
+	(when (search-forward-regexp "\r?\n\r?\n" nil t)
+	  (while (re-search-forward
+		  "<slug>\\([a-zA-Z0-9_-]+\\)</slug>" nil t)
+	    (push (match-string 1) indexes)))))
+     (t
+      (setq mes (format "Response: %s" status-line))))
+
+    (if indexes
+	(setq twittering-list-index-retrieved indexes)
+      (setq twittering-list-index-retrieved mes))
     nil))
 
 (defun twittering-http-post (host method &optional parameters format sentinel)
@@ -1600,9 +1607,16 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
    host nil (concat "/" method "." format) parameters noninteractive sentinel))
 
 (defun twittering-http-post-default-sentinel (header proc noninteractive &optional suc-msg)
-  ;; FIXME: we should take a xmltree from current-burrer and parse it
-  ;; here.
-  (if suc-msg suc-msg "Success: Post."))
+  (let ((status-line (match-string-no-properties 1 header))
+	(status (match-string-no-properties 2 header)))
+    (case-string
+     status
+     (("200")
+      ;; FIXME: we should take a xmltree from current-burrer and parse
+      ;; it here.
+      (if suc-msg suc-msg "Success: Post."))
+     (t
+      (format "Response: %s" status-line)))))
 
 (defun twittering-get-response-header (buffer)
   "Exract HTTP response header from HTTP response.

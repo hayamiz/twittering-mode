@@ -6,6 +6,12 @@
 	(twittering-get-list-index): Adjust callers.
 	(twittering-http-post): Delete unused argument `contents'.
 
+	* twittering-mode.el (twittering-http-get-default-sentinel): Check
+	status-code here instead of `twittering-http-default-sentinel'.
+	(twittering-http-get-list-index-sentinel): Likewise.
+	(twittering-http-post-default-sentinel): Likewise.
+	(twittering-http-default-sentinel): Adjust callers.
+
 2010-02-06  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-http-default-sentinel): New defun

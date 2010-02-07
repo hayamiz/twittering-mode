@@ -8,6 +8,9 @@
 	* test/test-twittering-mode.el (timeline-spec): add a test for
 	trailing backslashes.
 
+	* twittering-mode.el (twittering-extract-timeline-spec): add error
+	messages for some conditions.
+
 2010-02-07  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-http-get): Add an optional

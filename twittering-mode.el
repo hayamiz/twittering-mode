@@ -703,6 +703,7 @@ Return cons of the spec and the rest string."
 	  (error "\"%s\" has no valid regexp" str)
 	  nil))
        (t
+	(error "\"%s\" is invalid as a timeline spec" str)
 	nil))))
    ((string-match "^\\$\\([a-zA-Z0-9_-]+\\)" str)
     (let* ((name (match-string 1 str))
@@ -737,9 +738,16 @@ Return cons of the spec and the rest string."
 		`(,(car spec-list) . ,(substring rest 1))
 	      `((merge ,@spec-list) . ,(substring rest 1))))
 	(if rest
+	    ;; The string following the opening parenthesis `('
+	    ;; can be interpreted without errors,
+	    ;; but there is no corresponding closing parenthesis.
 	    (error "\"%s\" lacks a closing parenthesis" str))
+	;; Does not display additional error messages if an error
+	;; occurred on interpreting the string following
+	;; the opening parenthesis `('.
 	nil)))
    (t
+    (error "\"%s\" is invalid as a timeline spec" str)
     nil)
    ))
 

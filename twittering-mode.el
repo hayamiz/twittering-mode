@@ -1585,7 +1585,7 @@ Available keywords:
     (setq twittering-list-index-retrieved
 	  (or indexes
 	      mes
-	      "")) ;; return "" explicitly if user does not have a list.
+	      "")) ;; set "" explicitly if user does not have a list.
     nil))
 
 (defun twittering-http-post (host method &optional parameters format sentinel)

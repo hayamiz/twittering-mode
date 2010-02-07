@@ -13,7 +13,7 @@
 	(twittering-http-default-sentinel): Adjust callers.
 
 	* twittering-mode.el (twittering-http-get-list-index-sentinel):
-	Return "" explicitly if user does not have a list.
+	Set "" explicitly if user does not have a list.
 
 2010-02-06  Satoshi Yatagawa  <yata_github@y.hauN.org>
 

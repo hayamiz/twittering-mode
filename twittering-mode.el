@@ -2852,7 +2852,12 @@ variable `twittering-status-format'."
 		nil)))
 	   (t
 	    spec-string)))
-	 (spec (twittering-string-to-timeline-spec spec-string)))
+	 (spec
+	  (condition-case error-str
+	      (twittering-string-to-timeline-spec spec-string)
+	    (error
+	     (message "Invalid timeline spec: %s" error-str)
+	     nil))))
     (cond
      (spec (if as-string
 	       spec-string

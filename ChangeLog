@@ -15,6 +15,10 @@
 	(twittering-read-timeline-spec-with-completion): fix the regexp
 	for judging whether a list name is required or not.
 
+	* twittering-mode.el
+	(twittering-read-timeline-spec-with-completion): catch errors on
+	interpreting timeline spec string.
+
 2010-02-07  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-http-get): Add an optional

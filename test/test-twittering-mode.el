@@ -292,7 +292,7 @@
     ;;   (twittering-format-status status "%@"))
 
     (test-assert-string-equal "Help protect and support Free Software and the GNU Project by joining the Free Software Foundation! http://www.fsf.org/join?referrer=7019"
-      (twittering-format-status status "%t"))
+      (twittering-format-status status "%T"))
 
     (setcdr (assoc 'truncated status) "false")
     (test-assert-string-equal ""
@@ -311,12 +311,12 @@
     (setq twittering-icon-mode nil)
     (test-assert-string-equal " emacs,  :
   Help protect and support Free Software and the GNU Project by joining the Free Software Foundation! http://www.fsf.org/join?referrer=7019 // from web"
-      (twittering-format-status status "%i %s,  :\n  %t // from %f%L%r"))
+      (twittering-format-status status "%i %s,  :\n  %T // from %f%L%r"))
     (setq twittering-icon-mode t)
     (test-assert-string-equal "
    emacs,  :
   Help protect and support Free Software and the GNU Project by joining the Free Software Foundation! http://www.fsf.org/join?referrer=7019 // from web"
-      (twittering-format-status status "%i %s,  :\n  %t // from %f%L%r"))
+      (twittering-format-status status "%i %s,  :\n  %T // from %f%L%r"))
     ))
 
 (defcase test-find-curl-program nil nil

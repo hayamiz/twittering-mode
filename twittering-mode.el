@@ -2038,7 +2038,8 @@ If ID of STATUS-DATUM is already in ID-TABLE, return nil. If not, return t."
 	    (setq regexp-index (match-end 0)))))
 
       ;; make source pretty and clickable
-      (if (string-match "<a href=\"\\(.*?\\)\".*?>\\(.*\\)</a>" source)
+      (if (and source
+	       (string-match "<a href=\"\\(.*?\\)\".*?>\\(.*\\)</a>" source))
 	  (let ((uri (match-string-no-properties 1 source))
 		(caption (match-string-no-properties 2 source)))
 	    (setq source caption)
@@ -2049,7 +2050,7 @@ If ID of STATUS-DATUM is already in ID-TABLE, return nil. If not, return t."
 			  face twittering-uri-face
 			  source ,source)
 	     source)
-	    (add-to-list 'status (cons 'source  source))
+	    (add-to-list 'status (cons 'source source))
 	    ))
 
       ;; make hashtag in text clickable

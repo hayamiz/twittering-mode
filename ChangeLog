@@ -1,3 +1,10 @@
+2010-02-08  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-http-default-sentinel): call
+	`twittering-release-process' even if some errors happen.
+	(twittering-http-get-default-sentinel): remove invocation of
+	`twittering-release-process'.
+
 2010-02-08  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-http-get-default-sentinel): Call

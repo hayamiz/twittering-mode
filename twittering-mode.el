@@ -1509,9 +1509,11 @@ Available keywords:
 	      (with-current-buffer temp-buffer
 		(setq mes (funcall func header proc noninteractive suc-msg))))
 	  (setq mes "Failure: Bad http response."))
+	(twittering-release-process proc)
 	(when (and mes (twittering-buffer-active-p))
 	  (message mes)))
     ;; unwindforms
+    (twittering-release-process proc)
     (when (and (not twittering-debug-mode) (buffer-live-p temp-buffer))
       (kill-buffer temp-buffer))))
 
@@ -1527,7 +1529,6 @@ Available keywords:
 	     (requested-spec
 	      (twittering-string-to-timeline-spec
 	       twittering-last-requested-timeline-spec-string)))
-	(twittering-release-process proc)
 	(cond
 	 ((and body (equal spec requested-spec))
 	  (let* ((reversed-statuses
@@ -1570,7 +1571,6 @@ Available keywords:
 	  nil))
 	))
      (t
-      (twittering-release-process proc)
       (format "Response: %s" status-line)))))
 
 (defun twittering-http-get-list-index-sentinel (header proc noninteractive &optional suc-msg)

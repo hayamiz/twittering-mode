@@ -4,6 +4,11 @@
 	`twittering-release-process' when status code is not equal to
 	"200", forgotten in the 2010-02-06 changing.
 
+	* twittering-mode.el (twittering-status-to-status-datum): Change
+	`regex-index' variable to local scope from global one.
+	(twittering-status-to-status-datum): Rename `regex-index' to
+	`regexp-index'.
+
 2010-02-07  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* test/test-twittering-mode.el (test-format-status): replace the

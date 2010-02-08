@@ -1785,37 +1785,34 @@ If ID of STATUS-DATUM is already in ID-TABLE, return nil. If not, return t."
 			    uri ,(concat "http://twitter.com/" screen-name)
 			    face twittering-username-face)
 	       text)
-
 	      (setq pos next-pos)))))
 
       ;; make URI clickable
-      (setq regex-index 0)
-      (while regex-index
-	(setq regex-index
-	      (string-match "@\\([a-zA-Z0-9_-]+\\)\\|\\(https?://[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+\\)"
-			    text
-			    regex-index))
-	(when regex-index
-	  (let* ((matched-string (match-string-no-properties 0 text))
-		 (screen-name (match-string-no-properties 1 text))
-		 (uri (match-string-no-properties 2 text)))
-	    (add-text-properties
-	     (if screen-name
-		 (+ 1 (match-beginning 0))
-	       (match-beginning 0))
-	     (match-end 0)
-	     (if screen-name
-		 `(mouse-face
-		   highlight
-		   face twittering-uri-face
-		   uri ,(concat "http://twitter.com/" screen-name)
-		   uri-in-text ,(concat "http://twitter.com/" screen-name))
-	       `(mouse-face highlight
-			    face twittering-uri-face
-			    uri ,uri
-			    uri-in-text ,uri))
-	     text))
-	  (setq regex-index (match-end 0)) ))
+      (let ((regexp-index 0))
+	(while regexp-index
+	  (setq regexp-index
+		(string-match "@\\([a-zA-Z0-9_-]+\\)\\|\\(https?://[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+\\)" text regexp-index))
+	  (when regexp-index
+	    (let* ((matched-string (match-string-no-properties 0 text))
+		   (screen-name (match-string-no-properties 1 text))
+		   (uri (match-string-no-properties 2 text)))
+	      (add-text-properties
+	       (if screen-name
+		   (+ 1 (match-beginning 0))
+		 (match-beginning 0))
+	       (match-end 0)
+	       (if screen-name
+		   `(mouse-face
+		     highlight
+		     face twittering-uri-face
+		     uri ,(concat "http://twitter.com/" screen-name)
+		     uri-in-text ,(concat "http://twitter.com/" screen-name))
+		 `(mouse-face highlight
+			      face twittering-uri-face
+			      uri ,uri
+			      uri-in-text ,uri))
+	       text))
+	    (setq regexp-index (match-end 0)))))
 
       ;; make source pretty and clickable
       (if (string-match "<a href=\"\\(.*?\\)\".*?>\\(.*\\)</a>" source)

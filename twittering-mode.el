@@ -890,8 +890,7 @@ Return nil if SPEC-STR is invalid as a timeline spec."
     `(let ((,obsym ,obj))
        (if twittering-debug-mode
 	   (with-current-buffer (twittering-debug-buffer)
-	     (insert "[debug] ")
-	     (insert (prin1-to-string ,obsym))
+	     (insert "[debug] " (prin1-to-string ,obsym))
 	     (newline)
 	     ,obsym)
 	 ,obsym))))

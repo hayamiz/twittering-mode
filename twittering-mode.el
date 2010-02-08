@@ -1509,7 +1509,6 @@ Available keywords:
 	      (with-current-buffer temp-buffer
 		(setq mes (funcall func header proc noninteractive suc-msg))))
 	  (setq mes "Failure: Bad http response."))
-	(twittering-release-process proc)
 	(when (and mes (twittering-buffer-active-p))
 	  (message mes)))
     ;; unwindforms

@@ -1,3 +1,9 @@
+2010-02-08  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-http-default-sentinel): Delete a
+	call to `twittering-release-process' in the BODYFORM to avoid a
+	double release.
+
 2010-02-08  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-http-default-sentinel): call

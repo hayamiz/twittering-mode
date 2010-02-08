@@ -727,7 +727,8 @@ Return cons of the spec and the rest string."
 	(let ((first-spec (list (cdr (assoc type alist)))))
 	  (cons first-spec following)))
        ((string= type "search")
-	(if (string-match "^:search/\\(.*?[^\\]\\)??/" str)
+	(if (string-match "^:search/\\(\\(.*?[^\\]\\)??\\(\\\\\\\\\\)*\\)??/"
+			  str)
 	    (let* ((escaped-query (or (match-string 1 str) ""))
 		   (query (replace-regexp-in-string "\\\\/" "/"
 						    escaped-query nil t))

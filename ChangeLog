@@ -130,6 +130,9 @@
 	(debug-printf): Remove an unnecessary call to `concat' because
 	`insert' can take multiple arguments.
 
+	* twittering-mode.el (twittering-extract-timeline-spec): Fix the
+	regexp for "search" timeline spec; same as for "filter".
+
 2010-02-07  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* test/test-twittering-mode.el (test-format-status): replace the

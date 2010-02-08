@@ -11,6 +11,8 @@
 
 	* twittering-mode.el (debug-print): Reduce redundant calls of
 	`insert' because it can take multiple arguments.
+	(debug-printf): Remove an unnecessary call to `concat' because
+	`insert' can take multiple arguments.
 
 2010-02-07  Tadashi MATSUO  <tad@mymail.twin.jp>
 

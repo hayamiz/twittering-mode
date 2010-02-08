@@ -898,7 +898,7 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 (defun debug-printf (fmt &rest args)
   (when twittering-debug-mode
     (with-current-buffer (twittering-debug-buffer)
-      (insert (concat "[debug] " (apply 'format fmt args)))
+      (insert "[debug] " (apply 'format fmt args))
       (newline))))
 
 (defun twittering-debug-mode ()

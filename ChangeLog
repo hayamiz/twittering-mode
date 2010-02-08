@@ -1,3 +1,9 @@
+2010-02-08  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-http-get-default-sentinel): Call
+	`twittering-release-process' when status code is not equal to
+	"200", forgotten in the 2010-02-06 changing.
+
 2010-02-07  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* test/test-twittering-mode.el (test-format-status): replace the
@@ -237,8 +243,8 @@
 2010-01-20  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-http-get-default-sentinel): Show
-	the reason phrase with status code if status code is not "200";
-	same as `twittering-http-post-default-sentinel'.
+	the reason phrase with status code if status code is not equal to
+	"200"; same as `twittering-http-post-default-sentinel'.
 	(twittering-http-get-list-index-sentinel): Likewise.
 
 	* twittering-mode.el (twittering-http-status-line-regexp): New

@@ -1571,6 +1571,7 @@ Available keywords:
 	  nil))
 	))
      (t
+      (twittering-release-process proc)
       (format "Response: %s" status-line)))))
 
 (defun twittering-http-get-list-index-sentinel (header proc noninteractive &optional suc-msg)

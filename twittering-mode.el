@@ -648,7 +648,7 @@ If SHORTEN is non-nil, the abbreviated expression will be used."
 		(twittering-timeline-spec-to-string spec))))
      ((eq type 'merge)
       (concat "("
-	      (mapconcat 'twittering-timeline-spec-to-string value "+" )
+	      (mapconcat 'twittering-timeline-spec-to-string value "+")
 	      ")"))
      (t
       nil))))
@@ -791,7 +791,7 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 	  (let ((username (car value))
 		(list-name (cadr value)))
 	    `("api.twitter.com"
-	      ,(concat "1/" username "/lists/" list-name "/statuses" ))))
+	      ,(concat "1/" username "/lists/" list-name "/statuses"))))
 	 ((or (eq type 'direct-messages)
 	      (eq type 'direct-messages-sent))
 	  (error "%s has not been supported yet" type))
@@ -998,9 +998,9 @@ Return nil if SPEC-STR is invalid as a timeline spec."
   (defface twittering-uri-face
     `((t nil)) "" :group 'faces)
   (set-face-attribute 'twittering-uri-face nil :underline t)
-;;   (add-to-list 'minor-mode-alist '(twittering-icon-mode " tw-icon"))
-;;   (add-to-list 'minor-mode-alist '(twittering-scroll-mode " tw-scroll"))
-;;   (add-to-list 'minor-mode-alist '(twittering-jojo-mode " tw-jojo"))
+  ;; (add-to-list 'minor-mode-alist '(twittering-icon-mode " tw-icon"))
+  ;; (add-to-list 'minor-mode-alist '(twittering-scroll-mode " tw-scroll"))
+  ;; (add-to-list 'minor-mode-alist '(twittering-jojo-mode " tw-jojo"))
   (setq twittering-username-active twittering-username)
   (setq twittering-password-active twittering-password)
   (when twittering-use-convert
@@ -2821,7 +2821,7 @@ variable `twittering-status-format'."
 (defun twittering-read-list-name (username &optional list-index)
   (let* ((list-index (or list-index
 			 (twittering-get-list-index-sync username)))
-	 (prompt (concat username "'s list: "))
+	 (prompt (format "%s's list: " username))
 	 (listname
 	  (if list-index
 	      (twittering-completing-read prompt list-index nil t nil)

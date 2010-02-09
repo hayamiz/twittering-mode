@@ -1,3 +1,9 @@
+2010-02-09  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-http-get-default-sentinel): Get a
+	buffer associate with the process from calling `process-buffer'
+	instead of `current-buffer'.
+
 2010-02-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-goto-previous-status): simplified.

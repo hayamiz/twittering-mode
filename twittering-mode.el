@@ -1522,7 +1522,8 @@ Available keywords:
     (case-string
      status
      (("200")
-      (let* ((body (twittering-get-response-body (current-buffer)))
+      (let* ((body (twittering-get-response-body (buffer-name
+						  (process-buffer proc))))
 	     (spec (twittering-get-timeline-spec-from-process proc))
 	     (spec-string (twittering-timeline-spec-to-string spec))
 	     (requested-spec

@@ -13,6 +13,10 @@
 	* twittering-mode.el (twittering-edit-length-check): Calculate
 	length of a tweet with a sign string.
 
+	* twittering-mode.el (twittering-native-retweet): Truncate a tweet
+	by width instead of length.
+	(twittering-favorite): Likewise.
+
 2010-02-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-goto-previous-status): simplified.

@@ -2734,11 +2734,17 @@ variable `twittering-status-format'."
   (interactive)
   (let ((id (get-text-property (point) 'id))
 	(text (get-text-property (point) 'text))
-	(len 25))
+	(width (max 40 ;; XXX
+		    (- (frame-width)
+		       12 ;; == (length (concat "Retweet \"" "\"? "))
+		       9) ;; == (length "(y or n) ")
+		    )))
     (if id
 	(let ((mes (format "Retweet \"%s\"? "
-			   (if (< len (length text))
-			       (concat (substring text 0 len) "...")
+			   (if (< width (string-width text))
+			       (concat
+				(truncate-string-to-width text (- width 3))
+				"...")
 			     text))))
 	  (when (y-or-n-p mes)
 	    (twittering-http-post "api.twitter.com"
@@ -2750,13 +2756,19 @@ variable `twittering-status-format'."
   (interactive)
   (let ((id (get-text-property (point) 'id))
 	(text (get-text-property (point) 'text))
-	(len 25) ;; XXX
+	(width (max 40 ;; XXX
+		    (- (frame-width)
+		       15 ;; == (length (concat "Unfavorite \"" "\"? "))
+		       9) ;; == (length "(y or n) ")
+		    ))
 	(method (if remove "destroy" "create")))
     (if id
 	(let ((mes (format "%s \"%s\"? "
-			   (if remove "unfavorite" "favorite")
-			   (if (< len (length text))
-			       (concat (substring text 0 len) "...")
+			   (if remove "Unfavorite" "Favorite")
+			   (if (< width (string-width text))
+			       (concat
+				(truncate-string-to-width text (- width 3))
+				"...")
 			     text))))
 	  (when (y-or-n-p mes)
 	    (twittering-manage-favorites method id)))

@@ -2891,7 +2891,10 @@ variable `twittering-status-format'."
   (let ((pos (twittering-get-next-status-head)))
     (if pos
 	(goto-char pos)
-      (let ((id (get-text-property (point) 'id)))
+      (let ((id (or (get-text-property (point) 'id)
+		    (let ((prev (twittering-get-previous-status-head)))
+		      (when prev
+			(get-text-property prev 'id))))))
         (if id
 	    (twittering-get-and-render-timeline
 	     twittering-last-retrieved-timeline-spec-string

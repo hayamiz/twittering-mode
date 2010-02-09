@@ -1,3 +1,7 @@
+2010-02-09  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-goto-previous-status): simplified.
+
 2010-02-08  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-http-default-sentinel): Delete a

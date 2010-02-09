@@ -2911,9 +2911,8 @@ The return value is nil or a positive integer greater than POS."
 (defun twittering-goto-previous-status ()
   "Go to previous status."
   (interactive)
-  (let* ((current-pos (point))
-         (prev-pos (twittering-get-previous-status-head current-pos)))
-    (if (and prev-pos (not (eq current-pos prev-pos)))
+  (let ((prev-pos (twittering-get-previous-status-head)))
+    (if prev-pos
         (goto-char prev-pos)
       (message "Start of status."))))
 

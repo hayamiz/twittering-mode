@@ -1945,9 +1945,14 @@ If ID of STATUS-DATUM is already in ID-TABLE, return nil. If not, return t."
 			 status twittering-status-format))
 		       (separator "\n"))
 		   (goto-char pos)
-		   ;; Use `insert-before-markers' in order to keep
-		   ;; which status is pointed by each marker.
-		   (insert-before-markers formatted-status separator)
+		   (cond
+		    ((eq pos (point-max))
+		     ;; Insert a status after the current position.
+		     (insert formatted-status separator))
+		    (t
+		     ;; Use `insert-before-markers' in order to keep
+		     ;; which status is pointed by each marker.
+		     (insert-before-markers formatted-status separator)))
 		   ;; Now, `pos' points the head of the status.
 		   ;; It must be moved to the current point
 		   ;; in order to skip the status inserted just now.

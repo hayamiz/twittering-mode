@@ -6,6 +6,10 @@
 	additional statuses if the function is called at the end of the
 	buffer.
 
+	* twittering-mode.el (twittering-render-timeline): use `insert'
+	when inserting a status at the end of the buffer in order to keep
+	the marker pointing the end of the buffer.
+
 2010-02-08  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-http-default-sentinel): Delete a

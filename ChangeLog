@@ -10,6 +10,9 @@
 	(twittering-update-status-from-pop-up-buffer): Mark an edit buffer
 	as unmodified.
 
+	* twittering-mode.el (twittering-edit-length-check): Calculate
+	length of a tweet with a sign string.
+
 2010-02-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-goto-previous-status): simplified.

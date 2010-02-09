@@ -1075,13 +1075,15 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 
 (defun twittering-edit-length-check (&rest args)
   (let* ((status (twittering-edit-extract-status))
+	 (sign-str (twittering-sign-string))
+	 (maxlen (- 140 (length sign-str)))
 	 (length (length status)))
     (setq mode-name
-	  (format "twmode-status-edit[%d/140]" length))
+	  (format "twmode-status-edit[%d/%d/140]" length maxlen))
     (force-mode-line-update)
-    (if (< 140 length)
+    (if (< maxlen length)
 	(move-overlay twittering-warning-overlay
-		      141 (1+ length))
+		      (1+ maxlen) (1+ length))
       (move-overlay twittering-warning-overlay
 		    1 1))
     ))

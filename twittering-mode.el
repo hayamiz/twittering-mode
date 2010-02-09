@@ -1140,7 +1140,7 @@ Return nil if SPEC-STR is invalid as a timeline spec."
     (cond
      ((not (twittering-status-not-blank-p status))
       (message "Empty tweet!"))
-     ((> (length status) 140)
+     ((< 140 (length status))
       (message "Too long tweet!"))
      (t
       (setq twittering-edit-history

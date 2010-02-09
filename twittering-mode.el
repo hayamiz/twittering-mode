@@ -1126,7 +1126,8 @@ Return nil if SPEC-STR is invalid as a timeline spec."
     (pop-to-buffer buf)
     (twittering-edit-mode)
     (when init-str
-      (insert init-str))
+      (insert init-str)
+      (set-buffer-modified-p nil))
     (make-local-variable 'twittering-reply-to-id)
     (setq twittering-reply-to-id reply-to-id)
     (message "C-c C-c to post, C-c C-k to cancel")))
@@ -1154,7 +1155,9 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 
 (defun twittering-edit-cancel-status ()
   (interactive)
-  (twittering-edit-close))
+  (when (or (not (buffer-modified-p))
+	    (y-or-n-p "Cancel this tweet? "))
+    (twittering-edit-close)))
 
 (defun twittering-edit-next-history ()
   (interactive)

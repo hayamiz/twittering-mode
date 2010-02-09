@@ -4,6 +4,12 @@
 	buffer associate with the process from calling `process-buffer'
 	instead of `current-buffer'.
 
+	* twittering-mode.el (twittering-edit-cancel-status): Confirm
+	before calling `twittering-edit-close' when an edit buffer was
+	modified.
+	(twittering-update-status-from-pop-up-buffer): Mark an edit buffer
+	as unmodified.
+
 2010-02-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-goto-previous-status): simplified.

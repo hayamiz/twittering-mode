@@ -1921,6 +1921,7 @@ If ID of STATUS-DATUM is already in ID-TABLE, return nil. If not, return t."
 	    (mapcar (lambda (window)
 		      (cons (window-point window) window))
 		    window-list))
+	   (original-pos (point))
 	   (buffer-read-only nil))
       (twittering-update-mode-line)
       (save-excursion
@@ -1966,16 +1967,22 @@ If ID of STATUS-DATUM is already in ID-TABLE, return nil. If not, return t."
 	;; After additional insertion, the current position exists
 	;; on the same status.
 	;; Go to the original position.
-	(mapc (lambda (pair)
-		(let ((point (car pair))
-		      (window (cdr pair)))
-		  (set-window-point window point)))
-	      point-window-list))
+	(if point-window-list
+	    (mapc (lambda (pair)
+		    (let ((point (car pair))
+			  (window (cdr pair)))
+		      (set-window-point window point)))
+		  point-window-list)
+	  ;; Move the buffer position if the buffer is invisible.
+	  (goto-char original-pos)))
        ((not additional)
 	;; Go to the beginning of buffer after full insertion.
-	(mapc
-	 (lambda (window) (set-window-point window (point-min)))
-	 window-list))))
+	(if window-list
+	    (mapc
+	     (lambda (window) (set-window-point window (point-min)))
+	     window-list)
+	  ;; Move the buffer position if the buffer is invisible.
+	  (goto-char (point-min))))))
     ))
 
 (defun twittering-make-display-spec-for-icon (image-url)

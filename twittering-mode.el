@@ -296,18 +296,21 @@ SCHEME must be \"http\" or \"https\"."
 	      (port (cdr proxy-info)))
 	  (setq twittering-proxy-server host)
 	  (setq twittering-proxy-port port)))))
-  (when (and twittering-proxy-use
-	     (null twittering-proxy-server)
-	     (null twittering-proxy-port))
-    (message "Disabling proxy due to lack of configuration.")
-    (setq twittering-proxy-use nil)))
+  (if (and twittering-proxy-use
+	   (null twittering-proxy-server)
+	   (null twittering-proxy-port))
+      (progn
+	(message "Disabling proxy due to lack of configuration.")
+	(setq twittering-proxy-use nil))
+    t))
 
 (defun twittering-toggle-proxy ()
   (interactive)
   (setq twittering-proxy-use
 	(not twittering-proxy-use))
-  (twittering-update-mode-line)
-  (message (if twittering-proxy-use "Use Proxy:on" "Use Proxy:off")))
+  (if (twittering-setup-proxy)
+      (message (if twittering-proxy-use "Use Proxy:on" "Use Proxy:off")))
+  (twittering-update-mode-line))
 
 ;;;
 ;;; to show image files

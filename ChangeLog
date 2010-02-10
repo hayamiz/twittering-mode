@@ -6,6 +6,10 @@
 	* test/test-twittering-mode.el (test-status-not-blank-p): Add a
 	testcase.
 
+	* twittering-mode.el (twittering-setup-proxy): Return t explicitly
+	when the proxy related configurations are consistent.
+	(twittering-toggle-proxy): Call `twittering-setup-proxy'.
+
 2010-02-09  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-http-get-default-sentinel): Get a

@@ -1,3 +1,11 @@
+2010-02-10  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-status-not-blank-p): Fix the
+	regexp for case of "text @user".
+
+	* test/test-twittering-mode.el (test-status-not-blank-p): Add a
+	testcase.
+
 2010-02-09  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-http-get-default-sentinel): Get a

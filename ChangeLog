@@ -11,6 +11,10 @@
 	`twittering-process-active-p' instead of referring
 	`twittering-process-info-alist' directly.
 
+	* twittering-mode.el (twittering-http-get-default-sentinel): run
+	`twittering-new-tweets-hook' even if the retrieval is
+	non-interactive.
+
 2010-02-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-fill-string): load "kinsoku.el"

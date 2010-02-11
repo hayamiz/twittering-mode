@@ -1605,9 +1605,8 @@ Available keywords:
 			(let ((id1 (cdr (assoc 'id status1)))
 			      (id2 (cdr (assoc 'id status2))))
 			  (twittering-status-id< id2 id1)))))
-	  (if (and (< 0 twittering-new-tweets-count)
-		   noninteractive)
-	      (run-hooks 'twittering-new-tweets-hook))
+	  (when (< 0 twittering-new-tweets-count)
+	    (run-hooks 'twittering-new-tweets-hook))
 	  (let ((same-timeline
 		 (equal twittering-last-retrieved-timeline-spec-string
 			twittering-last-requested-timeline-spec-string)))

@@ -1,3 +1,8 @@
+2010-02-11  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-fill-string): load "kinsoku.el"
+	in advance if necessary.
+
 2010-02-11  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el: No longer clear fetched timeline when

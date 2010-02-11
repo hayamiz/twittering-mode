@@ -459,6 +459,17 @@ and its contents (BUFFER)"
   (equal id1 id2))
 
 (defun twittering-fill-string (str &optional column)
+  (when (and (not (boundp 'kinsoku-limit))
+	     enable-kinsoku)
+    ;; `kinsoku-limit' is defined on loading "international/kinsoku.el".
+    ;; Without preloading, "kinsoku.el" will be loaded by auto-loading
+    ;; triggered by `fill-region-as-paragraph'.
+    ;; In that case, the local binding of `kinsoku-limit' conflicts the
+    ;; definition by `defvar' in "kinsoku.el".
+    ;; The below warning is displayed;
+    ;; "Warning: defvar ignored because kinsoku-limit is let-bound".
+    ;; So, we load "kinsoku.el" in advance if necessary.
+    (load "international/kinsoku"))
   (let* ((kinsoku-limit 1)
 	 (adjustment (if enable-kinsoku
 			 kinsoku-limit

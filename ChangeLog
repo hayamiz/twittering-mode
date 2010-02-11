@@ -15,6 +15,29 @@
 	`twittering-new-tweets-hook' even if the retrieval is
 	non-interactive.
 
+	* twittering-mode.el (twittering-timeline-data): removed.
+	(twittering-current-timeline-spec): new function for the current
+	timeline spec.
+	(twittering-current-timeline-data): new function for the current
+	timeline data.
+	(twittering-remove-timeline-data): new function for clearing a
+	specific timeline data from `twittering-timeline-data-table`.
+	(twittering-add-statuses-to-timeline-data): new function for
+	adding statuses to `twittering-timeline-data-table'.
+	(twittering-http-get-default-sentinel): use
+	`twittering-add-statuses-to-timeline-data'.
+	(twittering-cache-status-datum): change the third argument into
+	non-optional because the global `twittering-timeline-data' is
+	obsoleted.
+	(twittering-get-and-render-timeline): do not modify
+	`twittering-timeline-data'.
+	(twittering-render-timeline): use
+	`twittering-current-timeline-data' instead of
+	`twittering-timeline-data'.
+	(twittering-erase-old-statuses): likewise.
+	(twittering-read-username-with-completion): likewise.
+	(twittering-read-timeline-spec-with-completion): likewise.
+
 2010-02-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-fill-string): load "kinsoku.el"

@@ -220,7 +220,6 @@ SSL connections use 'curl' command as a backend.")
   (twittering-get-or-generate-buffer twittering-buffer))
 
 (defvar twittering-timeline-data-table (make-hash-table :test 'equal))
-(defvar twittering-timeline-data nil)
 (defvar twittering-timeline-last-update nil)
 
 (defvar twittering-username-face 'twittering-username-face)
@@ -870,6 +869,50 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 	    (add-to-history 'twittering-timeline-history spec-string)
 	  (setq twittering-timeline-history
 		(cons spec-string twittering-timeline-history)))))))
+
+;;;
+;;; Timeline info
+;;;
+
+(defun twittering-current-timeline-spec ()
+  (twittering-string-to-timeline-spec
+   twittering-last-retrieved-timeline-spec-string))
+
+(defun twittering-current-timeline-data (&optional spec)
+  (let ((spec (or spec (twittering-current-timeline-spec))))
+    (gethash spec twittering-timeline-data-table)))
+
+(defun twittering-remove-timeline-data (&optional spec)
+  (let ((spec (or spec (twittering-current-timeline-spec))))
+    (remhash spec twittering-timeline-data-table)))
+
+(defun twittering-add-statuses-to-timeline-data (statuses &optional spec)
+  (let* ((spec (or spec (twittering-current-timeline-spec)))
+	 (id-table (make-hash-table :test 'equal))
+	 (timeline-data (twittering-current-timeline-data spec)))
+    (mapc
+     (lambda (status)
+       (let ((id (cdr (assq 'id status)))
+	     (source-id (cdr-safe (assq 'source-id status))))
+	 (puthash id t id-table)
+	 (when source-id
+	   (puthash source-id t id-table))))
+     timeline-data)
+    (let ((twittering-new-tweets-count
+	   (count t (mapcar
+		     (lambda (status)
+		       (twittering-cache-status-datum status id-table
+						      'timeline-data))
+		     statuses))))
+      (puthash spec
+	       (sort timeline-data
+		     (lambda (status1 status2)
+		       (let ((id1 (cdr (assoc 'id status1)))
+			     (id2 (cdr (assoc 'id status2))))
+			 (twittering-status-id< id2 id1))))
+	       twittering-timeline-data-table)
+      (when (< 0 twittering-new-tweets-count)
+	(run-hooks 'twittering-new-tweets-hook)))))
 
 ;;;
 ;;; Process info
@@ -1584,29 +1627,8 @@ Available keywords:
 	 ((and body (equal spec requested-spec))
 	  (let* ((reversed-statuses
 		  (twittering-xmltree-to-status body))
-		 (statuses (reverse reversed-statuses))
-		 (id-table (make-hash-table :test 'equal)))
-	    (mapc
-	     (lambda (status)
-	       (let ((id (cdr (assq 'id status)))
-		     (source-id (cdr-safe (assq 'source-id status))))
-		 (puthash id t id-table)
-		 (when source-id
-		   (puthash source-id t id-table))))
-	     twittering-timeline-data)
-	    (setq twittering-new-tweets-count
-		  (count t (mapcar
-			    (lambda (status)
-			      (twittering-cache-status-datum status id-table))
-			    statuses))))
-	  (setq twittering-timeline-data
-		(sort twittering-timeline-data
-		      (lambda (status1 status2)
-			(let ((id1 (cdr (assoc 'id status1)))
-			      (id2 (cdr (assoc 'id status2))))
-			  (twittering-status-id< id2 id1)))))
-	  (when (< 0 twittering-new-tweets-count)
-	    (run-hooks 'twittering-new-tweets-hook))
+		 (statuses (reverse reversed-statuses)))
+	    (twittering-add-statuses-to-timeline-data statuses spec))
 	  (let ((same-timeline
 		 (equal twittering-last-retrieved-timeline-spec-string
 			twittering-last-requested-timeline-spec-string)))
@@ -1614,8 +1636,6 @@ Available keywords:
 		  twittering-last-requested-timeline-spec-string)
 	    (twittering-render-timeline same-timeline))
 	  (twittering-add-timeline-history)
-	  (puthash spec twittering-timeline-data
-		   twittering-timeline-data-table)
 	  (if twittering-notify-successful-http-get
 	      (if suc-msg suc-msg "Success: Get.")
 	    nil))
@@ -1711,11 +1731,9 @@ BUFFER may be a buffer or the name of an existing buffer."
 	(error "Failure: invalid HTTP response"))
       )))
 
-(defun twittering-cache-status-datum (status-datum id-table &optional data-var)
-  "Cache STATUS-DATUM into DATA-VAR (default twittering-timeline-data)
+(defun twittering-cache-status-datum (status-datum id-table data-var)
+  "Cache STATUS-DATUM into DATA-VAR
 If ID of STATUS-DATUM is already in ID-TABLE, return nil. If not, return t."
-  (if (null data-var)
-      (setf data-var 'twittering-timeline-data))
   (let* ((id (cdr (assq 'id status-datum)))
 	 (source-id (cdr-safe (assq 'source-id status-datum)))
 	 (retrieved
@@ -1969,7 +1987,8 @@ If ID of STATUS-DATUM is already in ID-TABLE, return nil. If not, return t."
 
 (defun twittering-render-timeline (&optional additional)
   (with-current-buffer (twittering-buffer)
-    (let* ((window-list (get-buffer-window-list (current-buffer) nil t))
+    (let* ((timeline-data (twittering-current-timeline-data))
+	   (window-list (get-buffer-window-list (current-buffer) nil t))
 	   (point-window-list
 	    (mapcar (lambda (window)
 		      (cons (window-point window) window))
@@ -2011,7 +2030,7 @@ If ID of STATUS-DATUM is already in ID-TABLE, return nil. If not, return t."
 		   ;; It must be moved to the current point
 		   ;; in order to skip the status inserted just now.
 		   (setq pos (point))))))
-	   twittering-timeline-data)))
+	   timeline-data)))
       (if (and twittering-image-stack window-system)
 	  (clear-image-cache))
       (debug-print (current-buffer))
@@ -2472,9 +2491,7 @@ variable `twittering-status-format'."
       (let ((info (twittering-timeline-spec-to-host-method spec)))
 	(when info
 	  (unless is-same-spec
-	    (setq twittering-timeline-last-update nil)
-	    (setq twittering-timeline-data
-		  (gethash spec twittering-timeline-data-table)))
+	    (setq twittering-timeline-last-update nil))
 	  (let* ((host (elt info 0))
 		 (method (elt info 1))
 		 (proc (twittering-get-tweets host method noninteractive id)))
@@ -2667,7 +2684,7 @@ variable `twittering-status-format'."
 
 (defun twittering-erase-old-statuses ()
   (interactive)
-  (setq twittering-timeline-data nil) ;; clear current timeline.
+  (twittering-remove-timeline-data) ;; clear current timeline.
   (if (not twittering-last-retrieved-timeline-spec-string)
       (setq twittering-last-retrieved-timeline-spec-string
 	    twittering-initial-timeline-spec-string)
@@ -2890,7 +2907,7 @@ variable `twittering-status-format'."
 (defun twittering-read-username-with-completion (prompt init-user &optional history)
   (let ((collection
 	 (append (twittering-make-list-from-assoc
-		  'user-screen-name twittering-timeline-data)
+		  'user-screen-name (twittering-current-timeline-data))
 		 twittering-user-history)))
     (twittering-completing-read prompt collection nil nil init-user history)))
 
@@ -2909,7 +2926,8 @@ variable `twittering-status-format'."
 (defun twittering-read-timeline-spec-with-completion (prompt initial &optional as-string)
   (let* ((dummy-hist (append twittering-timeline-history
 			     (twittering-make-list-from-assoc
-			      'user-screen-name twittering-timeline-data)))
+			      'user-screen-name
+			      (twittering-current-timeline-data))))
 	 (spec-string (twittering-completing-read prompt dummy-hist
 						  nil nil initial 'dummy-hist))
 	 (spec-string

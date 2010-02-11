@@ -219,6 +219,7 @@ SSL connections use 'curl' command as a backend.")
 (defun twittering-buffer ()
   (twittering-get-or-generate-buffer twittering-buffer))
 
+(defvar twittering-timeline-data-table (make-hash-table :test 'equal))
 (defvar twittering-timeline-data nil)
 (defvar twittering-timeline-last-update nil)
 
@@ -1572,6 +1573,8 @@ Available keywords:
 		  twittering-last-requested-timeline-spec-string)
 	    (twittering-render-timeline same-timeline))
 	  (twittering-add-timeline-history)
+	  (puthash spec twittering-timeline-data
+		   twittering-timeline-data-table)
 	  (if twittering-notify-successful-http-get
 	      (if suc-msg suc-msg "Success: Get.")
 	    nil))
@@ -2428,8 +2431,9 @@ variable `twittering-status-format'."
       (let ((info (twittering-timeline-spec-to-host-method spec)))
 	(when info
 	  (unless is-same-spec
-	    (setq twittering-timeline-last-update nil
-		  twittering-timeline-data nil))
+	    (setq twittering-timeline-last-update nil)
+	    (setq twittering-timeline-data
+		  (gethash spec twittering-timeline-data-table)))
 	  (let* ((host (elt info 0))
 		 (method (elt info 1))
 		 (proc (twittering-get-tweets host method noninteractive id)))
@@ -2622,7 +2626,7 @@ variable `twittering-status-format'."
 
 (defun twittering-erase-old-statuses ()
   (interactive)
-  (setq twittering-timeline-data nil)
+  (setq twittering-timeline-data nil) ;; clear current timeline.
   (if (not twittering-last-retrieved-timeline-spec-string)
       (setq twittering-last-retrieved-timeline-spec-string
 	    twittering-initial-timeline-spec-string)

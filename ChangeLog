@@ -1,3 +1,15 @@
+2010-02-11  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el: No longer clear fetched timeline when
+	switching to another timeline.
+
+	* twittering-mode.el (twittering-timeline-data-table): New defvar.
+	(twittering-http-get-default-sentinel): Save current timeline into
+	`twittering-timeline-data-table' when retrieving it successfully.
+	(twittering-get-and-render-timeline): Load target timeline from
+	`twittering-timeline-data-table' when switching to another
+	timeline.
+
 2010-02-10  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-status-not-blank-p): Fix the

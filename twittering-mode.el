@@ -890,6 +890,37 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 	(elt entry 1)
       nil)))
 
+(defun twittering-find-processes-for-timeline-spec (spec)
+  (apply 'append
+	 (mapcar
+	  (lambda (pair)
+	    (let* ((proc (car pair))
+		   (spec-info (cadr pair)))
+	      (if (equal spec-info spec)
+		  `(,proc)
+		nil)))
+	  twittering-process-info-alist)))
+
+(defun twittering-remove-inactive-processes ()
+  (let ((inactive-statuses '(nil closed failed)))
+    (setq twittering-process-info-alist
+	  (apply 'append
+		 (mapcar
+		  (lambda (pair)
+		    (let* ((proc (car pair))
+			   (info (cdr pair))
+			   (status (process-status proc)))
+		      (if (memq status inactive-statuses)
+			  nil
+			`((,proc ,@info)))))
+		  twittering-process-info-alist)))))
+
+(defun twittering-process-active-p (&optional spec)
+  (twittering-remove-inactive-processes)
+  (if spec
+      (twittering-find-processes-for-timeline-spec spec)
+    twittering-process-info-alist))
+
 ;;;
 ;;; Debug mode
 ;;;
@@ -2435,7 +2466,7 @@ variable `twittering-status-format'."
       (error "\"%s\" is invalid as a timeline spec"
 	     (or spec-string original-spec)))
     (cond
-     ((and noninteractive twittering-process-info-alist)
+     ((and noninteractive (twittering-process-active-p))
       ;; ignore non-interactive request if a process is waiting for responses.
       t)
      ((twittering-timeline-spec-primary-p spec)

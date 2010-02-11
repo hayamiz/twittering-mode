@@ -1,3 +1,16 @@
+2010-02-12  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el
+	(twittering-find-processes-for-timeline-spec): new function for
+	finding processes retrieving a specific timeline spec.
+	(twittering-remove-inactive-processes): new function for removing
+	inactive processes from `twittering-process-info-alist'.
+	(twittering-process-active-p): new function for checking whether
+	the processes for a specific timeline spec are active or not.
+	(twittering-get-and-render-timeline): use
+	`twittering-process-active-p' instead of referring
+	`twittering-process-info-alist' directly.
+
 2010-02-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-fill-string): load "kinsoku.el"

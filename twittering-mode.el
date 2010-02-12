@@ -1664,7 +1664,7 @@ Available keywords:
 	(cond
 	 ((equal spec requested-spec)
 	  (when statuses
-	      (twittering-add-statuses-to-timeline-data (reverse statuses) spec)
+	      (twittering-add-statuses-to-timeline-data statuses spec)
 	      ;; FIXME: We should retrieve un-retrieved statuses until
 	      ;; statuses is nil. twitter server returns nil as
 	      ;; xmltree with HTTP status-code is "200" when we
@@ -1783,8 +1783,8 @@ BUFFER may be a buffer or the name of an existing buffer."
   (let ((body (twittering-get-response-body buffer 'xml-parse-region)))
     (when body
       (if (eq 'search (car spec))
-	  (reverse (twittering-atom-xmltree-to-status body))
-	(reverse (twittering-xmltree-to-status body))))))
+	  (twittering-atom-xmltree-to-status body)
+	(twittering-xmltree-to-status body)))))
 
 (defun twittering-cache-status-datum (status-datum id-table data-var)
   "Cache STATUS-DATUM into DATA-VAR

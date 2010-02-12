@@ -17,6 +17,10 @@
 	functions.
 	(twittering-setftime): Delete function.
 
+	* twittering-mode.el (twittering-get-status-from-http-response):
+	No longer make a reverse list.
+	(twittering-http-get-default-sentinel): Adjust callers.
+
 2010-02-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el

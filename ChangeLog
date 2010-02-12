@@ -1,3 +1,22 @@
+2010-02-12  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-get-tweets): Add optional
+	argument `since_id'.
+	(twittering-get-and-render-timeline): Adjust callers.
+	(twittering-get-tweets): Set parameter `since_id' instead of
+	`since' because twitter API had dropped support for `since'
+	parameter on 2009-04-08.
+	(twittering-http-get-default-sentinel): Modify the condition for
+	if retrieving statuses is nil.
+	(twittering-erase-old-statuses): Don't add parameter `since'.
+	(twittering-status-to-status-datum): No longer use
+	`twittering-timeline-last-update'.
+	(twittering-get-and-render-timeline): Likewise.
+	(twittering-timeline-last-update): Delete variable.
+	(twittering-local-strftime, twittering-global-strftime): Delete
+	functions.
+	(twittering-setftime): Delete function.
+
 2010-02-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el

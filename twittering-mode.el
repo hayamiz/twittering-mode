@@ -232,7 +232,6 @@ SSL connections use 'curl' command as a backend.")
   (twittering-get-or-generate-buffer twittering-buffer))
 
 (defvar twittering-timeline-data-table (make-hash-table :test 'equal))
-(defvar twittering-timeline-last-update nil)
 
 (defvar twittering-username-face 'twittering-username-face)
 (defvar twittering-uri-face 'twittering-uri-face)
@@ -522,16 +521,6 @@ and its contents (BUFFER)"
     ;; only parts of a text with Japanese.
     (or (decode-char 'ucs num)
 	??)))
-
-(defun twittering-setftime (fmt string uni)
-  (format-time-string fmt ; like "%Y-%m-%d %H:%M:%S"
-		      (apply 'encode-time (parse-time-string string))
-		      uni))
-
-(defun twittering-local-strftime (fmt string)
-  (twittering-setftime fmt string nil))
-(defun twittering-global-strftime (fmt string)
-  (twittering-setftime fmt string t))
 
 (defun twittering-remove-duplicates (list)
   "Return a copy of LIST with all duplicate elements removed.
@@ -1673,8 +1662,14 @@ Available keywords:
 	      (twittering-string-to-timeline-spec
 	       twittering-last-requested-timeline-spec-string)))
 	(cond
-	 ((and statuses (equal spec requested-spec))
-	  (twittering-add-statuses-to-timeline-data (reverse statuses) spec)
+	 ((equal spec requested-spec)
+	  (when statuses
+	      (twittering-add-statuses-to-timeline-data (reverse statuses) spec)
+	      ;; FIXME: We should retrieve un-retrieved statuses until
+	      ;; statuses is nil. twitter server returns nil as
+	      ;; xmltree with HTTP status-code is "200" when we
+	      ;; retrieved all un-retrieved statuses.
+	      )
 	  (let ((same-timeline
 		 (equal twittering-last-retrieved-timeline-spec-string
 			twittering-last-requested-timeline-spec-string)))
@@ -1932,13 +1927,6 @@ If ID of STATUS-DATUM is already in ID-TABLE, return nil. If not, return t."
       (setq user-profile-image-url (assq-get 'profile_image_url user-data))
       (setq user-url (assq-get 'url user-data))
       (setq user-protected (assq-get 'protected user-data))
-
-      ;; save last update time
-      (when (or (null twittering-timeline-last-update)
-                (< (twittering-created-at-to-seconds
-                    twittering-timeline-last-update)
-                   (twittering-created-at-to-seconds created-at)))
-        (setq twittering-timeline-last-update created-at))
 
       (twittering-make-clickable-status-datum
        (mapcar (lambda (sym)
@@ -2586,7 +2574,7 @@ variable `twittering-status-format'."
 			(concat "favorites/" method "/" id)
 			`(("source" . "twmode"))))
 
-(defun twittering-get-tweets (host method &optional noninteractive id word)
+(defun twittering-get-tweets (host method &optional noninteractive id since_id word)
   (let ((buf (get-buffer twittering-buffer)))
     (if (not buf)
 	(progn
@@ -2606,12 +2594,14 @@ variable `twittering-status-format'."
 	     (count (min (max 1 count) max-count))
 	     (regexp-list-method "^1/[^/]*/lists/[^/]*/statuses$")
 	     (parameters nil))
+	(cond ((stringp id)
+	       (add-to-list 'parameters (cons "max_id"id)))
+	      ((stringp since_id)
+	       (add-to-list 'parameters (cons "since_id" since_id))))
 	(cond
 	 (do-search-flag
 	  (add-to-list 'parameters (cons "q" word))
 	  (add-to-list 'parameters (cons "rpp" (number-to-string count)))
-	  (if id
-	      (add-to-list 'parameters `("max_id" . ,id)))
 	  (twittering-http-get host method noninteractive parameters "atom"))
 	 (t
 	  (add-to-list 'parameters
@@ -2619,20 +2609,10 @@ variable `twittering-status-format'."
 				 "per_page"
 			       "count")
 			     (number-to-string count)))
-	  (if id
-	      (add-to-list 'parameters `("max_id" . ,id))
-	    (when twittering-timeline-last-update
-	      (let* ((system-time-locale "C")
-		     (since
-		      (twittering-global-strftime
-		       "%a, %d %b %Y %H:%M:%S GMT"
-		       twittering-timeline-last-update)))
-		(add-to-list 'parameters `("since" . ,since)))))
 	  (if (and twittering-icon-mode window-system
 		   twittering-image-stack)
 	      (mapc 'twittering-retrieve-image twittering-image-stack))
-	  (twittering-http-get host method
-			       noninteractive parameters))))
+	  (twittering-http-get host method noninteractive parameters))))
       ))
   )
 
@@ -2659,13 +2639,14 @@ variable `twittering-status-format'."
       (let ((info (twittering-timeline-spec-to-host-method spec))
 	    (is-search-spec (eq 'search (car spec))))
 	(when info
-	  (unless is-same-spec
-	    (setq twittering-timeline-last-update nil))
 	  (let* ((host (elt info 0))
 		 (method (elt info 1))
+		 ;; Assume that a list which was returned by
+		 ;; `twittering-current-timeline-data' is sorted.
+		 (since_id (or is-search-spec (cdr-safe (assoc 'id (car (twittering-current-timeline-data spec))))))
 		 (word (and is-search-spec (cadr spec)))
 		 (proc (twittering-get-tweets host method noninteractive
-					      id word)))
+					      id since_id word)))
 	    (setq twittering-last-requested-timeline-spec-string spec-string)
 	    (twittering-register-process proc spec)))))
      (t
@@ -2864,14 +2845,7 @@ variable `twittering-status-format'."
 	   (pair (twittering-timeline-spec-to-host-method spec))
 	   (host (car pair))
 	   (method (cadr pair)))
-      (if (not twittering-timeline-last-update)
-	  (twittering-http-get host method)
-	(let* ((system-time-locale "C")
-	       (since
-		(twittering-global-strftime
-		 "%a, %d %b %Y %H:%M:%S GMT"
-		 twittering-timeline-last-update)))
-	  (twittering-http-get host method nil `(("since" . ,since))))))))
+      (twittering-http-get host method))))
 
 (defun twittering-click ()
   (interactive)

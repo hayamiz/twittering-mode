@@ -176,9 +176,9 @@ tweets received when this hook is run.")
 (defvar twittering-jojo-mode nil)
 (make-variable-buffer-local 'twittering-jojo-mode)
 
-(defvar twittering-status-format "%i %s,  %@:\n%FILL{  %T // from %f%L%r%R}"
+(defvar twittering-status-format "%i %s,  %@:\n%FILL{  %T // from %f%L%r%R}\n "
   "Format string for rendering statuses.
-Ex. \"%i %s,  %@:\\n%FILL{  %T // from %f%L%r%R}\"
+Ex. \"%i %s,  %@:\\n%FILL{  %T // from %f%L%r%R}\n \"
 
 Items:
  %s - screen_name
@@ -2303,7 +2303,7 @@ variable `twittering-status-format'."
 	 (profile-image
 	  ()
 	  (let ((profile-image-url (attr 'user-profile-image-url))
-		(icon-string "\n  "))
+		(icon-string " "))
 	    (unless (gethash
 		     `(,profile-image-url . ,twittering-convert-fix-size)
 		     twittering-image-data-table)
@@ -2314,7 +2314,8 @@ variable `twittering-status-format'."
 	      (let ((display-spec
 		     (twittering-make-display-spec-for-icon profile-image-url)))
 		(when display-spec
-		  (set-text-properties 1 2 display-spec icon-string)))
+		  (set-text-properties 0 (length icon-string)
+				       display-spec icon-string)))
 	      icon-string)
 	    ))
 	 (make-string-with-url-property

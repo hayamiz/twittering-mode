@@ -1,3 +1,10 @@
+2010-02-12  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-format-status): remove a newline
+	from `icon-string' that underlies the icon image.
+	(twittering-status-format): add a newline to the default value in
+	order to keep the interval of displayed tweets.
+
 2010-02-12  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-get-tweets): Add optional

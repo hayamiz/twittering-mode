@@ -46,7 +46,7 @@
 (eval-when-compile (require 'cl))
 (require 'xml)
 (require 'parse-time)
-(when (< emacs-major-version 22)
+(when (> 22 emacs-major-version)
   (add-to-list 'load-path
 	       (expand-file-name
                "url-emacs21" (if load-file-name
@@ -103,7 +103,7 @@ The upper limit is `twittering-max-number-of-tweets-on-retrieval'.")
 
 (defvar twittering-current-hashtag nil
   "A hash tag string currently set. You can set it by calling
-`twittering-set-current-hashtag'")
+`twittering-set-current-hashtag'.")
 
 (defvar twittering-timer nil
   "Timer object for timeline refreshing will be stored here.
@@ -340,12 +340,11 @@ icon mode; otherwise, turn off icon mode."
   (setq twittering-icon-mode
 	(if (null arg)
 	    (not twittering-icon-mode)
-	  (> (prefix-numeric-value arg) 0)))
+	  (< 0 (prefix-numeric-value arg))))
   (twittering-update-mode-line)
   (twittering-render-timeline))
 
-(defvar twittering-image-data-table
-  (make-hash-table :test 'equal))
+(defvar twittering-image-data-table (make-hash-table :test 'equal))
 
 (defvar twittering-image-stack nil)
 (defvar twittering-image-type-cache nil)
@@ -429,6 +428,8 @@ and its contents (BUFFER)"
 (defun twittering-sign-string ()
   "Return Tweet sign string."
   (funcall twittering-sign-string-function))
+
+(defvar twittering-mode-string "twittering-mode")
 
 (defun twittering-update-mode-line ()
   "Update mode line."
@@ -551,6 +552,10 @@ as a list of a string on Emacs21."
             collection)))
     (completing-read prompt collection predicate require-match
                      initial-input hist def inherit-input-method)))
+
+(eval-when-compile ;; shut up the byte compiler.
+  (defvar twittering-debug-buffer)
+  (defvar twittering-edit-buffer))
 
 (defun twittering-buffer-active-p ()
   "Return t if current buffer is twittering-mode related buffer."
@@ -1141,8 +1146,6 @@ Return nil if SPEC-STR is invalid as a timeline spec."
   (twittering-setup-proxy)
   )
 
-(defvar twittering-mode-string "twittering-mode")
-
 (defvar twittering-mode-hook nil
   "Twittering-mode hook.")
 
@@ -1167,6 +1170,14 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 ;;; Edit mode
 ;;;
 
+(defvar twittering-edit-buffer "*twittering-edit*")
+(defvar twittering-pre-edit-window-configuration nil)
+(defvar twittering-edit-history nil)
+(defvar twittering-edit-local-history nil)
+(defvar twittering-edit-local-history-idx nil)
+(defvar twittering-help-overlay nil)
+(defvar twittering-warning-overlay nil)
+
 (define-derived-mode twittering-edit-mode text-mode "twmode-status-edit"
   (use-local-map twittering-edit-mode-map)
 
@@ -1187,10 +1198,6 @@ Return nil if SPEC-STR is invalid as a timeline spec."
   (add-to-list 'after-change-functions
 	       'twittering-edit-length-check)
   )
-
-(defvar twittering-edit-buffer "*twittering-edit*")
-(defvar twittering-pre-edit-window-configuration nil)
-(defvar twittering-edit-history nil)
 
 (when twittering-edit-mode-map
   (let ((km twittering-edit-mode-map))
@@ -1243,6 +1250,8 @@ Return nil if SPEC-STR is invalid as a timeline spec."
   (when twittering-pre-edit-window-configuration
     (set-window-configuration twittering-pre-edit-window-configuration)
     (setq twittering-pre-edit-window-configuration nil)))
+
+(defvar twittering-reply-to-id nil)
 
 (defun twittering-update-status-from-pop-up-buffer (&optional init-str reply-to-id)
   (interactive)
@@ -2739,7 +2748,7 @@ variable `twittering-status-format'."
   (setq twittering-scroll-mode
 	(if (null arg)
 	    (not twittering-scroll-mode)
-	  (> (prefix-numeric-value arg) 0)))
+	  (< 0 (prefix-numeric-value arg))))
   (twittering-update-mode-line))
 
 (defun twittering-jojo-mode (&optional arg)
@@ -2747,7 +2756,7 @@ variable `twittering-status-format'."
   (setq twittering-jojo-mode
 	(if (null arg)
 	    (not twittering-jojo-mode)
-	  (> (prefix-numeric-value arg) 0)))
+	  (< 0 (prefix-numeric-value arg))))
   (twittering-update-mode-line))
 
 (defun twittering-friends-timeline ()
@@ -2786,7 +2795,7 @@ variable `twittering-status-format'."
 (defun twittering-update-lambda ()
   (interactive)
   (when (and (string= "Japanese" current-language-environment)
-	     (or (> emacs-major-version 21)
+	     (or (< 21 emacs-major-version)
 		 (eq 'utf-8 (terminal-coding-system))))
     (twittering-http-post
      "twitter.com" "statuses/update"
@@ -2798,7 +2807,7 @@ variable `twittering-status-format'."
 
 (defun twittering-update-jojo (usr msg)
   (when (and (string= "Japanese" current-language-environment)
-	     (or (> emacs-major-version 21)
+	     (or (< 21 emacs-major-version)
 		 (eq 'utf-8 (terminal-coding-system))))
     (if (string-match
 	 (mapconcat
@@ -3053,7 +3062,7 @@ variable `twittering-status-format'."
   (let ((word (or word
 		  (read-from-minibuffer "search: " nil nil nil
 					'twittering-search-history nil t))))
-    (if (> (length word) 0)
+    (if (< 0 (length word))
 	(let ((spec `(search ,word)))
 	  (twittering-get-and-render-timeline spec))
       (message "No query string"))))

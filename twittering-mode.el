@@ -171,10 +171,8 @@ You can read `twittering-new-tweets-count' to get the number of new
 tweets received when this hook is run.")
 
 (defvar twittering-scroll-mode nil)
-(make-variable-buffer-local 'twittering-scroll-mode)
 
 (defvar twittering-jojo-mode nil)
-(make-variable-buffer-local 'twittering-jojo-mode)
 
 (defvar twittering-status-format "%i %s,  %@:\n%FILL{  %T // from %f%L%r%R}\n "
   "Format string for rendering statuses.
@@ -331,7 +329,6 @@ SCHEME must be \"http\" or \"https\"."
   "You MUST NOT CHANGE this variable directly.
 You should change through function `twittering-icon-mode'.")
 
-(make-variable-buffer-local 'twittering-icon-mode)
 (defun twittering-icon-mode (&optional arg)
   "Toggle display of icon images on timelines.
 With a numeric argument, if the argument is positive, turn on
@@ -1121,6 +1118,9 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 (defun twittering-mode-init-variables ()
   ;; (make-variable-buffer-local 'variable)
   ;; (setq variable nil)
+  (make-local-variable 'twittering-icon-mode)
+  (make-local-variable 'twittering-jojo-mode)
+  (make-local-variable 'twittering-scroll-mode)
   (font-lock-mode -1)
   (defface twittering-username-face
     `((t nil)) "" :group 'faces)

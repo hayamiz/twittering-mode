@@ -1,3 +1,12 @@
+2010-02-13  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-mode-init-variables): make local
+	variables by using `make-local-variable' in order to initialize
+	the variables with the global values when invoking
+	`twittering-mode'. You can initialize `twittering-icon-mode',
+	`twittering-jojo-mode' and `twittering-scroll-mode' by using
+	`setq' in your `.emacs'.
+
 2010-02-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-format-status): remove a newline

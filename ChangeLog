@@ -150,6 +150,14 @@
 	by width instead of length.
 	(twittering-favorite): Likewise.
 
+	* twittering-mode.el (twittering-http-default-sentinel): Get a
+	buffer associate with the process from calling `process-buffer'
+	instead of taking from an argument.
+	(twittering-http-default-sentinel): Delete an unnecessary
+	argument.
+	(twittering-start-http-ssl-session): Adjust callers.
+	(twittering-start-http-non-ssl-session): Likewise.
+
 2010-02-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-goto-previous-status): simplified.

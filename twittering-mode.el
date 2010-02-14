@@ -1443,6 +1443,7 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
   ;; TODO: use curl
   (let* ((request (twittering-make-http-request
 		   method headers host port path parameters))
+	 (temp-buffer (generate-new-buffer "*twmode-http-buffer*"))
 	 (headers (if (assoc "Expect" headers)
 		      headers
 		    (cons '("Expect" . "") headers)))
@@ -1480,9 +1481,7 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 				       (cdr pair)))))
 			   parameters)))))
     (debug-print curl-args)
-    (lexical-let ((temp-buffer
-		   (generate-new-buffer "*twmode-http-buffer*"))
-		  (noninteractive noninteractive)
+    (lexical-let ((noninteractive noninteractive)
 		  (sentinel sentinel))
       (let ((curl-process
 	     (apply 'start-process
@@ -1494,14 +1493,15 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 	 curl-process
 	 (lambda (&rest args)
 	   (apply #'twittering-http-default-sentinel
-		  sentinel temp-buffer noninteractive args)))
+		  sentinel noninteractive args)))
 	curl-process)))
   )
 
 ;; TODO: proxy
 (defun twittering-start-http-non-ssl-session (method headers host port path parameters &optional noninteractive sentinel)
   (let ((request (twittering-make-http-request
-		  method headers host port path parameters)))
+		  method headers host port path parameters))
+	(temp-buffer (generate-new-buffer "*twmode-http-buffer*")))
     (flet ((request (key) (funcall request key)))
       (let* ((request-str
 	      (format "%s %s%s HTTP/1.1\r\n%s\r\n\r\n"
@@ -1517,18 +1517,16 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 	     (port (if twittering-proxy-use
 		       twittering-proxy-port
 		     (request :port)))
-	     (temp-buffer (generate-new-buffer "*twmode-http-buffer*"))
 	     (proc (open-network-stream
 		    "network-connection-process" temp-buffer server port))
 	     )
-	(lexical-let ((temp-buffer temp-buffer)
-		      (sentinel sentinel)
+	(lexical-let ((sentinel sentinel)
 		      (noninteractive noninteractive))
 	  (set-process-sentinel
 	   proc
 	   (lambda (&rest args)
 	     (apply #'twittering-http-default-sentinel
-		    sentinel temp-buffer noninteractive args))))
+		    sentinel noninteractive args))))
 	(debug-print request-str)
 	(process-send-string proc request-str)
 	proc)))
@@ -1657,22 +1655,24 @@ Available keywords:
     (+ (* (car encoded-time) 65536)
        (cadr encoded-time))))
 
-(defun twittering-http-default-sentinel (func temp-buffer noninteractive proc stat &optional suc-msg)
+(defun twittering-http-default-sentinel (func noninteractive proc stat &optional suc-msg)
   (debug-printf "http-default-sentinel: proc=%s stat=%s" proc stat)
-  (unwind-protect
-      (let ((header (twittering-get-response-header temp-buffer))
-	    (mes nil))
-	(if (string-match twittering-http-status-line-regexp header)
-	    (when (and func (fboundp func))
-	      (with-current-buffer temp-buffer
-		(setq mes (funcall func header proc noninteractive suc-msg))))
-	  (setq mes "Failure: Bad http response."))
-	(when (and mes (twittering-buffer-active-p))
-	  (message mes)))
-    ;; unwindforms
-    (twittering-release-process proc)
-    (when (and (not twittering-debug-mode) (buffer-live-p temp-buffer))
-      (kill-buffer temp-buffer))))
+  (let ((temp-buffer (buffer-name (process-buffer proc))))
+    (unwind-protect
+	(let ((header (twittering-get-response-header temp-buffer))
+	      (mes nil))
+	  (if (string-match twittering-http-status-line-regexp header)
+	      (when (and func (fboundp func))
+		(with-current-buffer temp-buffer
+		  (setq mes (funcall func header proc noninteractive suc-msg))))
+	    (setq mes "Failure: Bad http response."))
+	  (when (and mes (twittering-buffer-active-p))
+	    (message mes)))
+      ;; unwindforms
+      (twittering-release-process proc)
+      (when (and (not twittering-debug-mode) (buffer-live-p temp-buffer))
+	(kill-buffer temp-buffer))))
+  )
 
 (defun twittering-http-get-default-sentinel (header proc noninteractive &optional suc-msg)
   (let ((status-line (match-string-no-properties 1 header))

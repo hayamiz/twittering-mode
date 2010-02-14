@@ -2610,7 +2610,7 @@ variable `twittering-status-format'."
 	     (regexp-list-method "^1/[^/]*/lists/[^/]*/statuses$")
 	     (parameters nil))
 	(cond ((stringp id)
-	       (add-to-list 'parameters (cons "max_id"id)))
+	       (add-to-list 'parameters (cons "max_id" id)))
 	      ((stringp since_id)
 	       (add-to-list 'parameters (cons "since_id" since_id))))
 	(cond

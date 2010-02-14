@@ -1723,13 +1723,20 @@ Available keywords:
      status
      (("200")
       (save-excursion
-	;; FIXME: this is a preliminary implementation because we should
-	;; take a xmltree from current-burrer and parse it here.
-	(goto-char (point-min))
-	(when (search-forward-regexp "\r?\n\r?\n" nil t)
-	  (while (re-search-forward
-		  "<slug>\\([a-zA-Z0-9_-]+\\)</slug>" nil t)
-	    (push (match-string 1) indexes)))))
+	(let ((xmltree nil))
+	  (condition-case get-error
+	      (setq xmltree (xml-parse-region (point-min) (point-max)))
+	    (error (setq mes (format "Failure: %s" get-error))))
+	  (when xmltree
+	    (setq indexes
+		  (remove nil
+			  (mapcar
+			   (lambda (x)
+			     (if (consp x)
+				 (car (cddr (assq 'slug x)))))
+			   (cdr-safe (assq 'lists (assq 'lists_list xmltree))))
+			  )))
+	  )))
      (t
       (setq mes (format "Response: %s" status-line))))
     (setq twittering-list-index-retrieved

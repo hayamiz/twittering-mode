@@ -155,7 +155,7 @@ then you can use \"$to_me\" as
 (defvar twittering-current-timeline-spec-string nil
   "The current timeline spec string. This variable should not be referred
 directly. Use `twittering-current-timeline-spec-string' or
-`twittering-current-timeline-spec.'")
+`twittering-current-timeline-spec'.")
 (defvar twittering-list-index-retrieved nil)
 
 (defvar twittering-process-info-alist nil

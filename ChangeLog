@@ -1,3 +1,8 @@
+2010-02-15  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-get-and-render-timeline): copy
+	spec-string and clear its text properties.
+
 2010-02-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-get-usernames-from-timeline): new

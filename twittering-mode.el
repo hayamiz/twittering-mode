@@ -2636,11 +2636,17 @@ variable `twittering-status-format'."
 	 (spec-string (if (stringp spec)
 			  spec
 			(twittering-timeline-spec-to-string spec)))
+	 ;; `spec-string' without text properites is required because
+	 ;; Emacs21 displays `spec-string' with its properties on mode-line.
+	 ;; In addition, copying `spec-string' keeps timeline-data from
+	 ;; being modified by `minibuf-isearch.el'.
+	 (spec-string (copy-sequence spec-string))
 	 (spec ;; normalized spec.
 	  (twittering-string-to-timeline-spec spec-string)))
     (when (null spec)
       (error "\"%s\" is invalid as a timeline spec"
 	     (or spec-string original-spec)))
+    (set-text-properties 0 (length spec-string) nil spec-string)
     (cond
      ((and noninteractive (twittering-process-active-p))
       ;; ignore non-interactive request if a process is waiting for responses.

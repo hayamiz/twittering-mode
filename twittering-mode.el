@@ -3062,16 +3062,23 @@ variable `twittering-status-format'."
 	  (twittering-get-and-render-timeline spec))
       (message "No query string"))))
 
-(defun twittering-make-list-from-assoc (key data)
-  (mapcar (lambda (status)
-	    (cdr (assoc key status)))
-	  data))
+(defun twittering-get-usernames-from-timeline (&optional timeline-data)
+  (let ((timeline-data (or timeline-data (twittering-current-timeline-data))))
+    (twittering-remove-duplicates
+     (mapcar
+      (lambda (status)
+	(let* ((base-str (cdr (assq 'user-screen-name status)))
+	       ;; `copied-str' is independent of the string in timeline-data.
+	       ;; This isolation is required for `minibuf-isearch.el',
+	       ;; which removes the text properties of strings in history.
+	       (copied-str (copy-sequence base-str)))
+	  (set-text-properties 0 (length copied-str) nil copied-str)
+	  copied-str))
+      timeline-data))))
 
 (defun twittering-read-username-with-completion (prompt init-user &optional history)
-  (let ((collection
-	 (append (twittering-make-list-from-assoc
-		  'user-screen-name (twittering-current-timeline-data))
-		 twittering-user-history)))
+  (let ((collection (append twittering-user-history
+			    (twittering-get-usernames-from-timeline))))
     (twittering-completing-read prompt collection nil nil init-user history)))
 
 (defun twittering-read-list-name (username &optional list-index)
@@ -3088,9 +3095,7 @@ variable `twittering-status-format'."
 
 (defun twittering-read-timeline-spec-with-completion (prompt initial &optional as-string)
   (let* ((dummy-hist (append twittering-timeline-history
-			     (twittering-make-list-from-assoc
-			      'user-screen-name
-			      (twittering-current-timeline-data))))
+			     (twittering-get-usernames-from-timeline)))
 	 (spec-string (twittering-completing-read prompt dummy-hist
 						  nil nil initial 'dummy-hist))
 	 (spec-string

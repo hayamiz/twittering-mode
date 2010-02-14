@@ -1,3 +1,28 @@
+2010-02-14  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-current-timeline-spec-string):
+	new variable for storing the current timeline spec string.
+	(twittering-last-requested-timeline-spec-string): removed.
+	(twittering-last-retrieved-timeline-spec-string): removed.
+	(twittering-set-current-timeline-spec-string): new function for
+	referring the current timeline spec string.
+	(twittering-current-timeline-spec-string): new function for
+	referring the current timeline spec.
+	(twittering-switch-timeline-if-necessary): new function for
+	switching timeline.
+	(twittering-mode-init-variables): explicitly initialize the
+	current timeline spec.
+	(twittering-http-get-default-sentinel): store the retrieved
+	timeline even if it is not the current timeline.
+	(twittering-get-and-render-timeline): switch timeline just after
+	requested.
+	(twittering-erase-old-statuses): reimplemented.
+	(twittering-update-mode-line): use
+	`twittering-current-timeline-spec-string'.
+	(twittering-add-timeline-history): likewise.
+	(twittering-current-timeline): likewise.
+	(twittering-goto-next-status): likewise.
+
 2010-02-13  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-mode-init-variables): make local

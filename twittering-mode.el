@@ -152,10 +152,10 @@ For example, if you specify
 then you can use \"$to_me\" as
 \"(:mentions+:retweets_of_me+:direct-messages)\".")
 
-(defvar twittering-last-requested-timeline-spec-string nil
-  "The last requested timeline spec string.")
-(defvar twittering-last-retrieved-timeline-spec-string nil
-  "The last successfully retrieved timeline spec string.")
+(defvar twittering-current-timeline-spec-string nil
+  "The current timeline spec string. This variable should not be referred
+directly. Use `twittering-current-timeline-spec-string' or
+`twittering-current-timeline-spec.'")
 (defvar twittering-list-index-retrieved nil)
 
 (defvar twittering-process-info-alist nil
@@ -431,7 +431,7 @@ and its contents (BUFFER)"
 (defun twittering-update-mode-line ()
   "Update mode line."
   (let ((enabled-options nil)
-	(spec-string twittering-last-retrieved-timeline-spec-string))
+	(spec-string (twittering-current-timeline-spec-string)))
     (when twittering-jojo-mode
       (push "jojo" enabled-options))
     (when twittering-icon-mode
@@ -900,7 +900,7 @@ Return nil if SPEC-STR is invalid as a timeline spec."
   (let* ((spec-string
 	  (if timeline-spec
 	      (twittering-timeline-spec-to-string timeline-spec t)
-	    twittering-last-retrieved-timeline-spec-string)))
+	    (twittering-current-timeline-spec-string))))
     (when spec-string
       (when (or (null twittering-timeline-history)
 		(not (string= spec-string (car twittering-timeline-history))))
@@ -913,9 +913,15 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 ;;; Timeline info
 ;;;
 
+(defun twittering-set-current-timeline-spec-string (spec-string)
+  (setq twittering-current-timeline-spec-string spec-string))
+
+(defun twittering-current-timeline-spec-string ()
+  twittering-current-timeline-spec-string)
+
 (defun twittering-current-timeline-spec ()
   (twittering-string-to-timeline-spec
-   twittering-last-retrieved-timeline-spec-string))
+   (twittering-current-timeline-spec-string)))
 
 (defun twittering-current-timeline-data (&optional spec)
   (let ((spec (or spec (twittering-current-timeline-spec))))
@@ -952,6 +958,15 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 	       twittering-timeline-data-table)
       (when (< 0 twittering-new-tweets-count)
 	(run-hooks 'twittering-new-tweets-hook)))))
+
+(defun twittering-switch-timeline (spec-string)
+  ;; If multiple buffers are implemented, this function should be obsoleted.
+  (let* ((current (twittering-current-timeline-spec-string))
+	 (same-timeline
+	  (twittering-equal-string-as-timeline current spec-string)))
+    (unless same-timeline
+      (twittering-set-current-timeline-spec-string spec-string))
+    (twittering-render-timeline same-timeline)))
 
 ;;;
 ;;; Process info
@@ -1132,6 +1147,8 @@ Return nil if SPEC-STR is invalid as a timeline spec."
   ;; (add-to-list 'minor-mode-alist '(twittering-icon-mode " tw-icon"))
   ;; (add-to-list 'minor-mode-alist '(twittering-scroll-mode " tw-scroll"))
   ;; (add-to-list 'minor-mode-alist '(twittering-jojo-mode " tw-jojo"))
+  (twittering-set-current-timeline-spec-string
+   twittering-initial-timeline-spec-string)
   (setq twittering-username-active twittering-username)
   (setq twittering-password-active twittering-password)
   (when twittering-use-convert
@@ -1666,32 +1683,20 @@ Available keywords:
       (let* ((spec (twittering-get-timeline-spec-from-process proc))
 	     (spec-string (twittering-timeline-spec-to-string spec))
 	     (statuses (twittering-get-status-from-http-response
-			spec (buffer-name (process-buffer proc))))
-	     (requested-spec
-	      (twittering-string-to-timeline-spec
-	       twittering-last-requested-timeline-spec-string)))
-	(cond
-	 ((equal spec requested-spec)
-	  (when statuses
-	      (twittering-add-statuses-to-timeline-data statuses spec)
-	      ;; FIXME: We should retrieve un-retrieved statuses until
-	      ;; statuses is nil. twitter server returns nil as
-	      ;; xmltree with HTTP status-code is "200" when we
-	      ;; retrieved all un-retrieved statuses.
-	      )
-	  (let ((same-timeline
-		 (equal twittering-last-retrieved-timeline-spec-string
-			twittering-last-requested-timeline-spec-string)))
-	    (setq twittering-last-retrieved-timeline-spec-string
-		  twittering-last-requested-timeline-spec-string)
-	    (twittering-render-timeline same-timeline))
-	  (twittering-add-timeline-history)
-	  (if twittering-notify-successful-http-get
-	      (if suc-msg suc-msg "Success: Get.")
-	    nil))
-	 (t
-	  nil))
-	))
+			spec (buffer-name (process-buffer proc)))))
+	(when statuses
+	  (twittering-add-statuses-to-timeline-data statuses spec)
+	  ;; FIXME: We should retrieve un-retrieved statuses until
+	  ;; statuses is nil. twitter server returns nil as
+	  ;; xmltree with HTTP status-code is "200" when we
+	  ;; retrieved all un-retrieved statuses.
+	  )
+	(when (equal spec (twittering-current-timeline-spec))
+	  (twittering-render-timeline t))
+	(twittering-add-timeline-history)
+	(if twittering-notify-successful-http-get
+	    (if suc-msg suc-msg "Success: Get.")
+	  nil)))
      (t
       (format "Response: %s" status-line)))))
 
@@ -2627,17 +2632,12 @@ variable `twittering-status-format'."
   )
 
 (defun twittering-get-and-render-timeline (spec &optional noninteractive id)
-  (let* ((retrieved-spec-string twittering-last-retrieved-timeline-spec-string)
-	 (original-spec spec)
+  (let* ((original-spec spec)
 	 (spec-string (if (stringp spec)
 			  spec
 			(twittering-timeline-spec-to-string spec)))
 	 (spec ;; normalized spec.
-	  (twittering-string-to-timeline-spec spec-string))
-	 (is-same-spec
-	  (and retrieved-spec-string
-	       (twittering-equal-string-as-timeline spec-string
-						    retrieved-spec-string))))
+	  (twittering-string-to-timeline-spec spec-string)))
     (when (null spec)
       (error "\"%s\" is invalid as a timeline spec"
 	     (or spec-string original-spec)))
@@ -2657,7 +2657,7 @@ variable `twittering-status-format'."
 		 (word (and is-search-spec (cadr spec)))
 		 (proc (twittering-get-tweets host method noninteractive
 					      id since_id word)))
-	    (setq twittering-last-requested-timeline-spec-string spec-string)
+	    (twittering-switch-timeline spec-string)
 	    (twittering-register-process proc spec)))))
      (t
       (let ((type (car spec)))
@@ -2784,8 +2784,7 @@ variable `twittering-status-format'."
 
 (defun twittering-current-timeline (&optional noninteractive)
   (interactive)
-  (let ((spec (or twittering-last-retrieved-timeline-spec-string
-		  twittering-initial-timeline-spec-string)))
+  (let ((spec (twittering-current-timeline-spec)))
     (twittering-get-and-render-timeline spec noninteractive)))
 
 (defun twittering-update-status-interactive ()
@@ -2846,16 +2845,10 @@ variable `twittering-status-format'."
 
 (defun twittering-erase-old-statuses ()
   (interactive)
-  (twittering-remove-timeline-data) ;; clear current timeline.
-  (if (not twittering-last-retrieved-timeline-spec-string)
-      (setq twittering-last-retrieved-timeline-spec-string
-	    twittering-initial-timeline-spec-string)
-    (let* ((spec-string twittering-last-retrieved-timeline-spec-string)
-	   (spec (twittering-string-to-timeline-spec spec-string))
-	   (pair (twittering-timeline-spec-to-host-method spec))
-	   (host (car pair))
-	   (method (cadr pair)))
-      (twittering-http-get host method))))
+  (let ((spec (twittering-current-timeline-spec)))
+    (twittering-remove-timeline-data spec) ;; clear current timeline.
+    (twittering-render-timeline nil) ;; clear buffer.
+    (twittering-get-and-render-timeline spec t)))
 
 (defun twittering-click ()
   (interactive)
@@ -3161,7 +3154,7 @@ variable `twittering-status-format'."
 			(get-text-property prev 'id))))))
         (if id
 	    (twittering-get-and-render-timeline
-	     twittering-last-retrieved-timeline-spec-string
+	     (twittering-current-timeline-spec)
 	     nil id))))))
 
 (defun twittering-get-next-status-head (&optional pos)

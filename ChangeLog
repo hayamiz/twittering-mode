@@ -23,6 +23,10 @@
 	(twittering-current-timeline): likewise.
 	(twittering-goto-next-status): likewise.
 
+	* twittering-mode.el (twittering-add-statuses-to-timeline-data):
+	integrated with `twittering-cache-status-datum'.
+	(twittering-cache-status-datum): removed.
+
 2010-02-13  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-mode-init-variables): make local

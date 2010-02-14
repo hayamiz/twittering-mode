@@ -943,21 +943,35 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 	 (when source-id
 	   (puthash source-id t id-table))))
      timeline-data)
-    (let ((twittering-new-tweets-count
-	   (count t (mapcar
-		     (lambda (status)
-		       (twittering-cache-status-datum status id-table
-						      'timeline-data))
-		     statuses))))
-      (puthash spec
-	       (sort timeline-data
-		     (lambda (status1 status2)
-		       (let ((id1 (cdr (assoc 'id status1)))
-			     (id2 (cdr (assoc 'id status2))))
-			 (twittering-status-id< id2 id1))))
-	       twittering-timeline-data-table)
-      (when (< 0 twittering-new-tweets-count)
-	(run-hooks 'twittering-new-tweets-hook)))))
+    (let ((new-statuses
+	   (remove nil
+		   (mapcar
+		    (lambda (status)
+		      (let* ((id (cdr (assq 'id status)))
+			     (source-id (cdr-safe (assq 'source-id status))))
+			(unless (or (gethash id id-table)
+				    (and source-id
+					 (gethash source-id id-table)))
+			  (puthash id t id-table)
+			  (when source-id
+			    (puthash source-id t id-table))
+			  status)))
+		    statuses))))
+      (when new-statuses
+	(puthash spec
+		 (sort (append new-statuses timeline-data)
+		       (lambda (status1 status2)
+			 (let ((id1 (cdr (assoc 'id status1)))
+			       (id2 (cdr (assoc 'id status2))))
+			   (twittering-status-id< id2 id1))))
+		 twittering-timeline-data-table)
+	(when twittering-jojo-mode
+	  (mapc (lambda (status)
+		  (twittering-update-jojo (cdr (assq 'user-screen-name status))
+					  (cdr (assq 'text status))))
+		new-statuses))
+	(let ((twittering-new-tweets-count (length new-statuses)))
+	  (run-hooks 'twittering-new-tweets-hook))))))
 
 (defun twittering-switch-timeline (spec-string)
   ;; If multiple buffers are implemented, this function should be obsoleted.
@@ -1799,25 +1813,6 @@ BUFFER may be a buffer or the name of an existing buffer."
       (if (eq 'search (car spec))
 	  (twittering-atom-xmltree-to-status body)
 	(twittering-xmltree-to-status body)))))
-
-(defun twittering-cache-status-datum (status-datum id-table data-var)
-  "Cache STATUS-DATUM into DATA-VAR
-If ID of STATUS-DATUM is already in ID-TABLE, return nil. If not, return t."
-  (let* ((id (cdr (assq 'id status-datum)))
-	 (source-id (cdr-safe (assq 'source-id status-datum)))
-	 (retrieved
-	  (or (gethash id id-table)
-	      (and source-id (gethash source-id id-table)))))
-    (unless (and (symbol-value data-var) retrieved)
-      (if twittering-jojo-mode
-	  (twittering-update-jojo (cdr (assq 'user-screen-name
-					     status-datum))
-				  (cdr (assq 'text status-datum))))
-      (set data-var (cons status-datum (symbol-value data-var)))
-      (puthash id t id-table)
-      (when source-id
-	(puthash source-id t id-table))
-      t)))
 
 (defun twittering-atom-xmltree-to-status-datum (atom-xml-entry)
   (let* ((id-str (car (cddr (assq 'id atom-xml-entry))))

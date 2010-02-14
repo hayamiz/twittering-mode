@@ -3,6 +3,10 @@
 	* twittering-mode.el (twittering-get-and-render-timeline): copy
 	spec-string and clear its text properties.
 
+	* twittering-mode.el (twittering-http-default-sentinel): use
+	buffer object directly.
+	(twittering-http-get-default-sentinel): likewise.
+
 2010-02-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-get-usernames-from-timeline): new

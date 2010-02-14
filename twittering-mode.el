@@ -1671,7 +1671,7 @@ Available keywords:
 
 (defun twittering-http-default-sentinel (func noninteractive proc stat &optional suc-msg)
   (debug-printf "http-default-sentinel: proc=%s stat=%s" proc stat)
-  (let ((temp-buffer (buffer-name (process-buffer proc))))
+  (let ((temp-buffer (process-buffer proc)))
     (unwind-protect
 	(let ((header (twittering-get-response-header temp-buffer))
 	      (mes nil))
@@ -1697,7 +1697,7 @@ Available keywords:
       (let* ((spec (twittering-get-timeline-spec-from-process proc))
 	     (spec-string (twittering-timeline-spec-to-string spec))
 	     (statuses (twittering-get-status-from-http-response
-			spec (buffer-name (process-buffer proc)))))
+			spec (process-buffer proc))))
 	(when statuses
 	  (twittering-add-statuses-to-timeline-data statuses spec)
 	  ;; FIXME: We should retrieve un-retrieved statuses until

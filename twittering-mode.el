@@ -1769,8 +1769,6 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
     (case-string
      status
      (("200")
-      ;; FIXME: we should take a xmltree from current-burrer and parse
-      ;; it here.
       (if suc-msg suc-msg "Success: Post."))
      (t
       (format "Response: %s" status-line)))))

@@ -1709,7 +1709,7 @@ Available keywords:
 	    ;; retrieved all un-retrieved statuses.
 	    (when (and new-statuses
 		       (equal spec (twittering-current-timeline-spec)))
-	      (twittering-render-timeline t))
+	      (twittering-render-timeline t new-statuses))
 	    (twittering-add-timeline-history)))
 	(if twittering-notify-successful-http-get
 	    (if suc-msg suc-msg "Success: Get.")
@@ -2145,9 +2145,10 @@ BUFFER may be a buffer or the name of an existing buffer."
 ;;; display functions
 ;;;
 
-(defun twittering-render-timeline (&optional additional)
+(defun twittering-render-timeline (&optional additional timeline-data)
   (with-current-buffer (twittering-buffer)
-    (let* ((timeline-data (twittering-current-timeline-data))
+    (let* ((timeline-data (or timeline-data
+			      (twittering-current-timeline-data)))
 	   (window-list (get-buffer-window-list (current-buffer) nil t))
 	   (point-window-list
 	    (mapcar (lambda (window)

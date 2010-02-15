@@ -19,6 +19,11 @@
 	(twittering-add-statuses-to-timeline-data): return newly retrieved
 	statuses.
 
+	* twittering-mode.el (twittering-render-timeline): receive
+	`timeline-data' as an optional argument.
+	(twittering-http-get-default-sentinel): invoke
+	`twittering-render-timeline' with new statuses.
+
 2010-02-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-get-usernames-from-timeline): new

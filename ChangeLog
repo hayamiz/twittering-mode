@@ -14,6 +14,11 @@
 	current timeline spec string to the given `spec-string' even if
 	they mean the same timeline.
 
+	* twittering-mode.el (twittering-http-get-default-sentinel):
+	invoke `twittering-render-timeline' only if necessary.
+	(twittering-add-statuses-to-timeline-data): return newly retrieved
+	statuses.
+
 2010-02-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-get-usernames-from-timeline): new

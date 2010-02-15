@@ -971,7 +971,8 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 					  (cdr (assq 'text status))))
 		new-statuses))
 	(let ((twittering-new-tweets-count (length new-statuses)))
-	  (run-hooks 'twittering-new-tweets-hook))))))
+	  (run-hooks 'twittering-new-tweets-hook))
+	new-statuses))))
 
 (defun twittering-switch-timeline (spec-string)
   ;; If multiple buffers are implemented, this function should be obsoleted.
@@ -1700,15 +1701,16 @@ Available keywords:
 	     (statuses (twittering-get-status-from-http-response
 			spec (process-buffer proc))))
 	(when statuses
-	  (twittering-add-statuses-to-timeline-data statuses spec)
-	  ;; FIXME: We should retrieve un-retrieved statuses until
-	  ;; statuses is nil. twitter server returns nil as
-	  ;; xmltree with HTTP status-code is "200" when we
-	  ;; retrieved all un-retrieved statuses.
-	  )
-	(when (equal spec (twittering-current-timeline-spec))
-	  (twittering-render-timeline t))
-	(twittering-add-timeline-history)
+	  (let ((new-statuses
+		 (twittering-add-statuses-to-timeline-data statuses spec)))
+	    ;; FIXME: We should retrieve un-retrieved statuses until
+	    ;; statuses is nil. twitter server returns nil as
+	    ;; xmltree with HTTP status-code is "200" when we
+	    ;; retrieved all un-retrieved statuses.
+	    (when (and new-statuses
+		       (equal spec (twittering-current-timeline-spec)))
+	      (twittering-render-timeline t))
+	    (twittering-add-timeline-history)))
 	(if twittering-notify-successful-http-get
 	    (if suc-msg suc-msg "Success: Get.")
 	  nil)))

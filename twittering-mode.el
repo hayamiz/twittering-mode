@@ -2790,8 +2790,8 @@ variable `twittering-status-format'."
 
 (defun twittering-current-timeline (&optional noninteractive)
   (interactive)
-  (let ((spec (twittering-current-timeline-spec)))
-    (twittering-get-and-render-timeline spec noninteractive)))
+  (let ((spec-string (twittering-current-timeline-spec-string)))
+    (twittering-get-and-render-timeline spec-string noninteractive)))
 
 (defun twittering-update-status-interactive ()
   (interactive)

@@ -7,6 +7,9 @@
 	buffer object directly.
 	(twittering-http-get-default-sentinel): likewise.
 
+	* twittering-mode.el (twittering-current-timeline): keep the
+	current timeline spec string.
+
 2010-02-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-get-usernames-from-timeline): new

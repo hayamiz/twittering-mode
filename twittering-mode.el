@@ -1806,11 +1806,12 @@ BUFFER may be a buffer or the name of an existing buffer."
     (save-excursion
       (goto-char (point-min))
       (if (search-forward-regexp "\r?\n\r?\n" nil t)
-	  (condition-case get-error
+	  (condition-case error-str
 	      (funcall func (match-end 0) (point-max))
-	    (error (when (twittering-buffer-active-p)
-		     (message "Failure: %s" get-error))
-		   nil))
+	    (error
+	     (when (twittering-buffer-active-p)
+	       (message "Failure: %s" error-str))
+	     nil))
 	(error "Failure: invalid HTTP response"))
       )))
 

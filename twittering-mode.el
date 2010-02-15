@@ -173,6 +173,8 @@ tweets received when this hook is run.")
 (defvar twittering-scroll-mode nil)
 
 (defvar twittering-jojo-mode nil)
+(defvar twittering-reverse-mode nil
+  "*Non-nil means tweets are aligned in reverse order of `http://twitter.com/'.")
 
 (defvar twittering-status-format "%i %s,  %@:\n%FILL{  %T // from %f%L%r%R}\n "
   "Format string for rendering statuses.
@@ -436,6 +438,8 @@ and its contents (BUFFER)"
       (push "jojo" enabled-options))
     (when twittering-icon-mode
       (push "icon" enabled-options))
+    (when twittering-reverse-mode
+      (push "reverse" enabled-options))
     (when twittering-scroll-mode
       (push "scroll" enabled-options))
     (when twittering-proxy-use
@@ -498,6 +502,18 @@ and its contents (BUFFER)"
 	(insert str)
 	(fill-region-as-paragraph (point-min) (point-max))
 	(buffer-substring (point-min) (point-max))))))
+
+(defun twittering-set-window-end (window pos)
+  (let* ((height (window-body-height window))
+         (n (- (- height 1))))
+    (while (progn (setq n (1+ n))
+		  (set-window-start
+		   window
+		   (with-current-buffer (window-buffer window)
+		     (save-excursion
+		       (goto-char pos)
+		       (line-beginning-position n))))
+		  (not (pos-visible-in-window-p pos window))))))
 
 ;;;
 ;;; Utility functions for portability
@@ -1151,6 +1167,7 @@ Return nil if SPEC-STR is invalid as a timeline spec."
   ;; (setq variable nil)
   (make-local-variable 'twittering-icon-mode)
   (make-local-variable 'twittering-jojo-mode)
+  (make-local-variable 'twittering-reverse-mode)
   (make-local-variable 'twittering-scroll-mode)
   (font-lock-mode -1)
   (defface twittering-username-face
@@ -2154,19 +2171,24 @@ BUFFER may be a buffer or the name of an existing buffer."
   (with-current-buffer (twittering-buffer)
     (let* ((timeline-data (or timeline-data
 			      (twittering-current-timeline-data)))
+	   (timeline-data (if twittering-reverse-mode
+			      (reverse timeline-data)
+			    timeline-data))
 	   (empty (null (twittering-get-first-status-head)))
+	   (rendering-entire (or empty (not additional)))
 	   (window-list (get-buffer-window-list (current-buffer) nil t))
 	   (point-window-list
 	    (mapcar (lambda (window)
 		      (cons (window-point window) window))
 		    window-list))
 	   (original-pos (point))
+	   (original-buf-end (point-max))
 	   (buffer-read-only nil))
       (twittering-update-mode-line)
       (save-excursion
-	(unless additional
+	(when rendering-entire
 	  (erase-buffer))
-	(let ((pos (if empty
+	(let ((pos (if rendering-entire
 		       (point-min)
 		     (twittering-get-first-status-head))))
 	  (mapc
@@ -2175,7 +2197,10 @@ BUFFER may be a buffer or the name of an existing buffer."
 	       ;; Find where the status should be inserted.
 	       (while
 		   (let* ((buf-id (get-text-property pos 'id)))
-		     (if (and buf-id (twittering-status-id< id buf-id))
+		     (if (and buf-id
+			      (if twittering-reverse-mode
+				  (twittering-status-id< buf-id id)
+				(twittering-status-id< id buf-id)))
 			 (let ((next-pos
 				(twittering-get-next-status-head pos)))
 			   (setq pos (or next-pos (point-max)))
@@ -2204,26 +2229,41 @@ BUFFER may be a buffer or the name of an existing buffer."
 	  (clear-image-cache))
       (debug-print (current-buffer))
       (cond
-       ((and additional (not twittering-scroll-mode))
+       (rendering-entire
+	;; Go to the latest status of buffer after full insertion.
+	(let ((dest (if twittering-reverse-mode
+			(point-max)
+		      (point-min))))
+	  (if window-list
+	      (mapc
+	       (lambda (window)
+		 (set-window-point window dest)
+		 (if twittering-reverse-mode
+		     (twittering-set-window-end window (point-max))
+		   (set-window-start window (point-min))))
+	       window-list)
+	    ;; Move the buffer position if the buffer is invisible.
+	    (goto-char dest))))
+       ((not twittering-scroll-mode)
 	;; After additional insertion, the current position exists
 	;; on the same status.
 	;; Go to the original position.
 	(if point-window-list
 	    (mapc (lambda (pair)
-		    (let ((point (car pair))
-			  (window (cdr pair)))
-		      (set-window-point window point)))
+		    (let* ((point (car pair))
+			   (window (cdr pair))
+			   (dest (if twittering-reverse-mode
+				     (- (point-max)
+					(- original-buf-end point))
+				   point)))
+		      (set-window-point window dest)))
 		  point-window-list)
 	  ;; Move the buffer position if the buffer is invisible.
-	  (goto-char original-pos)))
-       ((not additional)
-	;; Go to the beginning of buffer after full insertion.
-	(if window-list
-	    (mapc
-	     (lambda (window) (set-window-point window (point-min)))
-	     window-list)
-	  ;; Move the buffer position if the buffer is invisible.
-	  (goto-char (point-min))))))
+	  (goto-char (if twittering-reverse-mode
+			 (- (point-max)
+			    (- original-buf-end original-pos))
+		       original-pos))))
+       ))
     ))
 
 (defun twittering-make-display-spec-for-icon (image-url)
@@ -2777,6 +2817,14 @@ variable `twittering-status-format'."
 	  (< 0 (prefix-numeric-value arg))))
   (twittering-update-mode-line))
 
+(defun twittering-toggle-reverse-mode (&optional arg)
+  (interactive)
+  (setq twittering-reverse-mode
+	(if (null arg)
+	    (not twittering-reverse-mode)
+	  (> (prefix-numeric-value arg) 0)))
+  (twittering-render-timeline))
+
 (defun twittering-friends-timeline ()
   (interactive)
   (twittering-get-and-render-timeline '(friends)))
@@ -3170,8 +3218,12 @@ Return nil if no statuses are rendered."
   "Go to next status."
   (interactive)
   (let ((pos (twittering-get-next-status-head)))
-    (if pos
-	(goto-char pos)
+    (cond
+     (pos
+      (goto-char pos))
+     (twittering-reverse-mode
+      (message "The latest status."))
+     (t
       (let ((id (or (get-text-property (point) 'id)
 		    (let ((prev (twittering-get-previous-status-head)))
 		      (when prev
@@ -3179,7 +3231,7 @@ Return nil if no statuses are rendered."
         (if id
 	    (twittering-get-and-render-timeline
 	     (twittering-current-timeline-spec)
-	     nil id))))))
+	     nil id)))))))
 
 (defun twittering-get-next-status-head (&optional pos)
   "Search forward from POS for the nearest head of a status.
@@ -3196,9 +3248,20 @@ The return value is nil or a positive integer greater than POS."
   "Go to previous status."
   (interactive)
   (let ((prev-pos (twittering-get-previous-status-head)))
-    (if prev-pos
-        (goto-char prev-pos)
-      (message "Start of status."))))
+    (cond
+     (prev-pos
+      (goto-char prev-pos))
+     (twittering-reverse-mode
+      (let ((id (or (get-text-property (point) 'id)
+		    (let ((next (twittering-get-next-status-head)))
+		      (when next
+			(get-text-property next 'id))))))
+	(if id
+	    (twittering-get-and-render-timeline
+	     (twittering-current-timeline-spec-string)
+	     nil id))))
+     (t
+      (message "The latest status.")))))
 
 (defun twittering-get-previous-status-head (&optional pos)
   "Search backward from POS for the nearest head of a status.

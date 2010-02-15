@@ -7,6 +7,17 @@
 	(twittering-render-timeline): render tweets from the beginning of
 	buffer if no statuses are rendered.
 
+	* twittering-mode.el (twittering-reverse-mode): new variable for
+	reverse alignment of tweets in timeline.
+	(twittering-update-mode-line): add "reverse" to mode-line.
+	(twittering-render-timeline): support reverse alignment of
+	statuses.
+	(twittering-toggle-reverse-mode): new interactive function to
+	toggle reverse mode.
+	(twittering-goto-next-status): support reverse mode.
+	(twittering-goto-previous-status): likewise.
+	(twittering-set-window-end): add new function.
+
 2010-02-15  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-http-get-list-index-sentinel):

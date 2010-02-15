@@ -1,3 +1,8 @@
+2010-02-15  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-http-get-list-index-sentinel):
+	Get a listname from `slug' element which is only in `list' node.
+	
 2010-02-15  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-get-and-render-timeline): copy

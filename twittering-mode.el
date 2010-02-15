@@ -1726,20 +1726,24 @@ Available keywords:
      status
      (("200")
       (save-excursion
-	(let ((xmltree nil))
-	  (condition-case get-error
-	      (setq xmltree (xml-parse-region (point-min) (point-max)))
-	    (error (setq mes (format "Failure: %s" get-error))))
-	  (when xmltree
-	    (setq indexes
-		  (remove nil
-			  (mapcar
-			   (lambda (x)
-			     (if (consp x)
-				 (car (cddr (assq 'slug x)))))
-			   (cdr-safe (assq 'lists (assq 'lists_list xmltree))))
-			  )))
-	  )))
+	(condition-case error-str
+	    (let ((xmltree (xml-parse-region (point-min) (point-max))))
+	      (when xmltree
+		(setq indexes
+		      (mapcar
+		       (lambda (c-node)
+			 (caddr (assq 'slug c-node)))
+		       (remove nil
+			       (mapcar
+				(lambda (node)
+				  (and (consp node) (eq 'list (car node))
+				       node))
+				(cdr-safe
+				 (assq 'lists (assq 'lists_list xmltree))))
+			       ))
+		      )))
+	  (error
+	   (setq mes (format "Failure: %s" error-str))))))
      (t
       (setq mes (format "Response: %s" status-line))))
     (setq twittering-list-index-retrieved

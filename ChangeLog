@@ -10,6 +10,10 @@
 	* twittering-mode.el (twittering-current-timeline): keep the
 	current timeline spec string.
 
+	* twittering-mode.el (twittering-switch-timeline): adjust the
+	current timeline spec string to the given `spec-string' even if
+	they mean the same timeline.
+
 2010-02-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-get-usernames-from-timeline): new

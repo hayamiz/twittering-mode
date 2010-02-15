@@ -978,8 +978,9 @@ Return nil if SPEC-STR is invalid as a timeline spec."
   (let* ((current (twittering-current-timeline-spec-string))
 	 (same-timeline
 	  (twittering-equal-string-as-timeline current spec-string)))
-    (unless same-timeline
-      (twittering-set-current-timeline-spec-string spec-string))
+    ;; Adjust the current timeline spec string to `spec-string'
+    ;; even if they mean the same timeline.
+    (twittering-set-current-timeline-spec-string spec-string)
     (twittering-render-timeline same-timeline)))
 
 ;;;

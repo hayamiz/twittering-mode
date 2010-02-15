@@ -1,8 +1,17 @@
+2010-02-16  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-get-first-status-head): return
+	nil if no statuses are rendered in the current buffer.
+	(twittering-goto-first-status): go to the beginning of buffer if
+	no statuses are rendered in the current buffer.
+	(twittering-render-timeline): render tweets from the beginning of
+	buffer if no statuses are rendered.
+
 2010-02-15  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-http-get-list-index-sentinel):
 	Get a listname from `slug' element which is only in `list' node.
-	
+
 2010-02-15  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-get-and-render-timeline): copy

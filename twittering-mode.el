@@ -2154,6 +2154,7 @@ BUFFER may be a buffer or the name of an existing buffer."
   (with-current-buffer (twittering-buffer)
     (let* ((timeline-data (or timeline-data
 			      (twittering-current-timeline-data)))
+	   (empty (null (twittering-get-first-status-head)))
 	   (window-list (get-buffer-window-list (current-buffer) nil t))
 	   (point-window-list
 	    (mapcar (lambda (window)
@@ -2165,7 +2166,9 @@ BUFFER may be a buffer or the name of an existing buffer."
       (save-excursion
 	(unless additional
 	  (erase-buffer))
-	(let ((pos (twittering-get-first-status-head)))
+	(let ((pos (if empty
+		       (point-min)
+		     (twittering-get-first-status-head))))
 	  (mapc
 	   (lambda (status)
 	     (let* ((id (cdr (assoc 'id status))))
@@ -3153,14 +3156,15 @@ variable `twittering-status-format'."
 (defun twittering-goto-first-status ()
   "Go to the first status."
   (interactive)
-  (goto-char (twittering-get-first-status-head)))
+  (goto-char (or (twittering-get-first-status-head)
+		 (point-min))))
 
 (defun twittering-get-first-status-head ()
+  "Return the head position of the first status in the current buffer.
+Return nil if no statuses are rendered."
   (if (get-text-property (point-min) 'id)
       (point-min)
-    (or (twittering-get-next-status-head (point-min))
-	;; The current buffer is empty.
-	(point-min))))
+    (twittering-get-next-status-head (point-min))))
 
 (defun twittering-goto-next-status ()
   "Go to next status."

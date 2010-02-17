@@ -1,3 +1,12 @@
+2010-02-18  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-current-timeline-spec): return
+	nil if `twittering-current-timeline-spec-string' returns nil.
+	(twittering-current-timeline-data): return nil if
+	`twittering-current-timeline-spec' returns nil.
+	(twittering-extract-timeline-spec): raise an error if the argument
+	`str' is nil.
+
 2010-02-17  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-extract-timeline-spec): Check STR

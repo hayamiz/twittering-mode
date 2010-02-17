@@ -699,6 +699,7 @@ If SHORTEN is non-nil, the abbreviated expression will be used."
 Return cons of the spec and the rest string."
   (cond
    ((null str)
+    (error "STR is nil" str)
     nil)
    ((string-match "^\\([a-zA-Z0-9_-]+\\)/\\([a-zA-Z0-9_-]+\\)" str)
     (let ((user (match-string 1 str))
@@ -938,12 +939,16 @@ Return nil if SPEC-STR is invalid as a timeline spec."
   twittering-current-timeline-spec-string)
 
 (defun twittering-current-timeline-spec ()
-  (twittering-string-to-timeline-spec
-   (twittering-current-timeline-spec-string)))
+  (let ((spec-string (twittering-current-timeline-spec-string)))
+    (if spec-string
+	(twittering-string-to-timeline-spec spec-string)
+      nil)))
 
 (defun twittering-current-timeline-data (&optional spec)
   (let ((spec (or spec (twittering-current-timeline-spec))))
-    (gethash spec twittering-timeline-data-table)))
+    (if spec
+	(gethash spec twittering-timeline-data-table)
+      nil)))
 
 (defun twittering-remove-timeline-data (&optional spec)
   (let ((spec (or spec (twittering-current-timeline-spec))))

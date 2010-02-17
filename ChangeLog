@@ -3,6 +3,12 @@
 	* twittering-mode.el (twittering-extract-timeline-spec): Check STR
 	is non-nil first for avoiding an error caused by `string-match'.
 
+	* twittering-mode.el (twittering-icon-mode): Add an argument "P"
+	to `interactive'.
+	(twittering-scroll-mode): Likewise.
+	(twittering-jojo-mode): Likewise.
+	(twittering-toggle-reverse-mode): Likewise.
+
 2010-02-16  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-get-first-status-head): return

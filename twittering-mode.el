@@ -335,7 +335,7 @@ You should change through function `twittering-icon-mode'.")
   "Toggle display of icon images on timelines.
 With a numeric argument, if the argument is positive, turn on
 icon mode; otherwise, turn off icon mode."
-  (interactive)
+  (interactive "P")
   (setq twittering-icon-mode
 	(if (null arg)
 	    (not twittering-icon-mode)
@@ -2804,7 +2804,7 @@ variable `twittering-status-format'."
     (setq twittering-timer nil)))
 
 (defun twittering-scroll-mode (&optional arg)
-  (interactive)
+  (interactive "P")
   (setq twittering-scroll-mode
 	(if (null arg)
 	    (not twittering-scroll-mode)
@@ -2812,7 +2812,7 @@ variable `twittering-status-format'."
   (twittering-update-mode-line))
 
 (defun twittering-jojo-mode (&optional arg)
-  (interactive)
+  (interactive "P")
   (setq twittering-jojo-mode
 	(if (null arg)
 	    (not twittering-jojo-mode)
@@ -2820,7 +2820,7 @@ variable `twittering-status-format'."
   (twittering-update-mode-line))
 
 (defun twittering-toggle-reverse-mode (&optional arg)
-  (interactive)
+  (interactive "P")
   (setq twittering-reverse-mode
 	(if (null arg)
 	    (not twittering-reverse-mode)

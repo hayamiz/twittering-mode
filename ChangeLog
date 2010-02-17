@@ -1,3 +1,8 @@
+2010-02-17  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-extract-timeline-spec): Check STR
+	is non-nil first for avoiding an error caused by `string-match'.
+
 2010-02-16  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-get-first-status-head): return

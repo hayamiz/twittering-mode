@@ -698,6 +698,8 @@ If SHORTEN is non-nil, the abbreviated expression will be used."
   "Extract one timeline spec from STR.
 Return cons of the spec and the rest string."
   (cond
+   ((null str)
+    nil)
    ((string-match "^\\([a-zA-Z0-9_-]+\\)/\\([a-zA-Z0-9_-]+\\)" str)
     (let ((user (match-string 1 str))
 	  (listname (match-string 2 str))

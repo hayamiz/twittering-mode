@@ -142,7 +142,7 @@ For the style \"$NAME(ARG)\", the function is called with a string ARG.
 
 For example, if you specify
  '((\"FRIENDS\" . \"(USER1+USER2+USER3)\")
-   (\"to_me\" . \"(:mentions+:retweets_of_me+:direct-messages)\")
+   (\"to_me\" . \"(:mentions+:retweets_of_me+:direct_messages)\")
    (\"related-to\" .
             ,(lambda (username)
                (if username
@@ -150,7 +150,7 @@ For example, if you specify
                            username username username)
                  \":home\")))),
 then you can use \"$to_me\" as
-\"(:mentions+:retweets_of_me+:direct-messages)\".")
+\"(:mentions+:retweets_of_me+:direct_messages)\".")
 
 (defvar twittering-current-timeline-spec-string nil
   "The current timeline spec string. This variable should not be referred
@@ -605,8 +605,8 @@ as a list of a string on Emacs21."
 ;;; - (list USER LIST):
 ;;;     the list LIST of the user USER. LIST and USER are strings.
 ;;;
-;;; - (direct-messages): received direct messages.
-;;; - (direct-messages-sent): sent direct messages.
+;;; - (direct_messages): received direct messages.
+;;; - (direct_messages_sent): sent direct messages.
 ;;; - (friends): friends timeline.
 ;;; - (home): home timeline.
 ;;; - (mentions): mentions timeline.
@@ -626,7 +626,7 @@ as a list of a string on Emacs21."
 ;;; Timeline spec string
 ;;;
 ;;; SPEC ::= PRIMARY | COMPOSITE
-;;; PRIMARY ::= USER | LIST | DIRECT-MESSSAGES | DIRECT-MESSSAGES-SENT
+;;; PRIMARY ::= USER | LIST | DIRECT_MESSSAGES | DIRECT_MESSSAGES_SENT
 ;;;             | FRIENDS | HOME | MENTIONS | PUBLIC | REPLIES
 ;;;             | RETWEETED_BY_ME | RETWEETED_TO_ME | RETWEETS_OF_ME
 ;;;             | SEARCH
@@ -635,8 +635,8 @@ as a list of a string on Emacs21."
 ;;; USER ::= /[a-zA-Z0-9_-]+/
 ;;; LIST ::= USER "/" LISTNAME
 ;;; LISTNAME ::= /[a-zA-Z0-9_-]+/
-;;; DIRECT-MESSSAGES ::= ":direct-messages"
-;;; DIRECT-MESSSAGES-SENT ::= ":direct-messages-sent"
+;;; DIRECT_MESSSAGES ::= ":direct_messages"
+;;; DIRECT_MESSSAGES_SENT ::= ":direct_messages_sent"
 ;;; FRIENDS ::= ":friends"
 ;;; HOME ::= ":home" | "~"
 ;;; MENTIONS ::= ":mentions"
@@ -664,8 +664,8 @@ If SHORTEN is non-nil, the abbreviated expression will be used."
      ;; list
      ((eq type 'list) (concat (car value) "/" (cadr value)))
      ;; simple
-     ((eq type 'direct-messages) ":direct-messages")
-     ((eq type 'direct-messages-sent) ":direct-messages-sent")
+     ((eq type 'direct_messages) ":direct_messages")
+     ((eq type 'direct_messages_sent) ":direct_messages_sent")
      ((eq type 'friends) ":friends")
      ((eq type 'home) (if shorten "~" ":home"))
      ((eq type 'mentions) ":mentions")
@@ -721,8 +721,8 @@ Return cons of the spec and the rest string."
    ((string-match "^:\\([a-z_-]+\\)" str)
     (let ((type (match-string 1 str))
 	  (following (substring str (match-end 0)))
-	  (alist '(("direct-messages" . direct-messages)
-		   ("direct-messages-sent" . direct-messages-sent)
+	  (alist '(("direct_messages" . direct_messages)
+		   ("direct_messages_sent" . direct_messages_sent)
 		   ("friends" . friends)
 		   ("home" . home)
 		   ("mentions" . mentions)
@@ -830,7 +830,7 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 `filter' and `merge'."
   (let ((primary-spec-types
 	 '(user list
-		direct-messages direct-messages-sent
+		direct_messages direct_messages_sent
 		friends home mentions public replies
 		search
 		retweeted_by_me retweeted_to_me retweets_of_me))
@@ -858,8 +858,8 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 		(list-name (cadr value)))
 	    `("api.twitter.com"
 	      ,(concat "1/" username "/lists/" list-name "/statuses"))))
-	 ((or (eq type 'direct-messages)
-	      (eq type 'direct-messages-sent))
+	 ((or (eq type 'direct_messages)
+	      (eq type 'direct_messages_sent))
 	  (error "%s has not been supported yet" type))
 	 ((eq type 'friends)
 	  '("twitter.com" "statuses/friends_timeline"))

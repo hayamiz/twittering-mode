@@ -9,6 +9,16 @@
 	(twittering-jojo-mode): Likewise.
 	(twittering-toggle-reverse-mode): Likewise.
 
+2010-02-16  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-timeline-spec-to-string): Replace
+	`-' with `_' in symbol name `direct-messages' and
+	`direct-messages-sent' to fit the parameters of twitter API.
+	(twittering-extract-timeline-spec): Likewise.
+	(twittering-timeline-spec-primary-p): Likewise.
+	(twittering-timeline-spec-to-host-method): Likewise.
+	(twittering-timeline-spec-alias): Likewise in a	comment.
+
 2010-02-16  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-get-first-status-head): return

@@ -699,7 +699,7 @@ If SHORTEN is non-nil, the abbreviated expression will be used."
 Return cons of the spec and the rest string."
   (cond
    ((null str)
-    (error "STR is nil" str)
+    (error "STR is nil")
     nil)
    ((string-match "^\\([a-zA-Z0-9_-]+\\)/\\([a-zA-Z0-9_-]+\\)" str)
     (let ((user (match-string 1 str))

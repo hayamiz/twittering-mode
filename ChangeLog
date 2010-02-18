@@ -4,6 +4,9 @@
 	wide characters.
 	(twittering-favorite): Likewise.
 
+	* twittering-mode.el (twittering-extract-timeline-spec): Delete an
+	unused argument to `error'.
+
 2010-02-18  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-current-timeline-spec): return

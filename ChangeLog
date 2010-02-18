@@ -7,6 +7,12 @@
 	* twittering-mode.el (twittering-extract-timeline-spec): Delete an
 	unused argument to `error'.
 
+	* twittering-mode.el (twittering-format-status): Use the return
+	value of the flet'ed function `attr' directly for the specifier
+	"%r".
+	(twittering-format-status): Reverse condition for the specifier
+	"%R".
+
 2010-02-18  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-current-timeline-spec): return

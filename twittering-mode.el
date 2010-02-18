@@ -2491,8 +2491,8 @@ variable `twittering-status-format'."
 			  "[x]"
 			""))
 	      ("r" .
-	       ,(let ((reply-id (or (attr 'in-reply-to-status-id) ""))
-		      (reply-name (or (attr 'in-reply-to-screen-name) "")))
+	       ,(let ((reply-id (attr 'in-reply-to-status-id))
+		      (reply-name (attr 'in-reply-to-screen-name)))
 		  (if (or (string= "" reply-id) (string= "" reply-name))
 		      ""
 		    (let ((in-reply-to-string
@@ -2504,10 +2504,9 @@ variable `twittering-status-format'."
 			       in-reply-to-string url))))))
 	      ("R" .
 	       ,(let ((retweeted-by (attr 'original-user-screen-name)))
-		  (if (not (string= "" retweeted-by))
-		      (concat " (retweeted by " retweeted-by ")")
-		    "")))
-
+		  (if (string= "" retweeted-by)
+		      ""
+		    (concat " (retweeted by " retweeted-by ")"))))
 	      ("S" . ,(attr 'user-name))
 	      ("s" . ,(attr 'user-screen-name))
 	      ("T" . ,(attr 'text))

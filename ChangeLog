@@ -1,3 +1,8 @@
+2010-02-19  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-set-window-end): use
+	`window-text-height' instead of `window-body-height' for Emacs21.
+
 2010-02-18  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-native-retweet): Add a margin for

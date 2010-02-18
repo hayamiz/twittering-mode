@@ -504,7 +504,7 @@ and its contents (BUFFER)"
 	(buffer-substring (point-min) (point-max))))))
 
 (defun twittering-set-window-end (window pos)
-  (let* ((height (window-body-height window))
+  (let* ((height (window-text-height window))
          (n (- (- height 1))))
     (while (progn (setq n (1+ n))
 		  (set-window-start

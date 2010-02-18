@@ -1,3 +1,9 @@
+2010-02-18  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-native-retweet): Add a margin for
+	wide characters.
+	(twittering-favorite): Likewise.
+
 2010-02-18  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-current-timeline-spec): return

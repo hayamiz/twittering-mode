@@ -3025,6 +3025,7 @@ variable `twittering-status-format'."
 	(text (get-text-property (point) 'text))
 	(width (max 40 ;; XXX
 		    (- (frame-width)
+		       1 ;; margin for wide characters
 		       12 ;; == (length (concat "Retweet \"" "\"? "))
 		       9) ;; == (length "(y or n) ")
 		    )))
@@ -3047,6 +3048,7 @@ variable `twittering-status-format'."
 	(text (get-text-property (point) 'text))
 	(width (max 40 ;; XXX
 		    (- (frame-width)
+		       1 ;; margin for wide characters
 		       15 ;; == (length (concat "Unfavorite \"" "\"? "))
 		       9) ;; == (length "(y or n) ")
 		    ))

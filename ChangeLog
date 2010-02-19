@@ -4,6 +4,12 @@
 	(twittering-ensure-ca-cert): Add it as a hook into
 	`kill-emacs-hook'.
 
+	* twittering-mode.el (twittering-get-error-message): New defun to
+	pickup an error message from a xmltree.
+	(twittering-http-get-default-sentinel): Use it.
+	(twittering-http-get-list-index-sentinel): Likewise.
+	(twittering-http-post-default-sentinel): Likewise.
+
 2010-02-19  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-set-window-end): use

@@ -1688,6 +1688,12 @@ Available keywords:
     headers
     ))
 
+(defun twittering-get-error-message (proc)
+  (let ((xmltree (twittering-get-response-body (process-buffer proc)
+					       'xml-parse-region)))
+    (car (cddr (assq 'error (or (assq 'errors xmltree)
+				(assq 'hash xmltree)))))))
+
 (defun twittering-http-get (host method &optional noninteractive parameters format sentinel)
   (if (null format)
       (setq format "xml"))
@@ -1747,7 +1753,10 @@ Available keywords:
 	    (if suc-msg suc-msg "Success: Get.")
 	  nil)))
      (t
-      (format "Response: %s" status-line)))))
+      (let ((error-mes (twittering-get-error-message proc)))
+	(if error-mes
+	    (format "Response: %s; %s" status-line error-mes)
+	  (format "Response: %s" status-line)))))))
 
 (defun twittering-http-get-list-index-sentinel (header proc noninteractive &optional suc-msg)
   (let ((status-line (match-string-no-properties 1 header))
@@ -1777,7 +1786,10 @@ Available keywords:
 	  (error
 	   (setq mes (format "Failure: %s" error-str))))))
      (t
-      (setq mes (format "Response: %s" status-line))))
+      (let ((error-mes (twittering-get-error-message proc)))
+	(if error-mes
+	    (setq mes (format "Response: %s; %s" status-line error-mes))
+	  (setq mes (format "Response: %s" status-line))))))
     (setq twittering-list-index-retrieved
 	  (or indexes
 	      mes
@@ -1810,7 +1822,10 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
      (("200")
       (if suc-msg suc-msg "Success: Post."))
      (t
-      (format "Response: %s" status-line)))))
+      (let ((error-mes (twittering-get-error-message proc)))
+	(if error-mes
+	    (format "Response: %s; %s" status-line error-mes)
+	  (format "Response: %s" status-line)))))))
 
 (defun twittering-get-response-header (buffer)
   "Exract HTTP response header from HTTP response.

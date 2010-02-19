@@ -10,6 +10,9 @@
 	(twittering-http-get-list-index-sentinel): Likewise.
 	(twittering-http-post-default-sentinel): Likewise.
 
+	* twittering-mode.el (twittering-http-get-list-index-sentinel):
+	Call `twittering-get-response-body' instead of `xml-parse-region'.
+
 2010-02-19  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-set-window-end): use

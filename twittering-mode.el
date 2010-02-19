@@ -1766,25 +1766,22 @@ Available keywords:
     (case-string
      status
      (("200")
-      (save-excursion
-	(condition-case error-str
-	    (let ((xmltree (xml-parse-region (point-min) (point-max))))
-	      (when xmltree
-		(setq indexes
-		      (mapcar
-		       (lambda (c-node)
-			 (caddr (assq 'slug c-node)))
-		       (remove nil
-			       (mapcar
-				(lambda (node)
-				  (and (consp node) (eq 'list (car node))
-				       node))
-				(cdr-safe
-				 (assq 'lists (assq 'lists_list xmltree))))
-			       ))
-		      )))
-	  (error
-	   (setq mes (format "Failure: %s" error-str))))))
+      (let ((xmltree (twittering-get-response-body (process-buffer proc)
+						   'xml-parse-region)))
+	(when xmltree
+	  (setq indexes
+		(mapcar
+		 (lambda (c-node)
+		   (caddr (assq 'slug c-node)))
+		 (remove nil
+			 (mapcar
+			  (lambda (node)
+			    (and (consp node) (eq 'list (car node))
+				 node))
+			  (cdr-safe
+			   (assq 'lists (assq 'lists_list xmltree))))
+			 ))
+		))))
      (t
       (let ((error-mes (twittering-get-error-message proc)))
 	(if error-mes

@@ -1,3 +1,9 @@
+2010-02-19  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-delete-ca-cert-file): New defun.
+	(twittering-ensure-ca-cert): Add it as a hook into
+	`kill-emacs-hook'.
+
 2010-02-19  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-set-window-end): use

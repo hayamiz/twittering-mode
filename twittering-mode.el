@@ -1452,8 +1452,15 @@ PARAMETERS: http request parameters (query string)
 	 method headers host port path parameters
 	 noninteractive sentinel)))))
 
-;;; FIXME: file name is hard-coded. More robust way is desired.
 (defvar twittering-cert-file nil)
+
+(defun twittering-delete-ca-cert-file ()
+  (when (and twittering-cert-file
+	     (file-exists-p twittering-cert-file))
+    (delete-file twittering-cert-file)
+    (setq twittering-cert-file nil)))
+
+;;; FIXME: file name is hard-coded. More robust way is desired.
 (defun twittering-ensure-ca-cert ()
   "Create a CA certificate file if it does not exist, and return
 its file name."
@@ -1477,6 +1484,7 @@ A4GBADDiAVGqx+pf2rnQZQ8w1j7aDRRJbpGTJxQx78T3LUX47Me/okENI7SS+RkA
 Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 8qIYNMR1pHMc8Y3c7635s3a0kr/clRAevsvIO1qEYBlWlKlV
 -----END CERTIFICATE-----"))
+      (add-hook 'kill-emacs-hook 'twittering-delete-ca-cert-file)
       (setq twittering-cert-file file-name))))
 
 (defun twittering-start-http-ssl-session (curl-program method headers host port path parameters &optional noninteractive sentinel)

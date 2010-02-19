@@ -336,12 +336,14 @@ You should change through function `twittering-icon-mode'.")
 With a numeric argument, if the argument is positive, turn on
 icon mode; otherwise, turn off icon mode."
   (interactive "P")
-  (setq twittering-icon-mode
-	(if (null arg)
-	    (not twittering-icon-mode)
-	  (< 0 (prefix-numeric-value arg))))
-  (twittering-update-mode-line)
-  (twittering-render-timeline))
+  (let ((prev-mode twittering-icon-mode))
+    (setq twittering-icon-mode
+	  (if (null arg)
+	      (not twittering-icon-mode)
+	    (< 0 (prefix-numeric-value arg))))
+    (when (not (eq prev-mode twittering-icon-mode))
+      (twittering-update-mode-line)
+      (twittering-render-timeline))))
 
 (defvar twittering-image-data-table (make-hash-table :test 'equal))
 
@@ -2835,27 +2837,33 @@ variable `twittering-status-format'."
 
 (defun twittering-scroll-mode (&optional arg)
   (interactive "P")
-  (setq twittering-scroll-mode
-	(if (null arg)
-	    (not twittering-scroll-mode)
-	  (< 0 (prefix-numeric-value arg))))
-  (twittering-update-mode-line))
+  (let ((prev-mode twittering-scroll-mode))
+    (setq twittering-scroll-mode
+	  (if (null arg)
+	      (not twittering-scroll-mode)
+	    (< 0 (prefix-numeric-value arg))))
+    (when (not (eq prev-mode twittering-scroll-mode))
+      (twittering-update-mode-line))))
 
 (defun twittering-jojo-mode (&optional arg)
   (interactive "P")
-  (setq twittering-jojo-mode
-	(if (null arg)
-	    (not twittering-jojo-mode)
-	  (< 0 (prefix-numeric-value arg))))
-  (twittering-update-mode-line))
+  (let ((prev-mode twittering-jojo-mode))
+    (setq twittering-jojo-mode
+	  (if (null arg)
+	      (not twittering-jojo-mode)
+	    (< 0 (prefix-numeric-value arg))))
+    (when (not (eq prev-mode twittering-jojo-mode))
+      (twittering-update-mode-line))))
 
 (defun twittering-toggle-reverse-mode (&optional arg)
   (interactive "P")
-  (setq twittering-reverse-mode
-	(if (null arg)
-	    (not twittering-reverse-mode)
-	  (> (prefix-numeric-value arg) 0)))
-  (twittering-render-timeline))
+  (let ((prev-mode twittering-reverse-mode))
+    (setq twittering-reverse-mode
+	  (if (null arg)
+	      (not twittering-reverse-mode)
+	    (< 0 (prefix-numeric-value arg))))
+    (when (not (eq prev-mode twittering-reverse-mode))
+      (twittering-update-mode-line))))
 
 (defun twittering-friends-timeline ()
   (interactive)

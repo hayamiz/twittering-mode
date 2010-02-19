@@ -90,6 +90,13 @@
 	(twittering-timeline-spec-to-host-method): Likewise.
 	(twittering-timeline-spec-alias): Likewise in a	comment.
 
+	* twittering-mode.el (twittering-icon-mode): Call
+	`twittering-update-mode-line' and `twittering-render-timeline'
+	only when mode was changed.
+	(twittering-scroll-mode): Likewise.
+	(twittering-jojo-mode): Likewise.
+	(twittering-toggle-reverse-mode): Likewise.
+
 2010-02-16  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-get-first-status-head): return

@@ -233,6 +233,22 @@ when it conflict with your input method (such as AquaSKK, etc.)")
 
 SSL connections use 'curl' command as a backend.")
 
+(defvar twittering-curl-program nil
+  "Cache a result of `twittering-find-curl-program'.
+DO NOT SET VALUE MANUALLY.")
+
+(defvar twittering-connection-type-order '(curl native))
+  "*A list of connection methods in the preferred order."
+
+(defvar twittering-connection-type-table
+  '((native (check . t)
+	    (https . nil)
+	    (start . twittering-start-http-session-native))
+    (curl (check . twittering-start-http-session-curl-p)
+	  (https . twittering-start-http-session-curl-https-p)
+	  (start . twittering-start-http-session-curl)))
+  "A list of alist of connection methods.")
+
 (defvar twittering-buffer "*twittering*")
 (defun twittering-buffer ()
   (twittering-get-or-generate-buffer twittering-buffer))
@@ -1502,6 +1518,69 @@ The alist consists of pairs of field-name and field-value, such as
 	(and windows-p
 	     (file-exists-p curl.exe) curl.exe))))
 
+(defun twittering-start-http-session-curl-p ()
+  "Return t if curl was installed, otherwise nil."
+  (and (setq twittering-curl-program (twittering-find-curl-program))
+       t))
+
+(defun twittering-start-http-session-curl-https-p ()
+  "Return t if curl was installed and the curl support HTTPS, otherwise nil."
+  (if twittering-curl-program
+      (with-temp-buffer
+	(call-process twittering-curl-program
+		      nil (current-buffer) nil
+		      "--version")
+	(goto-char (point-min))
+	(and (search-forward-regexp "^Protocols: .*https" nil t)
+	     t))
+    nil))
+
+(defun twittering-lookup-http-start-function (order table)
+  "Decide a connection method from currently available methods."
+  (let ((prefer order)
+	(error-mes "A function \"%s\" (referred from %s.%s) was not found")
+	(start-func nil))
+    (catch 'found
+      (while prefer
+	(let ((config nil)
+	      check-func https-func)
+	  (and (setq config (cdr (assq (car prefer) table)))
+	       (setq check-func (cdr (assq 'check config)))
+	       (cond
+		((booleanp check-func) check-func)
+		((fboundp check-func) (funcall check-func))
+		(t
+		 (error error-mes check-func (car prefer) "check")
+		 nil))
+	       (or (not twittering-use-ssl)
+		   (and (setq https-func (cdr (assq 'https config)))
+			(cond
+			 ((booleanp https-func) https-func)
+			 ((fboundp https-func) (funcall https-func))
+			 (t
+			  (error error-mes https-func (car prefer) "https")
+			  nil))))
+	       (setq start-func (cdr (assq 'start config)))
+	       (cond
+		;; ((booleanp start-func) start-func) ;; meaningless.
+		((fboundp start-func) t)
+		(t
+		 (error error-mes start-func (car prefer) "start")
+		 nil))
+	       (throw 'found start-func)))
+	(setq prefer (cdr prefer))
+	(unless prefer
+	  (if twittering-use-ssl
+	      (if (yes-or-no-p "HTTPS(SSL) is not available because your 'cURL' cannot use HTTPS. Use HTTP instead? ")
+		  (progn
+		    (setq twittering-use-ssl nil)
+		    (twittering-update-mode-line)
+		    (setq prefer order))
+		(message "Request canceled."))
+	    (message "All connection methods are unavailable.")))
+	nil))
+    ))
+
 (defun twittering-start-http-session (method headers host port path parameters &optional noninteractive sentinel)
   "METHOD    : http method
 HEADERS   : http request heades in assoc list
@@ -1509,47 +1588,24 @@ HOST      : remote host name
 PORT      : destination port number. nil means default port (http: 80, https: 443)
 PATH      : http request path
 PARAMETERS: http request parameters (query string)"
-  (block nil
-    (unless (member method '("POST" "GET"))
-      (error "Unknown HTTP method: %s" method))
-    (unless (string-match "^/" path)
-      (error "Invalid HTTP path: %s" path))
+  (unless (member method '("POST" "GET"))
+    (error "Unknown HTTP method: %s" method))
+  (unless (string-match "^/" path)
+    (error "Invalid HTTP path: %s" path))
 
-    (unless (assoc "Host" headers)
-      (setq headers (cons `("Host" . ,host) headers)))
-    (unless (assoc "User-Agent" headers)
-      (setq headers (cons `("User-Agent" . ,(twittering-user-agent))
-			  headers)))
+  (unless (assoc "Host" headers)
+    (setq headers (cons `("Host" . ,host) headers)))
+  (unless (assoc "User-Agent" headers)
+    (setq headers (cons `("User-Agent" . ,(twittering-user-agent))
+			headers)))
 
-    (let ((curl-program nil))
-      (when twittering-use-ssl
-	(cond
-	 ((not (setq curl-program (twittering-find-curl-program)))
-	  (if (yes-or-no-p "HTTPS(SSL) is not available because 'cURL' does not exist. Use HTTP instead? ")
-	      (progn (setq twittering-use-ssl nil)
-		     (twittering-update-mode-line))
-	    (message "Request canceled")
-	    (return)))
-	 ((not (with-temp-buffer
-		 (call-process curl-program
-			       nil (current-buffer) nil
-			       "--version")
-		 (goto-char (point-min))
-		 (search-forward-regexp
-		  "^Protocols: .*https" nil t)))
-	  (if (yes-or-no-p "HTTPS(SSL) is not available because your 'cURL' cannot use HTTPS. Use HTTP instead? ")
-	      (progn (setq twittering-use-ssl nil)
-		     (twittering-update-mode-line))
-	    (message "Request canceled")
-	    (return)))))
-
-      (if twittering-use-ssl
-	  (twittering-start-http-ssl-session
-	   curl-program method headers host port path parameters
-	   noninteractive sentinel)
-	(twittering-start-http-non-ssl-session
-	 method headers host port path parameters
-	 noninteractive sentinel)))))
+  (let ((func (twittering-lookup-http-start-function
+	       twittering-connection-type-order
+	       twittering-connection-type-table)))
+    (if (and func (fboundp func))
+	(funcall func method headers host port path parameters
+		 noninteractive sentinel)
+      nil)))
 
 (defvar twittering-cert-file nil)
 
@@ -1586,7 +1642,7 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
       (add-hook 'kill-emacs-hook 'twittering-delete-ca-cert-file)
       (setq twittering-cert-file file-name))))
 
-(defun twittering-start-http-ssl-session (curl-program method headers host port path parameters &optional noninteractive sentinel)
+(defun twittering-start-http-session-curl (method headers host port path parameters &optional noninteractive sentinel)
   ;; TODO: use curl
   (let* ((request (twittering-make-http-request
 		   method headers host port path parameters))
@@ -1600,9 +1656,9 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 			(list "-H"
 			      (format "%s: %s"
 				      (car pair) (cdr pair))))
-		      headers)
-	    "--cacert"
-	    ,(twittering-ensure-ca-cert))))
+		      headers))))
+    (when twittering-use-ssl
+      (nconc curl-args `("--cacert" ,(twittering-ensure-ca-cert))))
     (when twittering-proxy-use
       (nconc curl-args `("-x" ,(format "%s:%s" twittering-proxy-server
 					 twittering-proxy-port)))
@@ -1611,7 +1667,8 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 	(nconc curl-args `("-U" ,(format "%s:%s" twittering-proxy-user
 					   twittering-proxy-password)))))
 
-    (flet ((request (key) (funcall request key)))
+    (flet ((request (key)
+		    (funcall request key)))
       (nconc curl-args `(,(if parameters
 			      (concat (request :uri) "?"
 				      (request :query-string))
@@ -1634,7 +1691,7 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 	     (apply 'start-process
 		    "*twmode-curl*"
 		    temp-buffer
-		    curl-program
+		    twittering-curl-program
 		    curl-args)))
 	(set-process-sentinel
 	 curl-process
@@ -1645,11 +1702,12 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
   )
 
 ;; TODO: proxy
-(defun twittering-start-http-non-ssl-session (method headers host port path parameters &optional noninteractive sentinel)
+(defun twittering-start-http-session-native (method headers host port path parameters &optional noninteractive sentinel)
   (let ((request (twittering-make-http-request
 		  method headers host port path parameters))
 	(temp-buffer (generate-new-buffer "*twmode-http-buffer*")))
-    (flet ((request (key) (funcall request key)))
+    (flet ((request (key)
+		    (funcall request key)))
       (let* ((request-str
 	      (format "%s %s%s HTTP/1.1\r\n%s\r\n\r\n"
 		      (request :method)

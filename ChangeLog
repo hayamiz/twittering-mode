@@ -219,6 +219,21 @@
 	(twittering-format-status): Reverse condition for the specifier
 	"%R".
 
+	* twittering-mode.el (twittering-lookup-http-start-function): New
+	defun to decide a connection method from currently available
+	methods.
+	(twittering-connection-type-table): New defvar.
+	(twittering-connection-type-order): Likewise.
+
+	* twittering-mode.el (twittering-curl-program): New defvar to
+	cache a result of `twittering-find-curl-program'.
+	(twittering-start-http-session-curl-p): New defun.
+	(twittering-start-http-session-curl-https-p): Likewise.
+	(twittering-start-http-session-curl): Rename from
+	`twittering-start-http-ssl-session'.
+	(twittering-start-http-session-native): Rename from
+	`twittering-start-http-non-ssl-session'.
+
 2010-02-18  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-current-timeline-spec): return

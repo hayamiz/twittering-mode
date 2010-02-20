@@ -2752,7 +2752,7 @@ variable `twittering-status-format'."
 (defun twittering-retrieve-image (image-url)
   (let ((image-data (gethash `(,image-url . ,twittering-convert-fix-size)
 			     twittering-image-data-table)))
-    (when (not image-data)
+    (unless image-data
       (let ((image-type nil)
 	    (image-spec nil)
 	    (converted-image-size

@@ -10,6 +10,9 @@
 	Return nil explicitly when `twittering-string-to-timeline-spec'
 	return nil.
 
+	* twittering-mode.el (twittering-retrieve-image): Use `unless'
+	instead of `when'.
+
 2010-02-19  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-delete-ca-cert-file): New defun.

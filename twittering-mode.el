@@ -341,7 +341,7 @@ icon mode; otherwise, turn off icon mode."
 	  (if (null arg)
 	      (not twittering-icon-mode)
 	    (< 0 (prefix-numeric-value arg))))
-    (when (not (eq prev-mode twittering-icon-mode))
+    (unless (eq prev-mode twittering-icon-mode)
       (twittering-update-mode-line)
       (twittering-render-timeline))))
 
@@ -2842,7 +2842,7 @@ variable `twittering-status-format'."
 	  (if (null arg)
 	      (not twittering-scroll-mode)
 	    (< 0 (prefix-numeric-value arg))))
-    (when (not (eq prev-mode twittering-scroll-mode))
+    (unless (eq prev-mode twittering-scroll-mode)
       (twittering-update-mode-line))))
 
 (defun twittering-jojo-mode (&optional arg)
@@ -2852,7 +2852,7 @@ variable `twittering-status-format'."
 	  (if (null arg)
 	      (not twittering-jojo-mode)
 	    (< 0 (prefix-numeric-value arg))))
-    (when (not (eq prev-mode twittering-jojo-mode))
+    (unless (eq prev-mode twittering-jojo-mode)
       (twittering-update-mode-line))))
 
 (defun twittering-toggle-reverse-mode (&optional arg)
@@ -2862,7 +2862,7 @@ variable `twittering-status-format'."
 	  (if (null arg)
 	      (not twittering-reverse-mode)
 	    (< 0 (prefix-numeric-value arg))))
-    (when (not (eq prev-mode twittering-reverse-mode))
+    (unless (eq prev-mode twittering-reverse-mode)
       (twittering-update-mode-line))))
 
 (defun twittering-friends-timeline ()

@@ -24,6 +24,10 @@
 
 	* twittering-mode.el (twittering-retrieve-image): Use `unless'
 	instead of `when'.
+	(twittering-icon-mode): Likewise.
+	(twittering-scroll-mode): Likewise.
+	(twittering-jojo-mode): Likewise.
+	(twittering-toggle-reverse-mode): Likewise.
 
 2010-02-19  Satoshi Yatagawa  <yata_github@y.hauN.org>
 

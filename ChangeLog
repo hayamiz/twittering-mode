@@ -1,3 +1,15 @@
+2010-02-20  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-current-timeline-spec): Check
+	`spec-string' is a string before calling
+	`twittering-string-to-timeline-spec'.
+	(twittering-get-and-render-timeline): Likewise.
+	(twittering-read-timeline-spec-with-completion): Likewise.
+
+	* twittering-mode.el (twittering-read-timeline-spec-with-completion):
+	Return nil explicitly when `twittering-string-to-timeline-spec'
+	return nil.
+
 2010-02-19  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-delete-ca-cert-file): New defun.

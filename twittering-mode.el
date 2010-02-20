@@ -940,7 +940,7 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 
 (defun twittering-current-timeline-spec ()
   (let ((spec-string (twittering-current-timeline-spec-string)))
-    (if spec-string
+    (if (stringp spec-string)
 	(twittering-string-to-timeline-spec spec-string)
       nil)))
 
@@ -2720,7 +2720,9 @@ variable `twittering-status-format'."
 	 ;; being modified by `minibuf-isearch.el'.
 	 (spec-string (copy-sequence spec-string))
 	 (spec ;; normalized spec.
-	  (twittering-string-to-timeline-spec spec-string)))
+	  (if (stringp spec-string)
+	      (twittering-string-to-timeline-spec spec-string)
+	    nil)))
     (when (null spec)
       (error "\"%s\" is invalid as a timeline spec"
 	     (or spec-string original-spec)))
@@ -3204,13 +3206,16 @@ variable `twittering-status-format'."
 		nil)))
 	   (t
 	    spec-string)))
-	 (spec
-	  (condition-case error-str
-	      (twittering-string-to-timeline-spec spec-string)
-	    (error
-	     (message "Invalid timeline spec: %s" error-str)
-	     nil))))
+	 (spec (if (stringp spec-string)
+		   (condition-case error-str
+		       (twittering-string-to-timeline-spec spec-string)
+		     (error
+		      (message "Invalid timeline spec: %s" error-str)
+		      nil))
+		 nil)))
     (cond
+     ((null spec)
+      nil)
      (spec (if as-string
 	       spec-string
 	     spec))

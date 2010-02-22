@@ -4,6 +4,12 @@
 	Call `twittering-decode-html-entities' to decode entities
 	properly.
 
+	* twittering-mode.el (twittering-get-error-message): Change the
+	first argument to `buffer' from `proc'.
+	(twittering-http-get-default-sentinel): Adjust callers.
+	(twittering-http-get-list-index-sentinel): Likewise.
+	(twittering-http-post-default-sentinel): Likewise.
+
 2010-02-20  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-current-timeline-spec): Check

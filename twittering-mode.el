@@ -1887,13 +1887,15 @@ BUFFER may be a buffer or the name of an existing buffer."
 	       (string-match ":\\([0-9]+\\)$" id-str)
 	       (match-string 1 id-str)))
       (source
-       . ,(let ((html (car (cddr (assq 'twitter:source atom-xml-entry)))))
+       . ,(let ((html (twittering-decode-html-entities
+		       (car (cddr (assq 'twitter:source atom-xml-entry))))))
 	    (when (string-match
 		   "<a href=\"\\(.*?\\)\".*?>\\(.*\\)</a>" html)
 	      (let ((uri (match-string-no-properties 1 html))
 		    (caption (match-string-no-properties 2 html)))
 		caption))))
-      (text . ,(car (cddr (assq 'title atom-xml-entry))))
+      (text . ,(twittering-decode-html-entities
+		(car (cddr (assq 'title atom-xml-entry)))))
       ,@(progn
 	  (string-match "^\\([^ ]+\\) (\\(.*\\))$" author-str)
 	  `((user-screen-name . ,(match-string 1 author-str))

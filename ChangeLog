@@ -1,3 +1,9 @@
+2010-02-22  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-atom-xmltree-to-status-datum):
+	Call `twittering-decode-html-entities' to decode entities
+	properly.
+
 2010-02-20  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-current-timeline-spec): Check

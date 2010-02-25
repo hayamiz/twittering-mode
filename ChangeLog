@@ -14,6 +14,9 @@
 	(twittering-format-status): Don't define `profile-image' as
 	flet'ed function for the specifier "%i".
 
+	* twittering-mode.el (twittering-get-tweets): Don't call
+	`twittering-retrieve-image' here.
+	 
 2010-02-22  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-atom-xmltree-to-status-datum):

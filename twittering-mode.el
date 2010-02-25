@@ -2702,9 +2702,6 @@ variable `twittering-status-format'."
 				 "per_page"
 			       "count")
 			     (number-to-string count)))
-	  (if (and twittering-icon-mode window-system
-		   twittering-image-stack)
-	      (mapc 'twittering-retrieve-image twittering-image-stack))
 	  (twittering-http-get host method noninteractive parameters))))
       ))
   )

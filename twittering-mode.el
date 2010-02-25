@@ -2398,24 +2398,6 @@ Specification of FORMAT-STR is described in the document for the
 variable `twittering-status-format'."
   (flet ((attr (key)
 	       (or (assocref key status) ""))
-	 (profile-image
-	  ()
-	  (let ((profile-image-url (attr 'user-profile-image-url))
-		(icon-string " "))
-	    (unless (gethash
-		     `(,profile-image-url . ,twittering-convert-fix-size)
-		     twittering-image-data-table)
-	      (add-to-list 'twittering-image-stack profile-image-url))
-	    
-	    (when (and twittering-icon-mode window-system
-		       icon-string)
-	      (let ((display-spec
-		     (twittering-make-display-spec-for-icon profile-image-url)))
-		(when display-spec
-		  (set-text-properties 0 (length icon-string)
-				       display-spec icon-string)))
-	      icon-string)
-	    ))
 	 (make-string-with-url-property
 	  (str url)
 	  (let ((result (copy-sequence str)))
@@ -2505,7 +2487,20 @@ variable `twittering-status-format'."
 			     (match-string 1 str) prefix mod-table)))
 		      (twittering-fill-string formatted-str)))))
 	      ("f" . ,(attr 'source))
-	      ("i" . (lambda (context) (profile-image)))
+	      ("i" .
+	       ,(if (and twittering-icon-mode window-system)
+		    (let* ((profile-image-url (attr 'user-profile-image-url))
+			   (display-spec (twittering-make-display-spec-for-icon
+					  profile-image-url)))
+		      (if display-spec
+			  (let ((icon-string " "))
+ 			    (set-text-properties 0 (length icon-string)
+						 display-spec icon-string)
+			    (add-to-list 'twittering-image-stack
+					 profile-image-url)
+			    icon-string)
+			""))
+		  ""))
 	      ("j" . ,(attr 'user-id))
 	      ("L" . ,(let ((location (attr 'user-location)))
 			(if (not (string= "" location))

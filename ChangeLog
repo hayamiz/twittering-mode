@@ -6,6 +6,8 @@
 
 	* twittering-mode.el (twittering-retrieve-image): Check the return
 	value of `call-process-region'.
+	(twittering-make-display-spec-for-icon): Check the return value of
+	`twittering-retrieve-image'.
 
 2010-02-22  Satoshi Yatagawa  <yata_github@y.hauN.org>
 

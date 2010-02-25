@@ -2306,28 +2306,27 @@ the type of the image is not supported, nil is returned.
 
 If the size of the image exceeds FIXED-LENGTH, the center of the
 image are displayed."
-  (let* ((image-data (twittering-retrieve-image image-url))
-	 (image-spec
-	  `(image :type ,(car image-data)
-		  :data ,(cdr image-data))))
-    (if (not (image-type-available-p (car image-data)))
-	nil
-      (if (and twittering-convert-fix-size (not twittering-use-convert))
-	  (let* ((size (if (cdr image-data)
-			   (image-size image-spec t)
-			 '(48 . 48)))
-		 (width (car size))
-		 (height (cdr size))
-		 (fixed-length twittering-convert-fix-size)
-		 (half-fixed-length (/ fixed-length 2))
-		 (slice-spec
-		  (if (or (< fixed-length width) (< fixed-length height))
-		      `(slice ,(max 0 (- (/ width 2) half-fixed-length))
-			      ,(max 0 (- (/ height 2) half-fixed-length))
-			      ,fixed-length ,fixed-length)
-		    `(slice 0 0 ,fixed-length ,fixed-length))))
-	    `(display (,image-spec ,slice-spec)))
-	`(display ,image-spec)))))
+  (let ((image-data (twittering-retrieve-image image-url)))
+    (and image-data (image-type-available-p (car image-data))
+	 (let ((image-spec
+		`(image :type ,(car image-data)
+			:data ,(cdr image-data))))
+	   (if (and twittering-convert-fix-size (not twittering-use-convert))
+	       (let* ((size (if (cdr image-data)
+				(image-size image-spec t)
+			      '(48 . 48)))
+		      (width (car size))
+		      (height (cdr size))
+		      (fixed-length twittering-convert-fix-size)
+		      (half-fixed-length (/ fixed-length 2))
+		      (slice-spec
+		       (if (or (< fixed-length width) (< fixed-length height))
+			   `(slice ,(max 0 (- (/ width 2) half-fixed-length))
+				   ,(max 0 (- (/ height 2) half-fixed-length))
+				   ,fixed-length ,fixed-length)
+			 `(slice 0 0 ,fixed-length ,fixed-length))))
+		 `(display (,image-spec ,slice-spec)))
+	     `(display ,image-spec))))))
 
 (defun twittering-format-string (string prefix replacement-table)
   "Format STRING according to PREFIX and REPLACEMENT-TABLE.

@@ -2753,6 +2753,7 @@ variable `twittering-status-format'."
 	(set-buffer-multibyte nil)
 	(let ((coding-system-for-read 'binary)
 	      (coding-system-for-write 'binary)
+	      (url-show-status nil)
 	      (require-final-newline nil))
 	  (url-insert-file-contents image-url)
 	  (let ((image-type (twittering-image-type image-url (current-buffer)))
@@ -2799,7 +2800,8 @@ variable `twittering-status-format'."
 			  (symbol-name (car x)))
 			twittering-tinyurl-services-map ", ")))
     (if longurl
-	(let ((buffer (url-retrieve-synchronously (concat api longurl))))
+	(let* ((url-show-status nil)
+	       (buffer (url-retrieve-synchronously (concat api longurl))))
 	  (with-current-buffer buffer
 	    (goto-char (point-min))
 	    (prog1

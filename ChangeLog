@@ -17,6 +17,10 @@
 	* twittering-mode.el (twittering-get-tweets): Don't call
 	`twittering-retrieve-image' here.
 	 
+	* twittering-mode.el (twittering-retrieve-image): Bind
+	`url-show-status' locally to inhibit showing a progress message.
+	(twittering-tinyurl-get): Likewise.
+
 2010-02-22  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-atom-xmltree-to-status-datum):

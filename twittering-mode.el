@@ -2508,7 +2508,7 @@ variable `twittering-status-format'."
 	      ("f" . ,(attr 'source))
 	      ("i" . (lambda (context) (profile-image)))
 	      ("j" . ,(attr 'user-id))
-	      ("L" . ,(let ((location (or (attr 'user-location) "")))
+	      ("L" . ,(let ((location (attr 'user-location)))
 			(if (not (string= "" location))
 			    (concat " [" location "]")
 			  "")))

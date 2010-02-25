@@ -1,3 +1,9 @@
+2010-02-25  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-format-status): Use the return
+	value of the flet'ed function `attr' directly for the specifier
+	"%L", forgotten in the 2010-02-18 changing.
+
 2010-02-22  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-atom-xmltree-to-status-datum):

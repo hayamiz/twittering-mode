@@ -21,6 +21,14 @@
 	`url-show-status' locally to inhibit showing a progress message.
 	(twittering-tinyurl-get): Likewise.
 
+	* twittering-mode.el (twittering-image-type): Don't use the
+	external command `file' because Emacs can display only an image
+	which is recongnized by `image-type-from-data'.
+	(twittering-retrieve-image): Don't look up
+	`twittering-image-data-table' here.
+	(twittering-make-display-spec-for-icon): Call
+	`twittering-retrieve-image' only when `gethash' returns nil.
+
 2010-02-22  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-atom-xmltree-to-status-datum):

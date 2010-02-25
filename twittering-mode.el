@@ -2756,43 +2756,47 @@ variable `twittering-status-format'."
 	(error "%s has not been supported yet" type))))))
 
 (defun twittering-retrieve-image (image-url)
-  (let ((image-data (gethash `(,image-url . ,twittering-convert-fix-size)
-			     twittering-image-data-table)))
-    (unless image-data
-      (let ((image-type nil)
-	    (image-spec nil)
-	    (converted-image-size
-	     `(,twittering-convert-fix-size . ,twittering-convert-fix-size)))
-	(with-temp-buffer
-	  (set-buffer-multibyte nil)
-	  (let ((coding-system-for-read 'binary)
-		(coding-system-for-write 'binary)
-		(require-final-newline nil))
-	    (url-insert-file-contents image-url)
-	    (setq image-type (twittering-image-type image-url
-						    (current-buffer)))
-	    (setq image-spec `(image :type ,image-type
-				     :data ,(buffer-string)))
-	    (when (and twittering-convert-fix-size twittering-use-convert
-		       (not
-			(and (image-type-available-p image-type)
-			     (equal (image-size image-spec t)
-				    converted-image-size))))
-	      (call-process-region 
-	       (point-min) (point-max)
-	       twittering-convert-program
-	       t t nil
-	       (if image-type (format "%s:-" image-type) "-")
-	       "-resize"
-	       (format "%dx%d" twittering-convert-fix-size
-		       twittering-convert-fix-size)
-	       "xpm:-")
-	      (setq image-type 'xpm))
-	    (setq image-data `(,image-type . ,(buffer-string))))
-	  (puthash `(,image-url . ,twittering-convert-fix-size)
-		   image-data
-		   twittering-image-data-table))))
-    image-data))
+  (or (gethash `(,image-url . ,twittering-convert-fix-size)
+	       twittering-image-data-table)
+      (with-temp-buffer
+	(set-buffer-multibyte nil)
+	(let ((coding-system-for-read 'binary)
+	      (coding-system-for-write 'binary)
+	      (require-final-newline nil))
+	  (url-insert-file-contents image-url)
+	  (let ((image-type (twittering-image-type image-url (current-buffer)))
+		(converted-image-size
+		 `(,twittering-convert-fix-size
+		   . ,twittering-convert-fix-size)))
+	    (and (and twittering-convert-fix-size twittering-use-convert
+		      (or (eq 'bitmap image-type)
+			  (not (and (image-type-available-p image-type)
+				    (let ((image-spec
+					   `(image :type ,image-type
+						   :data ,(buffer-string))))
+				      (equal (image-size image-spec t)
+					     converted-image-size))))))
+		 (let ((exit-status
+			(call-process-region
+			 (point-min) (point-max)
+			 twittering-convert-program
+			 t t nil
+			 (if image-type (format "%s:-" image-type) "-")
+			 "-resize"
+			 (format "%dx%d" twittering-convert-fix-size
+				 twittering-convert-fix-size)
+			 "xpm:-")))
+		   (setq image-type (and (integerp exit-status)
+					 (= 0 exit-status)
+					 'xpm))))
+	    (if image-type
+		(let ((image-data `(,image-type . ,(buffer-string))))
+		  (puthash `(,image-url . ,twittering-convert-fix-size)
+			   image-data
+			   twittering-image-data-table)
+		  image-data)
+	      nil))))
+      nil))
 
 (defun twittering-tinyurl-get (longurl)
   "Tinyfy LONGURL."

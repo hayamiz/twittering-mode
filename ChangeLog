@@ -4,6 +4,9 @@
 	value of the flet'ed function `attr' directly for the specifier
 	"%L", forgotten in the 2010-02-18 changing.
 
+	* twittering-mode.el (twittering-retrieve-image): Check the return
+	value of `call-process-region'.
+
 2010-02-22  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-atom-xmltree-to-status-datum):

@@ -3070,11 +3070,14 @@ variable `twittering-status-format'."
 	    (delete-region (point-min) (point-max))
 	    (insert url)))))))
 
-(defun twittering-retweet ()
-  (interactive)
-  (if twittering-use-native-retweet
-      (twittering-native-retweet)
-    (twittering-organic-retweet)))
+(defun twittering-retweet (&optional arg)
+  (interactive "P")
+  (let ((use-native-retweet-flag (if arg
+				     (not twittering-use-native-retweet)
+				   twittering-use-native-retweet)))
+    (if use-native-retweet-flag
+	(twittering-native-retweet)
+      (twittering-organic-retweet))))
 
 (defun twittering-organic-retweet ()
   (interactive)
@@ -3110,7 +3113,7 @@ variable `twittering-status-format'."
 	(browse-url uri))))
 
 (defun twittering-follow (&optional remove)
-  (interactive)
+  (interactive "P")
   (let ((username (get-text-property (point) 'username))
 	(method (if remove "destroy" "create"))
 	(mes (if remove "unfollowing" "following")))
@@ -3150,7 +3153,7 @@ variable `twittering-status-format'."
       (message "No status selected"))))
 
 (defun twittering-favorite (&optional remove)
-  (interactive)
+  (interactive "P")
   (let ((id (get-text-property (point) 'id))
 	(text (get-text-property (point) 'text))
 	(width (max 40 ;; XXX

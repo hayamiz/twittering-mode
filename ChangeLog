@@ -1,3 +1,11 @@
+2010-02-27  Satoshi Yatagawa  <yata_github@y.hauN.org>
+	
+	* twittering-mode.el (twittering-retweet): If `C-u' prefix is
+	given, `twittering-use-native-retweet' is temporarily reversed
+	before use.
+	(twittering-follow): Handle a prefix `C-u' correctly.
+	(twittering-favorite): Likewise.
+
 2010-02-25  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-format-status): Use the return

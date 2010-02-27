@@ -1371,7 +1371,9 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 (defun twittering-edit-cancel-status ()
   (interactive)
   (when (or (not (buffer-modified-p))
-	    (y-or-n-p "Cancel this tweet? "))
+	    (prog1 (if (y-or-n-p "Cancel this tweet? ")
+		       (message "Request canceled")
+		     (message nil))))
     (twittering-edit-close)))
 
 (defun twittering-edit-next-history ()
@@ -3116,13 +3118,14 @@ variable `twittering-status-format'."
   (interactive "P")
   (let ((username (get-text-property (point) 'username))
 	(method (if remove "destroy" "create"))
-	(mes (if remove "unfollowing" "following")))
+	(mes (if remove "Unfollowing" "Following")))
     (unless username
       (setq username (twittering-read-username-with-completion
 		      "who: " "" 'twittering-user-history)))
     (if (< 0 (length username))
-	(when (y-or-n-p (format "%s %s? " mes username))
-	  (twittering-manage-friendships method username))
+	(if (y-or-n-p (format "%s %s? " mes username))
+	    (twittering-manage-friendships method username)
+	  (message "Request canceled"))
       (message "No user selected"))))
 
 (defun twittering-unfollow ()
@@ -3146,10 +3149,11 @@ variable `twittering-status-format'."
 				(truncate-string-to-width text (- width 3))
 				"...")
 			     text))))
-	  (when (y-or-n-p mes)
-	    (twittering-http-post "api.twitter.com"
-			(concat "1/statuses/retweet/" id)
-			`(("source" . "twmode")))))
+	  (if (y-or-n-p mes)
+	      (twittering-http-post "api.twitter.com"
+				    (concat "1/statuses/retweet/" id)
+				    `(("source" . "twmode")))
+	    (message "Request canceled")))
       (message "No status selected"))))
 
 (defun twittering-favorite (&optional remove)
@@ -3171,8 +3175,9 @@ variable `twittering-status-format'."
 				(truncate-string-to-width text (- width 3))
 				"...")
 			     text))))
-	  (when (y-or-n-p mes)
-	    (twittering-manage-favorites method id)))
+	  (if (y-or-n-p mes)
+	      (twittering-manage-favorites method id)
+	    (message "Request canceled")))
       (message "No status selected"))))
 
 (defun twittering-unfavorite ()

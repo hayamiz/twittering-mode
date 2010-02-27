@@ -6,6 +6,12 @@
 	(twittering-follow): Handle a prefix `C-u' correctly.
 	(twittering-favorite): Likewise.
 
+	* twittering-mode.el (twittering-edit-cancel-status): Show a
+	message when cancelling a request.
+	(twittering-native-retweet): Likewise.
+	(twittering-follow): Likewise.
+	(twittering-favorite): Likewise.
+
 2010-02-25  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-format-status): Use the return

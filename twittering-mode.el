@@ -285,8 +285,8 @@ SCHEME must be \"http\" or \"https\"."
            (proxy (if proxy-service (cdr proxy-service) nil)))
       (if (and proxy
                (string-match "^\\([^:]+\\):\\([0-9]+\\)$" proxy))
-          (let* ((host (match-string 1 proxy))
-                 (port (string-to-number (match-string 2 proxy))))
+          (let ((host (match-string 1 proxy))
+		(port (string-to-number (match-string 2 proxy))))
             (cons host port))
         nil)))
    (t
@@ -571,7 +571,7 @@ defined in Emacs21."
       (nreverse result))))
 
 (defun twittering-completing-read (prompt collection &optional predicate require-match initial-input hist def inherit-input-method)
-"Read a string in the minibuffer, with completion.
+  "Read a string in the minibuffer, with completion.
 This is a modified version of `completing-read' and accepts candidates
 as a list of a string on Emacs21."
   ;; completing-read() of Emacs21 does not accepts candidates as
@@ -803,8 +803,8 @@ Return cons of the spec and the rest string."
 	 (t
 	  (error "Alias \"%s\" is undefined" name))))))
    ((string-match "^(" str)
-    (let* ((rest (concat "+" (substring str (match-end 0))))
-	   (result '()))
+    (let ((rest (concat "+" (substring str (match-end 0))))
+	  (result '()))
       (while (and rest (string-match "^\\+" rest))
 	(let* ((spec-string (substring rest (match-end 0)))
 	       (pair (twittering-extract-timeline-spec
@@ -936,10 +936,10 @@ Return nil if SPEC-STR is invalid as a timeline spec."
    (t nil)))
 
 (defun twittering-add-timeline-history (&optional timeline-spec)
-  (let* ((spec-string
-	  (if timeline-spec
-	      (twittering-timeline-spec-to-string timeline-spec t)
-	    (twittering-current-timeline-spec-string))))
+  (let ((spec-string
+	 (if timeline-spec
+	     (twittering-timeline-spec-to-string timeline-spec t)
+	   (twittering-current-timeline-spec-string))))
     (when spec-string
       (when (or (null twittering-timeline-history)
 		(not (string= spec-string (car twittering-timeline-history))))
@@ -990,8 +990,8 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 	   (remove nil
 		   (mapcar
 		    (lambda (status)
-		      (let* ((id (cdr (assq 'id status)))
-			     (source-id (cdr-safe (assq 'source-id status))))
+		      (let ((id (cdr (assq 'id status)))
+			    (source-id (cdr-safe (assq 'source-id status))))
 			(unless (or (gethash id id-table)
 				    (and source-id
 					 (gethash source-id id-table)))
@@ -1050,8 +1050,8 @@ Return nil if SPEC-STR is invalid as a timeline spec."
   (apply 'append
 	 (mapcar
 	  (lambda (pair)
-	    (let* ((proc (car pair))
-		   (spec-info (cadr pair)))
+	    (let ((proc (car pair))
+		  (spec-info (cadr pair)))
 	      (if (equal spec-info spec)
 		  `(,proc)
 		nil)))
@@ -1182,11 +1182,10 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 
 (defvar twittering-mode-syntax-table nil "")
 
-(if twittering-mode-syntax-table
-    ()
+(unless twittering-mode-syntax-table
   (setq twittering-mode-syntax-table (make-syntax-table))
   ;; (modify-syntax-entry ?  "" twittering-mode-syntax-table)
-  (modify-syntax-entry ?\" "w"  twittering-mode-syntax-table)
+  (modify-syntax-entry ?\" "w" twittering-mode-syntax-table)
   )
 
 (defun twittering-mode-init-variables ()
@@ -1300,9 +1299,9 @@ Return nil if SPEC-STR is invalid as a timeline spec."
     ))
 
 (defun twittering-edit-extract-status ()
-  (if (not (eq major-mode 'twittering-edit-mode))
-      ""
-    (buffer-string)))
+  (if (eq major-mode 'twittering-edit-mode)
+      (buffer-string)
+    ""))
 
 (defun twittering-edit-setup-help ()
   (let ((help-str "Keymap:
@@ -1424,14 +1423,12 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 	     (file-exists-p curl.exe) curl.exe))))
 
 (defun twittering-start-http-session (method headers host port path parameters &optional noninteractive sentinel)
-  "
-METHOD    : http method
+  "METHOD    : http method
 HEADERS   : http request heades in assoc list
 HOST      : remote host name
 PORT      : destination port number. nil means default port (http: 80, https: 443)
 PATH      : http request path
-PARAMETERS: http request parameters (query string)
-"
+PARAMETERS: http request parameters (query string)"
   (block nil
     (unless (find method '("POST" "GET") :test 'equal)
       (error "Unknown HTTP method: %s" method))
@@ -1620,8 +1617,7 @@ Available keywords:
   :headers-string
   :schema
   :uri
-  :query-string
-"
+  :query-string"
   (let* ((schema (if twittering-use-ssl "https" "http"))
 	 (default-port (if twittering-use-ssl 443 80))
 	 (port (if port port default-port))
@@ -1896,9 +1892,9 @@ BUFFER may be a buffer or the name of an existing buffer."
 	(twittering-xmltree-to-status body)))))
 
 (defun twittering-atom-xmltree-to-status-datum (atom-xml-entry)
-  (let* ((id-str (car (cddr (assq 'id atom-xml-entry))))
-	 (time-str (car (cddr (assq 'updated atom-xml-entry))))
-	 (author-str (car (cddr (assq 'name (assq 'author atom-xml-entry))))))
+  (let ((id-str (car (cddr (assq 'id atom-xml-entry))))
+	(time-str (car (cddr (assq 'updated atom-xml-entry))))
+	(author-str (car (cddr (assq 'name (assq 'author atom-xml-entry))))))
     `((created-at
        . ,(if (string-match "\\(.*\\)T\\(.*\\)Z" time-str)
 	      ;; time-str is formatted as
@@ -2096,9 +2092,9 @@ BUFFER may be a buffer or the name of an existing buffer."
 	  (setq regexp-index
 		(string-match "@\\([a-zA-Z0-9_-]+\\)\\|\\(https?://[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+\\)" text regexp-index))
 	  (when regexp-index
-	    (let* ((matched-string (match-string-no-properties 0 text))
-		   (screen-name (match-string-no-properties 1 text))
-		   (uri (match-string-no-properties 2 text)))
+	    (let ((matched-string (match-string-no-properties 0 text))
+		  (screen-name (match-string-no-properties 1 text))
+		  (uri (match-string-no-properties 2 text)))
 	      (add-text-properties
 	       (if screen-name
 		   (+ 1 (match-beginning 0))
@@ -2228,7 +2224,7 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 	  (end-marker (make-marker)))
       (set-marker-insertion-type end-marker t)
       (while
-	  (let* ((value (get-text-property beg prop)))
+	  (let ((value (get-text-property beg prop)))
 	    (if value
 		(let* ((end (next-single-property-change beg prop))
 		       (end (or end (point-max)))
@@ -2293,10 +2289,10 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 		     (twittering-get-first-status-head))))
 	  (mapc
 	   (lambda (status)
-	     (let* ((id (cdr (assoc 'id status))))
+	     (let ((id (cdr (assoc 'id status))))
 	       ;; Find where the status should be inserted.
 	       (while
-		   (let* ((buf-id (get-text-property pos 'id)))
+		   (let ((buf-id (get-text-property pos 'id)))
 		     (if (and buf-id
 			      (if twittering-reverse-mode
 				  (twittering-status-id< buf-id id)
@@ -2418,8 +2414,7 @@ following symbols;
   'prefix --PREFIX.
   'replacement-table --REPLACEMENT-TABLE.
   'from --FROM.
-  'processed-string --the already processed string.
-"
+  'processed-string --the already processed string."
   (let ((current-pos 0)
 	(result "")
 	(case-fold-search nil))
@@ -2457,7 +2452,7 @@ following symbols;
 	      (setq current-table (cdr current-table)))))
 	(if (not found)
 	    (setq result (concat result matched-string)))))
-    (let* ((skipped-string (substring string current-pos)))
+    (let ((skipped-string (substring string current-pos)))
       (concat result skipped-string))
     ))
 

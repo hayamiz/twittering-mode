@@ -471,9 +471,12 @@ and its contents (BUFFER)"
     ;; So, we load "kinsoku.el" in advance if necessary.
     (load "international/kinsoku"))
   (let* ((kinsoku-limit 1)
-	 (adjustment (if enable-kinsoku
-			 kinsoku-limit
-		       0))
+	 (adjustment (+ (if (and (boundp 'fill-prefix) (stringp fill-prefix))
+			    (string-width fill-prefix)
+			  0)
+			(if enable-kinsoku
+			    kinsoku-limit
+			  0)))
 	 (min-width
 	  (apply 'min
 		 (or

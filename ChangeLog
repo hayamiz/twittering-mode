@@ -12,6 +12,11 @@
 	(twittering-follow): Likewise.
 	(twittering-favorite): Likewise.
 
+2010-02-26  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-fill-string): Calculate a column
+	with `fill-prefix'.
+
 2010-02-25  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-format-status): Use the return

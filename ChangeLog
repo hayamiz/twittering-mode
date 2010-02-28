@@ -1,3 +1,27 @@
+2010-02-28  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-format-status-function-source):
+	new variable for the status format used for generating
+	`twittering-format-status-function'.
+	(twittering-format-status-function): new variable for
+	byte-compiled formating function.
+	(twittering-parse-format-string): new function.
+	(twittering-generate-formater): new macro for generating a lambda
+	expression for given a format string and specifiers.
+	(twittering-generate-status-formater-base): new macro for
+	generating a lambda expression for given a format string.
+	(twittering-generate-format-status-function): new macro for
+	generating format status function.
+	(twittering-update-status-format): new function for adjusting
+	`twittering-format-status-function' with the current value of
+	`twittering-status-format'.
+	(twittering-mode-init-variables): invoke
+	`twittering-update-status-format'.
+	(twittering-render-timeline): call
+	`twittering-update-status-format' before rendering statuses.
+	(twittering-format-status): changed into a function receiving one
+	argument. It only calls `twittering-format-status-function'.
+
 2010-02-27  Satoshi Yatagawa  <yata_github@y.hauN.org>
 	
 	* twittering-mode.el (twittering-retweet): If `C-u' prefix is

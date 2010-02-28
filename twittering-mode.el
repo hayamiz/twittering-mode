@@ -238,6 +238,12 @@ SSL connections use 'curl' command as a backend.")
 (defun twittering-buffer ()
   (twittering-get-or-generate-buffer twittering-buffer))
 
+(defvar twittering-format-status-function-source ""
+  "The status format string that has generated the current
+`twittering-format-status-function'.")
+(defvar twittering-format-status-function nil
+  "The formating function generated from `twittering-format-status-function-source'.")
+
 (defvar twittering-timeline-data-table (make-hash-table :test 'equal))
 
 (defvar twittering-username-face 'twittering-username-face)
@@ -1209,6 +1215,7 @@ Return nil if SPEC-STR is invalid as a timeline spec."
   ;; (add-to-list 'minor-mode-alist '(twittering-icon-mode " tw-icon"))
   ;; (add-to-list 'minor-mode-alist '(twittering-scroll-mode " tw-scroll"))
   ;; (add-to-list 'minor-mode-alist '(twittering-jojo-mode " tw-jojo"))
+  (twittering-update-status-format)
   (twittering-set-current-timeline-spec-string
    twittering-initial-timeline-spec-string)
   (setq twittering-username-active twittering-username)
@@ -2283,6 +2290,7 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 	   (original-pos (point))
 	   (original-buf-end (point-max))
 	   (buffer-read-only nil))
+      (twittering-update-status-format)
       (twittering-update-mode-line)
       (save-excursion
 	(when rendering-entire
@@ -2306,9 +2314,7 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 			   next-pos)
 		       nil)))
 	       (unless (twittering-status-id= id (get-text-property pos 'id))
-		 (let ((formatted-status
-			(twittering-format-status
-			 status twittering-status-format))
+		 (let ((formatted-status (twittering-format-status status))
 		       (separator "\n"))
 		   (goto-char pos)
 		   (cond
@@ -2459,176 +2465,249 @@ following symbols;
       (concat result skipped-string))
     ))
 
-(defun twittering-format-status (status format-str)
-  "Format a string out of FORMAT-STR and STATUS.
+(defun twittering-parse-format-string (format-str escape specifiers)
+  "Split FORMAT-STR into a list consisting of fixed strings and specifiers
+with match-data. For example:
+ (twittering-parse-format-string
+ \"%s>>%r @%C{%m/%d %H:%M:%S} %@\\n %t\" \"%\"
+ '(\"%\" \"s\" \"r\" \"@\" \"t\" \"i\" \"C\\\\({\\\\([^}]*\\\\)}\\\\)?\"))
+returns
+ ((\"s\" \"s\" (0 1))
+ \">>\"
+ (\"r\" \"r\" (0 1))
+ \" @\"
+ (\"C\\\\({\\\\([^}]*\\\\)}\\\\)?\" \"C{%m/%d %H:%M:%S}\" (0 17 1 17 2 16))
+ \" \"
+ (\"@\" \"@\" (0 1))
+ \"\\n \"
+ (\"t\" \"t\" (0 1)))
+.
+In the result list, a fixed string is stored as a normal string.
+A format specifier is stored as a list of the regexp for the specifier,
+the matched string in FORMAT-STR and its match data."
+  (let ((pos 0)
+        (result nil)
+        (case-fold-search nil))
+    (while (string-match escape format-str pos)
+      (let ((beg (match-beginning 0)))
+        (unless (eq pos beg)
+          (setq result (cons (substring format-str pos beg) result)))
+        (let* ((rest specifiers)
+               (head (+ beg (length escape)))
+               (following (substring format-str head)))
+          (while
+              (unless (or (null rest)
+                          (string-match (concat "\\`" (car rest)) following))
+                (setq rest (cdr rest))))
+          (let ((end (if rest
+                         (+ head (match-end 0))
+                       head)))
+            (if rest
+                (setq result (cons (list (car rest)
+                                         (match-string 0 following)
+                                         (match-data))
+                                   result))
+              (setq result (cons (substring format-str beg end) result)))
+            (setq pos end)))))
+    (when (< pos (length format-str))
+      (setq result (cons (substring format-str pos) result)))
+    (nreverse result)))
+
+(defmacro twittering-generate-formater (format-str-exp escape status-sym specifier-sym specifiers)
+  "Generate lambda expression from FORMAT-STR-EXP.
+The result expression does not include specifiers except those appeared
+in FORMAT-STR-EXP.
+ESCAPE means the escape string of specifiers.
+SPECIFIERS is a list of '(SPEC-REGEXP (STATIC-BINDINGS) FORMS), where
+SPEC-REGEXP is a regexp for the specifier without ESCAPE,
+STATIC-BINDINGS means bindings determined on expanding this macro
+and FORMS generates a string for the specifier by using the argument
+of the lambda.
+In FORMS, the argument of the lambda can be refered by STATUS-SYM.
+In STATIC-BINDINGS and FORMS, the string matched with SPEC-REGEXP can be
+refered by SPECIFIER-SYM.
+Example:
+ (twittering-generate-formater
+  \"HEAD%# %CsampleSAMPLE TEST\"
+  \"%\" status fmt-following
+  ((\"%\" () \"%\")
+   (\"#\" () (cdr (assq 'id status)))
+   (\"s\" () (cdr (assq 'user-screen-name status)))
+   (\"C\\\\([a-z]+\\\\)\"
+    ((sample (match-string 1 fmt-following))
+     (sample2 sample))
+    sample)
+   ))
+ returns
+ (lambda
+   (status)
+   (concat \"HEAD\"
+           (let
+               ((fmt-following \"#\"))
+             (let nil
+               (store-match-data
+                '(0 1))
+               (cdr
+                (assq 'id status))))
+           \" \"
+           (let
+               ((fmt-following \"Csample\"))
+             (let
+                 ((sample \"sample\")
+                  (sample2 \"sample\"))
+               (store-match-data
+                '(0 7 1 7))
+               sample))
+           \"SAMPLE TEST\"))
+ "
+  (let* ((format-str (eval format-str-exp))
+         (seq (twittering-parse-format-string format-str escape
+                                              (mapcar 'car specifiers))))
+    `(lambda (,status-sym)
+       (concat
+	,@(mapcar
+	   (lambda (entry)
+	     (let ((static-def (cadr (assoc (elt entry 0) specifiers)))
+		   (dynamic-def (cddr (assoc (elt entry 0) specifiers))))
+	       (if (not (listp entry))
+		   entry
+		 (store-match-data (elt entry 2))
+		 (let* ((acc `((,specifier-sym (elt entry 1))))
+			(static-binding
+			 (mapcar
+			  (lambda (bind)
+			    (let* ((var (car bind))
+				   (value (eval `(let ,acc ,(cadr bind))))
+				   (new-bind
+				    (if (or (stringp value) (functionp value)
+					    (numberp value))
+					`(,var ,value)
+				      `(,var ',value))))
+			      (setq acc (cons new-bind acc))
+			      new-bind))
+			  static-def)))
+		   `(let ((,specifier-sym ,(elt entry 1)))
+		      (let ,static-binding
+			(store-match-data ',(elt entry 2))
+			,@dynamic-def))))))
+	   seq)))))
+
+(defmacro twittering-generate-status-formater-base (format-str)
+  `(twittering-generate-formater
+    ,format-str "%" status fmt-following
+    (("%" () "%")
+     ("#" () (cdr (assq 'id status)))
+     ("'" () (if (string= "true" (cdr (assq 'truncated status)))
+		 "..."
+	       ""))
+     ("@" ()
+      (let* ((created-at-str (cdr (assq 'created-at status)))
+	     (created-at
+	      (apply 'encode-time
+		     (parse-time-string created-at-str)))
+	     (url
+	      (twittering-get-status-url
+	       (cdr (assq 'user-screen-name status))
+	       (cdr (assq 'id status))))
+	     (properties
+	      (append
+	       `(mouse-face highlight face twittering-uri-face uri ,url)
+	       common-properties)))
+	(twittering-make-passed-time-string created-at properties)))
+     ("C\\({\\([^}]*\\)}\\)?"
+      ((time-format (or (match-string 2 fmt-following) "%H:%M:%S")))
+      (let* ((created-at-str (cdr (assq 'created-at status)))
+	     (created-at (apply 'encode-time
+				(parse-time-string created-at-str))))
+	(format-time-string time-format created-at)))
+     ("c" () (cdr (assq 'created-at status)))
+     ("d" () (cdr (assq 'user-description status)))
+     ("FACE\\[\\([a-zA-Z0-9:-]+\\)\\]{\\(\\([^{}]*?\\|{.*?[^%]}\\|%}\\)*\\)}"
+      ((face-name-str (match-string 1 fmt-following))
+       (face-sym (intern face-name-str))
+       (braced-str (match-string 2 fmt-following))
+       (formater (twittering-generate-status-formater-base braced-str)))
+      (let ((formated-str (funcall formater status)))
+	(add-text-properties 0 (length formated-str) `(face ,face-sym)
+			     formated-str)
+	formated-str))
+     ("FILL{\\(\\([^{}]*?\\|{.*?[^%]}\\|%}\\)*\\)}"
+      ((braced-str (match-string 1 fmt-following))
+       (formater (twittering-generate-status-formater-base braced-str)))
+      (twittering-fill-string (funcall formater status)))
+     ("f" () (cdr (assq 'source status)))
+     ("i" ()
+      (when (and twittering-icon-mode window-system)
+	(let* ((url (cdr (assq 'user-profile-image-url status)))
+	       (display-spec (twittering-make-display-spec-for-icon url)))
+	  (when display-spec
+	    (let ((icon-string (copy-sequence " ")))
+	      (set-text-properties 0 (length icon-string)
+				   display-spec icon-string)
+	      (add-to-list 'twittering-image-stack url)
+	      icon-string)))))
+     ("j" () (cdr (assq 'user-id status)))
+     ("L" ()
+      (let ((location (cdr (assq 'user-location status))))
+	(when (and location (not (string= location "")))
+	  (concat "[" location "]"))))
+     ("l" () (cdr (assq 'user-location status)))
+     ("p" () (if (string= "true" (cdr (assq 'user-protected status)))
+		 "[x]"
+	       ""))
+     ("r" ()
+      (let ((reply-id (cdr (assq 'in-reply-to-status-id status)))
+	    (reply-name (cdr (assq 'in-reply-to-screen-name status))))
+	(when (and reply-id (not (string= "" reply-id))
+		   reply-name (not (string= "" reply-name)))
+	  (let ((in-reply-to-string (concat "in reply to " reply-name))
+		(url (twittering-get-status-url reply-name reply-id)))
+	    (concat
+	     " "
+	     (progn
+	       (add-text-properties
+		0 (length in-reply-to-string)
+		`(mouse-face highlight face twittering-uri-face uri ,url)
+		in-reply-to-string)
+	       in-reply-to-string))))))
+     ("R" ()
+      (let ((retweeted-by (cdr (assq 'original-user-screen-name status))))
+	(when (and retweeted-by (not (string= "" retweeted-by)))
+	  (concat " (retweeted by " retweeted-by ")"))))
+     ("S" () (cdr (assq 'user-name status)))
+     ("s" () (cdr (assq 'user-screen-name status)))
+     ("T" () (cdr (assq 'text status)))
+     ("t" () (cdr (assq 'text status)))
+     ("u" () (cdr (assq 'user-url status)))
+     )))
+
+(defmacro twittering-generate-format-status-function (format-str-exp)
+  (let ((format-str (eval format-str-exp)))
+    `(lambda (status)
+       (let* ((username (cdr (assq 'user-screen-name status)))
+	      (id (cdr (assq 'id status)))
+	      (text (cdr (assq 'text status)))
+	      (common-properties (list 'username username 'id id 'text text))
+	      (str (funcall
+		    ,(twittering-generate-status-formater-base format-str)
+		    status)))
+	 (add-text-properties 0 (length str) common-properties str)
+	 str))))
+
+(defun twittering-update-status-format (&optional format-str)
+  (let ((format-str (or format-str twittering-status-format)))
+    (unless (string= format-str twittering-format-status-function-source)
+      (setq twittering-format-status-function-source format-str)
+      (setq twittering-format-status-function
+	    (byte-compile
+	     (twittering-generate-format-status-function format-str))))
+    (setq twittering-status-format format-str)))
+
+(defun twittering-format-status (status)
+  "Format a STATUS by using `twittering-format-status-function'.
 Specification of FORMAT-STR is described in the document for the
 variable `twittering-status-format'."
-  (flet ((attr (key)
-	       (or (assocref key status) ""))
-	 (make-string-with-url-property
-	  (str url)
-	  (let ((result (copy-sequence str)))
-	    (add-text-properties
-	     0 (length result)
-	     `(mouse-face highlight face twittering-uri-face uri ,url)
-	     result)
-	    result))
-	 (make-string-with-update-property
-	  (str func &rest args)
-	  (let ((result (copy-sequence str)))
-	    (put-text-property 0 (length result)
-			       'need-to-be-updated `(,func ,@args) result)
-	    result))
-	 (expand-update-property-if-necessary
-	  (str func &rest args)
-	  (if (or (get-text-property 0 'need-to-be-updated str)
-		  (next-single-property-change 0 'need-to-be-updated str))
-	      (apply 'make-string-with-update-property str func args)
-	    str)))
-    (let* ((common-properties
-	    `(username ,(attr 'user-screen-name)
-		       id ,(attr 'id)
-		       text ,(attr 'text)))
-	   (replace-table
-	    `(("%" . "%")
-	      ("#" . ,(attr 'id))
-	      ("'" . ,(if (string= "true" (attr 'truncated)) "..." ""))
-	      ("@" .
-	       ,(let* ((created-at
-			(apply
-			 'encode-time (parse-time-string (attr 'created-at))))
-		       (url
-			(twittering-get-status-url (attr 'user-screen-name)
-						   (attr 'id)))
-		       (properties
-			(append `(mouse-face highlight
-					     face twittering-uri-face
-					     uri ,url)
-				common-properties)))
-		  (twittering-make-passed-time-string created-at properties)))
-	      ("C\\({\\([^}]*\\)}\\)?" .
-	       (lambda (context)
-		 (let ((str (cdr (assq 'following-string context)))
-		       (match-data (cdr (assq 'match-data context))))
-		   (let* ((time-format
-			   (or (match-string 2 str) "%H:%M:%S"))
-			  (created-at
-			   (apply 'encode-time
-				  (parse-time-string (attr 'created-at)))))
-		     (format-time-string time-format created-at)))))
-	      ("c" . ,(attr 'created-at))
-	      ("d" . ,(attr 'user-description))
-	      ("FACE\\[\\([a-zA-Z0-9:-]+\\)\\]{\\(\\([^{}]*?\\|{.*?[^%]}\\|%}\\)*\\)}" .
-	       ,(lambda (context)
-		  (let* ((str (cdr (assq 'following-string context)))
-			 (match-data (cdr (assq 'match-data context)))
-			 (from (cdr (assq 'from context)))
-			 (prefix (cdr (assq 'prefix context)))
-			 (table (cdr (assq 'replacement-table context)))
-			 (mod-table
-			  (cons '("}" . "}")
-				(remq (assq from table) table))))
-		    (store-match-data match-data)
-		    (let* ((face-name-str (match-string 1 str))
-			   (face-sym (intern face-name-str))
-			   (braced-str (match-string 2 str))
-			   (formatted-str
-			    (twittering-format-string
-			     braced-str prefix mod-table)))
-		      (add-text-properties
-		       0 (length formatted-str) `(face ,face-sym)
-		       formatted-str)
-		      formatted-str))))
-	      ("FILL{\\(\\([^{}]*?\\|{.*?[^%]}\\|%}\\)*\\)}" .
-	       ,(lambda (context)
-		  (let* ((str (cdr (assq 'following-string context)))
-			 (match-data (cdr (assq 'match-data context)))
-			 (from (cdr (assq 'from context)))
-			 (prefix (cdr (assq 'prefix context)))
-			 (table (cdr (assq 'replacement-table context)))
-			 (mod-table
-			  (cons '("}" . "}")
-				(remq (assq from table) table))))
-		    (store-match-data match-data)
-		    (let* ((formatted-str
-			    (twittering-format-string
-			     (match-string 1 str) prefix mod-table))
-			   (formatted-str
-			    (expand-update-property-if-necessary
-			     formatted-str
-			     'twittering-format-status
-			     status (concat "%" str))))
-		      (twittering-fill-string formatted-str)))))
-	      ("f" . ,(attr 'source))
-	      ("i" .
-	       ,(if (and twittering-icon-mode window-system)
-		    (let* ((profile-image-url (attr 'user-profile-image-url))
-			   (display-spec (twittering-make-display-spec-for-icon
-					  profile-image-url)))
-		      (if display-spec
-			  (let ((icon-string " "))
- 			    (set-text-properties 0 (length icon-string)
-						 display-spec icon-string)
-			    (add-to-list 'twittering-image-stack
-					 profile-image-url)
-			    icon-string)
-			""))
-		  ""))
-	      ("j" . ,(attr 'user-id))
-	      ("L" . ,(let ((location (attr 'user-location)))
-			(if (not (string= "" location))
-			    (concat " [" location "]")
-			  "")))
-	      ("l" . ,(attr 'user-location))
-	      ("p" . ,(if (string= "true" (attr 'user-protected))
-			  "[x]"
-			""))
-	      ("r" .
-	       ,(let ((reply-id (attr 'in-reply-to-status-id))
-		      (reply-name (attr 'in-reply-to-screen-name)))
-		  (if (or (string= "" reply-id) (string= "" reply-name))
-		      ""
-		    (let ((in-reply-to-string
-			   (concat "in reply to " reply-name))
-			  (url
-			   (twittering-get-status-url reply-name reply-id)))
-		      (concat " "
-			      (make-string-with-url-property
-			       in-reply-to-string url))))))
-	      ("R" .
-	       ,(let ((retweeted-by (attr 'original-user-screen-name)))
-		  (if (string= "" retweeted-by)
-		      ""
-		    (concat " (retweeted by " retweeted-by ")"))))
-	      ("S" . ,(attr 'user-name))
-	      ("s" . ,(attr 'user-screen-name))
-	      ("T" . ,(attr 'text))
-	      ("t\\([^\n]*\\)" .
-	       ,(lambda (context)
-		  (let* ((str (cdr (assq 'processed-string context)))
-			 (prefix (if (string-match "\\([^\n]*\\)\\'" str)
-				     (match-string 1 str)
-				       ""))
-			 (following-str (cdr (assq 'following-string context)))
-			 (from (cdr (assq 'from context)))
-			 (match-data (cdr (assq 'match-data context)))
-			 (replace-prefix (cdr (assq 'prefix context)))
-			 (table (cdr (assq 'replacement-table context))))
-		    (store-match-data match-data)
-		    (let* ((postfix (twittering-format-string
-				     (match-string 1 following-str)
-				     replace-prefix table))
-			   (text (concat prefix (attr 'text) postfix)))
-		      (substring (twittering-fill-string text)
-				 (length prefix))))
-		  ))
-	      ("u" . ,(attr 'user-url))
-	      ))
-	   (formatted-status
-	    (twittering-format-string format-str "%" replace-table)))
-      (add-text-properties 0 (length formatted-status) common-properties
-			   formatted-status)
-      formatted-status)))
+  (funcall twittering-format-status-function status))
 
 (defun twittering-timer-action (func)
   (let ((buf (get-buffer twittering-buffer)))

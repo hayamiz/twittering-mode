@@ -193,7 +193,8 @@ Items:
  %d - description
  %l - location
  %L - \" [location]\"
- %r - \" in reply to user\"
+ %r - \" sent to user\" (use on direct_messages{,_sent})
+ %r - \" in reply to user\" (use on other standard timeline)
  %R - \" (retweeted by user)\"
  %u - url
  %j - user.id
@@ -421,9 +422,11 @@ and its contents (BUFFER)"
 	(or (get-buffer buffer)
 	    (generate-new-buffer buffer)))))
 
-(defun twittering-get-status-url (username id)
+(defun twittering-get-status-url (username &optional id)
   "Generate status URL."
-  (format "http://twitter.com/%s/status/%s" username id))
+  (if id
+      (format "http://twitter.com/%s/status/%s" username id)
+    (format "http://twitter.com/%s" username)))
 
 (defun twittering-user-agent-default-function ()
   "Twittering mode default User-Agent function."
@@ -950,9 +953,10 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 		(list-name (cadr value)))
 	    `("api.twitter.com"
 	      ,(concat "1/" username "/lists/" list-name "/statuses"))))
-	 ((or (eq type 'direct_messages)
-	      (eq type 'direct_messages_sent))
-	  (error "%s has not been supported yet" type))
+	 ((eq type 'direct_messages)
+	  '("api.twitter.com" "1/direct_messages"))
+	 ((eq type 'direct_messages_sent)
+	  '("api.twitter.com" "1/direct_messages/sent"))
 	 ((eq type 'friends)
 	  '("api.twitter.com" "1/statuses/friends_timeline"))
 	 ((eq type 'home)
@@ -982,6 +986,9 @@ Return nil if SPEC-STR is invalid as a timeline spec."
    ((or (not (stringp host)) (not (stringp method))) nil)
    ((string= host "api.twitter.com")
     (cond
+     ((string= method "1/statuses/direct_messages") '(direct_messages))
+     ((string= method "1/statuses/direct_messages/sent")
+      '(direct_messages_sent))
      ((string= method "1/statuses/public_timeline") '(public_timeline))
      ((string= method "1/statuses/home_timeline") '(home))
      ((string= method "1/statuses/friends_timeline") '(friends))
@@ -2316,7 +2323,7 @@ BUFFER may be a buffer or the name of an existing buffer."
       (add-text-properties
        0 (length user-name)
        `(mouse-face highlight
-		    uri ,(concat "http://twitter.com/" user-screen-name)
+		    uri ,(twittering-get-status-url user-screen-name)
 		    face twittering-username-face)
        user-name)
 
@@ -2324,7 +2331,7 @@ BUFFER may be a buffer or the name of an existing buffer."
       (add-text-properties
        0 (length user-screen-name)
        `(mouse-face highlight
-		    uri ,(concat "http://twitter.com/" user-screen-name)
+		    uri ,(twittering-get-status-url user-screen-name)
 		    face twittering-username-face)
        user-screen-name)
 
@@ -2343,7 +2350,7 @@ BUFFER may be a buffer or the name of an existing buffer."
 	      (add-text-properties
 	       (match-beginning 1) (match-end 1)
 	       `(mouse-face highlight
-			    uri ,(concat "http://twitter.com/" screen-name)
+			    uri ,(twittering-get-status-url screen-name)
 			    face twittering-username-face)
 	       text)
 	      (setq pos next-pos)))))
@@ -2366,8 +2373,8 @@ BUFFER may be a buffer or the name of an existing buffer."
 		   `(mouse-face
 		     highlight
 		     face twittering-uri-face
-		     uri ,(concat "http://twitter.com/" screen-name)
-		     uri-in-text ,(concat "http://twitter.com/" screen-name))
+		     uri ,(twittering-get-status-url screen-name)
+		     uri-in-text ,(twittering-get-status-url screen-name))
 		 `(mouse-face highlight
 			      face twittering-uri-face
 			      uri ,uri
@@ -2413,15 +2420,43 @@ BUFFER may be a buffer or the name of an existing buffer."
       status)))
 
 (defun twittering-xmltree-to-status (xmltree)
+  (setq xmltree
+	(cond
+	 ((eq 'direct-messages (caar xmltree))
+	  `(,@(mapcar
+	       (lambda (c-node)
+		 `(status nil
+			  (created_at
+			   nil ,(caddr (assq 'created_at c-node)))
+			  (id nil ,(caddr (assq 'id c-node)))
+			  (text nil ,(caddr (assq 'text c-node)))
+			  (source nil ,(format "%s" (car c-node))) ;; fake
+			  (truncated nil "false")
+			  (in_reply_to_status_id nil)
+			  (in_reply_to_user_id
+			   nil ,(caddr (assq 'recipient_id c-node)))
+			  (favorited nil "false")
+			  (in_reply_to_screen_name
+			   nil ,(caddr (assq 'recipient_screen_name c-node)))
+			  (user nil ,@(cdddr (assq 'sender c-node)))))
+	       (remove nil
+		       (mapcar
+			(lambda (node)
+			  (and (consp node) (eq 'direct_message (car node))
+			       node))
+			(cdr-safe (assq 'direct-messages xmltree))))
+	       )))
+	 ((eq 'statuses (caar xmltree))
+	  (cddr (car xmltree)))
+	 (t ;; unknown format?
+	  nil)))
+
   (mapcar #'twittering-status-to-status-datum
-	  ;; quirk to treat difference between xml.el in Emacs21 and Emacs22
-	  ;; On Emacs22, there may be blank strings
-	  (let ((ret nil) (statuses (reverse (cddr (car xmltree)))))
-	    (while statuses
-	      (if (consp (car statuses))
-		  (setq ret (cons (car statuses) ret)))
-	      (setq statuses (cdr statuses)))
-	    ret)))
+ 	  ;; quirk to treat difference between xml.el in Emacs21 and Emacs22
+ 	  ;; On Emacs22, there may be blank strings
+	  (remove nil (mapcar (lambda (x)
+				(if (consp x) x))
+			      xmltree))))
 
 (defun twittering-percent-encode (str &optional coding-system)
   (if (or (null coding-system)
@@ -3027,9 +3062,17 @@ Example:
      ("r" ()
       (let ((reply-id (or (cdr (assq 'in-reply-to-status-id status)) ""))
 	    (reply-name (or (cdr (assq 'in-reply-to-screen-name status)) "")))
-	(unless (or (string= "" reply-id) (string= "" reply-name))
-	  (let ((in-reply-to-string (concat "in reply to " reply-name))
-		(url (twittering-get-status-url reply-name reply-id)))
+	(if (string= "" reply-name)
+	    ""
+	  (let ((in-reply-to-string nil)
+		(url nil))
+	    (if (string= "" reply-id)
+		;; for direct_messages{,_sent}.
+		(setq in-reply-to-string (format "sent to %s" reply-name)
+		      url (twittering-get-status-url reply-name))
+	      ;; for other standard timeline.
+	      (setq in-reply-to-string (format "in reply to %s" reply-name)
+		    url (twittering-get-status-url reply-name reply-id)))
 	    (concat
 	     " "
 	     (progn

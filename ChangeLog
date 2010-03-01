@@ -242,6 +242,29 @@
 	* twittering-mode.el (twittering-make-display-spec-for-icon): add
 	2 pixels margin to icons in order to make the cursor stand out.
 
+2010-03-01  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el: Add a support of direct messages (which was
+	originally written by me in 2010-02-16)
+
+	* twittering-mode.el (twittering-xmltree-to-status): Convert a XML
+	tree retrieved with "direct_messages{,/sent}" request into a list
+	of status alists which is retrieved from a standard timeline.
+	(twittering-host-method-to-timeline-spec): Add condition for
+	`direct_messages' and `direct_messages_sent'.
+	(twittering-timeline-spec-to-host-method): Modify condition for
+	`direct_messages' and `direct_messages_sent'.
+
+	* twittering-mode.el (twittering-status-format): Modify the
+	meaning of the specifier "%r" to display a recipient on both
+	`direct_messages' and `direct_messages_sent'.
+
+	* twittering-mode.el (twittering-format-status): Add `url'
+	property for `direct_messages' and `direct_messages_sent'.
+	(twittering-get-status-url): Change the second argument ID as
+	optional.
+	(twittering-make-clickable-status-datum): Call it.
+
 2010-03-01  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-generate-formater): changed into

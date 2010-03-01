@@ -2513,7 +2513,7 @@ the matched string in FORMAT-STR and its match data."
       (setq result (cons (substring format-str pos) result)))
     (nreverse result)))
 
-(defmacro twittering-generate-formater (format-str-exp escape status-sym specifier-sym specifiers)
+(defun twittering-generate-formater (format-str-exp escape status-sym specifier-sym specifiers)
   "Generate lambda expression from FORMAT-STR-EXP.
 The result expression does not include specifiers except those appeared
 in FORMAT-STR-EXP.
@@ -2529,15 +2529,15 @@ refered by SPECIFIER-SYM.
 Example:
  (twittering-generate-formater
   \"HEAD%# %CsampleSAMPLE TEST\"
-  \"%\" status fmt-following
-  ((\"%\" () \"%\")
-   (\"#\" () (cdr (assq 'id status)))
-   (\"s\" () (cdr (assq 'user-screen-name status)))
-   (\"C\\\\([a-z]+\\\\)\"
-    ((sample (match-string 1 fmt-following))
-     (sample2 sample))
-    sample)
-   ))
+  \"%\" 'status 'fmt-following
+  '((\"%\" () \"%\")
+    (\"#\" () (cdr (assq 'id status)))
+    (\"s\" () (cdr (assq 'user-screen-name status)))
+    (\"C\\\\([a-z]+\\\\)\"
+     ((sample (match-string 1 fmt-following))
+      (sample2 sample))
+     sample)
+    ))
  returns
  (lambda
    (status)
@@ -2592,10 +2592,10 @@ Example:
 			,@dynamic-def))))))
 	   seq)))))
 
-(defmacro twittering-generate-status-formater-base (format-str)
-  `(twittering-generate-formater
-    ,format-str "%" status fmt-following
-    (("%" () "%")
+(defun twittering-generate-status-formater-base (format-str)
+  (twittering-generate-formater
+   format-str "%" 'status 'fmt-following
+   '(("%" () "%")
      ("#" () (cdr (assq 'id status)))
      ("'" () (if (string= "true" (cdr (assq 'truncated status)))
 		 "..."
@@ -2681,18 +2681,17 @@ Example:
      ("u" () (cdr (assq 'user-url status)))
      )))
 
-(defmacro twittering-generate-format-status-function (format-str-exp)
-  (let ((format-str (eval format-str-exp)))
-    `(lambda (status)
-       (let* ((username (cdr (assq 'user-screen-name status)))
-	      (id (cdr (assq 'id status)))
-	      (text (cdr (assq 'text status)))
-	      (common-properties (list 'username username 'id id 'text text))
-	      (str (funcall
-		    ,(twittering-generate-status-formater-base format-str)
-		    status)))
-	 (add-text-properties 0 (length str) common-properties str)
-	 str))))
+(defun twittering-generate-format-status-function (format-str)
+  `(lambda (status)
+     (let* ((username (cdr (assq 'user-screen-name status)))
+	    (id (cdr (assq 'id status)))
+	    (text (cdr (assq 'text status)))
+	    (common-properties (list 'username username 'id id 'text text))
+	    (str (funcall
+		  ,(twittering-generate-status-formater-base format-str)
+		  status)))
+       (add-text-properties 0 (length str) common-properties str)
+       str)))
 
 (defun twittering-update-status-format (&optional format-str)
   (let ((format-str (or format-str twittering-status-format)))

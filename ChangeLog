@@ -1,3 +1,10 @@
+2010-03-01  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-generate-formater): changed into
+	a function.
+	(twittering-generate-status-formater-base): likewise.
+	(twittering-generate-format-status-function): likewise.
+
 2010-02-28  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-format-status-function-source):

@@ -1422,7 +1422,7 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 (defun twittering-find-curl-program ()
   "Returns an appropriate `curl' program pathname or nil if not found."
   (or (executable-find "curl")
-      (let ((windows-p (find system-type '(windows-nt cygwin)))
+      (let ((windows-p (memq system-type '(windows-nt cygwin)))
 	    (curl.exe
 	     (expand-file-name
 	      "curl.exe"
@@ -1440,7 +1440,7 @@ PORT      : destination port number. nil means default port (http: 80, https: 44
 PATH      : http request path
 PARAMETERS: http request parameters (query string)"
   (block nil
-    (unless (find method '("POST" "GET") :test 'equal)
+    (unless (member method '("POST" "GET"))
       (error "Unknown HTTP method: %s" method))
     (unless (string-match "^/" path)
       (error "Invalid HTTP path: %s" path))
@@ -3539,9 +3539,8 @@ The return value is nil or a positive integer less than POS."
 			    ((listp current-face) (memq face current-face))
 			    ((symbolp current-face) (eq face current-face))
 			    (t nil)))))
-		   (member-if face-pred
-			      '(twittering-username-face
-				twittering-uri-face)))))
+		   (remove nil (mapcar face-pred '(twittering-username-face
+						   twittering-uri-face))))))
       (setq pos (funcall propety-change-f pos 'face)))
     (when pos
       (goto-char pos))))

@@ -5,6 +5,12 @@
 	(twittering-generate-status-formater-base): likewise.
 	(twittering-generate-format-status-function): likewise.
 
+	* twittering-mode.el (twittering-find-curl-program): replace
+	`find' with `memq' in order to execute this function without
+	loading `cl-seq.el' .
+	(twittering-start-http-session): likewise.
+	(twittering-goto-next-thing): likewise.
+
 2010-02-28  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-format-status-function-source):

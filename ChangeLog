@@ -1,3 +1,8 @@
+2010-03-03  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-toggle-reverse-mode): invoke
+	`twittering-render-timeline' correctly.
+
 2010-03-01  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-generate-formater): changed into

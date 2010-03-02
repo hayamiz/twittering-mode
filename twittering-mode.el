@@ -3015,7 +3015,8 @@ variable `twittering-status-format'."
 	      (not twittering-reverse-mode)
 	    (< 0 (prefix-numeric-value arg))))
     (unless (eq prev-mode twittering-reverse-mode)
-      (twittering-update-mode-line))))
+      (twittering-update-mode-line)
+      (twittering-render-timeline))))
 
 (defun twittering-friends-timeline ()
   (interactive)

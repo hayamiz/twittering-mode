@@ -3,6 +3,9 @@
 	* twittering-mode.el (twittering-toggle-reverse-mode): invoke
 	`twittering-render-timeline' correctly.
 
+	* twittering-mode.el (twittering-make-display-spec-for-icon): add
+	2 pixels margin to icons in order to make the cursor stand out.
+
 2010-03-01  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-generate-formater): changed into

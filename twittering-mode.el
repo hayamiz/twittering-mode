@@ -2384,7 +2384,8 @@ image are displayed."
     (and image-data (image-type-available-p (car image-data))
 	 (let ((image-spec
 		`(image :type ,(car image-data)
-			:data ,(cdr image-data))))
+			:data ,(cdr image-data)
+			:margin 2)))
 	   (if (and twittering-convert-fix-size (not twittering-use-convert))
 	       (let* ((size (if (cdr image-data)
 				(image-size image-spec t)

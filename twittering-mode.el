@@ -1363,8 +1363,7 @@ Return nil if SPEC-STR is invalid as a timeline spec."
      (t
       (setq twittering-edit-history
 	    (cons status twittering-edit-history))
-      (let ((parameters `(("status" . ,status)
-			  ("source" . "twmode"))))
+      (let ((parameters `(("status" . ,status))))
 	(when (and twittering-reply-to-id
 		   (string-match "^@[a-zA-Z0-9_-]+" status))
 	  (add-to-list 'parameters
@@ -1837,6 +1836,8 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
       (setq format "xml"))
   (if (null sentinel)
       (setq sentinel 'twittering-http-post-default-sentinel))
+
+  (add-to-list 'parameters '("source" . "twmode"))
 
   (twittering-start-http-session
    "POST" (twittering-http-application-headers "POST")
@@ -2770,8 +2771,7 @@ variable `twittering-status-format'."
 		(setq prompt "status (too long): ")
 	      (setq prompt "status: ")
 	      (when (twittering-status-not-blank-p status)
-		(let ((parameters `(("status" . ,status-with-sign)
-				    ("source" . "twmode"))))
+		(let ((parameters `(("status" . ,status-with-sign))))
 		  (when (and reply-to-id
 			     (string-match "^@[a-zA-Z0-9_-]+" status))
 		    (add-to-list 'parameters
@@ -2810,13 +2810,11 @@ variable `twittering-status-format'."
 (defun twittering-manage-friendships (method username)
   (twittering-http-post "api.twitter.com"
 			(concat "1/friendships/" method)
-			`(("screen_name" . ,username)
-			  ("source" . "twmode"))))
+			`(("screen_name" . ,username))))
 
 (defun twittering-manage-favorites (method id)
   (twittering-http-post "api.twitter.com"
-			(concat "1/favorites/" method "/" id)
-			`(("source" . "twmode"))))
+			(concat "1/favorites/" method "/" id)))
 
 (defun twittering-get-tweets (host method &optional noninteractive id since_id word)
   (let ((buf (get-buffer twittering-buffer)))
@@ -3063,7 +3061,7 @@ variable `twittering-status-format'."
 		     'char-to-string
 		     (mapcar 'twittering-ucs-to-char
 			     '(955 12363 12431 12356 12356 12424 955)) ""))
-       ("source" . "twmode")))))
+       ))))
 
 (defun twittering-update-jojo (usr msg)
   (when (and (string= "Japanese" current-language-environment)
@@ -3086,7 +3084,7 @@ variable `twittering-status-format'."
 			  'char-to-string
 			  (mapcar 'twittering-ucs-to-char
 				  '(12288 12399 12387 33 63)) "")))
-	   ("source" . "twmode"))))))
+	   )))))
 
 (defun twittering-set-current-hashtag (&optional tag)
   (interactive)
@@ -3230,8 +3228,7 @@ variable `twittering-status-format'."
 			     text))))
 	  (if (y-or-n-p mes)
 	      (twittering-http-post "api.twitter.com"
-				    (concat "1/statuses/retweet/" id)
-				    `(("source" . "twmode")))
+				    (concat "1/statuses/retweet/" id))
 	    (message "Request canceled")))
       (message "No status selected"))))
 

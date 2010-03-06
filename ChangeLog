@@ -17,6 +17,16 @@
 	an additional information which is related to obsolete
 	public_timeline.
 
+	* twittering-mode.el (twittering-http-post): Set parameter
+	`source' here.
+	(twittering-edit-post-status): Adjust callers.
+	(twittering-update-status-from-minibuffer): Likewise.
+	(twittering-manage-friendships): Likewise.
+	(twittering-manage-favorites): Likewise.
+	(twittering-update-lambda): Likewise.
+	(twittering-update-jojo): Likewise.
+	(twittering-native-retweet): Likewise.
+
 2010-03-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-toggle-reverse-mode): invoke

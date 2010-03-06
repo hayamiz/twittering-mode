@@ -73,11 +73,6 @@
 	(message "%s" version-string)
       version-string)))
 
-(defconst twittering-http-status-line-regexp
-  "HTTP/1\.[01] \\(\\([0-9][0-9][0-9]\\) [^\r\n]+\\)\r?\n"
-  "Regular expression used in \"sentinel\" functions to pick up
-status-code and reason-phrase from the response.")
-
 (defconst twittering-max-number-of-tweets-on-retrieval 200
   "The maximum number of `twittering-number-of-tweets-on-retrieval'.")
 
@@ -167,6 +162,9 @@ directly. Use `twittering-current-timeline-spec-string' or
 
 (defvar twittering-process-info-alist nil
   "Alist of active process and timeline spec retrieved by the process.")
+
+(defvar twittering-server-info-alist nil
+  "Alist of server information.")
 
 (defvar twittering-new-tweets-count 0
   "*Number of new tweets when `twittering-new-tweets-hook' is run.")
@@ -1084,6 +1082,63 @@ Return nil if SPEC-STR is invalid as a timeline spec."
     twittering-process-info-alist))
 
 ;;;
+;;; Server info
+;;;
+
+(defun twittering-make-header-info-alist (header-str)
+  "Make HTTP header alist from HEADER-STR.
+The alist consists of pairs of field-name and field-value, such as
+'((\"Content-Type\" . \"application/xml\; charset=utf-8\")
+  (\"Content-Length\" . \"2075\"))."
+  (let* ((lines (split-string header-str "\r?\n"))
+         (status-line (car lines))
+         (header-lines (cdr lines)))
+    (when (string-match
+	   "^\\(HTTP/1\.[01]\\) \\([0-9][0-9][0-9]\\) \\(.*\\)$"
+	   status-line)
+      (append `((status-line . ,status-line)
+		(http-version . ,(match-string 1 status-line))
+		(status-code . ,(match-string 2 status-line))
+		(reason-phrase . ,(match-string 3 status-line)))
+	      (remove nil
+		      (mapcar
+		       (lambda (line)
+			 (when (string-match "^\\([^: ]*\\): *\\(.*\\)$" line)
+			   (cons (match-string 1 line) (match-string 2 line))))
+		       header-lines))))))
+
+(defun twittering-update-server-info (header-str)
+  (let* ((header-info (twittering-make-header-info-alist header-str))
+	 (new-entry-list (mapcar 'car header-info)))
+    (setq twittering-server-info-alist
+	  (append header-info
+		  (remove nil (mapcar
+			       (lambda (entry)
+				 (if (member (car entry) new-entry-list)
+				     nil
+				   entry))
+			       twittering-server-info-alist))))
+    header-info))
+
+(defun twittering-get-server-info (field)
+  (let* ((table
+	  '((ratelimit-remaining . "X-RateLimit-Remaining")
+	    (ratelimit-limit . "X-RateLimit-Limit")
+	    (ratelimit-reset . "X-RateLimit-Reset")))
+	 (numeral-field '(ratelimit-remaining ratelimit-limit))
+	 (unix-epoch-time-field '(ratelimit-reset))
+	 (field-name (cdr (assq field table)))
+	 (field-value (cdr (assoc field-name twittering-server-info-alist))))
+    (when (and field-name field-value)
+      (cond
+       ((memq field numeral-field)
+	(string-to-number field-value))
+       ((memq field unix-epoch-time-field)
+	(seconds-to-time (string-to-number (concat field-value ".0"))))
+       (t
+	nil)))))
+
+;;;
 ;;; Debug mode
 ;;;
 
@@ -1738,13 +1793,17 @@ Available keywords:
   (debug-printf "http-default-sentinel: proc=%s stat=%s" proc stat)
   (let ((temp-buffer (process-buffer proc)))
     (unwind-protect
-	(let ((header (twittering-get-response-header temp-buffer))
-	      (mes nil))
-	  (if (string-match twittering-http-status-line-regexp header)
-	      (when (and func (fboundp func))
-		(with-current-buffer temp-buffer
-		  (setq mes (funcall func header proc noninteractive suc-msg))))
-	    (setq mes "Failure: Bad http response."))
+	(let* ((header (twittering-get-response-header temp-buffer))
+	       (header-info (twittering-update-server-info header))
+	       (mes
+		(cond
+		 ((null header-info)
+		  "Failure: Bad http response.")
+		 ((and func (fboundp func))
+		  (with-current-buffer temp-buffer
+		    (funcall func header-info proc noninteractive suc-msg)))
+		 (t
+		  nil))))
 	  (when (and mes (twittering-buffer-active-p))
 	    (message mes)))
       ;; unwindforms
@@ -1753,11 +1812,11 @@ Available keywords:
 	(kill-buffer temp-buffer))))
   )
 
-(defun twittering-http-get-default-sentinel (header proc noninteractive &optional suc-msg)
-  (let ((status-line (match-string-no-properties 1 header))
-	(status (match-string-no-properties 2 header)))
+(defun twittering-http-get-default-sentinel (header-info proc noninteractive &optional suc-msg)
+  (let ((status-line (cdr (assq 'status-line header-info)))
+	(status-code (cdr (assq 'status-code header-info))))
     (case-string
-     status
+     status-code
      (("200")
       (let* ((spec (twittering-get-timeline-spec-from-process proc))
 	     (spec-string (twittering-timeline-spec-to-string spec))
@@ -1788,13 +1847,13 @@ Available keywords:
 	    (format "Response: %s (%s)" status-line error-mes)
 	  (format "Response: %s" status-line)))))))
 
-(defun twittering-http-get-list-index-sentinel (header proc noninteractive &optional suc-msg)
-  (let ((status-line (match-string-no-properties 1 header))
-	(status (match-string-no-properties 2 header))
+(defun twittering-http-get-list-index-sentinel (header-info proc noninteractive &optional suc-msg)
+  (let ((status-line (cdr (assq 'status-line header-info)))
+	(status-code (cdr (assq 'status-code header-info)))
 	(indexes nil)
 	(mes nil))
     (case-string
-     status
+     status-code
      (("200")
       (let ((xmltree (twittering-get-response-body (process-buffer proc)
 						   'xml-parse-region)))
@@ -1843,11 +1902,11 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
    "POST" (twittering-http-application-headers "POST")
    host nil (concat "/" method "." format) parameters noninteractive sentinel))
 
-(defun twittering-http-post-default-sentinel (header proc noninteractive &optional suc-msg)
-  (let ((status-line (match-string-no-properties 1 header))
-	(status (match-string-no-properties 2 header)))
+(defun twittering-http-post-default-sentinel (header-info proc noninteractive &optional suc-msg)
+  (let ((status-line (cdr (assq 'status-line header-info)))
+	(status-code (cdr (assq 'status-code header-info))))
     (case-string
-     status
+     status-code
      (("200")
       (if suc-msg suc-msg "Success: Post."))
      (t

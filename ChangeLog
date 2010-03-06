@@ -1,3 +1,9 @@
+2010-03-06  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-server-info-alist): new variable
+	for storing server information.
+	(twittering-http-status-line-regexp): removed.
+
 2010-03-06  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el: Use the new versioned API endpoint at

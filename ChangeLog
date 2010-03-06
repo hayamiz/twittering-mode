@@ -13,6 +13,10 @@
 	(twittering-update-jojo): Likewise.
 	(twittering-http-post): Update a comment.
 
+	* twittering-mode.el (twittering-http-get-default-sentinel): Add
+	an additional information which is related to obsolete
+	public_timeline.
+
 2010-03-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-toggle-reverse-mode): invoke

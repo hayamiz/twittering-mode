@@ -1785,7 +1785,7 @@ Available keywords:
      (t
       (let ((error-mes (twittering-get-error-message (process-buffer proc))))
 	(if error-mes
-	    (format "Response: %s; %s" status-line error-mes)
+	    (format "Response: %s (%s)" status-line error-mes)
 	  (format "Response: %s" status-line)))))))
 
 (defun twittering-http-get-list-index-sentinel (header proc noninteractive &optional suc-msg)
@@ -1815,7 +1815,7 @@ Available keywords:
      (t
       (let ((error-mes (twittering-get-error-message (process-buffer proc))))
 	(if error-mes
-	    (setq mes (format "Response: %s; %s" status-line error-mes))
+	    (setq mes (format "Response: %s (%s)" status-line error-mes))
 	  (setq mes (format "Response: %s" status-line))))))
     (setq twittering-list-index-retrieved
 	  (or indexes
@@ -1853,7 +1853,7 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
      (t
       (let ((error-mes (twittering-get-error-message (process-buffer proc))))
 	(if error-mes
-	    (format "Response: %s; %s" status-line error-mes)
+	    (format "Response: %s (%s)" status-line error-mes)
 	  (format "Response: %s" status-line)))))))
 
 (defun twittering-get-response-header (buffer)

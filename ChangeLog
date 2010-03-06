@@ -31,6 +31,11 @@
 	`twittering-switch-timeline' and `twittering-release-process' only
 	when `proc' is non-nil.
 
+	* twittering-mode.el (twittering-http-get-default-sentinel):
+	Change style of an additional error message.
+	(twittering-http-get-list-index-sentinel): Likewise.
+	(twittering-http-post-default-sentinel): Likewise.
+
 2010-03-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-toggle-reverse-mode): invoke

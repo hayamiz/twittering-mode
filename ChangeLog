@@ -4,6 +4,14 @@
 	for storing server information.
 	(twittering-http-status-line-regexp): removed.
 
+	* twittering-mode.el (twittering-display-remaining): new variable
+	for specifying whether the remaining of rate limit should be
+	displayed on the mode line or not.
+	(twittering-update-mode-line): display the remaining of rate limit
+	if `twittering-display-remaining' is non-nil.
+	(twittering-get-ratelimit-remaining): new function.
+	(twittering-get-ratelimit-limit): new function.
+
 2010-03-06  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el: Use the new versioned API endpoint at

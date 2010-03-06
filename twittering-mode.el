@@ -180,7 +180,8 @@ tweets received when this hook is run.")
 (defvar twittering-jojo-mode nil)
 (defvar twittering-reverse-mode nil
   "*Non-nil means tweets are aligned in reverse order of `http://twitter.com/'.")
-
+(defvar twittering-display-remaining nil
+  "*If non-nil, display remaining of rate limit on the mode line.")
 (defvar twittering-status-format "%i %s,  %@:\n%FILL{  %T // from %f%L%r%R}\n "
   "Format string for rendering statuses.
 Ex. \"%i %s,  %@:\\n%FILL{  %T // from %f%L%r%R}\n \"
@@ -440,6 +441,11 @@ and its contents (BUFFER)"
       (push "ssl" enabled-options))
     (setq mode-name
 	  (concat twittering-mode-string
+		  (if twittering-display-remaining
+		      (format " %d/%d"
+			      (twittering-get-ratelimit-remaining)
+			      (twittering-get-ratelimit-limit))
+		    "")
 		  (if spec-string
 		      (concat " " spec-string)
 		    "")
@@ -1137,6 +1143,14 @@ The alist consists of pairs of field-name and field-value, such as
 	(seconds-to-time (string-to-number (concat field-value ".0"))))
        (t
 	nil)))))
+
+(defun twittering-get-ratelimit-remaining ()
+  (or (twittering-get-server-info 'ratelimit-remaining)
+      0))
+
+(defun twittering-get-ratelimit-limit ()
+  (or (twittering-get-server-info 'ratelimit-limit)
+      0))
 
 ;;;
 ;;; Debug mode

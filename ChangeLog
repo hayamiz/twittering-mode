@@ -1,3 +1,18 @@
+2010-03-06  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el: Use the new versioned API endpoint at
+	"api.twitter.com/1" instead of the legacy API endpoint to fit
+	twitter API specification as of 2010-02-17.
+	(twittering-timeline-spec-to-host-method): Likewise.
+	(twittering-host-method-to-timeline-spec): Likewise.
+	(twittering-edit-post-status): Likewise.
+	(twittering-update-status-from-minibuffer): Likewise.
+	(twittering-manage-friendships): Likewise.
+	(twittering-manage-favorites): Likewise.
+	(twittering-update-lambda): Likewise.
+	(twittering-update-jojo): Likewise.
+	(twittering-http-post): Update a comment.
+
 2010-03-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-toggle-reverse-mode): invoke

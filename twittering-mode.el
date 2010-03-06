@@ -882,7 +882,8 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 	(cond
 	 ((eq type 'user)
 	  (let ((username (car value)))
-	    `("twitter.com" ,(concat "statuses/user_timeline/" username))))
+	    `("api.twitter.com"
+	      ,(concat "1/statuses/user_timeline/" username))))
 	 ((eq type 'list)
 	  (let ((username (car value))
 		(list-name (cadr value)))
@@ -892,15 +893,15 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 	      (eq type 'direct_messages_sent))
 	  (error "%s has not been supported yet" type))
 	 ((eq type 'friends)
-	  '("twitter.com" "statuses/friends_timeline"))
+	  '("api.twitter.com" "1/statuses/friends_timeline"))
 	 ((eq type 'home)
 	  '("api.twitter.com" "1/statuses/home_timeline"))
 	 ((eq type 'mentions)
-	  '("twitter.com" "statuses/mentions"))
+	  '("api.twitter.com" "1/statuses/mentions"))
 	 ((eq type 'public)
-	  '("twitter.com" "statuses/public_timeline"))
+	  '("api.twitter.com" "1/statuses/public_timeline"))
 	 ((eq type 'replies)
-	  '("twitter.com" "statuses/replies"))
+	  '("api.twitter.com" "1/statuses/replies"))
 	 ((eq type 'retweeted_by_me)
 	  '("api.twitter.com" "1/statuses/retweeted_by_me"))
 	 ((eq type 'retweeted_to_me)
@@ -918,20 +919,17 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 (defun twittering-host-method-to-timeline-spec (host method &optional word)
   (cond
    ((or (not (stringp host)) (not (stringp method))) nil)
-   ((string= host "twitter.com")
-    (cond
-     ((string= method "statuses/friends_timeline") '(friends))
-     ((string= method "statuses/mentions") '(mentions))
-     ((string= method "statuses/replies") '(replies))
-     ((string= method "statuses/public_timeline") '(public_timeline))
-     ((string= method "statuses/user_timeline")
-      `(user ,(twittering-get-username)))
-     ((string-match "^statuses/user_timeline/\\(.+\\)$" method)
-      `(user ,(match-string-no-properties 1 method)))
-     (t nil)))
    ((string= host "api.twitter.com")
     (cond
+     ((string= method "1/statuses/public_timeline") '(public_timeline))
      ((string= method "1/statuses/home_timeline") '(home))
+     ((string= method "1/statuses/friends_timeline") '(friends))
+     ((string= method "1/statuses/user_timeline")
+      `(user ,(twittering-get-username)))
+     ((string-match "^1/statuses/user_timeline/\\(.+\\)$" method)
+      `(user ,(match-string-no-properties 1 method)))
+     ((string= method "1/statuses/mentions") '(mentions))
+     ((string= method "1/statuses/replies") '(replies))
      ((string= method "1/statuses/retweeted_by_me") '(retweeted_by_me))
      ((string= method "1/statuses/retweeted_to_me") '(retweeted_to_me))
      ((string= method "1/statuses/retweets_of_me") '(retweets_of_me))
@@ -1325,7 +1323,7 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 	(help-overlay
 	 (or twittering-help-overlay
 	     (make-overlay 1 1 nil nil nil))))
-    
+
     (add-text-properties 0 (length help-str) '(face font-lock-comment-face)
 			 help-str)
     (overlay-put help-overlay 'before-string help-str)
@@ -1374,7 +1372,7 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 	  (add-to-list 'parameters
 		       `("in_reply_to_status_id" .
 			 ,(format "%s" twittering-reply-to-id))))
-	(twittering-http-post "twitter.com" "statuses/update" parameters)
+	(twittering-http-post "api.twitter.com" "1/statuses/update" parameters)
 	(twittering-edit-close))))))
 
 (defun twittering-edit-cancel-status ()
@@ -1453,7 +1451,7 @@ PARAMETERS: http request parameters (query string)"
 
     (let ((curl-program nil))
       (when twittering-use-ssl
-	(cond 
+	(cond
 	 ((not (setq curl-program (twittering-find-curl-program)))
 	  (if (yes-or-no-p "HTTPS(SSL) is not available because 'cURL' does not exist. Use HTTP instead? ")
 	      (progn (setq twittering-use-ssl nil)
@@ -1547,7 +1545,7 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 				      (request :query-string))
 			    (request :uri))))
       (when (string= "POST" method)
-	(nconc curl-args 
+	(nconc curl-args
 	       `(,@(mapcan (lambda (pair)
 			     (list
 			      "-d"
@@ -1824,9 +1822,9 @@ Available keywords:
     nil))
 
 (defun twittering-http-post (host method &optional parameters format sentinel)
-  "Send HTTP POST request to twitter.com (or api.twitter.com)
+  "Send HTTP POST request to api.twitter.com (or search.twitter.com)
 
-HOST is hostname of remote side, twitter.com or api.twitter.com.
+HOST is hostname of remote side, api.twitter.com (or search.twitter.com).
 METHOD must be one of Twitter API method classes
  (statuses, users or direct_messages).
 PARAMETERS is alist of URI parameters.
@@ -2775,7 +2773,7 @@ variable `twittering-status-format'."
 			     (string-match "^@[a-zA-Z0-9_-]+" status))
 		    (add-to-list 'parameters
 				 `("in_reply_to_status_id" . ,reply-to-id)))
-		  (twittering-http-post "twitter.com" "statuses/update"
+		  (twittering-http-post "api.twitter.com" "1/statuses/update"
 					parameters)
 		  (setq not-posted-p nil)))
 	      )))
@@ -2807,14 +2805,14 @@ variable `twittering-status-format'."
     twittering-list-index-retrieved)))
 
 (defun twittering-manage-friendships (method username)
-  (twittering-http-post "twitter.com"
-			(concat "friendships/" method)
+  (twittering-http-post "api.twitter.com"
+			(concat "1/friendships/" method)
 			`(("screen_name" . ,username)
 			  ("source" . "twmode"))))
 
 (defun twittering-manage-favorites (method id)
-  (twittering-http-post "twitter.com"
-			(concat "favorites/" method "/" id)
+  (twittering-http-post "api.twitter.com"
+			(concat "1/favorites/" method "/" id)
 			`(("source" . "twmode"))))
 
 (defun twittering-get-tweets (host method &optional noninteractive id since_id word)
@@ -3057,7 +3055,7 @@ variable `twittering-status-format'."
 	     (or (< 21 emacs-major-version)
 		 (eq 'utf-8 (terminal-coding-system))))
     (twittering-http-post
-     "twitter.com" "statuses/update"
+     "api.twitter.com" "1/statuses/update"
      `(("status" . ,(mapconcat
 		     'char-to-string
 		     (mapcar 'twittering-ucs-to-char
@@ -3073,11 +3071,11 @@ variable `twittering-status-format'."
 	  'char-to-string
 	  (mapcar 'twittering-ucs-to-char
 		  '(27425 12395 92 40 12362 21069 92 124 36020 27096
-			  92 41 12399 12300 92 40 91 94 12301 93 43 92 
+			  92 41 12399 12300 92 40 91 94 12301 93 43 92
 			  41 12301 12392 35328 12358)) "")
 	 msg)
 	(twittering-http-post
-	 "twitter.com" "statuses/update"
+	 "api.twitter.com" "1/statuses/update"
 	 `(("status" . ,(concat
 			 "@" usr " "
 			 (match-string-no-properties 2 msg)
@@ -3533,7 +3531,7 @@ The return value is nil or a positive integer less than POS."
 			     'next-single-property-change))
 	 (pos (funcall propety-change-f (point) 'face)))
     (while (and pos
-		(not 
+		(not
 		 (let* ((current-face (get-text-property pos 'face))
 			(face-pred
 			 (lambda (face)

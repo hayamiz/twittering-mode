@@ -86,12 +86,12 @@ status-code and reason-phrase from the response.")
 The upper limit is `twittering-max-number-of-tweets-on-retrieval'.")
 
 (defvar twittering-tinyurl-service 'tinyurl
-  "The service to use. One of 'tinyurl' or 'toly'")
+  "The service to use. One of 'tinyurl' or 'toly'.")
 
 (defvar twittering-tinyurl-services-map
   '((tinyurl . "http://tinyurl.com/api-create.php?url=")
     (toly    . "http://to.ly/api.php?longurl="))
-  "Alist of tinyfy services")
+  "Alist of tinyfy services.")
 
 (defvar twittering-mode-map (make-sparse-keymap))
 
@@ -169,10 +169,10 @@ directly. Use `twittering-current-timeline-spec-string' or
   "Alist of active process and timeline spec retrieved by the process.")
 
 (defvar twittering-new-tweets-count 0
-  "Number of new tweets when `twittering-new-tweets-hook' is run")
+  "*Number of new tweets when `twittering-new-tweets-hook' is run.")
 
 (defvar twittering-new-tweets-hook nil
-  "Hook run when new tweets are received.
+  "*Hook run when new tweets are received.
 
 You can read `twittering-new-tweets-count' to get the number of new
 tweets received when this hook is run.")
@@ -1039,8 +1039,7 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 ;;;
 
 (defun twittering-register-process (proc spec)
-  (add-to-list 'twittering-process-info-alist
-	       `(,proc ,spec)))
+  (add-to-list 'twittering-process-info-alist `(,proc ,spec)))
 
 (defun twittering-release-process (proc)
   (let ((spec (twittering-get-timeline-spec-from-process proc)))
@@ -1279,8 +1278,7 @@ Return nil if SPEC-STR is invalid as a timeline spec."
   (setq twittering-edit-local-history-idx 0)
 
   (make-local-variable 'after-change-functions)
-  (add-to-list 'after-change-functions
-	       'twittering-edit-length-check)
+  (add-to-list 'after-change-functions 'twittering-edit-length-check)
   )
 
 (when twittering-edit-mode-map
@@ -2841,13 +2839,13 @@ variable `twittering-status-format'."
 	     (regexp-list-method "^1/[^/]*/lists/[^/]*/statuses$")
 	     (parameters nil))
 	(cond ((stringp id)
-	       (add-to-list 'parameters (cons "max_id" id)))
+	       (add-to-list 'parameters `("max_id" . ,id)))
 	      ((stringp since_id)
-	       (add-to-list 'parameters (cons "since_id" since_id))))
+	       (add-to-list 'parameters `("since_id" . ,since_id))))
 	(cond
 	 (do-search-flag
-	  (add-to-list 'parameters (cons "q" word))
-	  (add-to-list 'parameters (cons "rpp" (number-to-string count)))
+	  (add-to-list 'parameters `("q" . ,word))
+	  (add-to-list 'parameters `("rpp" . ,(number-to-string count)))
 	  (twittering-http-get host method noninteractive parameters "atom"))
 	 (t
 	  (add-to-list 'parameters

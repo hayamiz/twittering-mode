@@ -2889,8 +2889,9 @@ variable `twittering-status-format'."
 		 (word (and is-search-spec (cadr spec)))
 		 (proc (twittering-get-tweets host method noninteractive
 					      id since_id word)))
-	    (twittering-switch-timeline spec-string)
-	    (twittering-register-process proc spec)))))
+	    (when proc
+	      (twittering-switch-timeline spec-string)
+	      (twittering-register-process proc spec))))))
      (t
       (let ((type (car spec)))
 	(error "%s has not been supported yet" type))))))

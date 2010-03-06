@@ -27,6 +27,10 @@
 	(twittering-update-jojo): Likewise.
 	(twittering-native-retweet): Likewise.
 
+	* twittering-mode.el (twittering-http-default-sentinel): Call
+	`twittering-switch-timeline' and `twittering-release-process' only
+	when `proc' is non-nil.
+
 2010-03-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-toggle-reverse-mode): invoke

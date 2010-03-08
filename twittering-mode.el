@@ -1356,9 +1356,9 @@ The alist consists of pairs of field-name and field-value, such as
     (define-key km (kbd "C-c C-k") 'twittering-edit-cancel-status)
     (define-key km (kbd "M-n") 'twittering-edit-next-history)
     (define-key km (kbd "M-p") 'twittering-edit-previous-history)
-    (define-key km (kbd "<f4>") 'twittering-tinyurl-replace-at-point)))
+    (define-key km (kbd "<f4>") 'twittering-edit-replace-at-point)))
 
-(defun twittering-edit-length-check (&rest args)
+(defun twittering-edit-length-check (&optional beg end len)
   (let* ((status (twittering-edit-extract-status))
 	 (sign-str (twittering-sign-string))
 	 (maxlen (- 140 (length sign-str)))
@@ -1478,6 +1478,12 @@ The alist consists of pairs of field-name and field-value, such as
       (twittering-edit-setup-help)
       (goto-char (point-min))))
   )
+
+(defun twittering-edit-replace-at-point ()
+  (interactive)
+  (when (eq major-mode 'twittering-edit-mode)
+    (twittering-tinyurl-replace-at-point)
+    (twittering-edit-length-check)))
 
 ;;;
 ;;; Basic HTTP functions

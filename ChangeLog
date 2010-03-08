@@ -1,3 +1,11 @@
+2010-03-07  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-edit-replace-at-point): New defun
+	to call `twittering-edit-length-check' forcefully.
+	(twittering-edit-mode-map): Bind F4 to it instead of
+	`twittering-tinyurl-replace-at-point'.
+	(twittering-edit-length-check): Make all arguments optional.
+
 2010-03-06  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-server-info-alist): new variable

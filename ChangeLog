@@ -28,6 +28,19 @@
 	(twittering-format-status-for-redisplay): new function for
 	redisplaying a formated status with a prefix.
 
+	* twittering-mode.el (twittering-find-status): new function for
+	finding a status from an ID.
+	(twittering-get-replied-statuses): new function for making a list
+	of replied statuses.
+	(twittering-mode-map): add
+	`twittering-toggle-show-replied-statuses' to keymap as "r".
+	(twittering-replied-statuses-visible-p): new function.
+	(twittering-show-replied-statuses): new function.
+	(twittering-hide-replied-statuses): new function.
+	(twittering-toggle-show-replied-statuses): new function.
+	(twittering-get-id-at): new function.
+	(twittering-get-current-status-head): new function.
+
 2010-03-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-redisplay-status-on-buffer): call

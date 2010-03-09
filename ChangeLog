@@ -5,6 +5,12 @@
 	(twittering-make-passed-time-string): restore the original
 	properties.
 
+	* twittering-mode.el (twittering-timeline-data-table): store ID
+	table and referring ID table, too.
+	(twittering-current-timeline-id-table): new function.
+	(twittering-add-statuses-to-timeline-data): store updated ID
+	tables.
+
 2010-03-07  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-edit-replace-at-point): New defun

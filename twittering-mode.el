@@ -995,10 +995,24 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 	(twittering-string-to-timeline-spec spec-string)
       nil)))
 
+(defun twittering-current-timeline-id-table (&optional spec)
+  (let ((spec (or spec (twittering-current-timeline-spec))))
+    (if spec
+	(elt (gethash spec twittering-timeline-data-table) 0)
+      nil)))
+
+(defun twittering-current-timeline-referring-id-table (&optional spec)
+  "Return the hash from a ID to the ID of the first observed status
+referring the former ID."
+  (let ((spec (or spec (twittering-current-timeline-spec))))
+    (if spec
+	(elt (gethash spec twittering-timeline-data-table) 1)
+      nil)))
+
 (defun twittering-current-timeline-data (&optional spec)
   (let ((spec (or spec (twittering-current-timeline-spec))))
     (if spec
-	(gethash spec twittering-timeline-data-table)
+	(elt (gethash spec twittering-timeline-data-table) 2)
       nil)))
 
 (defun twittering-remove-timeline-data (&optional spec)
@@ -1007,38 +1021,39 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 
 (defun twittering-add-statuses-to-timeline-data (statuses &optional spec)
   (let* ((spec (or spec (twittering-current-timeline-spec)))
-	 (id-table (make-hash-table :test 'equal))
+	 (id-table
+	  (or (twittering-current-timeline-id-table spec)
+	      (make-hash-table :test 'equal)))
+	 (referring-id-table
+	  (or (twittering-current-timeline-referring-id-table spec)
+	      (make-hash-table :test 'equal)))
 	 (timeline-data (twittering-current-timeline-data spec)))
-    (mapc
-     (lambda (status)
-       (let ((id (cdr (assq 'id status)))
-	     (source-id (cdr-safe (assq 'source-id status))))
-	 (puthash id t id-table)
-	 (when source-id
-	   (puthash source-id t id-table))))
-     timeline-data)
     (let ((new-statuses
 	   (remove nil
 		   (mapcar
 		    (lambda (status)
 		      (let ((id (cdr (assq 'id status)))
 			    (source-id (cdr-safe (assq 'source-id status))))
-			(unless (or (gethash id id-table)
-				    (and source-id
-					 (gethash source-id id-table)))
-			  (puthash id t id-table)
-			  (when source-id
-			    (puthash source-id t id-table))
+			(unless (or (not source-id)
+				    (gethash source-id referring-id-table))
+			  ;; Store the id of the first observed tweet
+			  ;; that refers `source-id'.
+			  (puthash source-id id referring-id-table))
+			(if (gethash id id-table)
+			    nil
+			  (puthash id status id-table)
+			  (puthash id id referring-id-table)
 			  status)))
 		    statuses))))
       (when new-statuses
-	(puthash spec
-		 (sort (append new-statuses timeline-data)
-		       (lambda (status1 status2)
-			 (let ((id1 (cdr (assq 'id status1)))
-			       (id2 (cdr (assq 'id status2))))
-			   (twittering-status-id< id2 id1))))
-		 twittering-timeline-data-table)
+	(let ((new-timeline-data
+	       (sort (append new-statuses timeline-data)
+		     (lambda (status1 status2)
+		       (let ((id1 (cdr (assq 'id status1)))
+			     (id2 (cdr (assq 'id status2))))
+			 (twittering-status-id< id2 id1))))))
+	  (puthash spec `(,id-table ,referring-id-table ,new-timeline-data)
+		   twittering-timeline-data-table))
 	(when twittering-jojo-mode
 	  (mapc (lambda (status)
 		  (twittering-update-jojo (cdr (assq 'user-screen-name status))
@@ -2418,8 +2433,30 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 
 (defun twittering-render-timeline (&optional additional timeline-data)
   (with-current-buffer (twittering-buffer)
-    (let* ((timeline-data (or timeline-data
-			      (twittering-current-timeline-data)))
+    (let* ((spec (twittering-current-timeline-spec))
+	   (referring-id-table
+	    (twittering-current-timeline-referring-id-table spec))
+	   (timeline-data (or timeline-data
+			      (twittering-current-timeline-data spec)))
+	   (timeline-data
+	    ;; Collect visible statuses.
+	    (remove nil
+		    (mapcar
+		     (lambda (status)
+		       (let ((id (cdr (assq 'id status)))
+			     (source-id (cdr (assq 'source-id status))))
+			 (cond
+			  ((not source-id)
+			   ;; `status' is not a retweet.
+			   status)
+			  ((and source-id
+				(twittering-status-id=
+				 id (gethash source-id referring-id-table)))
+			   ;; `status' is the first retweet.
+			   status)
+			  (t
+			   nil))))
+		     timeline-data)))
 	   (timeline-data (if twittering-reverse-mode
 			      (reverse timeline-data)
 			    timeline-data))

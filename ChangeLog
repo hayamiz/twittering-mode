@@ -11,6 +11,12 @@
 	(twittering-add-statuses-to-timeline-data): store updated ID
 	tables.
 
+	* twittering-mode.el (twittering-generate-status-formater-base):
+	redisplay filled string including substring that should be
+	redisplayed.
+	(twittering-update-filled-string): new function for updating
+	filled string with `need-to-be-update' property.
+
 2010-03-07  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-edit-replace-at-point): New defun

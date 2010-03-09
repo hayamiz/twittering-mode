@@ -568,6 +568,29 @@ and its contents (BUFFER)"
 			      time-string))
     time-string))
 
+(defun twittering-update-filled-string (beg end formater status)
+  (let* ((str (twittering-fill-string (funcall formater status)))
+	 (next (next-single-property-change 0 'need-to-be-updated str))
+	 (properties
+	  (and beg
+	       (apply 'append
+		      (mapcar (lambda (prop)
+				(let ((value (get-text-property beg prop)))
+				  (when value
+				    `(,prop ,value))))
+			      '(id text username))))))
+    ;; Restore properties.
+    (when properties
+      (add-text-properties 0 (length str) properties str))
+    (if (or (get-text-property 0 'need-to-be-updated str)
+	    (and next (< next (length str))))
+	(put-text-property 0 (length str) 'need-to-be-updated
+			   `(twittering-update-filled-string ,formater ,status)
+			   str)
+      ;; Remove the property required no longer.
+      (remove-text-properties 0 (length str) '(need-to-be-updated nil) str))
+    str))
+
 ;;;
 ;;; Utility functions for portability
 ;;;
@@ -2813,7 +2836,7 @@ Example:
      ("FILL{\\(\\([^{}]*?\\|{.*?[^%]}\\|%}\\)*\\)}"
       ((braced-str (match-string 1 fmt-following))
        (formater (twittering-generate-status-formater-base braced-str)))
-      (twittering-fill-string (funcall formater status)))
+      (twittering-update-filled-string nil nil formater status))
      ("f" () (cdr (assq 'source status)))
      ("i" ()
       (when (and twittering-icon-mode window-system)

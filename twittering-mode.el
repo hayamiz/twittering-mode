@@ -1031,8 +1031,8 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 	(puthash spec
 		 (sort (append new-statuses timeline-data)
 		       (lambda (status1 status2)
-			 (let ((id1 (cdr (assoc 'id status1)))
-			       (id2 (cdr (assoc 'id status2))))
+			 (let ((id1 (cdr (assq 'id status1)))
+			       (id2 (cdr (assq 'id status2))))
 			   (twittering-status-id< id2 id1))))
 		 twittering-timeline-data-table)
 	(when twittering-jojo-mode
@@ -2439,7 +2439,7 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 		     (twittering-get-first-status-head))))
 	  (mapc
 	   (lambda (status)
-	     (let ((id (cdr (assoc 'id status))))
+	     (let ((id (cdr (assq 'id status))))
 	       ;; Find where the status should be inserted.
 	       (while
 		   (let ((buf-id (get-text-property pos 'id)))
@@ -3022,7 +3022,7 @@ variable `twittering-status-format'."
 		 (method (elt info 1))
 		 ;; Assume that a list which was returned by
 		 ;; `twittering-current-timeline-data' is sorted.
-		 (since_id (or is-search-spec (cdr-safe (assoc 'id (car (twittering-current-timeline-data spec))))))
+		 (since_id (or is-search-spec (cdr-safe (assq 'id (car (twittering-current-timeline-data spec))))))
 		 (word (and is-search-spec (cadr spec)))
 		 (proc (twittering-get-tweets host method noninteractive
 					      id since_id word)))

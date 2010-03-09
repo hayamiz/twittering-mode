@@ -484,7 +484,7 @@ and its contents (BUFFER)"
 (defun twittering-status-id= (id1 id2)
   (equal id1 id2))
 
-(defun twittering-fill-string (str &optional column)
+(defun twittering-fill-string (str &optional adjustment)
   (when (and (not (boundp 'kinsoku-limit))
 	     enable-kinsoku)
     ;; `kinsoku-limit' is defined on loading "international/kinsoku.el".
@@ -497,7 +497,8 @@ and its contents (BUFFER)"
     ;; So, we load "kinsoku.el" in advance if necessary.
     (load "international/kinsoku"))
   (let* ((kinsoku-limit 1)
-	 (adjustment (+ (if (and (boundp 'fill-prefix) (stringp fill-prefix))
+	 (adjustment (+ (or adjustment 0)
+			(if (and (boundp 'fill-prefix) (stringp fill-prefix))
 			    (string-width fill-prefix)
 			  0)
 			(if enable-kinsoku
@@ -511,9 +512,7 @@ and its contents (BUFFER)"
 		  ;; Use `(frame-width)' if no windows display
 		  ;; the current buffer.
 		  `(,(frame-width)))))
-	 (temporary-fill-column
-	  (or column
-	      (- (1- min-width) adjustment))))
+	 (temporary-fill-column (- (1- min-width) adjustment)))
     (with-temp-buffer
       (let ((fill-column temporary-fill-column))
 	(insert str)
@@ -568,8 +567,9 @@ and its contents (BUFFER)"
 			      time-string))
     time-string))
 
-(defun twittering-update-filled-string (beg end formater status)
-  (let* ((str (twittering-fill-string (funcall formater status)))
+(defun twittering-update-filled-string (beg end formater status prefix)
+  (let* ((str (twittering-fill-string (funcall formater status prefix)
+				      (length prefix)))
 	 (next (next-single-property-change 0 'need-to-be-updated str))
 	 (properties
 	  (and beg
@@ -585,7 +585,8 @@ and its contents (BUFFER)"
     (if (or (get-text-property 0 'need-to-be-updated str)
 	    (and next (< next (length str))))
 	(put-text-property 0 (length str) 'need-to-be-updated
-			   `(twittering-update-filled-string ,formater ,status)
+			   `(twittering-update-filled-string
+			     ,formater ,status ,prefix)
 			   str)
       ;; Remove the property required no longer.
       (remove-text-properties 0 (length str) '(need-to-be-updated nil) str))
@@ -2715,7 +2716,7 @@ the matched string in FORMAT-STR and its match data."
       (setq result (cons (substring format-str pos) result)))
     (nreverse result)))
 
-(defun twittering-generate-formater (format-str-exp escape status-sym specifier-sym specifiers)
+(defun twittering-generate-formater (format-str-exp escape status-sym prefix-sym specifier-sym specifiers)
   "Generate lambda expression from FORMAT-STR-EXP.
 The result expression does not include specifiers except those appeared
 in FORMAT-STR-EXP.
@@ -2725,13 +2726,14 @@ SPEC-REGEXP is a regexp for the specifier without ESCAPE,
 STATIC-BINDINGS means bindings determined on expanding this macro
 and FORMS generates a string for the specifier by using the argument
 of the lambda.
-In FORMS, the argument of the lambda can be refered by STATUS-SYM.
+In FORMS, the first argument of the lambda can be refered by STATUS-SYM.
+And the second argument of the lambda can be refered by PREFIX-SYM.
 In STATIC-BINDINGS and FORMS, the string matched with SPEC-REGEXP can be
 refered by SPECIFIER-SYM.
 Example:
  (twittering-generate-formater
   \"HEAD%# %CsampleSAMPLE TEST\"
-  \"%\" 'status 'fmt-following
+  \"%\" 'status 'prefix 'fmt-following
   '((\"%\" () \"%\")
     (\"#\" () (cdr (assq 'id status)))
     (\"s\" () (cdr (assq 'user-screen-name status)))
@@ -2742,7 +2744,7 @@ Example:
     ))
  returns
  (lambda
-   (status)
+   (status prefix)
    (concat \"HEAD\"
            (let
                ((fmt-following \"#\"))
@@ -2765,7 +2767,7 @@ Example:
   (let* ((format-str (eval format-str-exp))
          (seq (twittering-parse-format-string format-str escape
                                               (mapcar 'car specifiers))))
-    `(lambda (,status-sym)
+    `(lambda (,status-sym ,prefix-sym)
        (concat
 	,@(mapcar
 	   (lambda (entry)
@@ -2796,7 +2798,7 @@ Example:
 
 (defun twittering-generate-status-formater-base (format-str)
   (twittering-generate-formater
-   format-str "%" 'status 'fmt-following
+   format-str "%" 'status 'prefix 'fmt-following
    '(("%" () "%")
      ("#" () (cdr (assq 'id status)))
      ("'" () (if (string= "true" (cdr (assq 'truncated status)))
@@ -2834,7 +2836,7 @@ Example:
      ("FILL{\\(\\([^{}]*?\\|{.*?[^%]}\\|%}\\)*\\)}"
       ((braced-str (match-string 1 fmt-following))
        (formater (twittering-generate-status-formater-base braced-str)))
-      (twittering-update-filled-string nil nil formater status))
+      (twittering-update-filled-string nil nil formater status prefix))
      ("f" () (cdr (assq 'source status)))
      ("i" ()
       (when (and twittering-icon-mode window-system)
@@ -2882,15 +2884,30 @@ Example:
      )))
 
 (defun twittering-generate-format-status-function (format-str)
-  `(lambda (status)
+  `(lambda (status prefix)
      (let* ((username (cdr (assq 'user-screen-name status)))
 	    (id (cdr (assq 'id status)))
 	    (text (cdr (assq 'text status)))
 	    (common-properties (list 'username username 'id id 'text text))
 	    (str (funcall
 		  ,(twittering-generate-status-formater-base format-str)
-		  status)))
+		  status prefix))
+	    (str (if prefix
+		     (replace-regexp-in-string "^" prefix str)
+		   str))
+	    (next (next-single-property-change 0 'need-to-be-updated str))
+	    (need-to-be-updated
+	     (or (get-text-property 0 'need-to-be-updated str)
+		 (and next (< next (length str))))))
        (add-text-properties 0 (length str) common-properties str)
+       (when (and prefix need-to-be-updated)
+	 ;; With a prefix, redisplay the total status instead of
+	 ;; redisplaying partially.
+	 (remove-text-properties 0 (length str) '(need-to-be-updated nil) str)
+	 (put-text-property 0 (length str) 'need-to-be-updated
+			    `(twittering-format-status-for-redisplay
+			      ,status ,prefix)
+			    str))
        str)))
 
 (defun twittering-update-status-format (&optional format-str)
@@ -2902,11 +2919,26 @@ Example:
 	     (twittering-generate-format-status-function format-str))))
     (setq twittering-status-format format-str)))
 
-(defun twittering-format-status (status)
+(defun twittering-format-status (status &optional prefix)
   "Format a STATUS by using `twittering-format-status-function'.
 Specification of FORMAT-STR is described in the document for the
 variable `twittering-status-format'."
-  (funcall twittering-format-status-function status))
+  (funcall twittering-format-status-function status prefix))
+
+(defun twittering-format-status-for-redisplay (beg end status &optional prefix)
+  (let* ((properties
+	  (and beg
+	       (apply 'append
+		      (mapcar (lambda (prop)
+				(let ((value (get-text-property beg prop)))
+				  (when value
+				    `(,prop ,value))))
+			      '(id original-id)))))
+	 (str (twittering-format-status status prefix)))
+    ;; Restore properties.
+    (when properties
+      (add-text-properties 0 (length str) properties str))
+    str))
 
 (defun twittering-timer-action (func)
   (let ((buf (get-buffer twittering-buffer)))

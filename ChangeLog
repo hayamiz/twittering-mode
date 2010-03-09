@@ -14,7 +14,20 @@
 	* twittering-mode.el (twittering-goto-next-status): Show a
 	progress message.
 	(twittering-goto-previous-status): Likewise.
-	
+
+2010-03-10  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-fill-string): receive adjustment
+	width as the second argument.
+	(twittering-update-status-format): support formating status with a
+	prefix.
+	(twittering-generate-formater): likewise.
+	(twittering-generate-status-formater-base): likewise.
+	(twittering-generate-format-status-function): likewise.
+	(twittering-update-filled-string): likewise.
+	(twittering-format-status-for-redisplay): new function for
+	redisplaying a formated status with a prefix.
+
 2010-03-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-redisplay-status-on-buffer): call

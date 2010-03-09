@@ -533,7 +533,7 @@ and its contents (BUFFER)"
 		  (not (pos-visible-in-window-p pos window))))))
 
 (defun twittering-make-passed-time-string
-  (encoded-created-at additional-properties)
+  (beg end encoded-created-at &optional additional-properties)
   (let* ((now (current-time))
 	 (secs (+ (* (- (car now) (car encoded-created-at)) 65536)
 		  (- (cadr now) (cadr encoded-created-at))))
@@ -551,17 +551,21 @@ and its contents (BUFFER)"
 	   ((< secs 84600) (format "about %d hours ago"
 				   (/ (+ secs 1800) 3600)))
 	   (t (format-time-string "%I:%M %p %B %d, %Y"
-				  encoded-created-at)))))
-    (when (< secs 84600)
-      (put-text-property
-       0 (length time-string)
-       'need-to-be-updated
-       `(twittering-make-passed-time-string
-	 ,encoded-created-at ,additional-properties)
-       time-string))
-    ;; add properties
-    (add-text-properties 0 (length time-string) additional-properties
-			 time-string)
+				  encoded-created-at))))
+	 (properties (append additional-properties
+			     (and beg (text-properties-at beg)))))
+    ;; Restore properties.
+    (when properties
+      (add-text-properties 0 (length time-string) properties time-string))
+    (if (< secs 84600)
+	(put-text-property 0 (length time-string)
+			   'need-to-be-updated
+			   `(twittering-make-passed-time-string
+			     ,encoded-created-at)
+			   time-string)
+      ;; Remove the property required no longer.
+      (remove-text-properties 0 (length time-string) '(need-to-be-updated nil)
+			      time-string))
     time-string))
 
 ;;;
@@ -2401,7 +2405,7 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 	 (lambda (beg end value)
 	   (let* ((func (car value))
 		  (args (cdr value))
-		  (updated-str (apply func args))
+		  (updated-str (apply func beg end args))
 		  (buffer-read-only nil))
 	     (delete-region beg end)
 	     (goto-char beg)
@@ -2750,10 +2754,8 @@ Example:
 	       (cdr (assq 'user-screen-name status))
 	       (cdr (assq 'id status))))
 	     (properties
-	      (append
-	       `(mouse-face highlight face twittering-uri-face uri ,url)
-	       common-properties)))
-	(twittering-make-passed-time-string created-at properties)))
+	      `(mouse-face highlight face twittering-uri-face uri ,url)))
+	(twittering-make-passed-time-string nil nil created-at properties)))
      ("C\\({\\([^}]*\\)}\\)?"
       ((time-format (or (match-string 2 fmt-following) "%H:%M:%S")))
       (let* ((created-at-str (cdr (assq 'created-at status)))

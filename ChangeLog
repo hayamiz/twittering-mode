@@ -1,3 +1,26 @@
+2010-03-11  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-render-timeline): Call
+	`twittering-show-replied-statuses' if necessary.
+	(twittering-show-replied-tweets): New defvar.
+	(twittering-get-replied-statuses): Add optional argument `count'.
+	(twittering-show-replied-statuses): Likewise.
+	(twittering-have-replied-statuses-p): New defun.
+	(twittering-show-replied-statuses): Add optional argument
+	`interactive'.
+	(twittering-hide-replied-statuses): Likewise.
+	(twittering-toggle-show-replied-statuses): Adjust callers.
+	(twittering-show-replied-statuses): Show a reason to do nothing.
+	(twittering-hide-replied-statuses): Likewise.
+
+	* twittering-mode.el (twittering-get-replied-statuses): Fix
+	condition because `replied-id' always non-nil.
+	(twittering-hide-replied-statuses): Fix condition to avoid an
+	infinite loop.
+
+	* twittering-mode.el (twittering-hide-replied-statuses): Go to the
+	head of parent status before hiding replied statuses.
+
 2010-03-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-lookup-http-start-function):

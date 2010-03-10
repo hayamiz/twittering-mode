@@ -220,6 +220,9 @@ Items:
  %% - %
 ")
 
+(defvar twittering-show-replied-tweets 0
+  "*The number of replied tweets which will be showed in one tweet.")
+
 (defvar twittering-use-show-minibuffer-length t
   "*Show current length of minibuffer if this variable is non-nil.
 
@@ -1056,20 +1059,29 @@ referring the former ID."
      twittering-timeline-data-table)
     result))
 
-(defun twittering-get-replied-statuses (id)
+(defun twittering-get-replied-statuses (id &optional count)
   "Return a list of replied statuses starting from the status specified by ID.
 Statuses are stored in ascending-order with respect to their IDs."
   (let ((result nil)
 	(status (twittering-find-status id)))
     (while
-	(let ((replied-id (cdr (assq 'in-reply-to-status-id status))))
-	  (when replied-id
-	    (let ((replied-status (twittering-find-status replied-id)))
-	      (when replied-status
-		(setq result (cons replied-status result))
-		(setq status replied-status)
-		t)))))
+	(and (if (numberp count)
+		 (<= 0 (setq count (1- count)))
+	       t)
+	     (let ((replied-id (cdr (assq 'in-reply-to-status-id status))))
+	       (when (and replied-id (not (string= "" replied-id)))
+		 (let ((replied-status (twittering-find-status replied-id)))
+		   (when replied-status
+		     (setq result (cons replied-status result))
+		     (setq status replied-status)
+		     t))))))
     result))
+
+(defun twittering-have-replied-statuses-p (id)
+  (let ((status (twittering-find-status id)))
+    (when status
+      (let ((replied-id (cdr (assq 'in-reply-to-status-id status))))
+	(and replied-id (not (string= "" replied-id)))))))
 
 (defun twittering-add-statuses-to-timeline-data (statuses &optional spec)
   (let* ((spec (or spec (twittering-current-timeline-spec)))
@@ -2559,7 +2571,10 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 		   ;; Now, `pos' points the head of the status.
 		   ;; It must be moved to the current point
 		   ;; in order to skip the status inserted just now.
-		   (setq pos (point))))))
+		   (setq pos (point))
+		   (when twittering-show-replied-tweets
+		     (twittering-show-replied-statuses
+		      twittering-show-replied-tweets))))))
 	   timeline-data)))
       (if (and twittering-image-stack window-system)
 	  (clear-image-cache))
@@ -2615,65 +2630,82 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 	     (twittering-status-id= id (get-text-property next 'id))
 	     (get-text-property next 'original-id)))))
 
-(defun twittering-show-replied-statuses ()
+(defun twittering-show-replied-statuses (&optional count interactive)
   (interactive)
-  (unless (twittering-replied-statuses-visible-p)
+  (if (twittering-replied-statuses-visible-p)
+      (when interactive
+	(message "The replied statuses were already showed."))
     (let* ((base-id (twittering-get-id-at))
-	   (statuses (twittering-get-replied-statuses base-id))
+	   (statuses (twittering-get-replied-statuses base-id
+						      (if (numberp count)
+							  count)))
 	   (statuses (if twittering-reverse-mode
 			 statuses
-		       (reverse statuses)))
-	   (beg (if twittering-reverse-mode
-		    (twittering-get-current-status-head)
-		  (or (twittering-get-next-status-head)
-		      (point-max))))
-	   (separtor "\n")
-	   (prefix "  ")
-	   (buffer-read-only nil))
-      (save-excursion
-	(goto-char beg)
-	(mapc
-	 (lambda (status)
-	   (let ((id (cdr (assq 'id status)))
-		 (formatted-status (twittering-format-status status prefix)))
-	     (add-text-properties 0 (length formatted-status)
-				  `(id ,base-id original-id ,id)
-				  formatted-status)
-	     (if twittering-reverse-mode
-		 (insert-before-markers formatted-status separtor)
-	       (insert formatted-status separtor))))
-	 statuses)
-	))))
+		       (reverse statuses))))
+      (if statuses
+	  (let ((beg (if twittering-reverse-mode
+			 (twittering-get-current-status-head)
+		       (or (twittering-get-next-status-head)
+			   (point-max))))
+		(separtor "\n")
+		(prefix "  ")
+		(buffer-read-only nil))
+	    (save-excursion
+	      (goto-char beg)
+	      (mapc
+	       (lambda (status)
+		 (let ((id (cdr (assq 'id status)))
+		       (formatted-status (twittering-format-status status
+								   prefix)))
+		   (add-text-properties 0 (length formatted-status)
+					`(id ,base-id original-id ,id)
+					formatted-status)
+		   (if twittering-reverse-mode
+		       (insert-before-markers formatted-status separtor)
+		     (insert formatted-status separtor))))
+	       statuses)
+	      t))
+	(when interactive
+	  (if (twittering-have-replied-statuses-p base-id)
+	      (message "The replied statuses does not fetched yet.")
+	    (message "This status does not seem having a replied status.")))
+	nil))))
 
-(defun twittering-hide-replied-statuses ()
+(defun twittering-hide-replied-statuses (&optional interactive)
   (interactive)
-  (when (twittering-replied-statuses-visible-p)
-    (let* ((pos (point))
-	   (id (twittering-get-id-at pos))
-	   (beg
-	    (let ((pos pos))
-	      (while (let* ((prev (or (twittering-get-previous-status-head pos)
-				      (point-min)))
-			    (prev-id (get-text-property prev 'id)))
-		       (when (twittering-status-id= id prev-id)
-			 (setq pos prev)
-			 t)))
-	      pos))
-	   (buffer-read-only nil))
-      (while (when (twittering-status-id= id (get-text-property beg 'id))
-	       (let ((end (or (twittering-get-next-status-head beg)
-			      (point-max))))
-		 (if (get-text-property beg 'original-id)
-		     (delete-region beg end)
-		   (setq beg end)))
-	       t))
-      )))
+  (if (twittering-replied-statuses-visible-p)
+      (let* ((pos (point))
+	     (id (twittering-get-id-at pos))
+	     (beg
+	      (let ((pos pos))
+		(while
+		    (let* ((prev (or (twittering-get-previous-status-head pos)
+				     (point-min)))
+			   (prev-id (get-text-property prev 'id)))
+		      (when (twittering-status-id= id prev-id)
+			(not (eq (setq pos prev) (point-min))))))
+		pos))
+	     (buffer-read-only nil))
+	(when (get-text-property pos 'original-id)
+	  (goto-char beg))
+	(while (when (twittering-status-id= id (get-text-property beg 'id))
+		 (let ((end (or (twittering-get-next-status-head beg)
+				(point-max))))
+		   (if (get-text-property beg 'original-id)
+		       (delete-region beg end)
+		     (setq beg end)))
+		 t))
+	t)
+    (when interactive
+      (message "The replied statuses were already hided."))
+    nil))
 
 (defun twittering-toggle-show-replied-statuses ()
   (interactive)
   (if (twittering-replied-statuses-visible-p)
-      (twittering-hide-replied-statuses)
-    (twittering-show-replied-statuses)))
+      (twittering-hide-replied-statuses (interactive-p))
+    (twittering-show-replied-statuses t ;; show all fetched statuses.
+				      (interactive-p))))
 
 (defun twittering-make-display-spec-for-icon (image-url)
   "Return the specification for `display' text property, which

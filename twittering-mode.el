@@ -1579,49 +1579,47 @@ The alist consists of pairs of field-name and field-value, such as
 
 (defun twittering-lookup-http-start-function (order table)
   "Decide a connection method from currently available methods."
-  (let ((prefer order)
-	(error-mes "A function \"%s\" (referred from %s.%s) was not found")
-	(start-func nil))
-    (catch 'found
-      (while prefer
-	(let ((config nil)
-	      check-func https-func)
-	  (and (setq config (cdr (assq (car prefer) table)))
-	       (setq check-func (cdr (assq 'check config)))
-	       (cond
-		((eq t check-func) t)
-		((fboundp check-func) (funcall check-func))
-		(t
-		 (error error-mes check-func (car prefer) "check")
-		 nil))
-	       (or (not twittering-use-ssl)
-		   (and (setq https-func (cdr (assq 'https config)))
-			(cond
-			 ((eq t https-func) t)
-			 ((fboundp https-func) (funcall https-func))
-			 (t
-			  (error error-mes https-func (car prefer) "https")
-			  nil))))
-	       (setq start-func (cdr (assq 'start config)))
-	       (cond
-		;; ((eq t start-func) t) ;; meaningless.
-		((fboundp start-func) t)
-		(t
-		 (error error-mes start-func (car prefer) "start")
-		 nil))
-	       (throw 'found start-func)))
-	(setq prefer (cdr prefer))
-	(unless prefer
-	  (if twittering-use-ssl
-	      (if (yes-or-no-p "HTTPS(SSL) is not available because your 'cURL' cannot use HTTPS. Use HTTP instead? ")
-		  (progn
-		    (setq twittering-use-ssl nil)
-		    (twittering-update-mode-line)
-		    (setq prefer order))
-		(message "Request canceled."))
-	    (message "All connection methods are unavailable.")))
-	nil))
-    ))
+  (let ((rest order)
+	(result nil)
+	(msg-format "A function \"%s\" (referred from %s.%s) was not found"))
+    (while rest
+      (let* ((candidate (car rest))
+	     (entry (assq candidate table))
+	     (entry-sym (car-safe entry))
+	     (check-func (cdr (assq 'check entry)))
+	     (https-func (if twittering-use-ssl
+			     (cdr (assq 'https entry))
+			   ;; Ignore `https' when `twittering-use-ssl' is nil.
+			   t))
+	     (start-func (cdr (assq 'start entry))))
+	(if (and (cond
+		  ((null check-func) nil)
+		  ((eq t check-func) t)
+		  ((functionp check-func) (funcall check-func))
+		  (t (message msg-format check-func entry-sym 'check)
+		     (error msg-format check-func entry-sym 'check)))
+		 (cond
+		  ((null https-func) nil)
+		  ((eq t https-func) t)
+		  ((functionp https-func) (funcall https-func))
+		  (t (message msg-format https-func entry-sym 'https)
+		     (error msg-format https-func entry-sym 'https)))
+		 (cond
+		  ((functionp start-func) t)
+		  (t (message msg-format start-func entry-sym 'start)
+		     (error msg-format start-func entry-sym 'start))))
+	    (setq result start-func
+		  rest nil)
+	  (setq rest (cdr rest)))))
+    (unless result
+      (if twittering-use-ssl
+	  ;; Fall back on connection without SSL.
+	  (when (yes-or-no-p "HTTPS(SSL) is not available because your 'cURL' cannot use HTTPS. Use HTTP instead? ")
+	    (setq twittering-use-ssl nil)
+	    (twittering-update-mode-line)
+	    (setq result (twittering-lookup-http-start-function order table)))
+	(message "All connection methods are unavailable.")))
+    result))
 
 (defun twittering-start-http-session (method headers host port path parameters &optional noninteractive sentinel)
   "METHOD    : http method

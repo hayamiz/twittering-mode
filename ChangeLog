@@ -3,6 +3,9 @@
 	* twittering-mode.el (twittering-lookup-http-start-function):
 	Don't use `booleanp' to work on Emacs21.
 
+	* twittering-mode.el (twittering-mode-map): Use `kbd' macro same
+	as other keymaps.
+
 2010-03-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-redisplay-status-on-buffer): call

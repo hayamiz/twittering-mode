@@ -1,3 +1,8 @@
+2010-03-10  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-lookup-http-start-function):
+	Don't use `booleanp' to work on Emacs21.
+
 2010-03-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-redisplay-status-on-buffer): call

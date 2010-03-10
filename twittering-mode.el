@@ -1589,7 +1589,7 @@ The alist consists of pairs of field-name and field-value, such as
 	  (and (setq config (cdr (assq (car prefer) table)))
 	       (setq check-func (cdr (assq 'check config)))
 	       (cond
-		((booleanp check-func) check-func)
+		((eq t check-func) t)
 		((fboundp check-func) (funcall check-func))
 		(t
 		 (error error-mes check-func (car prefer) "check")
@@ -1597,14 +1597,14 @@ The alist consists of pairs of field-name and field-value, such as
 	       (or (not twittering-use-ssl)
 		   (and (setq https-func (cdr (assq 'https config)))
 			(cond
-			 ((booleanp https-func) https-func)
+			 ((eq t https-func) t)
 			 ((fboundp https-func) (funcall https-func))
 			 (t
 			  (error error-mes https-func (car prefer) "https")
 			  nil))))
 	       (setq start-func (cdr (assq 'start config)))
 	       (cond
-		;; ((booleanp start-func) start-func) ;; meaningless.
+		;; ((eq t start-func) t) ;; meaningless.
 		((fboundp start-func) t)
 		(t
 		 (error error-mes start-func (car prefer) "start")

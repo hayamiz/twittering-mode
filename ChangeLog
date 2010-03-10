@@ -6,6 +6,10 @@
 	* twittering-mode.el (twittering-mode-map): Use `kbd' macro same
 	as other keymaps.
 
+	* twittering-mode.el (twittering-goto-next-status): Show a
+	progress message.
+	(twittering-goto-previous-status): Likewise.
+	
 2010-03-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-redisplay-status-on-buffer): call

@@ -3631,10 +3631,11 @@ Return nil if no statuses are rendered."
 		    (let ((prev (twittering-get-previous-status-head)))
 		      (when prev
 			(get-text-property prev 'id))))))
-        (if id
-	    (twittering-get-and-render-timeline
-	     (twittering-current-timeline-spec)
-	     nil id)))))))
+        (when id
+	  (message "Get more previous timeline...")
+	  (twittering-get-and-render-timeline
+	   (twittering-current-timeline-spec)
+	   nil id)))))))
 
 (defun twittering-get-next-status-head (&optional pos)
   "Search forward from POS for the nearest head of a status.
@@ -3659,10 +3660,11 @@ The return value is nil or a positive integer greater than POS."
 		    (let ((next (twittering-get-next-status-head)))
 		      (when next
 			(get-text-property next 'id))))))
-	(if id
-	    (twittering-get-and-render-timeline
-	     (twittering-current-timeline-spec-string)
-	     nil id))))
+	(when id
+	  (message "Get more previous timeline...")
+	  (twittering-get-and-render-timeline
+	   (twittering-current-timeline-spec-string)
+	   nil id))))
      (t
       (message "The latest status.")))))
 

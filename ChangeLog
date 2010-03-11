@@ -3,6 +3,11 @@
 	* twittering-mode.el (twittering-update-status-format): kill
 	newly generated `*Compile-Log*' buffer if it is empty.
 
+	* twittering-mode.el (twittering-mode-init-variables): initialize
+	account information explicitly.
+	(twittering-get-username): simplified.
+	(twittering-get-password): simplified.
+
 2010-03-11  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-render-timeline): Call

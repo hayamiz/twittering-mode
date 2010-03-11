@@ -1384,8 +1384,10 @@ The alist consists of pairs of field-name and field-value, such as
   (twittering-update-status-format)
   (twittering-set-current-timeline-spec-string
    twittering-initial-timeline-spec-string)
-  (setq twittering-username-active twittering-username)
-  (setq twittering-password-active twittering-password)
+  (setq twittering-username-active
+	(or twittering-username (read-string "your twitter username: ")))
+  (setq twittering-password-active
+	(or twittering-password (read-passwd "your twitter password: ")))
   (when twittering-use-convert
     (if (null twittering-convert-program)
 	(setq twittering-use-convert nil)
@@ -3765,12 +3767,10 @@ variable `twittering-status-format'."
       nil))))
 
 (defun twittering-get-username ()
-  (or twittering-username-active
-      (setq twittering-username-active (read-string "your twitter username: "))))
+  twittering-username-active)
 
 (defun twittering-get-password ()
-  (or twittering-password-active
-      (setq twittering-password-active (read-passwd "your twitter password: "))))
+  twittering-password-active)
 
 (defun twittering-get-id-at (&optional pos)
   "Return ID of the status at POS. If a separator is rendered at POS, return

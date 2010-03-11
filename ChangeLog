@@ -31,6 +31,15 @@
 	* twittering-mode.el (twittering-hide-replied-statuses): Go to the
 	head of parent status before hiding replied statuses.
 
+	* twittering-mode.el (twittering-default-show-replied-tweets): New
+	defvar.
+	(twittering-render-timeline): Use it instead of
+	`twittering-show-replied-tweets'.
+	(twittering-toggle-show-replied-statuses): Pass
+	`twittering-show-replied-tweets' into
+	`twittering-show-replied-statuses'.
+	(twittering-show-replied-tweets): Add a docstring.
+
 2010-03-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-lookup-http-start-function):

@@ -220,8 +220,18 @@ Items:
  %% - %
 ")
 
-(defvar twittering-show-replied-tweets 0
-  "*The number of replied tweets which will be showed in one tweet.")
+(defvar twittering-show-replied-tweets t
+  "*The number of replied tweets which will be showed in one tweet.
+
+If the value is not a number and is non-nil, show all replied tweets
+which is already fetched.
+If the value is nil, doesn't show replied tweets.")
+
+(defvar twittering-default-show-replied-tweets nil
+  "*The number of default replied tweets which will be showed in one tweet.
+This value will be used only when showing new tweets.
+
+See `twittering-show-replied-tweets' for more details.")
 
 (defvar twittering-use-show-minibuffer-length t
   "*Show current length of minibuffer if this variable is non-nil.
@@ -2574,9 +2584,9 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 		   ;; It must be moved to the current point
 		   ;; in order to skip the status inserted just now.
 		   (setq pos (point))
-		   (when twittering-show-replied-tweets
+		   (when twittering-default-show-replied-tweets
 		     (twittering-show-replied-statuses
-		      twittering-show-replied-tweets))))))
+		      twittering-default-show-replied-tweets))))))
 	   timeline-data)))
       (if (and twittering-image-stack window-system)
 	  (clear-image-cache))
@@ -2706,7 +2716,7 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
   (interactive)
   (if (twittering-replied-statuses-visible-p)
       (twittering-hide-replied-statuses (interactive-p))
-    (twittering-show-replied-statuses t ;; show all fetched statuses.
+    (twittering-show-replied-statuses twittering-show-replied-tweets
 				      (interactive-p))))
 
 (defun twittering-make-display-spec-for-icon (image-url)

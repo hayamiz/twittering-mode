@@ -3048,9 +3048,13 @@ Example:
   (let ((format-str (or format-str twittering-status-format)))
     (unless (string= format-str twittering-format-status-function-source)
       (setq twittering-format-status-function-source format-str)
-      (setq twittering-format-status-function
-	    (byte-compile
-	     (twittering-generate-format-status-function format-str))))
+      (let ((before (get-buffer "*Compile-Log*")))
+	(setq twittering-format-status-function
+	      (byte-compile
+	       (twittering-generate-format-status-function format-str)))
+	(let ((current (get-buffer "*Compile-Log*")))
+	  (when (and (null before) current (= 0 (buffer-size current)))
+	    (kill-buffer current)))))
     (setq twittering-status-format format-str)))
 
 (defun twittering-format-status (status &optional prefix)

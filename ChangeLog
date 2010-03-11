@@ -1,3 +1,8 @@
+2010-03-11  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-update-status-format): kill
+	newly generated `*Compile-Log*' buffer if it is empty.
+
 2010-03-11  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-render-timeline): Call

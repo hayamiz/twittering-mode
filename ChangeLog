@@ -4,6 +4,21 @@
 	Revert part of 2010-03-06 change because the scheduled removing of
 	public_timeline from twitter API had been canceled on 2010-03-11.
 
+	* twittering-mode.el (twittering-other-user-list-interactive): Fix
+	condition to detect a null string.
+	(twittering-other-user-timeline-interactive): Likewise.
+	(twittering-extract-timeline-spec): Modify the condition for
+	detecting a null string same as others.
+	(twittering-get-replied-statuses): Likewise.
+	(twittering-generate-status-formater-base): Likewise.
+	(twittering-search): Likewise.
+	(twittering-follow): Likewise.
+	(twittering-direct-message): Add the condition for `username' is
+	nil.
+	(twittering-reply-to-user): Likewise.
+	(twittering-other-user-list-interactive): Likewise for
+	`list-name'.
+
 2010-03-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-update-status-format): kill
@@ -698,7 +713,7 @@
 	(twittering-http-default-sentinel): Adjust callers.
 
 	* twittering-mode.el (twittering-http-get-list-index-sentinel):
-	Set "" explicitly if user does not have a list.
+	Set a null string explicitly if user does not have a list.
 
 2010-02-06  Satoshi Yatagawa  <yata_github@y.hauN.org>
 

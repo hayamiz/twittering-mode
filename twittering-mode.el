@@ -2006,12 +2006,7 @@ Available keywords:
 	      (twittering-render-timeline t new-statuses))
 	    (twittering-add-timeline-history)))
 	(if twittering-notify-successful-http-get
-	    ;;(if suc-msg suc-msg "Success: Get.")
-	    (if suc-msg
-		suc-msg
-	      (if (eq 'public (car spec))
-		  "Success: Get (public_timeline will be obsoleted on 2010-04-05)"
-		"Success: Get."))
+	    (if suc-msg suc-msg "Success: Get.")
 	  nil)))
      (t
       (let ((error-mes (twittering-get-error-message (process-buffer proc))))

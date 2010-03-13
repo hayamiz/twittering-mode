@@ -1,3 +1,9 @@
+2010-03-12  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-http-get-default-sentinel):
+	Revert part of 2010-03-06 change because the scheduled removing of
+	public_timeline from twitter API had been canceled on 2010-03-11.
+
 2010-03-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-update-status-format): kill

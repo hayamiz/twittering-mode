@@ -2971,7 +2971,7 @@ Example:
        (face-sym (intern face-name-str))
        (braced-str (match-string 2 fmt-following))
        (formater (twittering-generate-status-formater-base braced-str)))
-      (let ((formated-str (funcall formater status)))
+      (let ((formated-str (funcall formater status prefix)))
 	(add-text-properties 0 (length formated-str) `(face ,face-sym)
 			     formated-str)
 	formated-str))

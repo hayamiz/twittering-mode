@@ -2738,9 +2738,11 @@ image are displayed."
 			(twittering-retrieve-image image-url))))
     (and image-data (image-type-available-p (car image-data))
 	 (let ((image-spec
-		`(image :type ,(car image-data)
-			:data ,(cdr image-data)
-			:margin 2)))
+		(if (fboundp 'create-animated-image) ;; Emacs24 or later
+		    (create-animated-image (cdr image-data) (car image-data)
+					   t :margin 2)
+		  (create-image (cdr image-data) (car image-data)
+				t :margin 2))))
 	   (if (and twittering-convert-fix-size (not twittering-use-convert))
 	       (let* ((size (if (cdr image-data)
 				(image-size image-spec t)
@@ -3117,7 +3119,7 @@ variable `twittering-status-format'."
 			    (+ status-len sign-len) status-len sign-len)
 		  (format "%d" status-len))))
       (if (<= 23 emacs-major-version)
-	  (minibuffer-message mes) ; Emacs23 or later
+	  (minibuffer-message mes) ;; Emacs23 or later
 	(minibuffer-message (concat " (" mes ")")))
       )))
 

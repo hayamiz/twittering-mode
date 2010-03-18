@@ -931,6 +931,12 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 	(type (car spec)))
     (memq type primary-spec-types)))
 
+(defun twittering-timeline-spec-is-direct-messages-p (spec)
+  "Return non-nil if SPEC is a timeline spec which is related of
+direct_messages."
+  (and spec
+       (memq (car spec) '(direct_messages direct_messages_sent))))
+
 (defun twittering-equal-string-as-timeline (spec-str1 spec-str2)
   "Return non-nil if SPEC-STR1 equals SPEC-STR2 as a timeline spec."
   (if (and (stringp spec-str1) (stringp spec-str2))
@@ -1466,7 +1472,6 @@ The alist consists of pairs of field-name and field-value, such as
 
   (make-local-variable 'twittering-help-overlay)
   (setq twittering-help-overlay nil)
-  (twittering-edit-setup-help)
   (make-local-variable 'twittering-warning-overlay)
   (setq twittering-warning-overlay (make-overlay 1 1 nil nil nil))
   (overlay-put twittering-warning-overlay 'face 'font-lock-warning-face)
@@ -1498,30 +1503,29 @@ The alist consists of pairs of field-name and field-value, such as
 	  (format "twmode-status-edit[%d/%d/140]" length maxlen))
     (force-mode-line-update)
     (if (< maxlen length)
-	(move-overlay twittering-warning-overlay
-		      (1+ maxlen) (1+ length))
-      (move-overlay twittering-warning-overlay
-		    1 1))
-    ))
+	(move-overlay twittering-warning-overlay (1+ maxlen) (1+ length))
+      (move-overlay twittering-warning-overlay 1 1))))
 
 (defun twittering-edit-extract-status ()
   (if (eq major-mode 'twittering-edit-mode)
       (buffer-string)
     ""))
 
-(defun twittering-edit-setup-help ()
-  (let ((help-str "Keymap:
-  C-c C-c: post a tweet
-  C-c C-k: cancel a tweet
+(defun twittering-edit-setup-help (&optional username spec)
+  (let* ((item (if (twittering-timeline-spec-is-direct-messages-p spec)
+		   (format "a direct message to %s" username)
+		 "a tweet"))
+	 (help-str (format "Keymap:
+  C-c C-c: send %s
+  C-c C-k: cancel %s
   M-n    : next history element
   M-p    : previous history element
 
 ---- text above this line is ignored ----
-")
-	(help-overlay
-	 (or twittering-help-overlay
-	     (make-overlay 1 1 nil nil nil))))
-
+" item item))
+	 (help-overlay
+	  (or twittering-help-overlay
+	      (make-overlay 1 1 nil nil nil))))
     (add-text-properties 0 (length help-str) '(face font-lock-comment-face)
 			 help-str)
     (overlay-put help-overlay 'before-string help-str)
@@ -1533,28 +1537,34 @@ The alist consists of pairs of field-name and field-value, such as
     (set-window-configuration twittering-pre-edit-window-configuration)
     (setq twittering-pre-edit-window-configuration nil)))
 
-(defvar twittering-reply-to-id nil)
+(defvar twittering-reply-recipient nil)
 
-(defun twittering-update-status-from-pop-up-buffer (&optional init-str reply-to-id)
+(defun twittering-update-status-from-pop-up-buffer (&optional init-str reply-to-id username spec)
   (interactive)
-  (when (and (null init-str)
-	     twittering-current-hashtag)
-    (setq init-str (format " #%s " twittering-current-hashtag)))
   (let ((buf (generate-new-buffer twittering-edit-buffer)))
     (setq twittering-pre-edit-window-configuration
 	  (current-window-configuration))
     (pop-to-buffer buf)
     (twittering-edit-mode)
+    (twittering-edit-setup-help username spec)
+    (if (twittering-timeline-spec-is-direct-messages-p spec)
+	(message "C-c C-c to send, C-c C-k to cancel")
+      (and (null init-str)
+	   twittering-current-hashtag
+	   (setq init-str (format " #%s " twittering-current-hashtag)))
+      (message "C-c C-c to post, C-c C-k to cancel"))
     (when init-str
       (insert init-str)
       (set-buffer-modified-p nil))
-    (make-local-variable 'twittering-reply-to-id)
-    (setq twittering-reply-to-id reply-to-id)
-    (message "C-c C-c to post, C-c C-k to cancel")))
+    (make-local-variable 'twittering-reply-recipient)
+    (setq twittering-reply-recipient `(,reply-to-id ,username ,spec))))
 
 (defun twittering-edit-post-status ()
   (interactive)
-  (let ((status (twittering-edit-extract-status)))
+  (let ((status (twittering-edit-extract-status))
+	(reply-to-id (nth 0 twittering-reply-recipient))
+	(username (nth 1 twittering-reply-recipient))
+	(spec (nth 2 twittering-reply-recipient)))
     (cond
      ((not (twittering-status-not-blank-p status))
       (message "Empty tweet!"))
@@ -1563,14 +1573,26 @@ The alist consists of pairs of field-name and field-value, such as
      (t
       (setq twittering-edit-history
 	    (cons status twittering-edit-history))
-      (let ((parameters `(("status" . ,status))))
-	(when (and twittering-reply-to-id
-		   (string-match "^@[a-zA-Z0-9_-]+" status))
-	  (add-to-list 'parameters
-		       `("in_reply_to_status_id" .
-			 ,(format "%s" twittering-reply-to-id))))
-	(twittering-http-post "api.twitter.com" "1/statuses/update" parameters)
-	(twittering-edit-close))))))
+      (cond
+       ((twittering-timeline-spec-is-direct-messages-p spec)
+	(if username
+	    (let ((parameters `(("user" . ,username)
+				("text" . ,status))))
+	      (twittering-http-post "api.twitter.com" "1/direct_messages/new"
+				    parameters))
+	  (message "No username specified")))
+       (t
+	(let ((parameters `(("status" . ,status))))
+	  ;; Add in_reply_to_status_id only when a posting status
+	  ;; begins with @username.
+	  (when (and reply-to-id
+		     (string-match "^@[a-zA-Z0-9_-]+" status))
+	    (add-to-list 'parameters
+			 `("in_reply_to_status_id" .
+			   ,(format "%s" reply-to-id))))
+	  (twittering-http-post "api.twitter.com" "1/statuses/update"
+				parameters))))
+      (twittering-edit-close)))))
 
 (defun twittering-edit-cancel-status ()
   (interactive)
@@ -2625,6 +2647,9 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 	       (unless (twittering-status-id= id (get-text-property pos 'id))
 		 (let ((formatted-status (twittering-format-status status))
 		       (separator "\n"))
+		   (add-text-properties 0 (length formatted-status)
+					`(belongs-spec ,spec)
+					formatted-status)
 		   (goto-char pos)
 		   (cond
 		    ((eq pos (point-max))
@@ -3192,12 +3217,15 @@ variable `twittering-status-format'."
     (re-search-forward "^[\n\r \t]*@[a-zA-Z0-9_-]+\\([\n\r \t]+@[a-zA-Z0-9_-]+\\)*" nil t)
     (re-search-forward "[^\n\r \t]+" nil t)))
 
-(defun twittering-update-status-from-minibuffer (&optional init-str reply-to-id)
-  (when (and (null init-str)
-	     twittering-current-hashtag)
-    (setq init-str (format " #%s " twittering-current-hashtag)))
+(defun twittering-update-status-from-minibuffer (&optional init-str reply-to-id username spec)
+  (and (not (twittering-timeline-spec-is-direct-messages-p spec))
+       (null init-str)
+       twittering-current-hashtag
+       (setq init-str (format " #%s " twittering-current-hashtag)))
   (let ((status init-str)
-	(sign-str (twittering-sign-string))
+	(sign-str (if (twittering-timeline-spec-is-direct-messages-p spec)
+		      nil
+		    (twittering-sign-string)))
 	(not-posted-p t)
 	(prompt "status: ")
 	(map minibuffer-local-map)
@@ -3214,14 +3242,24 @@ variable `twittering-status-format'."
 		(setq prompt "status (too long): ")
 	      (setq prompt "status: ")
 	      (when (twittering-status-not-blank-p status)
-		(let ((parameters `(("status" . ,status-with-sign))))
-		  (when (and reply-to-id
-			     (string-match "^@[a-zA-Z0-9_-]+" status))
-		    (add-to-list 'parameters
-				 `("in_reply_to_status_id" . ,reply-to-id)))
-		  (twittering-http-post "api.twitter.com" "1/statuses/update"
-					parameters)
-		  (setq not-posted-p nil)))
+		(cond
+		 ((twittering-timeline-spec-is-direct-messages-p spec)
+		  (if username
+		      (let ((parameters `(("user" . ,username)
+					  ("text" . ,status))))
+			(twittering-http-post "api.twitter.com"
+					      "1/direct_messages/new"
+					      parameters))
+		    (message "No username specified")))
+		 (t
+		  (let ((parameters `(("status" . ,status-with-sign))))
+		    (when (and reply-to-id
+			       (string-match "^@[a-zA-Z0-9_-]+" status))
+		      (add-to-list 'parameters
+				   `("in_reply_to_status_id" . ,reply-to-id)))
+		    (twittering-http-post "api.twitter.com" "1/statuses/update"
+					  parameters)))
+		 (setq not-posted-p nil)))
 	      )))
       ;; unwindforms
       (when (memq 'twittering-setup-minibuffer minibuffer-setup-hook)
@@ -3564,20 +3602,27 @@ variable `twittering-status-format'."
   (let ((username (get-text-property (point) 'username))
 	(id (get-text-property (point) 'id))
 	(uri (get-text-property (point) 'uri))
+	(spec (get-text-property (point) 'belongs-spec))
 	(uri-in-text (get-text-property (point) 'uri-in-text))
 	(hashtag-in-text (get-text-property (point) 'hashtag-in-text))
 	(screen-name-in-text
 	 (get-text-property (point) 'screen-name-in-text)))
     (cond (screen-name-in-text
 	   (funcall twittering-update-status-function
-	    (concat "@" screen-name-in-text " ") id))
+		    (if (twittering-timeline-spec-is-direct-messages-p spec)
+			nil
+		      (concat "@" screen-name-in-text " "))
+		    id screen-name-in-text spec))
           (hashtag-in-text
            (twittering-search hashtag-in-text))
 	  (uri-in-text
 	   (browse-url uri-in-text))
 	  (username
 	   (funcall twittering-update-status-function
-	    (concat "@" username " ") id))
+		    (if (twittering-timeline-spec-is-direct-messages-p spec)
+			nil
+		      (concat "@" username " "))
+		    id username spec))
 	  (uri
 	   (browse-url uri)))))
 
@@ -3755,10 +3800,19 @@ variable `twittering-status-format'."
 
 (defun twittering-direct-message ()
   (interactive)
-  (let ((username (get-text-property (point) 'username)))
-    (if username
-	(funcall twittering-update-status-function (concat "d " username " "))
-      (message "No user selected"))))
+  (let ((username (twittering-read-username-with-completion
+		   "who receive your message: "
+		   (get-text-property (point) 'username)
+		   'twittering-user-history))
+	(spec (or (get-text-property (point) 'belongs-spec)
+		  '(direct_messages))))
+    (if (string= "" username)
+	(message "No user selected")
+      (funcall twittering-update-status-function
+	       (if (twittering-timeline-spec-is-direct-messages-p spec)
+		   nil
+		 (concat "d" username " "))
+	       nil username spec))))
 
 (defun twittering-reply-to-user ()
   (interactive)

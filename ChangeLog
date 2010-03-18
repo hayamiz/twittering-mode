@@ -46,6 +46,30 @@
 
 2010-03-13  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
+	* twittering-mode.el: Improve a support of sending direct
+	messages.
+
+	* twittering-mode.el (twittering-update-status-from-pop-up-buffer):
+	Use twitter API which is related of direct_messages if necessary.
+	(twittering-update-status-from-minibuffer): Likewise.
+	(twittering-timeline-spec-is-direct-messages-p): New defun.
+	(twittering-reply-recipient): Rename from
+	`twittering-reply-to-id'.
+	(twittering-update-status-from-pop-up-buffer): Adjust callers.
+	(twittering-render-timeline): Add a text property `belongs-spec'.
+	(twittering-update-status-from-pop-up-buffer): Add optional
+	arguments `username' and `spec'.
+	(twittering-update-status-from-minibuffer): Likewise.
+	(twittering-enter): Adjust callers.
+
+	* twittering-mode.el (twittering-edit-setup-help): Add optional
+	arguments `username' and `spec'.
+	(twittering-update-status-from-pop-up-buffer): Call it here.
+	(twittering-edit-mode): Don't call it here.
+
+	* twittering-mode.el (twittering-direct-message): Call
+	`twittering-read-username-with-completion'.
+
 	* twittering-mode.el (twittering-make-display-spec-for-icon): Use
 	`create-animated-image' if present (on Emacs24 or later).
 

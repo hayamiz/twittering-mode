@@ -1964,26 +1964,37 @@ Available keywords:
 
 (defun twittering-http-default-sentinel (func noninteractive proc stat &optional suc-msg)
   (debug-printf "http-default-sentinel: proc=%s stat=%s" proc stat)
-  (let ((temp-buffer (process-buffer proc)))
-    (unwind-protect
-	(let* ((header (twittering-get-response-header temp-buffer))
-	       (header-info (twittering-update-server-info header))
-	       (mes
-		(cond
-		 ((null header-info)
-		  "Failure: Bad http response.")
-		 ((and func (fboundp func))
-		  (with-current-buffer temp-buffer
-		    (funcall func header-info proc noninteractive suc-msg)))
-		 (t
-		  nil))))
-	  (when (and mes (twittering-buffer-active-p))
-	    (message mes)))
-      ;; unwindforms
-      (twittering-release-process proc)
-      (when (and (not twittering-debug-mode) (buffer-live-p temp-buffer))
-	(kill-buffer temp-buffer))))
-  )
+  (let ((temp-buffer (process-buffer proc))
+	(status (process-status proc))
+	(mes nil))
+    (cond
+     ((null status)
+      (setq mes "Failure: no such process exists."))
+     ;; If a process is running, the processing sentinel has been postponed.
+     ((memq status '(run stop open listen connect))
+      (debug-printf "http-default-sentinel: postponed by status `%s'" status)
+      t)
+     ((memq status '(exit signal closed failed))
+      (unwind-protect
+	  (let* ((header (twittering-get-response-header temp-buffer))
+		 (header-info (twittering-update-server-info header)))
+	    (setq mes
+		  (cond
+		   ((null header-info)
+		    "Failure: Bad http response.")
+		   ((and func (fboundp func))
+		    (with-current-buffer temp-buffer
+		      (funcall func header-info proc noninteractive suc-msg)))
+		   (t
+		    nil))))
+	;; unwindforms
+	(twittering-release-process proc)
+	(when (and (not twittering-debug-mode) (buffer-live-p temp-buffer))
+	  (kill-buffer temp-buffer))))
+     (t
+      (setq mes (format "Failure: unknown condition: %s" status))))
+    (when (and mes (twittering-buffer-active-p))
+      (message mes))))
 
 (defun twittering-http-get-default-sentinel (header-info proc noninteractive &optional suc-msg)
   (let ((status-line (cdr (assq 'status-line header-info)))

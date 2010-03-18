@@ -4,6 +4,9 @@
 	Revert part of 2010-03-12 change to prevent an overwrite of a
 	message which is outputted by `twittering-read-list-name'.
 
+	* twittering-mode.el (twittering-http-default-sentinel): Check
+	process-status before processing sentinel.
+
 2010-03-17  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-generate-status-formater-base):

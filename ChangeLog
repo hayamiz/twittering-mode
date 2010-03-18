@@ -1,3 +1,8 @@
+2010-03-19  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-remove-inactive-processes): add
+	`exit' and `signal' to `inactive-statuses'.
+
 2010-03-18  Satoshi Yatagawa  <yata_github@y.hauN.org>
 
 	* twittering-mode.el (twittering-other-user-list-interactive): 

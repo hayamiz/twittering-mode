@@ -1178,7 +1178,7 @@ Statuses are stored in ascending-order with respect to their IDs."
 	  twittering-process-info-alist)))
 
 (defun twittering-remove-inactive-processes ()
-  (let ((inactive-statuses '(nil closed failed)))
+  (let ((inactive-statuses '(nil closed exit failed signal)))
     (setq twittering-process-info-alist
 	  (apply 'append
 		 (mapcar

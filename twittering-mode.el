@@ -3681,7 +3681,9 @@ variable `twittering-status-format'."
 	     (spec `(list ,username ,list-name)))
 	(if list-name
 	    (twittering-get-and-render-timeline spec)
-	  (message "No list selected"))))))
+	  ;; Don't show message here to prevent an overwrite of a
+	  ;; message which is outputted by `twittering-read-list-name'.
+	  )))))
 
 (defun twittering-direct-message ()
   (interactive)

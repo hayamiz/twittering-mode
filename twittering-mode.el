@@ -1332,7 +1332,8 @@ The alist consists of pairs of field-name and field-value, such as
       (define-key km (kbd "C-i") 'twittering-goto-next-thing)
       (define-key km (kbd "M-C-i") 'twittering-goto-previous-thing)
       (define-key km (kbd "<backtab>") 'twittering-goto-previous-thing)
-      (define-key km (kbd "<backspace>") 'backward-char)
+      (define-key km (kbd "<backspace>") 'scroll-down)
+      (define-key km (kbd "SPC") 'twittering-scroll-up)
       (define-key km (kbd "G") 'end-of-buffer)
       (define-key km (kbd "H") 'twittering-goto-first-status)
       (define-key km (kbd "i") 'twittering-icon-mode)
@@ -3982,6 +3983,14 @@ The return value is nil or a positive integer less than POS."
   "Suspend twittering-mode then switch to another buffer."
   (interactive)
   (switch-to-buffer (other-buffer)))
+
+(defun twittering-scroll-up()
+  "Scroll up if possible; otherwise fetch another batch of tweets."
+  (interactive)
+  (if (not (= (window-end) (buffer-end 1)))
+      (scroll-up)
+    (end-of-buffer)
+    (twittering-goto-next-status)))
 
 ;;;###autoload
 (defun twit ()

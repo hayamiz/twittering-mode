@@ -1,3 +1,11 @@
+2010-03-23  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-mode-map): bind "SPC" and "C-v" to
+	`twittering-scroll-up', and bind "<backspace>" and "M-v" to
+	`twittering-scroll-down'.
+	(twittering-scroll-up): new function. Thanks to Jim Crossley.
+	(twittering-scroll-down): new function.
+
 2010-03-19  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-remove-inactive-processes): add

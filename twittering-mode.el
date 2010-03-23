@@ -1332,8 +1332,10 @@ The alist consists of pairs of field-name and field-value, such as
       (define-key km (kbd "C-i") 'twittering-goto-next-thing)
       (define-key km (kbd "M-C-i") 'twittering-goto-previous-thing)
       (define-key km (kbd "<backtab>") 'twittering-goto-previous-thing)
-      (define-key km (kbd "<backspace>") 'scroll-down)
+      (define-key km (kbd "<backspace>") 'twittering-scroll-down)
+      (define-key km (kbd "M-v") 'twittering-scroll-down)
       (define-key km (kbd "SPC") 'twittering-scroll-up)
+      (define-key km (kbd "C-v") 'twittering-scroll-up)
       (define-key km (kbd "G") 'end-of-buffer)
       (define-key km (kbd "H") 'twittering-goto-first-status)
       (define-key km (kbd "i") 'twittering-icon-mode)
@@ -3985,12 +3987,28 @@ The return value is nil or a positive integer less than POS."
   (switch-to-buffer (other-buffer)))
 
 (defun twittering-scroll-up()
-  "Scroll up if possible; otherwise fetch another batch of tweets."
+  "Scroll up if possible; otherwise invoke `twittering-goto-next-status',
+which fetch older tweets on non reverse-mode."
   (interactive)
-  (if (not (= (window-end) (buffer-end 1)))
-      (scroll-up)
-    (end-of-buffer)
-    (twittering-goto-next-status)))
+  (cond
+   ((= (point) (point-max))
+    (twittering-goto-next-status))
+   ((= (window-end) (point-max))
+    (goto-char (point-max)))
+   (t
+    (scroll-up))))
+
+(defun twittering-scroll-down()
+  "Scroll down if possible; otherwise invoke `twittering-goto-previous-status',
+which fetch older tweets on reverse-mode."
+  (interactive)
+  (cond
+   ((= (point) (point-min))
+    (twittering-goto-previous-status))
+   ((= (window-start) (point-min))
+    (goto-char (point-min)))
+   (t
+    (scroll-down))))
 
 ;;;###autoload
 (defun twit ()

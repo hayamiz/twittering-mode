@@ -1586,7 +1586,9 @@ The alist consists of pairs of field-name and field-value, such as
 	  ;; Add in_reply_to_status_id only when a posting status
 	  ;; begins with @username.
 	  (when (and reply-to-id
-		     (string-match "^@[a-zA-Z0-9_-]+" status))
+		     (string-match
+		      (concat "^@" username "\\(?:[\n\r \t]+\\)*")
+		      status))
 	    (add-to-list 'parameters
 			 `("in_reply_to_status_id" .
 			   ,(format "%s" reply-to-id))))
@@ -3090,22 +3092,27 @@ Example:
 	(if (string= "" reply-name)
 	    ""
 	  (let ((in-reply-to-string nil)
-		(url nil))
-	    (if (string= "" reply-id)
+		(url nil)
+		;; FIXME: If multiple buffers are implemented, `spec'
+		;; must be setted as independent to current timeline.
+		(spec (twittering-current-timeline-spec)))
+	    (if (twittering-timeline-spec-is-direct-messages-p spec)
 		;; for direct_messages{,_sent}.
 		(setq in-reply-to-string (format "sent to %s" reply-name)
 		      url (twittering-get-status-url reply-name))
 	      ;; for other standard timeline.
-	      (setq in-reply-to-string (format "in reply to %s" reply-name)
-		    url (twittering-get-status-url reply-name reply-id)))
-	    (concat
-	     " "
-	     (progn
-	       (add-text-properties
-		0 (length in-reply-to-string)
-		`(mouse-face highlight face twittering-uri-face uri ,url)
-		in-reply-to-string)
-	       in-reply-to-string))))))
+	      (unless (string= "" reply-id)
+		(setq in-reply-to-string (format "in reply to %s" reply-name)
+		      url (twittering-get-status-url reply-name reply-id)))
+	    (when (and in-reply-to-string url)
+	      (concat
+	       " "
+	       (progn
+		 (add-text-properties
+		  0 (length in-reply-to-string)
+		  `(mouse-face highlight face twittering-uri-face uri ,url)
+		  in-reply-to-string)
+		 in-reply-to-string))))))))
      ("R" ()
       (let ((retweeted-by (or (cdr (assq 'original-user-screen-name status))
 			      "")))
@@ -3253,8 +3260,13 @@ variable `twittering-status-format'."
 		    (message "No username specified")))
 		 (t
 		  (let ((parameters `(("status" . ,status-with-sign))))
+		    ;; Add in_reply_to_status_id only when a posting
+		    ;; status begins with @username.
 		    (when (and reply-to-id
-			       (string-match "^@[a-zA-Z0-9_-]+" status))
+			       username
+			       (string-match
+				(concat "^@" username "\\(?:[\n\r \t]+\\)*")
+				status))
 		      (add-to-list 'parameters
 				   `("in_reply_to_status_id" . ,reply-to-id)))
 		    (twittering-http-post "api.twitter.com" "1/statuses/update"

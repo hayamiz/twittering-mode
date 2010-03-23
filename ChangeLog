@@ -25,6 +25,15 @@
 	(twittering-scroll-up): new function. Thanks to Jim Crossley.
 	(twittering-scroll-down): new function.
 
+2010-03-20  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-edit-post-status): Don't add
+	parameter `in_reply_to_status_id' if the tweet does not begin with
+	`@' and username which is passed from callers.
+	(twittering-update-status-from-minibuffer): Likewise.
+	(twittering-generate-status-formater-base): Make the specifier
+	"%r" work similarly to web interface.
+
 2010-03-19  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-remove-inactive-processes): add

@@ -8,6 +8,9 @@
 	(twittering-get-timeline-spec-string-from-process): new function
 	for registered timeline spec string.
 
+	* twittering-mode.el (twittering-http-get-default-sentinel):
+	display the timeline spec string in notification.
+
 2010-03-23  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-mode-map): bind "SPC" and "C-v" to

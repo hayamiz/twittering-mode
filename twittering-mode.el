@@ -2014,7 +2014,8 @@ Available keywords:
      status-code
      (("200")
       (let* ((spec (twittering-get-timeline-spec-from-process proc))
-	     (spec-string (twittering-timeline-spec-to-string spec))
+	     (spec-string
+	      (twittering-get-timeline-spec-string-from-process proc))
 	     (statuses (twittering-get-status-from-http-response
 			spec (process-buffer proc))))
 	(when statuses
@@ -2029,7 +2030,7 @@ Available keywords:
 	      (twittering-render-timeline t new-statuses))
 	    (twittering-add-timeline-history)))
 	(if twittering-notify-successful-http-get
-	    (if suc-msg suc-msg "Success: Get.")
+	    (if suc-msg suc-msg (format "Success: Get %s." spec-string))
 	  nil)))
      (t
       (let ((error-mes (twittering-get-error-message (process-buffer proc))))

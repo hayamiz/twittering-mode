@@ -1152,18 +1152,26 @@ Statuses are stored in ascending-order with respect to their IDs."
 ;;; Process info
 ;;;
 
-(defun twittering-register-process (proc spec)
-  (add-to-list 'twittering-process-info-alist `(,proc ,spec)))
+(defun twittering-register-process (proc spec &optional str)
+  (let ((str (or str (twittering-timeline-spec-to-string spec))))
+    (add-to-list 'twittering-process-info-alist `(,proc ,spec ,str))))
 
 (defun twittering-release-process (proc)
-  (let ((spec (twittering-get-timeline-spec-from-process proc)))
-    (setq twittering-process-info-alist
-	  (delete `(,proc ,spec) twittering-process-info-alist))))
+  (let ((pair (assoc proc twittering-process-info-alist)))
+    (when pair
+      (setq twittering-process-info-alist
+	    (delq pair twittering-process-info-alist)))))
 
 (defun twittering-get-timeline-spec-from-process (proc)
   (let ((entry (assoc proc twittering-process-info-alist)))
     (if entry
 	(elt entry 1)
+      nil)))
+
+(defun twittering-get-timeline-spec-string-from-process (proc)
+  (let ((entry (assoc proc twittering-process-info-alist)))
+    (if entry
+	(elt entry 2)
       nil)))
 
 (defun twittering-find-processes-for-timeline-spec (spec)
@@ -3282,7 +3290,7 @@ variable `twittering-status-format'."
 					      id since_id word)))
 	    (when proc
 	      (twittering-switch-timeline spec-string)
-	      (twittering-register-process proc spec))))))
+	      (twittering-register-process proc spec spec-string))))))
      (t
       (let ((type (car spec)))
 	(error "%s has not been supported yet" type))))))

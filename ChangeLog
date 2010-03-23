@@ -1,3 +1,13 @@
+2010-03-24  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-register-process): store timeline
+	spec string.
+	(twittering-get-and-render-timeline): register a process together
+	with timeline spec string.
+	(twittering-release-process): use `delq' instead of `delete'.
+	(twittering-get-timeline-spec-string-from-process): new function
+	for registered timeline spec string.
+
 2010-03-23  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-mode-map): bind "SPC" and "C-v" to

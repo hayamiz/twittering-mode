@@ -1,3 +1,9 @@
+2010-03-25  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-get-status-url): change the
+	format of a URL of a certain status into that used in the web
+	interface on `http://twitter.com/'.
+
 2010-03-24  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-register-process): store timeline

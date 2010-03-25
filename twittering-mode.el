@@ -423,7 +423,7 @@ and its contents (BUFFER)"
 
 (defun twittering-get-status-url (username id)
   "Generate status URL."
-  (format "http://twitter.com/%s/statuses/%s" username id))
+  (format "http://twitter.com/%s/status/%s" username id))
 
 (defun twittering-user-agent-default-function ()
   "Twittering mode default User-Agent function."

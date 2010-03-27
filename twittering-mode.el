@@ -3686,7 +3686,7 @@ variable `twittering-status-format'."
 
 (defun twittering-follow (&optional remove)
   (interactive "P")
-  (let ((username (get-text-property (point) 'username))
+  (let ((username (copy-sequence (get-text-property (point) 'username)))
 	(method (if remove "destroy" "create"))
 	(mes (if remove "Unfollowing" "Following")))
     (unless username
@@ -3695,6 +3695,7 @@ variable `twittering-status-format'."
 			 "")))
     (if (string= "" username)
 	(message "No user selected")
+      (set-text-properties 0 (length username) nil username)
       (if (y-or-n-p (format "%s %s? " mes username))
 	  (twittering-manage-friendships method username)
 	(message "Request canceled")))))
@@ -3706,13 +3707,14 @@ variable `twittering-status-format'."
 (defun twittering-native-retweet ()
   (interactive)
   (let ((id (get-text-property (point) 'id))
-	(text (get-text-property (point) 'text))
+	(text (copy-sequence (get-text-property (point) 'text)))
 	(width (max 40 ;; XXX
 		    (- (frame-width)
 		       1 ;; margin for wide characters
 		       12 ;; == (length (concat "Retweet \"" "\"? "))
 		       9) ;; == (length "(y or n) ")
 		    )))
+    (set-text-properties 0 (length text) nil text)
     (if id
 	(let ((mes (format "Retweet \"%s\"? "
 			   (if (< width (string-width text))
@@ -3729,7 +3731,7 @@ variable `twittering-status-format'."
 (defun twittering-favorite (&optional remove)
   (interactive "P")
   (let ((id (get-text-property (point) 'id))
-	(text (get-text-property (point) 'text))
+	(text (copy-sequence (get-text-property (point) 'text)))
 	(width (max 40 ;; XXX
 		    (- (frame-width)
 		       1 ;; margin for wide characters
@@ -3737,6 +3739,7 @@ variable `twittering-status-format'."
 		       9) ;; == (length "(y or n) ")
 		    ))
 	(method (if remove "destroy" "create")))
+    (set-text-properties 0 (length text) nil text)
     (if id
 	(let ((mes (format "%s \"%s\"? "
 			   (if remove "Unfavorite" "Favorite")
@@ -3789,11 +3792,14 @@ variable `twittering-status-format'."
 
 (defun twittering-other-user-list-interactive ()
   (interactive)
-  (let ((username (or (twittering-read-username-with-completion
-		       "whose list: "
-		       (get-text-property (point) 'username)
-		       'twittering-user-history)
-		      "")))
+  (let* ((username (copy-sequence (get-text-property (point) 'username)))
+	 (username (progn
+		     (set-text-properties 0 (length username) nil username)
+		     (or (twittering-read-username-with-completion
+			  "whose list: "
+			  username
+			  'twittering-user-history)
+			 ""))))
     (if (string= "" username)
 	(message "No user selected")
       (let* ((list-name (twittering-read-list-name username))
@@ -3860,6 +3866,8 @@ variable `twittering-status-format'."
 (defun twittering-read-list-name (username &optional list-index)
   (let* ((list-index (or list-index
 			 (twittering-get-list-index-sync username)))
+	 (username (prog1 (copy-sequence username)
+		     (set-text-properties 0 (length username) nil username)))
 	 (prompt (format "%s's list: " username))
 	 (listname
 	  (if list-index

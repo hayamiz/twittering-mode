@@ -58,6 +58,13 @@
 	(twittering-enter): Don't refer these properties.
 	(twittering-make-clickable-status-datum): Reduce loops.
 
+	* twittering-mode.el (twittering-follow): Copy username and clear
+	its text properties before using it for display on minibuffer.
+	(twittering-other-user-list-interactive): Likewise.
+	(twittering-read-list-name): Likewise.
+	(twittering-native-retweet): Likewise for text.
+	(twittering-favorite): Likewise for text.
+
 2010-03-17  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-generate-status-formater-base):

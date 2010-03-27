@@ -3400,8 +3400,7 @@ variable `twittering-status-format'."
 	     (or (not (image-type-available-p image-type))
 		 (and (integerp twittering-convert-fix-size)
 		      (not (let ((image-spec
-				  `(image :type ,image-type
-					  :data ,(buffer-string)))
+				  (create-image (buffer-string) image-type t))
 				 (converted-image-size
 				  `(,twittering-convert-fix-size
 				    . ,twittering-convert-fix-size)))

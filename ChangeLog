@@ -34,6 +34,11 @@
 	(twittering-generate-status-formater-base): Make the specifier
 	"%r" work similarly to web interface.
 
+2010-03-19  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-retrieve-image): Use
+	`create-image'.
+
 2010-03-19  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-remove-inactive-processes): add

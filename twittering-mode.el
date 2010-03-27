@@ -2343,104 +2343,102 @@ BUFFER may be a buffer or the name of an existing buffer."
 	  (user-url (assq-get 'user-url status))
 	  (user-protected (assq-get 'user-protected status)))
 
-      ;; make username clickable
+      ;; make user-name clickable
       (add-text-properties
        0 (length user-name)
        `(mouse-face highlight
 		    uri ,(twittering-get-status-url user-screen-name)
+		    screen-name-in-text ,user-screen-name
+		    goto-spec ,(twittering-string-to-timeline-spec
+				user-screen-name)
 		    face twittering-username-face)
        user-name)
 
-      ;; make screen-name clickable
+      ;; make user-screen-name clickable
       (add-text-properties
        0 (length user-screen-name)
        `(mouse-face highlight
 		    uri ,(twittering-get-status-url user-screen-name)
+		    screen-name-in-text ,user-screen-name
+		    goto-spec ,(twittering-string-to-timeline-spec
+				user-screen-name)
 		    face twittering-username-face)
        user-screen-name)
 
-      ;; make screen-name in text clickable
+      ;; make hashtag, listname, screenname, and URI in text clickable
       (let ((pos 0))
-	(block nil
-	  (while (string-match "@\\([a-zA-Z0-9_-]+\\)" text pos)
-	    (let ((next-pos (match-end 0))
-		  (screen-name (match-string 1 text)))
-	      (when (eq next-pos pos)
-		(return nil))
-
-	      (add-text-properties
-	       (match-beginning 1) (match-end 1)
-	       `(screen-name-in-text ,screen-name) text)
-	      (add-text-properties
-	       (match-beginning 1) (match-end 1)
-	       `(mouse-face highlight
-			    uri ,(twittering-get-status-url screen-name)
-			    face twittering-username-face)
-	       text)
-	      (setq pos next-pos)))))
-
-      ;; make URI clickable
-      (let ((regexp-index 0))
-	(while regexp-index
-	  (setq regexp-index
-		(string-match "@\\([a-zA-Z0-9_-]+\\)\\|\\(https?://[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+\\)" text regexp-index))
-	  (when regexp-index
-	    (let ((matched-string (match-string-no-properties 0 text))
-		  (screen-name (match-string-no-properties 1 text))
-		  (uri (match-string-no-properties 2 text)))
-	      (add-text-properties
-	       (if screen-name
-		   (+ 1 (match-beginning 0))
-		 (match-beginning 0))
-	       (match-end 0)
-	       (if screen-name
-		   `(mouse-face
-		     highlight
-		     face twittering-uri-face
-		     uri ,(twittering-get-status-url screen-name)
-		     uri-in-text ,(twittering-get-status-url screen-name))
-		 `(mouse-face highlight
-			      face twittering-uri-face
-			      uri ,uri
-			      uri-in-text ,uri))
-	       text))
-	    (setq regexp-index (match-end 0)))))
+	(while
+	    (and (string-match "\\(#[a-zA-Z0-9_-]+\\)\\|@\\([a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+\\)\\|@\\([a-zA-Z0-9_-]+\\)\\|\\(https?://[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+\\)" text pos)
+		 (let ((next-pos (match-end 0))
+		       (hashtag (match-string-no-properties 1 text))
+		       (listname (match-string-no-properties 2 text))
+		       (screenname (match-string-no-properties 3 text))
+		       (uri (match-string-no-properties 4 text))
+		       beg end prop)
+		   (if (eq next-pos pos)
+		       nil
+		     (cond
+		      (hashtag
+		       (setq beg (match-beginning 1)
+			     end (match-end 1)
+			     prop `(mouse-face
+				    highlight
+				    uri ,(concat "http://twitter.com/search?q="
+						 (twittering-percent-encode
+						  hashtag))
+				    goto-spec
+				    ,(twittering-string-to-timeline-spec
+				      hashtag)
+				    face twittering-username-face)))
+		      (listname
+		       (setq beg (match-beginning 2)
+			     end (match-end 2)
+			     prop `(mouse-face
+				    highlight
+				    uri ,(twittering-get-status-url listname)
+				    goto-spec
+				    ,(twittering-string-to-timeline-spec
+				      listname)
+				    face twittering-username-face)))
+		      (screenname
+		       (setq beg (match-beginning 3)
+			     end (match-end 3)
+			     prop `(mouse-face
+				    highlight
+				    uri ,(twittering-get-status-url
+					  screenname)
+				    screen-name-in-text ,screenname
+				    goto-spec
+				    ,(twittering-string-to-timeline-spec
+				      screenname)
+				    face twittering-uri-face)))
+		      (uri
+		       (setq beg (match-beginning 4)
+			     end (match-end 4)
+			     prop `(mouse-face
+				    highlight
+				    uri ,uri
+				    face twittering-uri-face)))
+		      (t
+		       (setq prop nil)))
+		     (when prop
+		       (add-text-properties beg end prop text))
+		     (setq pos next-pos))))))
 
       ;; make source pretty and clickable
-      (if (and source
-	       (string-match "<a href=\"\\(.*?\\)\".*?>\\(.*\\)</a>" source))
-	  (let ((uri (match-string-no-properties 1 source))
-		(caption (match-string-no-properties 2 source)))
-	    (setq source caption)
-	    (add-text-properties
-	     0 (length source)
-	     `(mouse-face highlight
-			  uri ,uri
-			  face twittering-uri-face
-			  source ,source)
-	     source)
-	    (add-to-list 'status (cons 'source source))
-	    ))
-
-      ;; make hashtag in text clickable
-      (let ((pos 0))
-        (block nil
-	  (while (string-match "\\(#[_a-zA-Z0-9]+\\)" text pos)
-	    (let ((next-pos (match-end 0))
-		  (hashtag (match-string 1 text)))
-	      (when (eq next-pos pos)
-		(return nil))
-
-	      (add-text-properties
-	       (match-beginning 1) (match-end 1)
-	       `(mouse-face highlight
-			    hashtag-in-text ,hashtag
-			    uri-in-text
-			    ,(concat "http://twitter.com/search?q="
-				     (twittering-percent-encode hashtag))
-			    face twittering-username-face)
-	       text)
-	      (setq pos next-pos)))))
+      (when (and source
+		 (string-match "<a href=\"\\(.*?\\)\".*?>\\(.*\\)</a>" source))
+	(let ((uri (match-string-no-properties 1 source))
+	      (caption (match-string-no-properties 2 source)))
+	  (setq source caption)
+	  (add-text-properties
+	   0 (length source)
+	   `(mouse-face highlight
+			uri ,uri
+			face twittering-uri-face
+			source ,source)
+	   source)
+	  (add-to-list 'status (cons 'source source))))
       status)))
 
 (defun twittering-xmltree-to-status (xmltree)
@@ -3615,8 +3613,6 @@ variable `twittering-status-format'."
 	(id (get-text-property (point) 'id))
 	(uri (get-text-property (point) 'uri))
 	(spec (get-text-property (point) 'belongs-spec))
-	(uri-in-text (get-text-property (point) 'uri-in-text))
-	(hashtag-in-text (get-text-property (point) 'hashtag-in-text))
 	(screen-name-in-text
 	 (get-text-property (point) 'screen-name-in-text)))
     (cond (screen-name-in-text
@@ -3625,18 +3621,14 @@ variable `twittering-status-format'."
 			nil
 		      (concat "@" screen-name-in-text " "))
 		    id screen-name-in-text spec))
-          (hashtag-in-text
-           (twittering-search hashtag-in-text))
-	  (uri-in-text
-	   (browse-url uri-in-text))
+	  (uri
+	   (browse-url uri))
 	  (username
 	   (funcall twittering-update-status-function
 		    (if (twittering-timeline-spec-is-direct-messages-p spec)
 			nil
 		      (concat "@" username " "))
-		    id username spec))
-	  (uri
-	   (browse-url uri)))))
+		    id username spec)))))
 
 (defun twittering-tinyurl-replace-at-point ()
   "Replace the url at point with a tiny version."
@@ -3774,9 +3766,11 @@ variable `twittering-status-format'."
 (defun twittering-other-user-timeline ()
   (interactive)
   (let* ((username (get-text-property (point) 'username))
+	 (goto-spec (get-text-property (point) 'goto-spec))
 	 (screen-name-in-text
 	  (get-text-property (point) 'screen-name-in-text))
-	 (spec (cond (screen-name-in-text `(user ,screen-name-in-text))
+	 (spec (cond (goto-spec goto-spec)
+		     (screen-name-in-text `(user ,screen-name-in-text))
 		     (username `(user ,username))
 		     (t nil))))
     (if spec

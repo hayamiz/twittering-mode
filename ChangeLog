@@ -39,6 +39,13 @@
 	* twittering-mode.el (twittering-retrieve-image): Use
 	`create-image'.
 
+2010-03-19  Satoshi Yatagawa  <yata_github@y.hauN.org>
+
+	* twittering-mode.el (twittering-regexp-hash): New defvar.
+	(twittering-regexp-atmark): Likewise.
+	(twittering-extract-timeline-spec): Use these.
+	(twittering-make-clickable-status-datum): Likewise.
+
 2010-03-19  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-remove-inactive-processes): add

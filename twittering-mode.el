@@ -689,6 +689,12 @@ as a list of a string on Emacs21."
 	     ,@body)))
        clauses)))
 
+(defvar twittering-regexp-hash
+  (concat "\\(?:#\\|" (char-to-string (twittering-ucs-to-char 65283)) "\\)"))
+
+(defvar twittering-regexp-atmark
+  (concat "\\(?:@\\|" (char-to-string (twittering-ucs-to-char 65312)) "\\)"))
+
 ;;;
 ;;; Timeline spec functions
 ;;;
@@ -805,9 +811,10 @@ Return cons of the spec and the rest string."
       `((user ,user) . ,rest)))
    ((string-match "^~" str)
     `((home) . ,(substring str (match-end 0))))
-   ((string-match "^@" str)
+   ((string-match (concat "^" twittering-regexp-atmark) str)
     `((replies) . ,(substring str (match-end 0))))
-   ((string-match "^#\\([a-zA-Z0-9_-]+\\)" str)
+   ((string-match (concat "^" twittering-regexp-hash "\\([a-zA-Z0-9_-]+\\)")
+		  str)
     (let* ((tag (match-string 1 str))
 	   (query (concat "#" tag))
 	   (rest (substring str (match-end 0))))
@@ -2366,9 +2373,17 @@ BUFFER may be a buffer or the name of an existing buffer."
        user-screen-name)
 
       ;; make hashtag, listname, screenname, and URI in text clickable
-      (let ((pos 0))
+      (let ((pos 0)
+	    (regexp-str
+	     (concat twittering-regexp-hash
+		     "\\([a-zA-Z0-9_-]+\\)\\|"
+		     twittering-regexp-atmark
+		     "\\([a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+\\)\\|"
+		     twittering-regexp-atmark
+		     "\\([a-zA-Z0-9_-]+\\)\\|"
+		     "\\(https?://[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+\\)")))
 	(while
-	    (and (string-match "\\(#[a-zA-Z0-9_-]+\\)\\|@\\([a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+\\)\\|@\\([a-zA-Z0-9_-]+\\)\\|\\(https?://[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+\\)" text pos)
+	    (and (string-match regexp-str text pos)
 		 (let ((next-pos (match-end 0))
 		       (hashtag (match-string-no-properties 1 text))
 		       (listname (match-string-no-properties 2 text))
@@ -2379,7 +2394,8 @@ BUFFER may be a buffer or the name of an existing buffer."
 		       nil
 		     (cond
 		      (hashtag
-		       (setq beg (match-beginning 1)
+		       (setq hashtag (concat "#" hashtag)
+			     beg (match-beginning 0) ;; XXX: not 1.
 			     end (match-end 1)
 			     prop `(mouse-face
 				    highlight

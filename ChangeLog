@@ -1,3 +1,16 @@
+2010-03-29  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-url-wrapper): new wrapper
+	function for using URL library with proxy configuration for
+	`twittering-mode'.
+	(twittering-url-insert-file-contents): likewise.
+	(twittering-url-retrieve-synchronously): likewise.
+	(twittering-setup-proxy): call `url-scheme-get-property' to avoid
+	`url-proxy-services' to be reset.
+	(twittering-retrieve-image): use the wrapper function instead of
+	a function in URL library.
+	(twittering-tinyurl-get): likewise.
+
 2010-03-25  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-get-status-url): change the

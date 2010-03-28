@@ -340,6 +340,14 @@ SCHEME must be \"http\" or \"https\"."
 	nil)))))
 
 (defun twittering-setup-proxy ()
+  (when (require 'url-methods nil t)
+    ;; If `url-scheme-registry' is not initialized,
+    ;; `url-proxy-services' will be reset by calling
+    ;; `url-insert-file-contents' or `url-retrieve-synchronously', etc.
+    ;; To avoid it, initialize `url-scheme-registry' by calling
+    ;; `url-scheme-get-property' before calling such functions.
+    (url-scheme-get-property "http" 'name)
+    (url-scheme-get-property "https" 'name))
   (unless (and twittering-proxy-server twittering-proxy-port)
     (let ((proxy-info (or (if twittering-use-ssl
 			      (twittering-find-proxy "https"))
@@ -1650,6 +1658,28 @@ The alist consists of pairs of field-name and field-value, such as
   (when (eq major-mode 'twittering-edit-mode)
     (twittering-tinyurl-replace-at-point)
     (twittering-edit-length-check)))
+
+;;;
+;;; Functions for URL library
+;;;
+
+(defun twittering-url-wrapper (func &rest args)
+  (let ((url-proxy-services
+	 (when twittering-proxy-use
+	   (let ((proxy-str (format "%s:%s" twittering-proxy-server
+				    twittering-proxy-port)))
+	     (if twittering-use-ssl
+		 `(("http" . ,proxy-str)
+		   ("https" . ,proxy-str))
+	       `(("http" . ,proxy-str))))))
+	(url-show-status nil))
+    (apply func args)))
+
+(defun twittering-url-insert-file-contents (url)
+  (twittering-url-wrapper 'url-insert-file-contents url))
+
+(defun twittering-url-retrieve-synchronously (url)
+  (twittering-url-wrapper 'url-retrieve-synchronously url))
 
 ;;;
 ;;; Basic HTTP functions
@@ -3412,9 +3442,8 @@ variable `twittering-status-format'."
     (set-buffer-multibyte nil)
     (let ((coding-system-for-read 'binary)
 	  (coding-system-for-write 'binary)
-	  (url-show-status nil)
 	  (require-final-newline nil))
-      (url-insert-file-contents image-url)
+      (twittering-url-insert-file-contents image-url)
       (let ((image-type (twittering-image-type image-url (current-buffer))))
 	(and twittering-use-convert
 	     (or (not (image-type-available-p image-type))
@@ -3459,8 +3488,8 @@ variable `twittering-status-format'."
 			  (symbol-name (car x)))
 			twittering-tinyurl-services-map ", ")))
     (if longurl
-	(let* ((url-show-status nil)
-	       (buffer (url-retrieve-synchronously (concat api longurl))))
+	(let ((buffer
+	       (twittering-url-retrieve-synchronously (concat api longurl))))
 	  (with-current-buffer buffer
 	    (goto-char (point-min))
 	    (prog1

@@ -690,10 +690,14 @@ as a list of a string on Emacs21."
        clauses)))
 
 (defvar twittering-regexp-hash
-  (concat "\\(?:#\\|" (char-to-string (twittering-ucs-to-char 65283)) "\\)"))
+  (let ((full-width-number-sign (twittering-ucs-to-char #xff03)))
+    ;; Unicode Character 'FULLWIDTH NUMBER SIGN' (U+FF03)
+    (concat "\\(?:#\\|" (char-to-string full-width-number-sign) "\\)")))
 
 (defvar twittering-regexp-atmark
-  (concat "\\(?:@\\|" (char-to-string (twittering-ucs-to-char 65312)) "\\)"))
+  (let ((full-width-commercial-at (twittering-ucs-to-char #xff20)))
+    ;; Unicode Character 'FULLWIDTH COMMERCIAL AT' (U+FF20)
+    (concat "\\(?:@\\|" (char-to-string full-width-commercial-at) "\\)")))
 
 ;;;
 ;;; Timeline spec functions

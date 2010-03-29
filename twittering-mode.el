@@ -2051,7 +2051,8 @@ Available keywords:
      ((memq status '(exit signal closed failed))
       (unwind-protect
 	  (let* ((header (twittering-get-response-header temp-buffer))
-		 (header-info (twittering-update-server-info header)))
+		 (header-info
+		  (and header (twittering-update-server-info header))))
 	    (setq mes
 		  (cond
 		   ((null header-info)
@@ -2181,7 +2182,7 @@ BUFFER may be a buffer or the name of an existing buffer which contains the HTTP
 	(delete-region (point-min) (point)))
       (if (search-forward-regexp "\r?\n\r?\n" nil t)
 	  (buffer-substring (point-min) (match-end 0))
-	(error "Failure: invalid HTTP response")))))
+	nil))))
 
 (defun twittering-get-response-body (buffer &optional func)
   "Exract HTTP response body from HTTP response.

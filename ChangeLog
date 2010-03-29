@@ -1,3 +1,10 @@
+2010-03-30  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-get-response-header): return nil
+	if an empty line as a separater is not found in the given buffer.
+	(twittering-http-default-sentinel): generate `header-info' only if
+	`header' is non-nil.
+
 2010-03-29  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-url-wrapper): new wrapper

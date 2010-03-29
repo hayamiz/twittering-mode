@@ -3318,8 +3318,8 @@ variable `twittering-status-format'."
 		      (add-to-list 'parameters
 				   `("in_reply_to_status_id" . ,reply-to-id)))
 		    (twittering-http-post "api.twitter.com" "1/statuses/update"
-					  parameters)))
-		 (setq not-posted-p nil)))
+					  parameters))))
+		(setq not-posted-p nil))
 	      )))
       ;; unwindforms
       (when (memq 'twittering-setup-minibuffer minibuffer-setup-hook)

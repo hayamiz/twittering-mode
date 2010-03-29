@@ -14,6 +14,9 @@
 	* twittering-mode.el (twittering-update-status-from-minibuffer):
 	fix infinite loop on updating a status from minibuffer.
 
+	* twittering-mode.el (twittering-start-http-session-curl): modify
+	the order of arguments for `curl', where the URL is placed last.
+
 2010-03-25  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-get-status-url): change the

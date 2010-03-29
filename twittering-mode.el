@@ -1831,37 +1831,28 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 	 (curl-args
 	  `("--include" "--silent"
 	    ,@(mapcan (lambda (pair)
-			(list "-H"
-			      (format "%s: %s"
-				      (car pair) (cdr pair))))
-		      headers))))
-    (when twittering-use-ssl
-      (nconc curl-args `("--cacert" ,(twittering-ensure-ca-cert))))
-    (when twittering-proxy-use
-      (nconc curl-args `("-x" ,(format "%s:%s" twittering-proxy-server
-					 twittering-proxy-port)))
-      (when (and twittering-proxy-user
-		 twittering-proxy-password)
-	(nconc curl-args `("-U" ,(format "%s:%s" twittering-proxy-user
-					   twittering-proxy-password)))))
-
-    (flet ((request (key)
-		    (funcall request key)))
-      (nconc curl-args `(,(if parameters
-			      (concat (request :uri) "?"
-				      (request :query-string))
-			    (request :uri))))
-      (when (string= "POST" method)
-	(nconc curl-args
-	       `(,@(mapcan (lambda (pair)
-			     (list
-			      "-d"
-			      (format "%s=%s"
-				      (twittering-percent-encode
-				       (car pair))
-				      (twittering-percent-encode
-				       (cdr pair)))))
-			   parameters)))))
+			`("-H" ,(format "%s: %s" (car pair) (cdr pair))))
+		      headers)
+	    ,@(when twittering-use-ssl
+		`("--cacert" ,(twittering-ensure-ca-cert)))
+	    ,@(when twittering-proxy-use
+		`("-x" ,(format "%s:%s" twittering-proxy-server
+				twittering-proxy-port)))
+	    ,@(when (and twittering-proxy-use
+			 twittering-proxy-user twittering-proxy-password)
+		`("-U" ,(format "%s:%s" twittering-proxy-user
+				twittering-proxy-password)))
+	    ,@(when (string= "POST" method)
+		(mapcan (lambda (pair)
+			  (list
+			   "-d"
+			   (format "%s=%s"
+				   (twittering-percent-encode (car pair))
+				   (twittering-percent-encode (cdr pair)))))
+			parameters))
+	    ,(concat (funcall request :uri)
+		     (when parameters
+		       (concat "?" (funcall request :query-string)))))))
     (debug-print curl-args)
     (lexical-let ((noninteractive noninteractive)
 		  (sentinel sentinel))

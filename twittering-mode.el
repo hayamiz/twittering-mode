@@ -1231,14 +1231,24 @@ The alist consists of pairs of field-name and field-value, such as
 (defun twittering-update-server-info (header-str)
   (let* ((header-info (twittering-make-header-info-alist header-str))
 	 (new-entry-list (mapcar 'car header-info)))
-    (setq twittering-server-info-alist
-	  (append header-info
-		  (remove nil (mapcar
-			       (lambda (entry)
-				 (if (member (car entry) new-entry-list)
-				     nil
-				   entry))
-			       twittering-server-info-alist))))
+    (when (remove t (mapcar
+		     (lambda (entry)
+		       (equal (assoc entry header-info)
+			      (assoc entry twittering-server-info-alist)))
+		     new-entry-list))
+      (setq twittering-server-info-alist
+	    (append header-info
+		    (remove nil (mapcar
+				 (lambda (entry)
+				   (if (member (car entry) new-entry-list)
+				       nil
+				     entry))
+				 twittering-server-info-alist))))
+      (when twittering-display-remaining
+	(mapc (lambda (buffer)
+		(with-current-buffer buffer
+		  (twittering-update-mode-line)))
+	      (twittering-get-buffer-list))))
     header-info))
 
 (defun twittering-get-server-info (field)

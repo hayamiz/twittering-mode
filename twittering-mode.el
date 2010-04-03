@@ -1592,7 +1592,9 @@ SPEC may be a timeline spec or a timeline spec string."
   "Initialize global variables for `twittering-mode'."
   (defface twittering-username-face
     `((t nil)) "" :group 'faces)
-  (copy-face 'font-lock-string-face 'twittering-username-face)
+  (if (facep 'font-lock-string-face)
+      (copy-face 'font-lock-string-face 'twittering-username-face)
+    (copy-face 'bold 'twittering-username-face))
   (set-face-attribute 'twittering-username-face nil :underline t)
   (defface twittering-uri-face
     `((t nil)) "" :group 'faces)
@@ -1620,18 +1622,26 @@ SPEC may be a timeline spec or a timeline spec string."
 (defvar twittering-initialized nil)
 
 (defun twittering-mode-setup ()
+  (run-hooks 'twittering-mode-hook)
   (kill-all-local-variables)
+  (setq major-mode 'twittering-mode)
   (setq buffer-read-only t)
+
+  ;; Prevent `global-font-lock-mode' enabling `font-lock-mode'.
+  ;; This technique is derived from `lisp/bs.el' distributed with Emacs 22.2.
+  (make-local-variable 'font-lock-global-modes)
+  (setq font-lock-global-modes '(not twittering-mode))
+
   (make-local-variable 'twittering-icon-mode)
   (make-local-variable 'twittering-jojo-mode)
   (make-local-variable 'twittering-reverse-mode)
   (make-local-variable 'twittering-scroll-mode)
   (use-local-map twittering-mode-map)
-  (setq major-mode 'twittering-mode)
   (twittering-update-mode-line)
   (set-syntax-table twittering-mode-syntax-table)
-  (run-hooks 'twittering-mode-hook)
-  (font-lock-mode -1))
+  (when (and (boundp 'font-lock-mode) font-lock-mode)
+    (font-lock-mode -1))
+  (run-hooks 'twittering-mode-hook))
 
 (defun twittering-mode ()
   "Major mode for Twitter

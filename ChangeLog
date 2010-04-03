@@ -1,3 +1,14 @@
+2010-04-04  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Improve compatibility with global-font-lock mode.
+	(twittering-mode-init-global): use `bold' instead of
+	`font-lock-string-face' if it has not been bound yet.
+	`twittering-mode' does not require loading `font-lock'.
+	(twittering-mode-setup): prevent `global-font-lock-mode' enabling
+	`font-lock-mode' by using buffer-local `font-lock-global-modes'.
+	`twittering-mode' can be used with/without any configuration for
+	font-lock mode.
+
 2010-04-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-buffer-active-p): renamed

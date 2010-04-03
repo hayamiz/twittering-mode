@@ -3,6 +3,9 @@
 	* twittering-mode.el (twittering-buffer-active-p): renamed
 	`twittering-buffer-related-p'.
 
+	* twittering-mode.el (twittering-start): check the value of
+	`twittering-timer-for-redisplaying' before setting timer.
+
 2010-03-30  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-get-response-header): return nil

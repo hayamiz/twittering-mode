@@ -3499,12 +3499,12 @@ variable `twittering-status-format'."
   (interactive)
   (if (null action)
       (setq action #'twittering-current-timeline-noninteractive))
-  (if twittering-timer
-      nil
+  (unless twittering-timer
     (setq twittering-timer
 	  (run-at-time "0 sec"
 		       twittering-timer-interval
-		       #'twittering-timer-action action))
+		       #'twittering-timer-action action)))
+  (unless twittering-timer-for-redisplaying
     (setq twittering-timer-for-redisplaying
 	  (run-at-time "0 sec"
 		       twittering-timer-interval-for-redisplaying

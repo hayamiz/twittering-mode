@@ -1,3 +1,8 @@
+2010-04-03  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-buffer-active-p): renamed
+	`twittering-buffer-related-p'.
+
 2010-03-30  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-get-response-header): return nil

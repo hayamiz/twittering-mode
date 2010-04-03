@@ -671,7 +671,7 @@ as a list of a string on Emacs21."
   (defvar twittering-debug-buffer)
   (defvar twittering-edit-buffer))
 
-(defun twittering-buffer-active-p ()
+(defun twittering-buffer-related-p ()
   "Return t if current buffer is twittering-mode related buffer."
   (member (buffer-name (current-buffer))
 	  (list twittering-buffer
@@ -2068,7 +2068,7 @@ Available keywords:
 	  (kill-buffer temp-buffer))))
      (t
       (setq mes (format "Failure: unknown condition: %s" status))))
-    (when (and mes (twittering-buffer-active-p))
+    (when (and mes (twittering-buffer-related-p))
       (message mes))))
 
 (defun twittering-http-get-default-sentinel (header-info proc noninteractive &optional suc-msg)
@@ -2199,7 +2199,7 @@ BUFFER may be a buffer or the name of an existing buffer."
 	  (condition-case error-str
 	      (funcall func (match-end 0) (point-max))
 	    (error
-	     (when (twittering-buffer-active-p)
+	     (when (twittering-buffer-related-p)
 	       (message "Failure: %s" error-str))
 	     nil))
 	(error "Failure: invalid HTTP response"))

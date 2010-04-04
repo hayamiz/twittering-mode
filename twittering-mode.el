@@ -63,6 +63,9 @@
 
 (defconst twittering-mode-version "HEAD")
 (defconst twittering-mode-identity "$Id$")
+(defvar twittering-api-host "api.twitter.com")
+(defvar twittering-api-search-host "search.twitter.com")
+(defvar twittering-web-host "twitter.com")
 
 (defun twittering-mode-version ()
   "Display a message for twittering-mode version."
@@ -429,8 +432,12 @@ and its contents (BUFFER)"
 (defun twittering-get-status-url (username &optional id)
   "Generate status URL."
   (if id
-      (format "http://twitter.com/%s/status/%s" username id)
-    (format "http://twitter.com/%s" username)))
+      (format "http://%s/%s/status/%s" twittering-web-host username id)
+    (format "http://%s/%s" twittering-web-host username)))
+
+(defun twittering-get-search-url (query-string)
+  (format "http://%s/search?q=%s"
+	  twittering-web-host (twittering-percent-encode query-string)))
 
 (defun twittering-user-agent-default-function ()
   "Twittering mode default User-Agent function."
@@ -953,41 +960,42 @@ direct_messages."
 
 (defun twittering-timeline-spec-to-host-method (spec)
   (if (twittering-timeline-spec-primary-p spec)
-      (let ((type (car spec))
+      (let ((api-host twittering-api-host)
+	    (search-host twittering-api-search-host)
+	    (type (car spec))
 	    (value (cdr spec)))
 	(cond
 	 ((eq type 'user)
 	  (let ((username (car value)))
-	    `("api.twitter.com"
-	      ,(concat "1/statuses/user_timeline/" username))))
+	    `(,api-host ,(concat "1/statuses/user_timeline/" username))))
 	 ((eq type 'list)
 	  (let ((username (car value))
 		(list-name (cadr value)))
-	    `("api.twitter.com"
+	    `(,api-host
 	      ,(concat "1/" username "/lists/" list-name "/statuses"))))
 	 ((eq type 'direct_messages)
-	  '("api.twitter.com" "1/direct_messages"))
+	  `(,api-host "1/direct_messages"))
 	 ((eq type 'direct_messages_sent)
-	  '("api.twitter.com" "1/direct_messages/sent"))
+	  `(,api-host "1/direct_messages/sent"))
 	 ((eq type 'friends)
-	  '("api.twitter.com" "1/statuses/friends_timeline"))
+	  `(,api-host "1/statuses/friends_timeline"))
 	 ((eq type 'home)
-	  '("api.twitter.com" "1/statuses/home_timeline"))
+	  `(,api-host "1/statuses/home_timeline"))
 	 ((eq type 'mentions)
-	  '("api.twitter.com" "1/statuses/mentions"))
+	  `(,api-host "1/statuses/mentions"))
 	 ((eq type 'public)
-	  '("api.twitter.com" "1/statuses/public_timeline"))
+	  `(,api-host "1/statuses/public_timeline"))
 	 ((eq type 'replies)
-	  '("api.twitter.com" "1/statuses/replies"))
+	  `(,api-host "1/statuses/replies"))
 	 ((eq type 'retweeted_by_me)
-	  '("api.twitter.com" "1/statuses/retweeted_by_me"))
+	  `(,api-host "1/statuses/retweeted_by_me"))
 	 ((eq type 'retweeted_to_me)
-	  '("api.twitter.com" "1/statuses/retweeted_to_me"))
+	  `(,api-host "1/statuses/retweeted_to_me"))
 	 ((eq type 'retweets_of_me)
-	  '("api.twitter.com" "1/statuses/retweets_of_me"))
+	  `(,api-host "1/statuses/retweets_of_me"))
 	 ((eq type 'search)
 	  (let ((word (car value)))
-	    `("search.twitter.com" "search" ,word)))
+	    `(,search-host "search" ,word)))
 	 (t
 	  (error "Invalid timeline spec")
 	  nil)))
@@ -996,7 +1004,7 @@ direct_messages."
 (defun twittering-host-method-to-timeline-spec (host method &optional word)
   (cond
    ((or (not (stringp host)) (not (stringp method))) nil)
-   ((string= host "api.twitter.com")
+   ((string= host twittering-api-host)
     (cond
      ((string= method "1/statuses/direct_messages") '(direct_messages))
      ((string= method "1/statuses/direct_messages/sent")
@@ -1018,7 +1026,7 @@ direct_messages."
 	    (listname (match-string-no-properties 2 method)))
 	`(list ,username ,listname)))
      (t nil)))
-   ((string= host "search.twitter.com")
+   ((string= host twittering-api-search-host)
     `(search ,word))
    (t nil)))
 
@@ -1775,7 +1783,7 @@ SPEC may be a timeline spec or a timeline spec string."
 	(if username
 	    (let ((parameters `(("user" . ,username)
 				("text" . ,status))))
-	      (twittering-http-post "api.twitter.com" "1/direct_messages/new"
+	      (twittering-http-post twittering-api-host "1/direct_messages/new"
 				    parameters))
 	  (message "No username specified")))
        (t
@@ -1789,7 +1797,7 @@ SPEC may be a timeline spec or a timeline spec string."
 	    (add-to-list 'parameters
 			 `("in_reply_to_status_id" .
 			   ,(format "%s" reply-to-id))))
-	  (twittering-http-post "api.twitter.com" "1/statuses/update"
+	  (twittering-http-post twittering-api-host "1/statuses/update"
 				parameters))))
       (twittering-edit-close)))))
 
@@ -2598,18 +2606,17 @@ BUFFER may be a buffer or the name of an existing buffer."
 		       nil
 		     (cond
 		      (hashtag
-		       (setq hashtag (concat "#" hashtag)
-			     beg (match-beginning 0) ;; XXX: not 1.
-			     end (match-end 1)
-			     prop `(mouse-face
-				    highlight
-				    uri ,(concat "http://twitter.com/search?q="
-						 (twittering-percent-encode
-						  hashtag))
-				    goto-spec
-				    ,(twittering-string-to-timeline-spec
-				      hashtag)
-				    face twittering-username-face)))
+		       (setq beg (match-beginning 0) ;; XXX: not 1.
+			     end (match-end 1))
+		       (let ((spec (twittering-string-to-timeline-spec
+				    (concat "#" hashtag)))
+			     (url (twittering-get-search-url
+				   (concat "#" hashtag))))
+			 (setq prop
+			       `(mouse-face
+				 highlight
+				 uri ,url goto-spec ,spec
+				 face twittering-username-face))))
 		      (listname
 		       (setq beg (match-beginning 2)
 			     end (match-end 2)
@@ -3475,7 +3482,7 @@ variable `twittering-status-format'."
 		  (if username
 		      (let ((parameters `(("user" . ,username)
 					  ("text" . ,status))))
-			(twittering-http-post "api.twitter.com"
+			(twittering-http-post twittering-api-host
 					      "1/direct_messages/new"
 					      parameters))
 		    (message "No username specified")))
@@ -3490,7 +3497,8 @@ variable `twittering-status-format'."
 				status))
 		      (add-to-list 'parameters
 				   `("in_reply_to_status_id" . ,reply-to-id)))
-		    (twittering-http-post "api.twitter.com" "1/statuses/update"
+		    (twittering-http-post twittering-api-host
+					  "1/statuses/update"
 					  parameters))))
 		(setq not-posted-p nil))
 	      )))
@@ -3502,7 +3510,7 @@ variable `twittering-status-format'."
       )))
 
 (defun twittering-get-list-index (username)
-  (twittering-http-get "api.twitter.com"
+  (twittering-http-get twittering-api-host
 		       (concat "1/" username "/lists")
 		       t nil nil
 		       'twittering-http-get-list-index-sentinel))
@@ -3522,12 +3530,12 @@ variable `twittering-status-format'."
     twittering-list-index-retrieved)))
 
 (defun twittering-manage-friendships (method username)
-  (twittering-http-post "api.twitter.com"
+  (twittering-http-post twittering-api-host
 			(concat "1/friendships/" method)
 			`(("screen_name" . ,username))))
 
 (defun twittering-manage-favorites (method id)
-  (twittering-http-post "api.twitter.com"
+  (twittering-http-post twittering-api-host
 			(concat "1/favorites/" method "/" id)))
 
 (defun twittering-get-tweets (host method &optional noninteractive id since_id word)
@@ -3756,7 +3764,7 @@ managed by `twittering-mode'."
 	     (or (< 21 emacs-major-version)
 		 (eq 'utf-8 (terminal-coding-system))))
     (twittering-http-post
-     "api.twitter.com" "1/statuses/update"
+     twittering-api-host "1/statuses/update"
      `(("status" . ,(mapconcat
 		     'char-to-string
 		     (mapcar 'twittering-ucs-to-char
@@ -3776,7 +3784,7 @@ managed by `twittering-mode'."
 			  41 12301 12392 35328 12358)) "")
 	 msg)
 	(twittering-http-post
-	 "api.twitter.com" "1/statuses/update"
+	 twittering-api-host "1/statuses/update"
 	 `(("status" . ,(concat
 			 "@" usr " "
 			 (match-string-no-properties 2 msg)
@@ -3932,7 +3940,7 @@ managed by `twittering-mode'."
 				"...")
 			     text))))
 	  (if (y-or-n-p mes)
-	      (twittering-http-post "api.twitter.com"
+	      (twittering-http-post twittering-api-host
 				    (concat "1/statuses/retweet/" id))
 	    (message "Request canceled")))
       (message "No status selected"))))

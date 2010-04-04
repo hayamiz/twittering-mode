@@ -9,6 +9,15 @@
 	`twittering-mode' can be used with/without any configuration for
 	font-lock mode.
 
+	* twittering-mode.el: Replace hard-coded hostnames with
+	variables and functions. Thanks to William Xu.
+	(twittering-api-host): new variable.
+	(twittering-api-search-host): new variable.
+	(twittering-web-host): new variable.
+	(twittering-get-search-url): new function.
+	(twittering-make-clickable-status-datum): call
+	`twittering-get-search-url' instead of using hard-coded hostname.
+
 2010-04-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-buffer-active-p): renamed

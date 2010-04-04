@@ -18,6 +18,10 @@
 	(twittering-make-clickable-status-datum): call
 	`twittering-get-search-url' instead of using hard-coded hostname.
 
+	* twittering-mode.el (twittering-start-http-session-curl): do not
+	overwrite headers that `curl' will define internally. Thanks to
+	William Xu.
+
 2010-04-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-buffer-active-p): renamed

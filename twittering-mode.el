@@ -2017,7 +2017,12 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 	 (curl-args
 	  `("--include" "--silent"
 	    ,@(mapcan (lambda (pair)
-			`("-H" ,(format "%s: %s" (car pair) (cdr pair))))
+			;; Do not overwrite internal headers `curl' would use.
+			;; Thanks to William Xu.
+			;; "cURL - How To Use"
+			;; http://curl.haxx.se/docs/manpage.html
+			(unless (string= (car pair) "Host")
+			  `("-H" ,(format "%s: %s" (car pair) (cdr pair)))))
 		      headers)
 	    ,@(when twittering-use-ssl
 		`("--cacert" ,(twittering-ensure-ca-cert)))

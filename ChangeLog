@@ -1,3 +1,8 @@
+2010-04-05  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-new-tweets-spec): new variable
+	for timeline spec on running `twittering-new-tweets-hook'.
+
 2010-04-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Improve compatibility with global-font-lock mode.

@@ -170,13 +170,16 @@ directly. Use `twittering-current-timeline-spec-string' or
   "Alist of server information.")
 
 (defvar twittering-new-tweets-count 0
-  "*Number of new tweets when `twittering-new-tweets-hook' is run.")
+  "Number of new tweets when `twittering-new-tweets-hook' is run.")
+(defvar twittering-new-tweets-spec nil
+  "Timeline spec, which new tweets belong to, when
+`twittering-new-tweets-hook' is run.")
 
 (defvar twittering-new-tweets-hook nil
   "*Hook run when new tweets are received.
 
-You can read `twittering-new-tweets-count' to get the number of new
-tweets received when this hook is run.")
+You can read `twittering-new-tweets-count' or `twittering-new-tweets-spec'
+to get the number of new tweets received when this hook is run.")
 
 (defvar twittering-scroll-mode nil)
 
@@ -1149,7 +1152,8 @@ Statuses are stored in ascending-order with respect to their IDs."
 		  (twittering-update-jojo (cdr (assq 'user-screen-name status))
 					  (cdr (assq 'text status))))
 		new-statuses))
-	(let ((twittering-new-tweets-count (length new-statuses)))
+	(let ((twittering-new-tweets-spec spec)
+	      (twittering-new-tweets-count (length new-statuses)))
 	  (run-hooks 'twittering-new-tweets-hook))
 	new-statuses))))
 

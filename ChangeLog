@@ -1,7 +1,19 @@
-2010-04-05  Tadashi MATSUO  <tad@mymail.twin.jp>
+2010-04-06  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-new-tweets-spec): new variable
 	for timeline spec on running `twittering-new-tweets-hook'.
+
+	* twittering-mode.el: Add an experimental notifier for unread
+	statuses on mode-line. You can enable it by invoking
+	`twittering-enable-unread-status-notifier'. To disable it, invoke
+	`twittering-disable-unread-status-notifier'.
+	(twittering-unread-status-info): new variable.
+	(twittering-reset-unread-status-info-if-necessary): new function.
+	(twittering-set-number-of-unread): new function.
+	(twittering-make-unread-status-notifier-string): new function.
+	(twittering-update-unread-status-info): new function.
+	(twittering-enable-unread-status-notifier): new function.
+	(twittering-disable-unread-status-notifier): new function.
 
 2010-04-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 

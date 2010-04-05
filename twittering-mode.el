@@ -1485,6 +1485,76 @@ SPEC may be a timeline spec or a timeline spec string."
 	  buffer)))))
 
 ;;;
+;;; Unread statuses info
+;;;
+
+(defvar twittering-unread-status-info nil
+  "A list of (buffer unread-statuses-counter), where `unread-statuses-counter'
+means the number of statuses retrieved after the last visiting of the buffer.")
+
+(defun twittering-reset-unread-status-info-if-necessary ()
+  (when (twittering-buffer-p)
+    (twittering-set-number-of-unread (current-buffer) 0)))
+
+(defun twittering-set-number-of-unread (buffer number)
+  (let* ((entry (assq buffer twittering-unread-status-info))
+	 (current (or (cadr entry) 0)))
+    (unless (= number current)
+      (setq twittering-unread-status-info
+	    (cons
+	     `(,buffer ,number)
+	     (if entry
+		 (remq entry twittering-unread-status-info)
+	       twittering-unread-status-info)))
+      (force-mode-line-update))))
+
+(defun twittering-make-unread-status-notifier-string ()
+  "Generate a string that displays unread statuses."
+  (setq twittering-unread-status-info
+	(remove nil
+		(mapcar (lambda (entry)
+			  (when (buffer-live-p (car entry))
+			    entry))
+			twittering-unread-status-info)))
+  (let ((sum (apply '+ (mapcar 'cadr twittering-unread-status-info))))
+    (if (= 0 sum)
+	""
+      (format "tw(%d)" sum))))
+
+(defun twittering-update-unread-status-info ()
+  "Update `twittering-unread-status-info' with new tweets."
+  (let* ((buffer (twittering-get-buffer-from-spec twittering-new-tweets-spec))
+	 (current (or (cadr (assq buffer twittering-unread-status-info)) 0))
+	 (result (+ current twittering-new-tweets-count)))
+    (unless (eq buffer (current-buffer))
+      (twittering-set-number-of-unread buffer result))))
+
+(defun twittering-enable-unread-status-notifier ()
+  "Enable a notifier of unread statuses on `twittering-mode'."
+  (interactive)
+  (setq twittering-unread-status-info
+	(mapcar (lambda (buffer) `(,buffer ,0))
+		(twittering-get-buffer-list)))
+  (add-hook 'twittering-new-tweets-hook 'twittering-update-unread-status-info)
+  (add-hook 'post-command-hook
+	    'twittering-reset-unread-status-info-if-necessary)
+  (add-to-list 'global-mode-string
+	       '(:eval (twittering-make-unread-status-notifier-string))
+	       t))
+
+(defun twittering-disable-unread-status-notifier ()
+  "Disable a notifier of unread statuses on `twittering-mode'."
+  (interactive)
+  (setq twittering-unread-status-info nil)
+  (remove-hook 'twittering-new-tweets-hook
+	       'twittering-update-unread-status-info)
+  (remove-hook 'post-command-hook
+	       'twittering-reset-unread-status-info-if-necessary)
+  (setq global-mode-string
+	(remove '(:eval (twittering-make-unread-status-notifier-string))
+		global-mode-string)))
+
+;;;
 ;;; Debug mode
 ;;;
 

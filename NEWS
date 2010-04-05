@@ -41,6 +41,7 @@ existing way.
 * Support multiple buffers, where their name is derived from timeline spec.
 * Toggle automatic retrieval of the timeline by pressing 'a'.
 * Improved compatibility with global-font-lock mode.
+* Unread statuses notifier on mode-line (experimental).
 * ...
 
 ### Bug fixes

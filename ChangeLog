@@ -15,6 +15,10 @@
 	(twittering-enable-unread-status-notifier): new function.
 	(twittering-disable-unread-status-notifier): new function.
 
+	* twittering-mode.el: Support fixed fill-column for the format
+	specifier "%FILL{...}". Thanks to William Xu.
+	(twittering-fill-column): new variable.
+
 2010-04-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Improve compatibility with global-font-lock mode.

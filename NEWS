@@ -42,6 +42,7 @@ existing way.
 * Toggle automatic retrieval of the timeline by pressing 'a'.
 * Improved compatibility with global-font-lock mode.
 * Unread statuses notifier on mode-line (experimental).
+* Fixed fill-column for the format specifier "%FILL{...}".
 * ...
 
 ### Bug fixes

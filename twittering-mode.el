@@ -227,6 +227,10 @@ Items:
  %% - %
 ")
 
+(defvar twittering-fill-column nil
+  "*The fill-column used for \"%FILL{...}\" in `twittering-status-format'.
+If nil, the fill-column is automatically calculated.")
+
 (defvar twittering-show-replied-tweets t
   "*The number of replied tweets which will be showed in one tweet.
 
@@ -533,7 +537,8 @@ and its contents (BUFFER)"
 		  ;; Use `(frame-width)' if no windows display
 		  ;; the current buffer.
 		  `(,(frame-width)))))
-	 (temporary-fill-column (- (1- min-width) adjustment)))
+	 (temporary-fill-column (- (or twittering-fill-column (1- min-width))
+				   adjustment)))
     (with-temp-buffer
       (let ((fill-column temporary-fill-column))
 	(insert str)

@@ -4118,7 +4118,7 @@ managed by `twittering-mode'."
       (funcall twittering-update-status-function
 	       (if (twittering-timeline-spec-is-direct-messages-p spec)
 		   nil
-		 (concat "d" username " "))
+		 (concat "d " username " "))
 	       nil username spec))))
 
 (defun twittering-reply-to-user ()

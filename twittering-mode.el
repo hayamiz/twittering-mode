@@ -1038,18 +1038,13 @@ direct_messages."
     `(search ,word))
    (t nil)))
 
-(defun twittering-add-timeline-history (&optional timeline-spec)
-  (let ((spec-string
-	 (if timeline-spec
-	     (twittering-timeline-spec-to-string timeline-spec t)
-	   (twittering-current-timeline-spec-string))))
-    (when spec-string
-      (when (or (null twittering-timeline-history)
-		(not (string= spec-string (car twittering-timeline-history))))
-	(if (functionp 'add-to-history)
-	    (add-to-history 'twittering-timeline-history spec-string)
-	  (setq twittering-timeline-history
-		(cons spec-string twittering-timeline-history)))))))
+(defun twittering-add-timeline-history (spec-string)
+  (when (or (null twittering-timeline-history)
+	    (not (string= spec-string (car twittering-timeline-history))))
+    (if (functionp 'add-to-history)
+	(add-to-history 'twittering-timeline-history spec-string)
+      (setq twittering-timeline-history
+	    (cons spec-string twittering-timeline-history)))))
 
 ;;;
 ;;; Timeline info
@@ -2362,7 +2357,7 @@ Available keywords:
 	    ;; retrieved all un-retrieved statuses.
 	    (when new-statuses
 	      (twittering-render-timeline buffer t new-statuses))
-	    (twittering-add-timeline-history)))
+	    (twittering-add-timeline-history spec-string)))
 	(if twittering-notify-successful-http-get
 	    (if suc-msg suc-msg (format "Success: Get %s." spec-string))
 	  nil)))

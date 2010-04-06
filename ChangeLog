@@ -1,3 +1,13 @@
+2010-04-07  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix a bug on updating timeline history.
+	(twittering-http-get-default-sentinel): call
+	`twittering-add-timeline-history' with correct timeline spec
+	string.
+	(twittering-add-timeline-history): receive timeline spec string
+	instead of timeline spec.
+	
+
 2010-04-06  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-new-tweets-spec): new variable

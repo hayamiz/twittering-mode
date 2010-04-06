@@ -6,7 +6,9 @@
 	string.
 	(twittering-add-timeline-history): receive timeline spec string
 	instead of timeline spec.
-	
+
+	* twittering-mode.el (twittering-mode-setup): omit redundant call
+	of `run-hook'.
 
 2010-04-06  Tadashi MATSUO  <tad@mymail.twin.jp>
 

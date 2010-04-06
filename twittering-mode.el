@@ -1704,7 +1704,6 @@ means the number of statuses retrieved after the last visiting of the buffer.")
 (defvar twittering-initialized nil)
 
 (defun twittering-mode-setup ()
-  (run-hooks 'twittering-mode-hook)
   (kill-all-local-variables)
   (setq major-mode 'twittering-mode)
   (setq buffer-read-only t)

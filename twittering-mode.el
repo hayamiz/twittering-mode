@@ -1673,14 +1673,13 @@ means the number of statuses retrieved after the last visiting of the buffer.")
 (defun twittering-mode-init-global ()
   "Initialize global variables for `twittering-mode'."
   (defface twittering-username-face
-    `((t nil)) "" :group 'faces)
-  (if (facep 'font-lock-string-face)
-      (copy-face 'font-lock-string-face 'twittering-username-face)
-    (copy-face 'bold 'twittering-username-face))
-  (set-face-attribute 'twittering-username-face nil :underline t)
-  (defface twittering-uri-face
-    `((t nil)) "" :group 'faces)
-  (set-face-attribute 'twittering-uri-face nil :underline t)
+    `((t ,(append '(:underline t)
+		  (face-attr-construct
+		   (if (facep 'font-lock-string-face)
+		       'font-lock-string-face
+		     'bold)))))
+    "" :group 'faces)
+  (defface twittering-uri-face `((t (:underline t))) "" :group 'faces)
   (twittering-update-status-format)
   (setq twittering-username-active
 	(or twittering-username (read-string "your twitter username: ")))

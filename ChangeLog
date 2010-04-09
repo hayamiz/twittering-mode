@@ -1,3 +1,9 @@
+2010-04-09  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-mode-init-global): initialize
+	faces without using `copy-face' because it does not change the
+	default face for new frames.
+
 2010-04-07  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix a bug on updating timeline history.

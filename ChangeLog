@@ -1,3 +1,38 @@
+2010-04-17  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Reimplement support of multiple buffers. The
+	timeline spec and active-mode flag of each managed buffer are
+	stored as buffer-local variables.
+	(twittering-timeline-spec): new buffer-local variable.
+	(twittering-timeline-spec-string): new buffer-local variable.
+	(twittering-active-mode): new buffer-local variable.
+	(twittering-buffer-info-list): redefined as a list of buffers.
+	(twittering-get-buffer-list): follow the redefinition of
+	`twittering-buffer-info-list'.
+	(twittering-get-active-buffer-list): likewise.
+	(twittering-buffer-p): likewise.
+	(twittering-get-buffer-from-spec): likewise.
+	(twittering-unregister-buffer): likewise.
+	(twittering-unregister-killed-buffer): likewise.
+	(twittering-buffer-active-p): use buffer-local
+	`twittering-active-mode'.
+	(twittering-get-timeline-spec-for-buffer): use buffer-local
+	`twittering-timeline-spec'.
+	(twittering-get-timeline-spec-string-for-buffer): use buffer-local
+	`twittering-timeline-spec-string'.
+	(twittering-register-buffer): removed. Its body is integrated into
+	`twittering-get-managed-buffer'.
+	(twittering-replace-spec-string-for-buffer): set buffer-local
+	`twittering-timeline-spec-string' directly.
+	(twittering-set-active-flag-for-buffer): use
+	`twittering-toggle-activate-buffer'.
+	(twittering-toggle-activate-buffer): set buffer-local
+	`twittering-active-mode' directly.
+	(twittering-get-managed-buffer): rearranged.
+	(twittering-mode-setup): set up `twittering-timeline-spec',
+	`twittering-timeline-spec-string' and `twittering-active-mode'.
+	And register the current buffer to `twittering-buffer-info-list'.
+
 2010-04-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-mode-init-global): initialize

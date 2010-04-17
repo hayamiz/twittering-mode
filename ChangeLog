@@ -33,6 +33,13 @@
 	`twittering-timeline-spec-string' and `twittering-active-mode'.
 	And register the current buffer to `twittering-buffer-info-list'.
 
+	* twittering-mode.el: Add functions to switch timelines.
+	(twittering-switch-to-next-timeline): new function.
+	(twittering-switch-to-previous-timeline): new function.
+	(twittering-mode-map): bind "f" and "b" to
+	`twittering-switch-to-next-timeline' and
+	`twittering-switch-to-previous-timeline', respectively.
+
 2010-04-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-mode-init-global): initialize

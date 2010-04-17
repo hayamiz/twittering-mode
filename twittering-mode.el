@@ -1500,6 +1500,28 @@ SPEC may be a timeline spec or a timeline spec string."
 	      (twittering-get-and-render-timeline)))
 	  buffer)))))
 
+(defun twittering-switch-to-next-timeline ()
+  (interactive)
+  (when (twittering-buffer-p)
+    (let* ((buffer-list (twittering-get-buffer-list))
+	   (following-buffers (cdr (memq (current-buffer) buffer-list)))
+	   (next (if following-buffers
+		     (car following-buffers)
+		   (car buffer-list))))
+      (unless (eq (current-buffer) next)
+	(switch-to-buffer next)))))
+
+(defun twittering-switch-to-previous-timeline ()
+  (interactive)
+  (when (twittering-buffer-p)
+    (let* ((buffer-list (reverse (twittering-get-buffer-list)))
+	   (preceding-buffers (cdr (memq (current-buffer) buffer-list)))
+	   (previous (if preceding-buffers
+			 (car preceding-buffers)
+		       (car buffer-list))))
+      (unless (eq (current-buffer) previous)
+	(switch-to-buffer previous)))))
+
 ;;;
 ;;; Unread statuses info
 ;;;
@@ -1627,6 +1649,8 @@ means the number of statuses retrieved after the last visiting of the buffer.")
       (define-key km (kbd "v") 'twittering-other-user-timeline)
       (define-key km (kbd "V") 'twittering-visit-timeline)
       (define-key km (kbd "L") 'twittering-other-user-list-interactive)
+      (define-key km (kbd "f") 'twittering-switch-to-next-timeline)
+      (define-key km (kbd "b") 'twittering-switch-to-previous-timeline)
       ;; (define-key km (kbd "j") 'next-line)
       ;; (define-key km (kbd "k") 'previous-line)
       (define-key km (kbd "j") 'twittering-goto-next-status)

@@ -1351,7 +1351,7 @@ return nil."
 		   (twittering-get-timeline-spec-string-for-buffer buffer))
 		  buffer
 		nil))
-	    twittering-buffer-info-list))))
+	    (twittering-get-buffer-list)))))
     (if buffers
 	;; We assume that the buffer with the same spec is unique.
 	(car buffers)
@@ -1564,7 +1564,7 @@ means the number of statuses retrieved after the last visiting of the buffer.")
   (let* ((buffer (twittering-get-buffer-from-spec twittering-new-tweets-spec))
 	 (current (or (cadr (assq buffer twittering-unread-status-info)) 0))
 	 (result (+ current twittering-new-tweets-count)))
-    (unless (eq buffer (current-buffer))
+    (when (and buffer (not (eq buffer (current-buffer))))
       (twittering-set-number-of-unread buffer result))))
 
 (defun twittering-enable-unread-status-notifier ()
@@ -2404,7 +2404,7 @@ Available keywords:
 	    ;; statuses is nil. twitter server returns nil as
 	    ;; xmltree with HTTP status-code is "200" when we
 	    ;; retrieved all un-retrieved statuses.
-	    (when new-statuses
+	    (when (and new-statuses buffer)
 	      (twittering-render-timeline buffer t new-statuses))
 	    (twittering-add-timeline-history spec-string)))
 	(if twittering-notify-successful-http-get

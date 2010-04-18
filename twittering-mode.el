@@ -1632,7 +1632,7 @@ means the number of statuses retrieved after the last visiting of the buffer.")
   '(and (display-images-p)
 	(image-type-available-p 'xpm)))
 
-(defun twittering-init-active-inactive-icons ()
+(defun twittering-init-mode-line-icons ()
   (when (twittering-display-image-p)
     (let ((load-path (cons twittering-icon-directory load-path)))
       (setq twittering-ssl-image (find-image
@@ -1805,7 +1805,7 @@ means the number of statuses retrieved after the last visiting of the buffer.")
 	(if (null (search-forward-regexp "\\(Image\\|Graphics\\)Magick" nil t))
 	    (setq twittering-use-convert nil)))))
   (twittering-setup-proxy)
-  (twittering-init-active-inactive-icons)
+  (twittering-init-mode-line-icons)
   )
 
 (defvar twittering-mode-hook nil

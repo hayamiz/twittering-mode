@@ -1,5 +1,11 @@
 2010-04-19  Takashi Masuda  <masutaka@nifty.com>
 
+	* twittering-mode.el : 関数名が古かったので、リネーム。
+	(twittering-init-mode-line-icons):
+	(twittering-mode-init-global):
+	twittering-init-active-inactive-icons から
+	twittering-init-mode-line-icons にリネーム。
+
 	* twittering-mode.el : SSL と ACTIVE/INACTIVE の状態をモードライン
 	アイコンに表示するようにした。-nw 時は文字列を表示する。
 	(twittering-update-mode-line): mode-line-buffer-identification の設

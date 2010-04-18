@@ -20,6 +20,15 @@
 	* offline.patch: 上記に伴い削除。元々私がブログに公開したものを
 	Hayamizu 氏が拾って下さったもの。
 
+2010-04-19  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-get-buffer-from-spec): return nil
+	if the corresponding buffer has been already killed.
+	(twittering-update-unread-status-info): do not count statuses for
+	a killed buffer.
+	(twittering-http-get-default-sentinel): do not render a timeline
+	for a killed buffer.
+
 2010-04-17  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Reimplement support of multiple buffers. The

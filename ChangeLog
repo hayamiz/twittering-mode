@@ -1,3 +1,19 @@
+2010-04-19  Takashi Masuda  <masutaka@nifty.com>
+
+	* twittering-mode.el : SSL と ACTIVE/INACTIVE の状態をモードライン
+	アイコンに表示するようにした。-nw 時は文字列を表示する。
+	(twittering-update-mode-line): mode-line-buffer-identification の設
+	定を追加。INACTIVE と ssl の mode-name への設定を削除した。
+	(twittering-display-image-p): 新規マクロ
+	(twittering-init-active-inactive-icons): 新規関数
+	(twittering-mode-init-global):
+	twittering-init-active-inactive-icons を呼ぶように修正。
+
+	* icons/ssl.xpm: 上記に伴い Mew から拝借。
+
+	* offline.patch: 上記に伴い削除。元々私がブログに公開したものを
+	Hayamizu 氏が拾って下さったもの。
+
 2010-04-17  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Reimplement support of multiple buffers. The

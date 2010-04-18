@@ -485,14 +485,16 @@ and its contents (BUFFER)"
 
 (defun twittering-update-mode-line ()
   "Update mode line."
+  (setq mode-line-buffer-identification
+	`((twittering-use-ssl twittering-modeline-ssl "")
+	  (twittering-active-mode twittering-modeline-active twittering-modeline-inactive)
+	  ,(default-value 'mode-line-buffer-identification)))
   (let ((enabled-options
-	 `(,@(unless (twittering-buffer-active-p) '("INACTIVE"))
-	   ,@(when twittering-jojo-mode '("jojo"))
+	 `(,@(when twittering-jojo-mode '("jojo"))
 	   ,@(when twittering-icon-mode '("icon"))
 	   ,@(when twittering-reverse-mode '("reverse"))
 	   ,@(when twittering-scroll-mode '("scroll"))
-	   ,@(when twittering-proxy-use '("proxy"))
-	   ,@(when twittering-use-ssl '("ssl")))))
+	   ,@(when twittering-proxy-use '("proxy")))))
     (setq mode-name
 	  (concat twittering-mode-string
 		  (if twittering-display-remaining
@@ -1593,6 +1595,74 @@ means the number of statuses retrieved after the last visiting of the buffer.")
 		global-mode-string)))
 
 ;;;
+;;; mode-line icon
+;;;
+
+;;; SSL
+(defvar twittering-ssl-image nil)
+(defvar twittering-ssl-indicator "[ssl]")
+(defvar twittering-modeline-ssl twittering-ssl-indicator)
+(put 'twittering-modeline-ssl 'risky-local-variable t)
+
+;;; ACTIVE/INACTIVE
+(defvar twittering-active-image nil)
+(defvar twittering-inactive-image nil)
+(defvar twittering-active-indicator "[ACTIVE] ")
+(defvar twittering-inactive-indicator "[INACTIVE] ")
+(defvar twittering-modeline-active twittering-active-indicator)
+(defvar twittering-modeline-inactive twittering-inactive-indicator)
+(put 'twittering-modeline-active 'risky-local-variable t)
+(put 'twittering-modeline-inactive 'risky-local-variable t)
+
+(defvar twittering-icon-directory
+  (expand-file-name
+   "icons"
+   (file-name-directory (locate-library "twittering-mode")))
+  "*Icon directory")
+
+;; filename relative to twittering-icon-directory
+(defvar twittering-ssl-icon "ssl.xpm"
+  "*Icon file for ssl state.")
+(defvar twittering-active-icon "plugged.xpm"
+  "*Icon file for active state.")
+(defvar twittering-inactive-icon "unplugged.xpm"
+  "*Icon file for inactive state.")
+
+(defmacro twittering-display-image-p ()
+  '(and (display-images-p)
+	(image-type-available-p 'xpm)))
+
+(defun twittering-init-active-inactive-icons ()
+  (when (twittering-display-image-p)
+    (let ((load-path (cons twittering-icon-directory load-path)))
+      (setq twittering-ssl-image (find-image
+				  `((:type xpm
+					   :file ,twittering-ssl-icon
+					   :ascent center))))
+      (setq twittering-active-image (find-image
+				     `((:type xpm
+					      :file ,twittering-active-icon
+					      :ascent center))))
+      (setq twittering-inactive-image (find-image
+				       `((:type xpm
+						:file ,twittering-inactive-icon
+						:ascent center)))))
+    (setq twittering-modeline-ssl
+	  (apply 'propertize twittering-ssl-indicator
+		 `(display ,twittering-ssl-image)))
+    (let ((props
+	   (when (display-mouse-p)
+	     (list 'local-map (purecopy (make-mode-line-mouse-map
+					 'mouse-2 #'twittering-toggle-activate-buffer))
+		   'help-echo "mouse-2 toggles activate buffer"))))
+      (setq twittering-modeline-active
+	    (apply 'propertize twittering-active-indicator
+		   `(display ,twittering-active-image ,@props)))
+      (setq twittering-modeline-inactive
+	    (apply 'propertize twittering-inactive-indicator
+		   `(display ,twittering-inactive-image ,@props))))))
+
+;;;
 ;;; Debug mode
 ;;;
 
@@ -1735,6 +1805,7 @@ means the number of statuses retrieved after the last visiting of the buffer.")
 	(if (null (search-forward-regexp "\\(Image\\|Graphics\\)Magick" nil t))
 	    (setq twittering-use-convert nil)))))
   (twittering-setup-proxy)
+  (twittering-init-active-inactive-icons)
   )
 
 (defvar twittering-mode-hook nil

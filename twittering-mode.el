@@ -1599,68 +1599,166 @@ means the number of statuses retrieved after the last visiting of the buffer.")
 ;;;
 
 ;;; SSL
-(defvar twittering-ssl-image nil)
-(defvar twittering-ssl-indicator "[ssl]")
-(defvar twittering-modeline-ssl twittering-ssl-indicator)
-(put 'twittering-modeline-ssl 'risky-local-variable t)
+(defconst twittering-ssl-indicator-image
+  (when (image-type-available-p 'xpm)
+    '(image :type xpm
+	    :ascent center
+	    :data
+	    "/* XPM */
+/*
+ * Copyright (C) 2003 Yuuichi Teranishi <teranisi@gohome.org>
+ * Copyright (C) 2003 Kazu Yamamoto <kazu@Mew.org>
+ * Copyright (C) 2004 Yoshifumi Nishida <nishida@csl.sony.co.jp>
+ * Copyright notice is the same as Mew's one.
+ */
+static char * yellow3_xpm[] = {
+\"14 14 7 1\",
+\" 	c None\",
+\".	c #B07403\",
+\"+	c #EFEE38\",
+\"@	c #603300\",
+\"#	c #D0A607\",
+\"$	c #FAFC90\",
+\"%	c #241100\",
+\"    .++++@    \",
+\"   .+@...+@   \",
+\"  .+@    .+@  \",
+\"  .+@    .+@  \",
+\"  .+@    .+@  \",
+\"++########@@@@\",
+\"+$$++++++++#@@\",
+\"+$++++%@+++#@@\",
+\"+$+++%%%@++#@@\",
+\"+$+++%%%@++#@@\",
+\"+$++++%@+++#@@\",
+\"+$++++%@+++#@@\",
+\"+$+++++++++#@@\",
+\"++@@@@@@@@@@@@\"};
+"
+;;; The above image is copied from `mew-lock.xpm' distributed with Mew.
+;;; The copyright of the image is below, which is copied from `mew.el'.
+
+;;; Copyright Notice:
+
+;; Copyright (C) 1994-2009 Mew developing team.
+;; All rights reserved.
+
+;; Redistribution and use in source and binary forms, with or without
+;; modification, are permitted provided that the following conditions
+;; are met:
+;;
+;; 1. Redistributions of source code must retain the above copyright
+;;    notice, this list of conditions and the following disclaimer.
+;; 2. Redistributions in binary form must reproduce the above copyright
+;;    notice, this list of conditions and the following disclaimer in the
+;;    documentation and/or other materials provided with the distribution.
+;; 3. Neither the name of the team nor the names of its contributors
+;;    may be used to endorse or promote products derived from this software
+;;    without specific prior written permission.
+;;
+;; THIS SOFTWARE IS PROVIDED BY THE TEAM AND CONTRIBUTORS ``AS IS'' AND
+;; ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+;; PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE TEAM OR CONTRIBUTORS BE
+;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+;; BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+;; WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+;; OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+;; IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+	    ))
+  "Image for indicator of SSL state.")
+
+(defconst twittering-modeline-ssl
+  (if twittering-ssl-indicator-image
+      (propertize "[SSL]"
+		  'display twittering-ssl-indicator-image
+		  'help-echo "SSL is enabled.")
+    "[SSL]"))
 
 ;;; ACTIVE/INACTIVE
-(defvar twittering-active-image nil)
-(defvar twittering-inactive-image nil)
-(defvar twittering-active-indicator "[ACTIVE] ")
-(defvar twittering-inactive-indicator "[INACTIVE] ")
-(defvar twittering-modeline-active twittering-active-indicator)
-(defvar twittering-modeline-inactive twittering-inactive-indicator)
-(put 'twittering-modeline-active 'risky-local-variable t)
-(put 'twittering-modeline-inactive 'risky-local-variable t)
+(defconst twittering-active-indicator-image
+  (when (image-type-available-p 'xpm)
+    '(image :type xpm
+	    :ascent center
+	    :data
+	    "/* XPM */
+static char *plugged[] = {
+\"32 12 8 1\",
+\"  c None\",
+\". c #a6caf0\",
+\"# c #8fa5cf\",
+\"a c #717171\",
+\"b c #5d5d97\",
+\"c c #8488ca\",
+\"d c #9f9f9f\",
+\"e c #7f8080\",
+\"            ...                 \",
+\"           .ccb....             \",
+\"           accb####.            \",
+\"          .accb#####..          \",
+\"   eeeeeeeeaccb#####.eeeeeeee   \",
+\"   dddddddcaccb#####.dedddddd   \",
+\"   dddddddcaccb#####.dedddddd   \",
+\"   eeeeeeeeaccb#####.eeeeeeee   \",
+\"          aaccb####aaa          \",
+\"           accbaaaaa            \",
+\"           aaaaaaaa             \",
+\"            aaa                 \"
+};
+"))
+  "Image for indicator of active state.")
 
-(defvar twittering-icon-directory
-  (expand-file-name
-   "icons"
-   (file-name-directory (locate-library "twittering-mode")))
-  "*Icon directory")
+(defconst twittering-inactive-indicator-image
+  (when (image-type-available-p 'xpm)
+    '(image :type xpm
+	    :ascent center
+	    :data
+	    "/* XPM */
+static char * unplugged_xpm[] = {
+\"32 12 9 1\",
+\" 	s None	c None\",
+\".	c tomato\",
+\"X	c #a6caf0\",
+\"o	c #8488ca\",
+\"O	c #5d5d97\",
+\"+	c #8fa5cf\",
+\"@	c #717171\",
+\"#	c #7f8080\",
+\"$	c #9f9f9f\",
+\"          XXX......             \",
+\"           ...    ...           \",
+\"          ..O     ....X         \",
+\"         ..oO    ...+..XX       \",
+\"   ######.ooO   ...+++.X#####   \",
+\"   $$$$$o.ooO  ...@+++.X$#$$$   \",
+\"   $$$$$o.ooO ... @+++.X$#$$$   \",
+\"   ######.ooO...  @+++.X#####   \",
+\"         ..o...   @++..@@       \",
+\"          ....    @@..@         \",
+\"           ...    ...@          \",
+\"             ......             \"
+};
+"))
+  "Image for indicator of inactive state.")
 
-;; filename relative to twittering-icon-directory
-(defvar twittering-ssl-icon "ssl.xpm"
-  "*Icon file for ssl state.")
-(defvar twittering-active-icon "plugged.xpm"
-  "*Icon file for active state.")
-(defvar twittering-inactive-icon "unplugged.xpm"
-  "*Icon file for inactive state.")
-
-(defmacro twittering-display-image-p ()
-  '(and (display-images-p)
-	(image-type-available-p 'xpm)))
-
-(defun twittering-init-mode-line-icons ()
-  (when (twittering-display-image-p)
-    (let ((load-path (cons twittering-icon-directory load-path)))
-      (setq twittering-ssl-image (find-image
-				  `((:type xpm
-					   :file ,twittering-ssl-icon
-					   :ascent center))))
-      (setq twittering-active-image (find-image
-				     `((:type xpm
-					      :file ,twittering-active-icon
-					      :ascent center))))
-      (setq twittering-inactive-image (find-image
-				       `((:type xpm
-						:file ,twittering-inactive-icon
-						:ascent center)))))
-    (setq twittering-modeline-ssl
-	  (apply 'propertize twittering-ssl-indicator
-		 `(display ,twittering-ssl-image)))
-    (let ((props
-	   (when (display-mouse-p)
-	     (list 'local-map (purecopy (make-mode-line-mouse-map
-					 'mouse-2 #'twittering-toggle-activate-buffer))
-		   'help-echo "mouse-2 toggles activate buffer"))))
-      (setq twittering-modeline-active
-	    (apply 'propertize twittering-active-indicator
-		   `(display ,twittering-active-image ,@props)))
-      (setq twittering-modeline-inactive
-	    (apply 'propertize twittering-inactive-indicator
-		   `(display ,twittering-inactive-image ,@props))))))
+(let ((props
+       (when (display-mouse-p)
+	 `(local-map
+	   ,(purecopy (make-mode-line-mouse-map
+		       'mouse-2 #'twittering-toggle-activate-buffer))
+	   help-echo "mouse-2 toggles activate buffer"))))
+  (defconst twittering-modeline-active
+    (if twittering-active-indicator-image
+	(apply 'propertize "[ACTIVE]"
+	       `(display ,twittering-active-indicator-image ,@props))
+      "[ACTIVE]"))
+  (defconst twittering-modeline-inactive
+    (if twittering-inactive-indicator-image
+	(apply 'propertize "[INACTIVE]"
+	       `(display ,twittering-inactive-indicator-image ,@props))
+      "[INACTIVE]")))
 
 ;;;
 ;;; Debug mode
@@ -1804,9 +1902,7 @@ means the number of statuses retrieved after the last visiting of the buffer.")
 	(goto-char (point-min))
 	(if (null (search-forward-regexp "\\(Image\\|Graphics\\)Magick" nil t))
 	    (setq twittering-use-convert nil)))))
-  (twittering-setup-proxy)
-  (twittering-init-mode-line-icons)
-  )
+  (twittering-setup-proxy))
 
 (defvar twittering-mode-hook nil
   "Twittering-mode hook.")

@@ -44,6 +44,7 @@ existing way.
 * Unread statuses notifier on mode-line (experimental).
 * Fixed fill-column for the format specifier "%FILL{...}".
 * Switching timeline buffers by pressing 'f' or 'b'.
+* Graphical indicators for SSL and ACTIVE/INACTIVE state on mode-line.
 * ...
 
 ### Bug fixes

@@ -1,3 +1,26 @@
+2010-04-24  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Reimplement indicators.
+	(twittering-ssl-indicator-image): new constant.
+	(twittering-modeline-ssl): defined as a constant, which is
+	initialized on loading `twittering-mode.el'.
+	(twittering-ssl-image, twittering-ssl-indicator): removed.
+	(twittering-ssl-icon): removed.
+	(twittering-active-image, twittering-inactive-image): removed.
+	(twittering-active-indicator, twittering-inactive-indicator):
+	removed.
+	(twittering-icon-directory): removed.
+	(twittering-active-icon, twittering-inactive-icon): removed.
+	(twittering-display-image-p): removed.
+	(twittering-init-mode-line-icons): removed. Images are initialized
+	as constants on loading `twittering-mode.el'.
+	(twittering-active-indicator-image): new constant.
+	(twittering-inactive-indicator-image): new constant.
+	(twittering-modeline-active): defined as a constat.
+	(twittering-modeline-inactive): likewise.
+	(twittering-mode-init-global): remove the call of
+	`twittering-init-mode-line-icons'.
+
 2010-04-19  Takashi Masuda  <masutaka@nifty.com>
 
 	* twittering-mode.el : 関数名が古かったので、リネーム。

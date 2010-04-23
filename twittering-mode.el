@@ -481,34 +481,25 @@ and its contents (BUFFER)"
   "Return Tweet sign string."
   (funcall twittering-sign-string-function))
 
-(defvar twittering-mode-string "twittering-mode")
-
-(defun twittering-update-mode-line ()
-  "Update mode line."
-  (setq mode-line-buffer-identification
-	`((twittering-use-ssl twittering-modeline-ssl "")
-	  (twittering-active-mode twittering-modeline-active twittering-modeline-inactive)
-	  ,(default-value 'mode-line-buffer-identification)))
-  (let ((enabled-options
-	 `(,@(when twittering-jojo-mode '("jojo"))
+(defun twittering-mode-line-buffer-identification ()
+  (let ((active-mode-indicator
+	 (if twittering-active-mode
+	     twittering-modeline-active
+	   twittering-modeline-inactive))
+	(enabled-options
+	 `(,@(when twittering-use-ssl `(,twittering-modeline-ssl))
+	   ,@(when twittering-jojo-mode '("jojo"))
 	   ,@(when twittering-icon-mode '("icon"))
 	   ,@(when twittering-reverse-mode '("reverse"))
 	   ,@(when twittering-scroll-mode '("scroll"))
 	   ,@(when twittering-proxy-use '("proxy")))))
-    (setq mode-name
-	  (concat twittering-mode-string
-		  (if twittering-display-remaining
-		      (format " %d/%d"
-			      (twittering-get-ratelimit-remaining)
-			      (twittering-get-ratelimit-limit))
-		    "")
-		  (if enabled-options
-		      (concat "["
-			      (mapconcat 'identity enabled-options ",")
-			      "]")
-		    ""))))
-  (force-mode-line-update)
-  )
+    (concat active-mode-indicator
+	    (when enabled-options
+	      (concat "[" (mapconcat 'identity enabled-options " ") "]")))))
+
+(defun twittering-update-mode-line ()
+  "Update mode line."
+  (force-mode-line-update))
 
 (defun twittering-status-id< (id1 id2)
   (let ((len1 (length id1))
@@ -1672,10 +1663,10 @@ static char * yellow3_xpm[] = {
 
 (defconst twittering-modeline-ssl
   (if twittering-ssl-indicator-image
-      (propertize "[SSL]"
+      (propertize "SSL"
 		  'display twittering-ssl-indicator-image
 		  'help-echo "SSL is enabled.")
-    "[SSL]"))
+    "SSL"))
 
 ;;; ACTIVE/INACTIVE
 (defconst twittering-active-indicator-image
@@ -1751,14 +1742,14 @@ static char * unplugged_xpm[] = {
 	   help-echo "mouse-2 toggles activate buffer"))))
   (defconst twittering-modeline-active
     (if twittering-active-indicator-image
-	(apply 'propertize "[ACTIVE]"
+	(apply 'propertize " "
 	       `(display ,twittering-active-indicator-image ,@props))
-      "[ACTIVE]"))
+      " "))
   (defconst twittering-modeline-inactive
     (if twittering-inactive-indicator-image
-	(apply 'propertize "[INACTIVE]"
+	(apply 'propertize "INACTIVE"
 	       `(display ,twittering-inactive-indicator-image ,@props))
-      "[INACTIVE]")))
+      "INACTIVE")))
 
 ;;;
 ;;; Debug mode
@@ -1914,6 +1905,10 @@ static char * unplugged_xpm[] = {
   (kill-all-local-variables)
   (setq major-mode 'twittering-mode)
   (setq buffer-read-only t)
+  (setq mode-name "twittering-mode")
+  (setq mode-line-buffer-identification
+	`(,(default-value 'mode-line-buffer-identification)
+	  (:eval (twittering-mode-line-buffer-identification))))
 
   ;; Prevent `global-font-lock-mode' enabling `font-lock-mode'.
   ;; This technique is derived from `lisp/bs.el' distributed with Emacs 22.2.

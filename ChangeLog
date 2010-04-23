@@ -21,6 +21,21 @@
 	(twittering-mode-init-global): remove the call of
 	`twittering-init-mode-line-icons'.
 
+	* twittering-mode.el: Display the buffer state as
+	`mode-line-buffer-identification' instead of `mode-name'.
+	(twittering-mode-line-buffer-identification): new function for
+	generating a mode-line string for `twittering-mode'.
+	(twittering-mode-string): removed.
+	(twittering-modeline-ssl): remove brackets from the mode-line
+	string.
+	(twittering-modeline-active): use a whitespace with `display' face
+	as a mode-line string.
+	(twittering-modeline-inactive): remove brackets from the mode-line
+	string.
+	(twittering-update-mode-line): call `force-mode-line-update' only.
+	(twittering-mode-setup): initialize `mode-name' and
+	`mode-line-buffer-identification'.
+
 2010-04-19  Takashi Masuda  <masutaka@nifty.com>
 
 	* twittering-mode.el : 関数名が古かったので、リネーム。

@@ -5,6 +5,10 @@
 	(twittering-mode-init-global):
 	twittering-init-active-inactive-icons から
 	twittering-init-mode-line-icons にリネーム。
+	* twittering-mode.el : rename old functions.
+	(twittering-init-mode-line-icons): rename
+	`twittering-init-active-inactive-icons'
+	`twittering-init-mode-line-icons'.
 
 	* twittering-mode.el : SSL と ACTIVE/INACTIVE の状態をモードライン
 	アイコンに表示するようにした。-nw 時は文字列を表示する。
@@ -14,11 +18,22 @@
 	(twittering-init-active-inactive-icons): 新規関数
 	(twittering-mode-init-global):
 	twittering-init-active-inactive-icons を呼ぶように修正。
+	* twittering-mode.el : display graphical indicators for SSL and
+	ACTIVE/INACTIVE state on mode-line.
+	(twittering-update-mode-line): add graphical indicators to
+	`mode-line-buffer-identification' instead of `mode-name'.
+	(twittering-display-image-p): new macro.
+	(twittering-init-active-inactive-icons): new function.
+	(twittering-mode-init-global): call
+	`twittering-init-active-inactive-icons'.
 
 	* icons/ssl.xpm: 上記に伴い Mew から拝借。
+	* icons/ssl.xpm: imported from Mew.
 
 	* offline.patch: 上記に伴い削除。元々私がブログに公開したものを
 	Hayamizu 氏が拾って下さったもの。
+	* offline.patch: removed. (Mr.Hayamizu imported it, which
+	originated from Masuda's blog.)
 
 2010-04-19  Tadashi MATSUO  <tad@mymail.twin.jp>
 

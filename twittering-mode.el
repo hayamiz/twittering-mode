@@ -120,16 +120,12 @@ DO NOT SET VALUE MANUALLY.")
   "The interval of auto redisplaying statuses.")
 
 (defvar twittering-username nil
-  "An username of your Twitter account.")
-(defvar twittering-username-active nil
-  "Copy of `twittering-username' for internal use.")
+  "*An username of your Twitter account.")
 
 (defvar twittering-password nil
-  "A password of your Twitter account. Leave it blank is the
+  "*A password of your Twitter account. Leave it blank is the
 recommended way because writing a password in .emacs file is so
 dangerous.")
-(defvar twittering-password-active nil
-  "Copy of `twittering-password' for internal use.")
 
 (defvar twittering-initial-timeline-spec-string ":home"
   "The initial timeline spec string.")
@@ -1484,17 +1480,18 @@ SPEC may be a timeline spec or a timeline spec string."
 	  (with-current-buffer buffer
 	    (twittering-mode-setup spec-string)
 	    (twittering-render-timeline buffer)
-	    (when start-timer
-	      ;; If `buffer' is the first managed buffer,
-	      ;; call `twittering-start' to start timers.
-	      (twittering-start))
-	    (unless (and start-timer twittering-active-mode)
-	      ;; If `buffer' is active and the first managed buffer,
-	      ;; `twittering-start' invokes
-	      ;; `twittering-get-and-render-timeline' indirectly.
-	      ;; Otherwise, `twittering-get-and-render-timeline' should be
-	      ;; invoked here.
-	      (twittering-get-and-render-timeline)))
+	    (when (twittering-account-authorized-p)
+	      (when start-timer
+		;; If `buffer' is the first managed buffer,
+		;; call `twittering-start' to start timers.
+		(twittering-start))
+	      (unless (and start-timer twittering-active-mode)
+		;; If `buffer' is active and the first managed buffer,
+		;; `twittering-start' invokes
+		;; `twittering-get-and-render-timeline' indirectly.
+		;; Otherwise, `twittering-get-and-render-timeline' should be
+		;; invoked here.
+		(twittering-get-and-render-timeline))))
 	  buffer)))))
 
 (defun twittering-switch-to-next-timeline ()
@@ -1756,6 +1753,58 @@ static char * unplugged_xpm[] = {
       "INACTIVE")))
 
 ;;;
+;;; Account authorization
+;;;
+
+(defvar twittering-account-authorization nil
+  "State of account authorization for `twittering-username' and
+`twittering-password'.  The value is one of the following symbols:
+nil -- The account have not been authorized yet.
+queried -- The authorization has been queried, but not finished yet.
+authorized -- The account has been authorized.")
+
+(defun twittering-account-authorized-p ()
+  (eq twittering-account-authorization 'authorized))
+(defun twittering-account-authorization-queried-p ()
+  (eq twittering-account-authorization 'queried))
+
+(defun twittering-prepare-account-info ()
+  (unless (twittering-get-username)
+    (setq twittering-username (read-string "your twitter username: ")))
+  (unless (twittering-get-password)
+    (setq twittering-password
+	  (read-passwd (format "%s's twitter password: "
+			       twittering-username)))))
+
+(defun twittering-verify-credentials ()
+  (unless (or (twittering-account-authorized-p)
+	      (twittering-account-authorization-queried-p))
+    (setq twittering-account-authorization 'queried)
+    (twittering-http-get twittering-api-host
+			 "1/account/verify_credentials"
+			 t nil nil
+			 'twittering-http-get-verify-credentials-sentinel)))
+
+(defun twittering-http-get-verify-credentials-sentinel (header-info proc noninteractive &optional suc-msg)
+  (let ((status-line (cdr (assq 'status-line header-info)))
+	(status-code (cdr (assq 'status-code header-info))))
+    (case-string
+     status-code
+     (("200")
+      (setq twittering-account-authorization 'authorized)
+      (twittering-start)
+      (format "Authorization for the account \"%s\" succeeded."
+	      (twittering-get-username)))
+     (t
+      (setq twittering-account-authorization nil)
+      (let ((error-mes
+	     (format "Authorization for the account \"%s\" failed. Type M-x twit to retry."
+		     (twittering-get-username))))
+	(setq twittering-username nil)
+	(setq twittering-password nil)
+	error-mes)))))
+
+;;;
 ;;; Debug mode
 ;;;
 
@@ -1884,10 +1933,6 @@ static char * unplugged_xpm[] = {
     "" :group 'faces)
   (defface twittering-uri-face `((t (:underline t))) "" :group 'faces)
   (twittering-update-status-format)
-  (setq twittering-username-active
-	(or twittering-username (read-string "your twitter username: ")))
-  (setq twittering-password-active
-	(or twittering-password (read-passwd "your twitter password: ")))
   (when twittering-use-convert
     (if (null twittering-convert-program)
 	(setq twittering-use-convert nil)
@@ -1948,6 +1993,7 @@ static char * unplugged_xpm[] = {
   (unless twittering-initialized
     (twittering-mode-init-global)
     (setq twittering-initialized t))
+  (twittering-prepare-account-info)
   (twittering-visit-timeline twittering-initial-timeline-spec-string))
 
 ;;;
@@ -3869,6 +3915,10 @@ variable `twittering-status-format'."
   (let ((spec (twittering-current-timeline-spec))
 	(spec-string (twittering-current-timeline-spec-string)))
     (cond
+     ((not (twittering-account-authorized-p))
+      ;; ignore any requests if the account has not been authorized.
+      (message "No account for Twitter has been authorized.")
+      t)
      ((and noninteractive (twittering-process-active-p spec))
       ;; ignore non-interactive request if a process is waiting for responses.
       t)
@@ -4034,11 +4084,12 @@ variable `twittering-status-format'."
 (defun twittering-update-active-buffers (&optional noninteractive)
   "Invoke `twittering-get-and-render-timeline' for each active buffer
 managed by `twittering-mode'."
-  (let ((buffer-list (twittering-get-active-buffer-list)))
-    (mapc (lambda (buffer)
-	    (with-current-buffer buffer
-	      (twittering-get-and-render-timeline noninteractive)))
-	  buffer-list)))
+  (when (twittering-account-authorized-p)
+    (let ((buffer-list (twittering-get-active-buffer-list)))
+      (mapc (lambda (buffer)
+	      (with-current-buffer buffer
+		(twittering-get-and-render-timeline noninteractive)))
+	    buffer-list))))
 
 (defun twittering-current-timeline-noninteractive ()
   (twittering-current-timeline t))
@@ -4276,6 +4327,7 @@ managed by `twittering-mode'."
 	     (twittering-read-timeline-spec-with-completion
 	      "timeline: " initial t))))
     (when timeline-spec
+      (twittering-verify-credentials)
       (switch-to-buffer (twittering-get-managed-buffer timeline-spec)))))
 
 (defun twittering-other-user-timeline ()
@@ -4429,10 +4481,10 @@ managed by `twittering-mode'."
       nil))))
 
 (defun twittering-get-username ()
-  twittering-username-active)
+  twittering-username)
 
 (defun twittering-get-password ()
-  twittering-password-active)
+  twittering-password)
 
 (defun twittering-get-id-at (&optional pos)
   "Return ID of the status at POS. If a separator is rendered at POS, return

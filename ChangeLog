@@ -9,6 +9,30 @@
 	managed by `twittering-mode'. Thanks to irie for pointing it out.
 	(twittering-mode-setup): call `buffer-disable-undo'.
 
+	* twittering-mode.el: Verify the account in advance of retrieving
+	statuses.
+	(twittering-account-authorization): new variable.
+	(twittering-account-authorized-p): new function.
+	(twittering-account-authorization-queried-p): new function.
+	(twittering-prepare-account-info): new function for completing
+	username and password.
+	(twittering-verify-credentials): new function.
+	(twittering-http-get-verify-credentials-sentinel): new function.
+	(twittering-get-managed-buffer): start the timer after
+	authorization.
+	(twittering-mode-init-global): initialize neither
+	`twittering-username' nor `twittering-password'.
+	(twittering-mode): call `twittering-prepare-account-info'.
+	(twittering-get-and-render-timeline): ignore requests unless
+	authorization is completed.
+	(twittering-update-active-buffers): do not retrieve statuses
+	unless authorization is completed.
+	(twittering-visit-timeline): verify the account.
+	(twittering-get-username): use `twittering-username' directly.
+	(twittering-get-password): use `twittering-password' directly.
+	(twittering-username-active): removed.
+	(twittering-password-active): removed.
+
 2010-04-24  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Reimplement indicators.

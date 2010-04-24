@@ -1909,6 +1909,7 @@ static char * unplugged_xpm[] = {
   (kill-all-local-variables)
   (setq major-mode 'twittering-mode)
   (setq buffer-read-only t)
+  (buffer-disable-undo)
   (setq mode-name "twittering-mode")
   (setq mode-line-buffer-identification
 	`(,(default-value 'mode-line-buffer-identification)

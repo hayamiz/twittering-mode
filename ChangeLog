@@ -5,6 +5,10 @@
 	number of API requests if `twittering-display-remaining' is
 	non-nil.
 
+	* twittering-mode.el: Stop keeping undo information for buffers
+	managed by `twittering-mode'. Thanks to irie for pointing it out.
+	(twittering-mode-setup): call `buffer-disable-undo'.
+
 2010-04-24  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Reimplement indicators.

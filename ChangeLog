@@ -33,6 +33,15 @@
 	(twittering-username-active): removed.
 	(twittering-password-active): removed.
 
+	* twittering-mode.el: `twittering-visit-timeline' initializes
+	global variables if necessary.
+	(twittering-visit-timeline): initialize global variables and
+	prepare account information.
+	(twittering-mode): delegate the initialization to
+	`twittering-visit-timeline'.
+	(twittering-mode-init-global): renamed
+	`twittering-initialize-global-variables-if-necessary'.
+
 2010-04-24  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Reimplement indicators.

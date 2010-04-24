@@ -1922,27 +1922,31 @@ authorized -- The account has been authorized.")
   (modify-syntax-entry ?\" "w" twittering-mode-syntax-table)
   )
 
-(defun twittering-mode-init-global ()
-  "Initialize global variables for `twittering-mode'."
-  (defface twittering-username-face
-    `((t ,(append '(:underline t)
-		  (face-attr-construct
-		   (if (facep 'font-lock-string-face)
-		       'font-lock-string-face
-		     'bold)))))
-    "" :group 'faces)
-  (defface twittering-uri-face `((t (:underline t))) "" :group 'faces)
-  (twittering-update-status-format)
-  (when twittering-use-convert
-    (if (null twittering-convert-program)
-	(setq twittering-use-convert nil)
-      (with-temp-buffer
-	(call-process twittering-convert-program nil (current-buffer) nil
-		      "-version")
-	(goto-char (point-min))
-	(if (null (search-forward-regexp "\\(Image\\|Graphics\\)Magick" nil t))
-	    (setq twittering-use-convert nil)))))
-  (twittering-setup-proxy))
+(defun twittering-initialize-global-variables-if-necessary ()
+  "Initialize global variables for `twittering-mode' if they have not
+been initialized yet."
+  (unless twittering-initialized
+    (defface twittering-username-face
+      `((t ,(append '(:underline t)
+		    (face-attr-construct
+		     (if (facep 'font-lock-string-face)
+			 'font-lock-string-face
+		       'bold)))))
+      "" :group 'faces)
+    (defface twittering-uri-face `((t (:underline t))) "" :group 'faces)
+    (twittering-update-status-format)
+    (when twittering-use-convert
+      (if (null twittering-convert-program)
+	  (setq twittering-use-convert nil)
+	(with-temp-buffer
+	  (call-process twittering-convert-program nil (current-buffer) nil
+			"-version")
+	  (goto-char (point-min))
+	  (if (null (search-forward-regexp "\\(Image\\|Graphics\\)Magick"
+					   nil t))
+	      (setq twittering-use-convert nil)))))
+    (twittering-setup-proxy)
+    (setq twittering-initialized t)))
 
 (defvar twittering-mode-hook nil
   "Twittering-mode hook.")
@@ -1990,10 +1994,6 @@ authorized -- The account has been authorized.")
   "Major mode for Twitter
 \\{twittering-mode-map}"
   (interactive)
-  (unless twittering-initialized
-    (twittering-mode-init-global)
-    (setq twittering-initialized t))
-  (twittering-prepare-account-info)
   (twittering-visit-timeline twittering-initial-timeline-spec-string))
 
 ;;;
@@ -4322,6 +4322,8 @@ managed by `twittering-mode'."
 
 (defun twittering-visit-timeline (&optional timeline-spec initial)
   (interactive)
+  (twittering-initialize-global-variables-if-necessary)
+  (twittering-prepare-account-info)
   (let ((timeline-spec
 	 (or timeline-spec
 	     (twittering-read-timeline-spec-with-completion

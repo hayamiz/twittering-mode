@@ -494,6 +494,10 @@ and its contents (BUFFER)"
 	   ,@(when twittering-scroll-mode '("scroll"))
 	   ,@(when twittering-proxy-use '("proxy")))))
     (concat active-mode-indicator
+	    (when twittering-display-remaining
+	      (format " %d/%d"
+		      (twittering-get-ratelimit-remaining)
+		      (twittering-get-ratelimit-limit)))
 	    (when enabled-options
 	      (concat "[" (mapconcat 'identity enabled-options " ") "]")))))
 

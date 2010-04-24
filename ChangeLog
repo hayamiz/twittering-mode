@@ -1,3 +1,10 @@
+2010-04-25  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix mode-line to display the rate limit.
+	(twittering-mode-line-buffer-identification): add the remaining
+	number of API requests if `twittering-display-remaining' is
+	non-nil.
+
 2010-04-24  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Reimplement indicators.

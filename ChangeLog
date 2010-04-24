@@ -1,11 +1,90 @@
-2010-04-19  Tadashi MATSUO  <tad@mymail.twin.jp>
+2010-04-25  Tadashi MATSUO  <tad@mymail.twin.jp>
 
-	* twittering-mode.el (twittering-get-buffer-from-spec): return nil
-	if the corresponding buffer has been already killed.
-	(twittering-update-unread-status-info): do not count statuses for
-	a killed buffer.
-	(twittering-http-get-default-sentinel): do not render a timeline
-	for a killed buffer.
+	* twittering-mode.el: Fix mode-line to display the rate limit.
+	(twittering-mode-line-buffer-identification): add the remaining
+	number of API requests if `twittering-display-remaining' is
+	non-nil.
+
+	* twittering-mode.el: Stop keeping undo information for buffers
+	managed by `twittering-mode'. Thanks to irie for pointing it out.
+	(twittering-mode-setup): call `buffer-disable-undo'.
+
+	* twittering-mode.el: Verify the account in advance of retrieving
+	statuses.
+	(twittering-account-authorization): new variable.
+	(twittering-account-authorized-p): new function.
+	(twittering-account-authorization-queried-p): new function.
+	(twittering-prepare-account-info): new function for completing
+	username and password.
+	(twittering-verify-credentials): new function.
+	(twittering-http-get-verify-credentials-sentinel): new function.
+	(twittering-get-managed-buffer): start the timer after
+	authorization.
+	(twittering-mode-init-global): initialize neither
+	`twittering-username' nor `twittering-password'.
+	(twittering-mode): call `twittering-prepare-account-info'.
+	(twittering-get-and-render-timeline): ignore requests unless
+	authorization is completed.
+	(twittering-update-active-buffers): do not retrieve statuses
+	unless authorization is completed.
+	(twittering-visit-timeline): verify the account.
+	(twittering-get-username): use `twittering-username' directly.
+	(twittering-get-password): use `twittering-password' directly.
+	(twittering-username-active): removed.
+	(twittering-password-active): removed.
+
+	* twittering-mode.el: `twittering-visit-timeline' initializes
+	global variables if necessary.
+	(twittering-visit-timeline): initialize global variables and
+	prepare account information.
+	(twittering-mode): delegate the initialization to
+	`twittering-visit-timeline'.
+	(twittering-mode-init-global): renamed
+	`twittering-initialize-global-variables-if-necessary'.
+
+	* twittering-mode.el: Support multiple timelines on initialization.
+	(twittering-initial-timeline-spec-string): mean multiple timelines
+	if the value is a list of strings.
+	(twittering-mode): support multiple timeline specs on
+	initialization.
+
+2010-04-24  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Reimplement indicators.
+	(twittering-ssl-indicator-image): new constant.
+	(twittering-modeline-ssl): defined as a constant, which is
+	initialized on loading `twittering-mode.el'.
+	(twittering-ssl-image, twittering-ssl-indicator): removed.
+	(twittering-ssl-icon): removed.
+	(twittering-active-image, twittering-inactive-image): removed.
+	(twittering-active-indicator, twittering-inactive-indicator):
+	removed.
+	(twittering-icon-directory): removed.
+	(twittering-active-icon, twittering-inactive-icon): removed.
+	(twittering-display-image-p): removed.
+	(twittering-init-mode-line-icons): removed. Images are initialized
+	as constants on loading `twittering-mode.el'.
+	(twittering-active-indicator-image): new constant.
+	(twittering-inactive-indicator-image): new constant.
+	(twittering-modeline-active): defined as a constat.
+	(twittering-modeline-inactive): likewise.
+	(twittering-mode-init-global): remove the call of
+	`twittering-init-mode-line-icons'.
+
+	* twittering-mode.el: Display the buffer state as
+	`mode-line-buffer-identification' instead of `mode-name'.
+	(twittering-mode-line-buffer-identification): new function for
+	generating a mode-line string for `twittering-mode'.
+	(twittering-mode-string): removed.
+	(twittering-modeline-ssl): remove brackets from the mode-line
+	string.
+	(twittering-modeline-active): use a whitespace with `display' face
+	as a mode-line string.
+	(twittering-modeline-inactive): remove brackets from the mode-line
+	string.
+	(twittering-update-mode-line): call `force-mode-line-update' only.
+	(twittering-mode-setup): initialize `mode-name' and
+	`mode-line-buffer-identification'.
 
 2010-04-19  Takashi Masuda  <masutaka@nifty.com>
 
@@ -14,6 +93,10 @@
 	(twittering-mode-init-global):
 	twittering-init-active-inactive-icons から
 	twittering-init-mode-line-icons にリネーム。
+	* twittering-mode.el : rename old functions.
+	(twittering-init-mode-line-icons): rename
+	`twittering-init-active-inactive-icons'
+	`twittering-init-mode-line-icons'.
 
 	* twittering-mode.el : SSL と ACTIVE/INACTIVE の状態をモードライン
 	アイコンに表示するようにした。-nw 時は文字列を表示する。
@@ -23,11 +106,31 @@
 	(twittering-init-active-inactive-icons): 新規関数
 	(twittering-mode-init-global):
 	twittering-init-active-inactive-icons を呼ぶように修正。
+	* twittering-mode.el : display graphical indicators for SSL and
+	ACTIVE/INACTIVE state on mode-line.
+	(twittering-update-mode-line): add graphical indicators to
+	`mode-line-buffer-identification' instead of `mode-name'.
+	(twittering-display-image-p): new macro.
+	(twittering-init-active-inactive-icons): new function.
+	(twittering-mode-init-global): call
+	`twittering-init-active-inactive-icons'.
 
 	* icons/ssl.xpm: 上記に伴い Mew から拝借。
+	* icons/ssl.xpm: imported from Mew.
 
 	* offline.patch: 上記に伴い削除。元々私がブログに公開したものを
 	Hayamizu 氏が拾って下さったもの。
+	* offline.patch: removed. (Mr.Hayamizu imported it, which
+	originated from Masuda's blog.)
+
+2010-04-19  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-get-buffer-from-spec): return nil
+	if the corresponding buffer has been already killed.
+	(twittering-update-unread-status-info): do not count statuses for
+	a killed buffer.
+	(twittering-http-get-default-sentinel): do not render a timeline
+	for a killed buffer.
 
 2010-04-17  Tadashi MATSUO  <tad@mymail.twin.jp>
 

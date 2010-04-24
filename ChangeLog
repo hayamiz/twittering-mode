@@ -42,6 +42,12 @@
 	(twittering-mode-init-global): renamed
 	`twittering-initialize-global-variables-if-necessary'.
 
+	* twittering-mode.el: Support multiple timelines on initialization.
+	(twittering-initial-timeline-spec-string): mean multiple timelines
+	if the value is a list of strings.
+	(twittering-mode): support multiple timeline specs on
+	initialization.
+
 2010-04-24  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Reimplement indicators.

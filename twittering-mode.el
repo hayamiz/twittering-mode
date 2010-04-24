@@ -128,7 +128,9 @@ recommended way because writing a password in .emacs file is so
 dangerous.")
 
 (defvar twittering-initial-timeline-spec-string ":home"
-  "The initial timeline spec string.")
+  "*The initial timeline spec string. If the value of the variable is a
+list of timeline spec strings, the timelines are rendered on their own
+buffers.")
 
 (defvar twittering-timeline-spec nil
   "The timeline spec for the current buffer.")
@@ -1994,7 +1996,10 @@ been initialized yet."
   "Major mode for Twitter
 \\{twittering-mode-map}"
   (interactive)
-  (twittering-visit-timeline twittering-initial-timeline-spec-string))
+  (if (listp twittering-initial-timeline-spec-string)
+      (mapc 'twittering-visit-timeline
+	    twittering-initial-timeline-spec-string)
+    (twittering-visit-timeline twittering-initial-timeline-spec-string)))
 
 ;;;
 ;;; Edit mode

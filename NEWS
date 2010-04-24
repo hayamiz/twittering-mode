@@ -39,6 +39,8 @@ existing way.
 * Added some format specifiers of tweets.
 * Displaying image files without temporary files.
 * Support multiple buffers, where their name is derived from timeline spec.
+* Multiple initial timelines by setting a list of timeline spec strings to
+  the variable `twittering-initial-timeline-spec-string'.
 * Toggle automatic retrieval of the timeline by pressing 'a'.
 * Improved compatibility with global-font-lock mode.
 * Unread statuses notifier on mode-line (experimental).

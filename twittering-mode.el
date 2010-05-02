@@ -1848,6 +1848,7 @@ authorized -- The account has been authorized.")
       (define-key km (kbd "C-c C-r") 'twittering-replies-timeline)
       (define-key km (kbd "C-c C-g") 'twittering-public-timeline)
       (define-key km (kbd "C-c C-u") 'twittering-user-timeline)
+      (define-key km (kbd "C-c C-d") 'twittering-direct-messages-timeline)
       (define-key km (kbd "C-c C-s") 'twittering-update-status-interactive)
       (define-key km (kbd "C-c C-e") 'twittering-erase-old-statuses)
       (define-key km (kbd "C-c C-m") 'twittering-retweet)
@@ -4085,6 +4086,10 @@ variable `twittering-status-format'."
 (defun twittering-user-timeline ()
   (interactive)
   (twittering-visit-timeline `(user ,(twittering-get-username))))
+
+(defun twittering-direct-messages-timeline ()
+  (interactive)
+  (twittering-visit-timeline '(direct_messages)))
 
 (defun twittering-update-active-buffers (&optional noninteractive)
   "Invoke `twittering-get-and-render-timeline' for each active buffer

@@ -4091,6 +4091,10 @@ variable `twittering-status-format'."
   (interactive)
   (twittering-visit-timeline '(direct_messages)))
 
+(defun twittering-sent-direct-messages-timeline ()
+  (interactive)
+  (twittering-visit-timeline '(direct_messages_sent)))
+
 (defun twittering-update-active-buffers (&optional noninteractive)
   "Invoke `twittering-get-and-render-timeline' for each active buffer
 managed by `twittering-mode'."

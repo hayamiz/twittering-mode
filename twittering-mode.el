@@ -2268,10 +2268,13 @@ been initialized yet."
       (setq twittering-edit-history
 	    (cons status twittering-edit-history))
       (cond
-       ((not (twittering-status-not-blank-p status))
-	(message "Empty tweet!"))
-       ((< 140 (length status))
-	(message "Too long tweet!"))
+       ((twittering-timeline-spec-is-direct-messages-p spec)
+	(if username
+	    (let ((parameters `(("user" . ,username)
+				("text" . ,status))))
+	      (twittering-http-post twittering-api-host "1/direct_messages/new"
+				    parameters))
+	  (message "No username specified")))
        (t
 	(let ((parameters `(("status" . ,status))))
 	  ;; Add in_reply_to_status_id only when a posting status

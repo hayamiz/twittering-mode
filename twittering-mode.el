@@ -563,7 +563,7 @@ and its contents (BUFFER)"
 		  (not (pos-visible-in-window-p pos window))))))
 
 (defun twittering-make-passed-time-string
-  (beg end encoded-created-at &optional additional-properties)
+  (beg end encoded-created-at time-format &optional additional-properties)
   (let* ((now (current-time))
 	 (secs (+ (* (- (car now) (car encoded-created-at)) 65536)
 		  (- (cadr now) (cadr encoded-created-at))))
@@ -580,8 +580,7 @@ and its contents (BUFFER)"
 	   ((< secs 5400) "about 1 hour ago")
 	   ((< secs 84600) (format "about %d hours ago"
 				   (/ (+ secs 1800) 3600)))
-	   (t (format-time-string "%I:%M %p %B %d, %Y"
-				  encoded-created-at))))
+	   (t (format-time-string time-format encoded-created-at))))
 	 (properties (append additional-properties
 			     (and beg (text-properties-at beg)))))
     ;; Restore properties.
@@ -591,7 +590,7 @@ and its contents (BUFFER)"
 	(put-text-property 0 (length time-string)
 			   'need-to-be-updated
 			   `(twittering-make-passed-time-string
-			     ,encoded-created-at)
+			     ,encoded-created-at ,time-format)
 			   time-string)
       ;; Remove the property required no longer.
       (remove-text-properties 0 (length time-string) '(need-to-be-updated nil)
@@ -3609,7 +3608,8 @@ Example:
      ("'" () (if (string= "true" (cdr (assq 'truncated status)))
 		 "..."
 	       ""))
-     ("@" ()
+     ("@\\({\\([^}]*\\)}\\)?"
+      ((time-format (or (match-string 2 fmt-following) "%I:%M %p %B %d, %Y")))
       (let* ((created-at-str (cdr (assq 'created-at status)))
 	     (created-at
 	      (apply 'encode-time
@@ -3620,7 +3620,8 @@ Example:
 	       (cdr (assq 'id status))))
 	     (properties
 	      `(mouse-face highlight face twittering-uri-face uri ,url)))
-	(twittering-make-passed-time-string nil nil created-at properties)))
+	(twittering-make-passed-time-string nil nil created-at time-format
+					    properties)))
      ("C\\({\\([^}]*\\)}\\)?"
       ((time-format (or (match-string 2 fmt-following) "%H:%M:%S")))
       (let* ((created-at-str (cdr (assq 'created-at status)))

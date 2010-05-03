@@ -3,6 +3,14 @@
 	* twittering-mode.el (twittering-edit-setup-help): generate help
 	message by using `substitute-command-keys'.
 
+	* twittering-mode.el: The format specifier "@" can receive the
+	time format string, which is used to format the time of
+	sufficiently old statuses.
+	(twittering-generate-status-formater-base): add new parameter
+	'time-format' to the specifier "@".
+	(twittering-make-passed-time-string): receive new argument
+	`time-format'.
+
 2010-05-01  Immad Naseer  <immad.naseer@gmail.com>
 
 	* twittering-mode.el: New interactive functions for direct

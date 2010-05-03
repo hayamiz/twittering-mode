@@ -47,6 +47,7 @@ existing way.
 * Fixed fill-column for the format specifier "%FILL{...}".
 * Switching timeline buffers by pressing 'f' or 'b'.
 * Graphical indicators for SSL and ACTIVE/INACTIVE state on mode-line.
+* Asynchronous retrieval of icon images.
 * ...
 
 ### Bug fixes

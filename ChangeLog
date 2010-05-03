@@ -23,6 +23,24 @@
 	(twittering-resolve-url-request): new function.
 	(twittering-url-retrieve-async): new function.
 
+	* twittering-mode.el: Icons are retrieved asynchronously.
+	(twittering-icon-prop-hash): new variable.
+	(twittering-image-data-table): removed.
+	(twittering-get-display-spec-for-icon): new function.
+	(twittering-convert-image-data): new function.
+	(twittering-error-icon-data-pair): new constant.
+	(twittering-create-image-pair): new function.
+	(twittering-register-image-data): new function.
+	(twittering-make-slice-spec): new function.
+	(twittering-make-display-spec-for-icon): rearranged.
+	(twittering-make-icon-string): new function.
+	(twittering-retrieve-image): removed.
+	(twittering-generate-status-formater-base): use
+	`twittering-make-icon-string'.
+	(twittering-image-stack): removed.
+	(twittering-image-type): removed.
+	(twittering-image-type-cache): removed.
+
 2010-05-01  Immad Naseer  <immad.naseer@gmail.com>
 
 	* twittering-mode.el: New interactive functions for direct

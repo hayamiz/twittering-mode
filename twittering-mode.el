@@ -409,10 +409,11 @@ icon mode; otherwise, turn off icon mode."
       (twittering-update-mode-line)
       (twittering-render-timeline (current-buffer)))))
 
-(defvar twittering-image-data-table (make-hash-table :test 'equal))
+(defvar twittering-icon-prop-hash (make-hash-table :test 'equal)
+  "Hash table for storing display properties of icon. The key is the size of
+icon and the value is a hash. The key of the child hash is URL and its value
+is the display property for the icon.")
 
-(defvar twittering-image-stack nil)
-(defvar twittering-image-type-cache nil)
 (defvar twittering-convert-program (executable-find "convert"))
 (defvar twittering-convert-fix-size 48)
 (defvar twittering-use-convert (not (null twittering-convert-program))
@@ -420,16 +421,157 @@ icon mode; otherwise, turn off icon mode."
 is non-nil. If this variable is non-nil, icon images are converted by
 invoking \"convert\". Otherwise, cropped images are displayed.")
 
-(defun twittering-image-type (image-url buffer)
-  "Return the type of a given image based on the URL (IMAGE-URL)
-and its contents (BUFFER)"
-  (let ((type-cache (assoc image-url twittering-image-type-cache))
-	(case-fold-search t))
-    (if type-cache
-	(cdr type-cache)
-      (let ((image-type (image-type-from-data (buffer-string))))
-	(add-to-list 'twittering-image-type-cache `(,image-url . ,image-type))
-	image-type))))
+(defconst twittering-error-icon-data-pair
+  '(xpm . "/* XPM */
+static char * yellow3_xpm[] = {
+\"16 16 2 1\",
+\" 	c None\",
+\".	c #FF0000\",
+\"................\",
+\".              .\",
+\". .          . .\",
+\".  .        .  .\",
+\".   .      .   .\",
+\".    .    .    .\",
+\".     .  .     .\",
+\".      ..      .\",
+\".      ..      .\",
+\".     .  .     .\",
+\".    .    .    .\",
+\".   .      .   .\",
+\".  .        .  .\",
+\". .          . .\",
+\".              .\",
+\"................\"};
+")
+  "Image used when the valid icon cannot be retrieved.")
+
+(defun twittering-get-display-spec-for-icon (image-url)
+  (let ((hash
+	 (gethash twittering-convert-fix-size twittering-icon-prop-hash)))
+    (when hash
+      (gethash image-url hash))))
+
+(defun twittering-convert-image-data (image-data dest-type &optional src-type)
+  "Convert IMAGE-DATA into XPM format and return it. If it fails to convert,
+return nil."
+  (with-temp-buffer
+    (set-buffer-multibyte nil)
+    (buffer-disable-undo)
+    (let ((coding-system-for-read 'binary)
+	  (coding-system-for-write 'binary)
+	  (require-final-newline nil))
+      (insert image-data)
+      (let* ((args
+	      `(,(if src-type (format "%s:-" src-type) "-")
+		,@(when (integerp twittering-convert-fix-size)
+		    `("-resize"
+		      ,(format "%dx%d" twittering-convert-fix-size
+			       twittering-convert-fix-size)))
+		,(format "%s:-" dest-type)))
+	     (exit-status
+	      (apply 'call-process-region (point-min) (point-max)
+		     twittering-convert-program t t nil args)))
+	(if (equal 0 exit-status)
+	    (buffer-string)
+	  ;; failed to convert the image.
+	  nil)))))
+
+(defun twittering-create-image-pair (image-data)
+  "Return a pair of image type and image data.
+IMAGE-DATA is converted by `convert' if the image type of IMAGE-DATA is not
+available and `twittering-use-convert' is non-nil."
+  (let* ((image-type (image-type-from-data image-data))
+	 (image-pair `(,image-type . ,image-data))
+	 (converted-size
+	  `(,twittering-convert-fix-size . ,twittering-convert-fix-size)))
+    (cond
+     ((and (image-type-available-p image-type)
+	   (or (not (integerp twittering-convert-fix-size))
+	       (equal (image-size (create-image image-data image-type t) t)
+		      converted-size)))
+      image-pair)
+     (twittering-use-convert
+      (let ((converted-data
+	     (twittering-convert-image-data image-data 'xpm image-type)))
+	(if converted-data
+	    `(xpm . ,converted-data)
+	  twittering-error-icon-data-pair)))
+     (t
+      twittering-error-icon-data-pair))))
+
+(defun twittering-register-image-data (image-url image-data)
+  (let ((image-pair (twittering-create-image-pair image-data)))
+    (when image-pair
+      (let ((hash (gethash twittering-convert-fix-size
+			   twittering-icon-prop-hash)))
+	(unless hash
+	  (setq hash (make-hash-table :test 'equal))
+	  (puthash twittering-convert-fix-size hash
+		   twittering-icon-prop-hash))
+	(let ((spec (twittering-make-display-spec-for-icon image-pair)))
+	  (puthash image-url spec hash)
+	  spec)))))
+
+(defun twittering-make-slice-spec (image-spec)
+  "Return slice property for reducing the image size by cropping it."
+  (let* ((size (image-size image-spec t))
+	 (width (car size))
+	 (height (cdr size))
+	 (fixed-length twittering-convert-fix-size)
+	 (half-fixed-length (/ fixed-length 2)))
+    (if (or (< fixed-length width) (< fixed-length height))
+	`(slice ,(max 0 (- (/ width 2) half-fixed-length))
+		,(max 0 (- (/ height 2) half-fixed-length))
+		,fixed-length ,fixed-length)
+      `(slice 0 0 ,fixed-length ,fixed-length))))
+
+(defun twittering-make-display-spec-for-icon (image-pair)
+  "Return the specification for `display' text property, which
+limits the size of an icon image IMAGE-PAIR up to FIXED-LENGTH. If
+the type of the image is not supported, nil is returned.
+
+If the size of the image exceeds FIXED-LENGTH, the center of the
+image are displayed."
+  (let* ((type (car-safe image-pair))
+	 (data (cdr-safe image-pair))
+	 (raw-image-spec ;; without margins
+	  (create-image data type t))
+	 (slice-spec
+	  (when (and twittering-convert-fix-size (not twittering-use-convert))
+	    (twittering-make-slice-spec raw-image-spec)))
+	 (image-spec
+	  (if (fboundp 'create-animated-image) ;; Emacs24 or later
+	      (create-animated-image data type t :margin 2 :ascent 'center)
+	    (create-image data type t :margin 2 :ascent 'center))))
+    (if slice-spec
+	`(display (,image-spec ,slice-spec))
+      `(display ,image-spec))))
+
+(defun twittering-make-icon-string (beg end image-url)
+  (let ((display-spec (twittering-get-display-spec-for-icon image-url))
+	(image-data (gethash image-url twittering-url-data-hash))
+	(properties (and beg (text-properties-at beg)))
+	(icon-string (copy-sequence " ")))
+    (when properties
+      (add-text-properties 0 (length icon-string) properties icon-string))
+    (cond
+     (display-spec
+      ;; Remove the property required no longer.
+      (remove-text-properties 0 (length icon-string)
+			      '(need-to-be-updated nil)
+			      icon-string)
+      (apply 'propertize icon-string display-spec))
+     (image-data
+      (twittering-register-image-data image-url image-data)
+      (twittering-make-icon-string beg end image-url))
+     (t
+      (put-text-property 0 (length icon-string)
+			 'need-to-be-updated
+			 `(twittering-make-icon-string ,image-url)
+			 icon-string)
+      (twittering-url-retrieve-async image-url 'twittering-register-image-data)
+      icon-string))))
 
 ;;;
 ;;; Utility functions
@@ -3333,8 +3475,6 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 		     (twittering-show-replied-statuses
 		      twittering-default-show-replied-tweets))))))
 	   timeline-data)))
-      (if (and twittering-image-stack window-system)
-	  (clear-image-cache))
       (debug-print (current-buffer))
       (cond
        (rendering-entire
@@ -3463,40 +3603,6 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
       (twittering-hide-replied-statuses (interactive-p))
     (twittering-show-replied-statuses twittering-show-replied-tweets
 				      (interactive-p))))
-
-(defun twittering-make-display-spec-for-icon (image-url)
-  "Return the specification for `display' text property, which
-limits the size of an icon image IMAGE-URL up to FIXED-LENGTH. If
-the type of the image is not supported, nil is returned.
-
-If the size of the image exceeds FIXED-LENGTH, the center of the
-image are displayed."
-  (let ((image-data (or (gethash `(,image-url . ,twittering-convert-fix-size)
-				 twittering-image-data-table)
-			(twittering-retrieve-image image-url))))
-    (and image-data (image-type-available-p (car image-data))
-	 (let ((image-spec
-		(if (fboundp 'create-animated-image) ;; Emacs24 or later
-		    (create-animated-image (cdr image-data) (car image-data)
-					   t :margin 2)
-		  (create-image (cdr image-data) (car image-data)
-				t :margin 2))))
-	   (if (and twittering-convert-fix-size (not twittering-use-convert))
-	       (let* ((size (if (cdr image-data)
-				(image-size image-spec t)
-			      '(48 . 48)))
-		      (width (car size))
-		      (height (cdr size))
-		      (fixed-length twittering-convert-fix-size)
-		      (half-fixed-length (/ fixed-length 2))
-		      (slice-spec
-		       (if (or (< fixed-length width) (< fixed-length height))
-			   `(slice ,(max 0 (- (/ width 2) half-fixed-length))
-				   ,(max 0 (- (/ height 2) half-fixed-length))
-				   ,fixed-length ,fixed-length)
-			 `(slice 0 0 ,fixed-length ,fixed-length))))
-		 `(display (,image-spec ,slice-spec)))
-	     `(display ,image-spec))))))
 
 (defun twittering-format-string (string prefix replacement-table)
   "Format STRING according to PREFIX and REPLACEMENT-TABLE.
@@ -3735,14 +3841,8 @@ Example:
      ("f" () (cdr (assq 'source status)))
      ("i" ()
       (when (and twittering-icon-mode window-system)
-	(let* ((url (cdr (assq 'user-profile-image-url status)))
-	       (display-spec (twittering-make-display-spec-for-icon url)))
-	  (when display-spec
-	    (let ((icon-string (copy-sequence " ")))
-	      (set-text-properties 0 (length icon-string)
-				   display-spec icon-string)
-	      (add-to-list 'twittering-image-stack url)
-	      icon-string)))))
+	(let* ((url (cdr (assq 'user-profile-image-url status))))
+	  (twittering-make-icon-string nil nil url))))
      ("j" () (cdr (assq 'user-id status)))
      ("L" ()
       (let ((location (or (cdr (assq 'user-location status)) "")))
@@ -4036,47 +4136,6 @@ variable `twittering-status-format'."
      (t
       (let ((type (car spec)))
 	(error "%s has not been supported yet" type))))))
-
-(defun twittering-retrieve-image (image-url)
-  (with-temp-buffer
-    (set-buffer-multibyte nil)
-    (let ((coding-system-for-read 'binary)
-	  (coding-system-for-write 'binary)
-	  (require-final-newline nil))
-      (twittering-url-insert-file-contents image-url)
-      (let ((image-type (twittering-image-type image-url (current-buffer))))
-	(and twittering-use-convert
-	     (or (not (image-type-available-p image-type))
-		 (and (integerp twittering-convert-fix-size)
-		      (not (let ((image-spec
-				  (create-image (buffer-string) image-type t))
-				 (converted-image-size
-				  `(,twittering-convert-fix-size
-				    . ,twittering-convert-fix-size)))
-			     (equal (image-size image-spec t)
-				    converted-image-size)))))
-	     (let ((exit-status
-		    (call-process-region
-		     (point-min) (point-max)
-		     twittering-convert-program
-		     t t nil
-		     (if image-type (format "%s:-" image-type) "-")
-		     (when (integerp twittering-convert-fix-size)
-		       "-resize")
-		     (when (integerp twittering-convert-fix-size)
-		       (format "%dx%d" twittering-convert-fix-size
-			       twittering-convert-fix-size))
-		     "xpm:-")))
-	       (setq image-type (and (integerp exit-status)
-				     (= 0 exit-status)
-				     'xpm))))
-	(if image-type
-	    (let ((image-data `(,image-type . ,(buffer-string))))
-	      (puthash `(,image-url . ,twittering-convert-fix-size)
-		       image-data
-		       twittering-image-data-table)
-	      image-data)
-	  nil)))))
 
 (defun twittering-tinyurl-get (longurl)
   "Tinyfy LONGURL."

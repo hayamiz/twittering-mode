@@ -2210,6 +2210,95 @@ been initialized yet."
   (twittering-url-wrapper 'url-retrieve-synchronously url))
 
 ;;;
+;;; Asynchronous retrieval
+;;;
+
+(defvar twittering-url-data-hash (make-hash-table :test 'equal))
+(defvar twittering-url-request-list nil)
+(defvar twittering-url-request-sentinel-hash (make-hash-table :test 'equal))
+(defvar twittering-internal-url-queue nil)
+(defvar twittering-url-request-resolving-p nil)
+(defvar twittering-url-request-retry-limit 3)
+
+(defun twittering-remove-redundant-queries (queue)
+  (remove nil
+	  (mapcar
+	   (lambda (url)
+	     (let ((current (gethash url twittering-url-data-hash)))
+	       (when (or (null current)
+			 (and (integerp current)
+			      (< current twittering-url-request-retry-limit)))
+		 url)))
+	   (twittering-remove-duplicates queue))))
+
+(defun twittering-resolve-url-request ()
+  "Resolve requests of asynchronous URL retrieval."
+  (when (null twittering-url-request-resolving-p)
+    (setq twittering-url-request-resolving-p t)
+    ;; It is assumed that the following part is not processed
+    ;; in parallel.
+    (setq twittering-internal-url-queue
+	  (append twittering-internal-url-queue twittering-url-request-list))
+    (setq twittering-url-request-list nil)
+    (setq twittering-internal-url-queue
+	  (twittering-remove-redundant-queries twittering-internal-url-queue))
+    (if (null twittering-internal-url-queue)
+	(setq twittering-url-request-resolving-p nil)
+      (let ((url (car twittering-internal-url-queue))
+	    (coding-system-for-read 'binary)
+	    (require-final-newline nil))
+	(twittering-url-wrapper
+	 'url-retrieve
+	 url
+	 (lambda (&rest args)
+	   (let* ((status (if (< 21 emacs-major-version)
+			      (car args)
+			    nil))
+		  (callback-args (if (< 21 emacs-major-version)
+				     (cdr args)
+				   args))
+		  (url (elt callback-args 0)))
+	     (goto-char (point-min))
+	     (if (and (or (null status) (not (member :error status)))
+		      (search-forward-regexp "\r?\n\r?\n" nil t))
+		 (let ((body (buffer-substring (match-end 0) (point-max))))
+		   (puthash url body twittering-url-data-hash)
+		   (setq twittering-internal-url-queue
+			 (remove url twittering-internal-url-queue))
+		   (let ((sentinels
+			  (gethash url twittering-url-request-sentinel-hash)))
+		     (when sentinels
+		       (remhash url twittering-url-request-sentinel-hash)
+		       (mapc (lambda (func)
+			       (funcall func url body))
+			     sentinels))))
+	       (let ((current (gethash url twittering-url-data-hash)))
+		 (cond
+		  ((null current)
+		   (puthash url 1 twittering-url-data-hash))
+		  ((integerp current)
+		   (puthash url (1+ current) twittering-url-data-hash))
+		  (t
+		   nil))))
+	     (kill-buffer (current-buffer))
+	     (setq twittering-url-request-resolving-p nil)
+	     (twittering-resolve-url-request)))
+	 `(,url))))))
+
+(defun twittering-url-retrieve-async (url &optional sentinel)
+  "Retrieve URL asynchronously and call SENTINEL with the retrieved data.
+The request is placed at the last of queries queue. When the data has been
+retrieved, SENTINEL will be called as (funcall SENTINEL URL url-data).
+The retrieved data can be referred as (gethash url twittering-url-data-hash)."
+  (add-to-list 'twittering-url-request-list url t)
+  (when sentinel
+    (let ((current (gethash url twittering-url-request-sentinel-hash)))
+      (unless (member url current)
+	(puthash url (cons sentinel current)
+		 twittering-url-request-sentinel-hash))))
+  (twittering-resolve-url-request))
+
+;;;
 ;;; Basic HTTP functions
 ;;;
 

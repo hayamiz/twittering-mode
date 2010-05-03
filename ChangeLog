@@ -11,6 +11,18 @@
 	(twittering-make-passed-time-string): receive new argument
 	`time-format'.
 
+	* twittering-mode.el: Functions for retrieving URLs asynchronously
+	are added.
+	(twittering-url-data-hash): new variable for retrieved data.
+	(twittering-url-request-list): new variable for additional requests.
+	(twittering-url-request-sentinel-hash): new variable for sentinels.
+	(twittering-internal-url-queue): new variable.
+	(twittering-url-request-resolving-p): new variable.
+	(twittering-url-request-retry-limit): new variable.
+	(twittering-remove-redundant-queries): new function.
+	(twittering-resolve-url-request): new function.
+	(twittering-url-retrieve-async): new function.
+
 2010-05-01  Immad Naseer  <immad.naseer@gmail.com>
 
 	* twittering-mode.el: New interactive functions for direct

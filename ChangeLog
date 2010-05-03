@@ -1,3 +1,8 @@
+2010-05-03  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-edit-setup-help): generate help
+	message by using `substitute-command-keys'.
+
 2010-05-01  Immad Naseer  <immad.naseer@gmail.com>
 
 	* twittering-mode.el: New interactive functions for direct

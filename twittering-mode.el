@@ -2062,14 +2062,15 @@ been initialized yet."
   (let* ((item (if (twittering-timeline-spec-is-direct-messages-p spec)
 		   (format "a direct message to %s" username)
 		 "a tweet"))
-	 (help-str (format "Keymap:
-  C-c C-c: send %s
-  C-c C-k: cancel %s
-  M-n    : next history element
-  M-p    : previous history element
+	 (help-str (format (substitute-command-keys "Keymap:
+  \\[twittering-edit-post-status]: send %s
+  \\[twittering-edit-cancel-status]: cancel %s
+  \\[twittering-edit-next-history]: next history element
+  \\[twittering-edit-previous-history]: previous history element
+  \\[twittering-edit-replace-at-point]: shorten URL at point
 
 ---- text above this line is ignored ----
-" item item))
+") item item))
 	 (help-overlay
 	  (or twittering-help-overlay
 	      (make-overlay 1 1 nil nil nil))))

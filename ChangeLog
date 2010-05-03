@@ -1,3 +1,9 @@
+2010-05-03  Takashi Masuda  <masutaka@nifty.com>
+
+	* twittering-mode.el: `V' の補完対象に :direct_messages や :home を
+	追加した。
+	(twittering-read-timeline-spec-with-completion): dummy-hist に追加。
+
 2010-05-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-edit-setup-help): generate help

@@ -306,6 +306,9 @@ Twittering-mode provides two functions for updating status:
 * `twittering-update-status-from-minibuffer': edit tweets in minibuffer
 * `twittering-update-status-from-pop-up-buffer': edit tweets in pop-up buffer")
 
+(defvar twittering-ask-post nil
+  "*If *non-nil*, ask whether or not you really want to post the tweet.")
+
 ;;;
 ;;; Proxy setting / functions
 ;;;
@@ -2108,40 +2111,42 @@ been initialized yet."
 
 (defun twittering-edit-post-status ()
   (interactive)
-  (let ((status (twittering-edit-extract-status))
-	(reply-to-id (nth 0 twittering-reply-recipient))
-	(username (nth 1 twittering-reply-recipient))
-	(spec (nth 2 twittering-reply-recipient)))
-    (cond
-     ((not (twittering-status-not-blank-p status))
-      (message "Empty tweet!"))
-     ((< 140 (length status))
-      (message "Too long tweet!"))
-     (t
-      (setq twittering-edit-history
-	    (cons status twittering-edit-history))
+  (when (and twittering-ask-post
+	     (y-or-n-p "Send this tweet? "))
+    (let ((status (twittering-edit-extract-status))
+	  (reply-to-id (nth 0 twittering-reply-recipient))
+	  (username (nth 1 twittering-reply-recipient))
+	  (spec (nth 2 twittering-reply-recipient)))
       (cond
-       ((twittering-timeline-spec-is-direct-messages-p spec)
-	(if username
-	    (let ((parameters `(("user" . ,username)
-				("text" . ,status))))
-	      (twittering-http-post twittering-api-host "1/direct_messages/new"
-				    parameters))
-	  (message "No username specified")))
+       ((not (twittering-status-not-blank-p status))
+	(message "Empty tweet!"))
+       ((< 140 (length status))
+	(message "Too long tweet!"))
        (t
-	(let ((parameters `(("status" . ,status))))
-	  ;; Add in_reply_to_status_id only when a posting status
-	  ;; begins with @username.
-	  (when (and reply-to-id
-		     (string-match
-		      (concat "^@" username "\\(?:[\n\r \t]+\\)*")
-		      status))
-	    (add-to-list 'parameters
-			 `("in_reply_to_status_id" .
-			   ,(format "%s" reply-to-id))))
-	  (twittering-http-post twittering-api-host "1/statuses/update"
-				parameters))))
-      (twittering-edit-close)))))
+	(setq twittering-edit-history
+	      (cons status twittering-edit-history))
+	(cond
+	 ((twittering-timeline-spec-is-direct-messages-p spec)
+	  (if username
+	      (let ((parameters `(("user" . ,username)
+				  ("text" . ,status))))
+		(twittering-http-post twittering-api-host "1/direct_messages/new"
+				      parameters))
+	    (message "No username specified")))
+	 (t
+	  (let ((parameters `(("status" . ,status))))
+	    ;; Add in_reply_to_status_id only when a posting status
+	    ;; begins with @username.
+	    (when (and reply-to-id
+		       (string-match
+			(concat "^@" username "\\(?:[\n\r \t]+\\)*")
+			status))
+	      (add-to-list 'parameters
+			   `("in_reply_to_status_id" .
+			     ,(format "%s" reply-to-id))))
+	    (twittering-http-post twittering-api-host "1/statuses/update"
+				  parameters))))
+	(twittering-edit-close))))))
 
 (defun twittering-edit-cancel-status ()
   (interactive)

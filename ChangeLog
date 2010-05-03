@@ -1,3 +1,10 @@
+2010-05-01  Immad Naseer  <immad.naseer@gmail.com>
+
+	* twittering-mode.el: New interactive functions for direct
+	messages are added.
+	(twittering-direct-messages-timeline): new function.
+	(twittering-sent-direct-messages-timeline): new function.
+
 2010-04-25  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix mode-line to display the rate limit.

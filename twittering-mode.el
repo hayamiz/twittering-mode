@@ -307,7 +307,8 @@ Twittering-mode provides two functions for updating status:
 * `twittering-update-status-from-pop-up-buffer': edit tweets in pop-up buffer")
 
 (defvar twittering-ask-post nil
-  "*If *non-nil*, ask whether or not you really want to post the tweet.")
+  "*If *non-nil*, confirmation will be requested on posting a tweet edited in
+pop-up buffer.")
 
 ;;;
 ;;; Proxy setting / functions
@@ -2253,42 +2254,43 @@ been initialized yet."
 
 (defun twittering-edit-post-status ()
   (interactive)
-  (when (and twittering-ask-post
-	     (y-or-n-p "Send this tweet? "))
-    (let ((status (twittering-edit-extract-status))
-	  (reply-to-id (nth 0 twittering-reply-recipient))
-	  (username (nth 1 twittering-reply-recipient))
-	  (spec (nth 2 twittering-reply-recipient)))
+  (let ((status (twittering-edit-extract-status))
+	(reply-to-id (nth 0 twittering-reply-recipient))
+	(username (nth 1 twittering-reply-recipient))
+	(spec (nth 2 twittering-reply-recipient)))
+    (cond
+     ((not (twittering-status-not-blank-p status))
+      (message "Empty tweet!"))
+     ((< 140 (length status))
+      (message "Too long tweet!"))
+     ((and twittering-ask-post
+	   (y-or-n-p "Send this tweet? "))
+      (setq twittering-edit-history
+	    (cons status twittering-edit-history))
       (cond
-       ((not (twittering-status-not-blank-p status))
-	(message "Empty tweet!"))
-       ((< 140 (length status))
-	(message "Too long tweet!"))
+       ((twittering-timeline-spec-is-direct-messages-p spec)
+	(if username
+	    (let ((parameters `(("user" . ,username)
+				("text" . ,status))))
+	      (twittering-http-post twittering-api-host "1/direct_messages/new"
+				    parameters))
+	  (message "No username specified")))
        (t
-	(setq twittering-edit-history
-	      (cons status twittering-edit-history))
-	(cond
-	 ((twittering-timeline-spec-is-direct-messages-p spec)
-	  (if username
-	      (let ((parameters `(("user" . ,username)
-				  ("text" . ,status))))
-		(twittering-http-post twittering-api-host "1/direct_messages/new"
-				      parameters))
-	    (message "No username specified")))
-	 (t
-	  (let ((parameters `(("status" . ,status))))
-	    ;; Add in_reply_to_status_id only when a posting status
-	    ;; begins with @username.
-	    (when (and reply-to-id
-		       (string-match
-			(concat "^@" username "\\(?:[\n\r \t]+\\)*")
-			status))
-	      (add-to-list 'parameters
-			   `("in_reply_to_status_id" .
-			     ,(format "%s" reply-to-id))))
-	    (twittering-http-post twittering-api-host "1/statuses/update"
-				  parameters))))
-	(twittering-edit-close))))))
+	(let ((parameters `(("status" . ,status))))
+	  ;; Add in_reply_to_status_id only when a posting status
+	  ;; begins with @username.
+	  (when (and reply-to-id
+		     (string-match
+		      (concat "^@" username "\\(?:[\n\r \t]+\\)*")
+		      status))
+	    (add-to-list 'parameters
+			 `("in_reply_to_status_id" .
+			   ,(format "%s" reply-to-id))))
+	  (twittering-http-post twittering-api-host "1/statuses/update"
+				parameters))))
+      (twittering-edit-close))
+     (t
+      nil))))
 
 (defun twittering-edit-cancel-status ()
   (interactive)
@@ -4613,11 +4615,12 @@ managed by `twittering-mode'."
       listname)))
 
 (defun twittering-read-timeline-spec-with-completion (prompt initial &optional as-string)
-  (let* ((dummy-hist (append twittering-timeline-history
-			     (twittering-get-usernames-from-timeline)
-			     '(":direct_messages" ":direct_messages_sent" ":friends" 
-			       ":home" ":mentions" ":public" ":replies" ":retweeted_by_me" 
-			       ":retweeted_to_me" ":retweets_of_me")))
+  (let* ((dummy-hist
+	  (append twittering-timeline-history
+		  (twittering-get-usernames-from-timeline)
+		  '(":direct_messages" ":direct_messages_sent" ":friends"
+		    ":home" ":mentions" ":public" ":replies"
+		    ":retweeted_by_me" ":retweeted_to_me" ":retweets_of_me")))
 	 (spec-string (twittering-completing-read prompt dummy-hist
 						  nil nil initial 'dummy-hist))
 	 (spec-string

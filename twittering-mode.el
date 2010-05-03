@@ -306,7 +306,7 @@ Twittering-mode provides two functions for updating status:
 * `twittering-update-status-from-minibuffer': edit tweets in minibuffer
 * `twittering-update-status-from-pop-up-buffer': edit tweets in pop-up buffer")
 
-(defvar twittering-ask-post nil
+(defvar twittering-request-confirmation-on-posting nil
   "*If *non-nil*, confirmation will be requested on posting a tweet edited in
 pop-up buffer.")
 
@@ -2263,7 +2263,7 @@ been initialized yet."
       (message "Empty tweet!"))
      ((< 140 (length status))
       (message "Too long tweet!"))
-     ((and twittering-ask-post
+     ((and twittering-request-confirmation-on-posting
 	   (y-or-n-p "Send this tweet? "))
       (setq twittering-edit-history
 	    (cons status twittering-edit-history))

@@ -1,3 +1,8 @@
+2010-05-04  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-ask-post): renamed
+	`twittering-request-confirmation-on-posting'.
+
 2010-05-03  Takashi Masuda  <masutaka@nifty.com>
 
 	* twittering-mode.el: Tweet する時に y-or-n-p で問い合わせを出来る

@@ -3,6 +3,9 @@
 	* twittering-mode.el (twittering-ask-post): renamed
 	`twittering-request-confirmation-on-posting'.
 
+	* twittering-mode.el (twittering-edit-post-status): correct the
+	condition for requesting confirmation on posting a status.
+
 2010-05-03  Takashi Masuda  <masutaka@nifty.com>
 
 	* twittering-mode.el: Tweet する時に y-or-n-p で問い合わせを出来る

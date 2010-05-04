@@ -2263,8 +2263,8 @@ been initialized yet."
       (message "Empty tweet!"))
      ((< 140 (length status))
       (message "Too long tweet!"))
-     ((and twittering-request-confirmation-on-posting
-	   (y-or-n-p "Send this tweet? "))
+     ((or (not twittering-request-confirmation-on-posting)
+	  (y-or-n-p "Send this tweet? "))
       (setq twittering-edit-history
 	    (cons status twittering-edit-history))
       (cond

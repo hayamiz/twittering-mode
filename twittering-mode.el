@@ -1297,7 +1297,7 @@ Statuses are stored in ascending-order with respect to their IDs."
 			 (twittering-status-id< id2 id1))))))
 	  (puthash spec `(,id-table ,referring-id-table ,new-timeline-data)
 		   twittering-timeline-data-table))
-	(when twittering-jojo-mode
+	(when (twittering-jojo-mode-p spec)
 	  (mapc (lambda (status)
 		  (twittering-update-jojo (cdr (assq 'user-screen-name status))
 					  (cdr (assq 'text status))))
@@ -4212,6 +4212,11 @@ variable `twittering-status-format'."
 	    (< 0 (prefix-numeric-value arg))))
     (unless (eq prev-mode twittering-jojo-mode)
       (twittering-update-mode-line))))
+
+(defun twittering-jojo-mode-p (spec)
+  (with-current-buffer
+      (twittering-get-buffer-from-spec spec)
+    twittering-jojo-mode))
 
 (defun twittering-toggle-reverse-mode (&optional arg)
   (interactive "P")

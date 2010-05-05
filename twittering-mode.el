@@ -2368,6 +2368,8 @@ been initialized yet."
 (defvar twittering-internal-url-queue nil)
 (defvar twittering-url-request-resolving-p nil)
 (defvar twittering-url-request-retry-limit 3)
+(defconst twittering-url-request-dummy-buffer-name
+  " *twittering-dummy-for-url-retrieve-async*")
 
 (defun twittering-remove-redundant-queries (queue)
   (remove nil
@@ -2429,7 +2431,10 @@ been initialized yet."
 		   (puthash url (1+ current) twittering-url-data-hash))
 		  (t
 		   nil))))
-	     (kill-buffer (current-buffer))
+	     (let ((current (current-buffer)))
+	       (set-buffer (get-buffer-create
+			    twittering-url-request-dummy-buffer-name))
+	       (kill-buffer current))
 	     (setq twittering-url-request-resolving-p nil)
 	     (twittering-resolve-url-request)))
 	 `(,url))))))

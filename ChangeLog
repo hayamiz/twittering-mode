@@ -3,6 +3,12 @@
 	* twittering-mode.el: twittering-jojo-mode の判定ミスを修正。
 	(twittering-add-statuses-to-timeline-data): 判定方法を変更した。
 	(twittering-jojo-mode-p): new function
+	* twittering-mode.el: `twittering-jojo-mode' for each spec is
+	correctly referred in order to decide whether to invoke
+	`twittering-update-jojo'.
+	(twittering-add-statuses-to-timeline-data): correct the condition
+	for invoking `twittering-update-jojo'.
+	(twittering-jojo-mode-p): new function.
 
 2010-05-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 

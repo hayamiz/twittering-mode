@@ -1,3 +1,9 @@
+2010-05-05  Takashi Masuda  <masutaka@nifty.com>
+
+	* twittering-mode.el: twittering-jojo-mode の判定ミスを修正。
+	(twittering-add-statuses-to-timeline-data): 判定方法を変更した。
+	(twittering-jojo-mode-p): new function
+
 2010-05-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-ask-post): renamed

@@ -3068,6 +3068,9 @@ BUFFER may be a buffer or the name of an existing buffer."
 	   original-created-at ;; need not export
 	   original-user-name
 	   original-user-screen-name
+	   (recipient-screen-name
+	    (assq-get 'recipient_screen_name status-data))
+	   recipient_screen_name
 	   source-id
 	   source-created-at)
 
@@ -3130,7 +3133,8 @@ BUFFER may be a buffer or the name of an existing buffer."
                     user-url
                     user-protected
                     original-user-name
-                    original-user-screen-name))))))
+                    original-user-screen-name
+		    recipient-screen-name))))))
 
 (defun twittering-make-clickable-status-datum (status)
   (flet ((assq-get (item seq)
@@ -3275,7 +3279,7 @@ BUFFER may be a buffer or the name of an existing buffer."
 			  (in_reply_to_user_id
 			   nil ,(caddr (assq 'recipient_id c-node)))
 			  (favorited nil "false")
-			  (in_reply_to_screen_name
+			  (recipient_screen_name
 			   nil ,(caddr (assq 'recipient_screen_name c-node)))
 			  (user nil ,@(cdddr (assq 'sender c-node)))))
 	       (remove nil
@@ -3866,22 +3870,25 @@ Example:
 	       ""))
      ("r" ()
       (let ((reply-id (or (cdr (assq 'in-reply-to-status-id status)) ""))
-	    (reply-name (or (cdr (assq 'in-reply-to-screen-name status)) "")))
-	(if (string= "" reply-name)
+	    (reply-name (or (cdr (assq 'in-reply-to-screen-name status)) ""))
+	    (recipient-screen-name (cdr (assq 'recipient-screen-name status))))
+	(if (and (string= "" reply-name)
+		 (null recipient-screen-name))
 	    ""
-	  (let ((in-reply-to-string nil)
-		(url nil)
-		;; FIXME: If multiple buffers are implemented, `spec'
-		;; must be setted as independent to current timeline.
-		(spec (twittering-current-timeline-spec)))
-	    (if (twittering-timeline-spec-is-direct-messages-p spec)
-		;; for direct_messages{,_sent}.
-		(setq in-reply-to-string (format "sent to %s" reply-name)
-		      url (twittering-get-status-url reply-name))
-	      ;; for other standard timeline.
-	      (unless (string= "" reply-id)
-		(setq in-reply-to-string (format "in reply to %s" reply-name)
-		      url (twittering-get-status-url reply-name reply-id)))
+	  (let* ((in-reply-to-string
+		  (cond
+		   (recipient-screen-name
+		    (format "sent to %s" recipient-screen-name))
+		   ((not (string= "" reply-id))
+		    (format "in reply to %s" reply-name))
+		   (t nil)))
+		 (url
+		  (cond
+		   (recipient-screen-name
+		    (twittering-get-status-url recipient-screen-name))
+		   ((not (string= "" reply-id))
+		    (twittering-get-status-url reply-name reply-id))
+		   (t nil))))
 	    (when (and in-reply-to-string url)
 	      (concat
 	       " "
@@ -3890,7 +3897,7 @@ Example:
 		  0 (length in-reply-to-string)
 		  `(mouse-face highlight face twittering-uri-face uri ,url)
 		  in-reply-to-string)
-		 in-reply-to-string))))))))
+		 in-reply-to-string)))))))
      ("R" ()
       (let ((retweeted-by (or (cdr (assq 'original-user-screen-name status))
 			      "")))

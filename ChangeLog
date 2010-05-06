@@ -1,3 +1,14 @@
+2010-05-06  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix the format specifier "%r" for direct
+	message.
+	(twittering-status-to-status-datum): add `recipient-screen-name'
+	as a element of a status.
+	(twittering-xmltree-to-status): store `recipient_screen_name'
+	without modificaiton.
+	(twittering-generate-status-formater-base): replace "%r" with
+	`recipient-screen-name' if it exists.
+
 2010-05-05  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Use a dummy buffer to prevent the cursor

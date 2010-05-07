@@ -4307,7 +4307,8 @@ managed by `twittering-mode'."
        ))))
 
 (defun twittering-update-jojo (usr msg)
-  (when (and (string= "Japanese" current-language-environment)
+  (when (and (not (string= usr (twittering-get-username)))
+	     (string= "Japanese" current-language-environment)
 	     (or (< 21 emacs-major-version)
 		 (eq 'utf-8 (terminal-coding-system))))
     (if (string-match

@@ -4226,9 +4226,10 @@ variable `twittering-status-format'."
       (twittering-update-mode-line))))
 
 (defun twittering-jojo-mode-p (spec)
-  (with-current-buffer
-      (twittering-get-buffer-from-spec spec)
-    twittering-jojo-mode))
+  (let ((buffer (twittering-get-buffer-from-spec spec)))
+    (when (buffer-live-p buffer)
+      (with-current-buffer buffer
+	twittering-jojo-mode))))
 
 (defun twittering-toggle-reverse-mode (&optional arg)
   (interactive "P")

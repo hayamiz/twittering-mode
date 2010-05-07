@@ -1,3 +1,8 @@
+2010-05-08  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-jojo-mode-p): confirm that the
+	buffer has not been killed.
+
 2010-05-06  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the format specifier "%r" for direct

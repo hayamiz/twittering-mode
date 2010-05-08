@@ -2,6 +2,8 @@
 
 	* twittering-mode.el (twittering-update-jojo): 自分のツイートには返
 	信しないようにした。
+	* twittering-mode.el (twittering-update-jojo): do not reply to
+	tweets posted by the current user itself.
 
 2010-05-08  Tadashi MATSUO  <tad@mymail.twin.jp>
 

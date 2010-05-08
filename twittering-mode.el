@@ -143,7 +143,7 @@ Each element is (NAME . SPEC-STRING), where NAME is a string and
 SPEC-STRING is a string or a function that returns a timeline spec string.
 
 The alias can be referred as \"$NAME\" or \"$NAME(ARG)\" in timeline spec
-string. If SPEC-STRING is a string, ARG is simly ignored.
+string. If SPEC-STRING is a string, ARG is simply ignored.
 If SPEC-STRING is a function, it is called with a string argument.
 For the style \"$NAME\", the function is called with nil.
 For the style \"$NAME(ARG)\", the function is called with a string ARG.
@@ -220,7 +220,7 @@ Items:
  %t - text filled as one paragraph
  %' - truncated
  %FACE[face-name]{...} - strings decorated with the specified face.
- %FILL{...} - strings filled as a paragrah.
+ %FILL{...} - strings filled as a paragraph.
               You can use any other specifiers in braces.
  %f - source
  %# - id
@@ -1696,7 +1696,7 @@ SPEC may be a timeline spec or a timeline spec string."
 	 (spec-string (if (stringp spec)
 			  spec
 			(twittering-timeline-spec-to-string spec)))
-	 ;; `spec-string' without text properites is required because
+	 ;; `spec-string' without text properties is required because
 	 ;; Emacs21 displays `spec-string' with its properties on mode-line.
 	 ;; In addition, copying `spec-string' keeps timeline-data from
 	 ;; being modified by `minibuf-isearch.el'.
@@ -2625,7 +2625,7 @@ The retrieved data can be referred as (gethash url twittering-url-data-hash)."
 
 (defun twittering-start-http-session (method headers host port path parameters &optional noninteractive sentinel)
   "METHOD    : http method
-HEADERS   : http request heades in assoc list
+HEADERS   : http request headers in assoc list
 HOST      : remote host name
 PORT      : destination port number. nil means default port (http: 80, https: 443)
 PATH      : http request path
@@ -2835,7 +2835,7 @@ Available keywords:
       )))
 
 (defun twittering-http-application-headers (&optional method headers)
-  "Retuns an assoc list of HTTP headers for twittering-mode."
+  "Return an assoc list of HTTP headers for twittering-mode."
   (unless method
     (setq method "GET"))
 
@@ -3040,7 +3040,7 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
 	  (format "Response: %s" status-line)))))))
 
 (defun twittering-get-response-header (buffer)
-  "Exract HTTP response header from HTTP response.
+  "Extract HTTP response header from HTTP response.
 BUFFER may be a buffer or the name of an existing buffer which contains the HTTP response."
   (with-current-buffer buffer
     (save-excursion
@@ -3054,7 +3054,7 @@ BUFFER may be a buffer or the name of an existing buffer which contains the HTTP
 	nil))))
 
 (defun twittering-get-response-body (buffer &optional func)
-  "Exract HTTP response body from HTTP response.
+  "Extract HTTP response body from HTTP response.
 If FUNC is non-nil, parse a response body by FUNC and return it.
 Return nil when parse failed.
 BUFFER may be a buffer or the name of an existing buffer."
@@ -3075,7 +3075,7 @@ BUFFER may be a buffer or the name of an existing buffer."
       )))
 
 (defun twittering-get-status-from-http-response (spec buffer)
-  "Exract statuses from HTTP response, and return a list.
+  "Extract statuses from HTTP response, and return a list.
 Return nil when parse failed.
 
 SPEC is timeline-spec which was used to retrieve BUFFER.
@@ -3653,7 +3653,7 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 			 (twittering-get-current-status-head)
 		       (or (twittering-get-next-status-head)
 			   (point-max))))
-		(separtor "\n")
+		(separator "\n")
 		(prefix "  ")
 		(buffer-read-only nil))
 	    (save-excursion
@@ -3667,8 +3667,8 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 					`(id ,base-id original-id ,id)
 					formatted-status)
 		   (if twittering-reverse-mode
-		       (insert-before-markers formatted-status separtor)
-		     (insert formatted-status separtor))))
+		       (insert-before-markers formatted-status separator)
+		     (insert formatted-status separator))))
 	       statuses)
 	      t))
 	(when interactive
@@ -4072,7 +4072,7 @@ variable `twittering-status-format'."
       )))
 
 (defun twittering-show-minibuffer-length (&optional beg end len)
-  "Show the number of charactors in minibuffer."
+  "Show the number of characters in minibuffer."
   (when (minibuffer-window-active-p (selected-window))
     (if (and transient-mark-mode deactivate-mark)
 	(deactivate-mark))
@@ -4917,13 +4917,13 @@ The return value is nil or a positive integer less than POS."
 	  (message "Start of %s's status." user-name)
 	(message "Invalid user-name.")))))
 
-(defun twittering-goto-next-thing (&optional backword)
+(defun twittering-goto-next-thing (&optional backward)
   "Go to next interesting thing. ex) username, URI, ... "
   (interactive)
-  (let* ((propety-change-f (if backword
+  (let* ((property-change-f (if backward
 			       'previous-single-property-change
 			     'next-single-property-change))
-	 (pos (funcall propety-change-f (point) 'face)))
+	 (pos (funcall property-change-f (point) 'face)))
     (while (and pos
 		(not
 		 (let* ((current-face (get-text-property pos 'face))
@@ -4935,14 +4935,14 @@ The return value is nil or a positive integer less than POS."
 			    (t nil)))))
 		   (remove nil (mapcar face-pred '(twittering-username-face
 						   twittering-uri-face))))))
-      (setq pos (funcall propety-change-f pos 'face)))
+      (setq pos (funcall property-change-f pos 'face)))
     (when pos
       (goto-char pos))))
 
-(defun twittering-goto-previous-thing (&optional backword)
+(defun twittering-goto-previous-thing (&optional backward)
   "Go to previous interesting thing. ex) username, URI, ... "
   (interactive)
-  (twittering-goto-next-thing (not backword)))
+  (twittering-goto-next-thing (not backward)))
 
 (defun twittering-get-username-at-pos (pos)
   (or (get-text-property pos 'username)

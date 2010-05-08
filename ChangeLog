@@ -20,6 +20,13 @@
 	(twittering-follow): use `twittering-call-api'.
 	(twittering-favorite): likewise.
 
+	* twittering-mode.el: Bind "C-c D" to `twittering-delete-status',
+	which is a new function deleting a tweet.
+	(twittering-delete-status): new function.
+	(twittering-call-api): add a new command `destroy-status'.
+	(twittering-delete-status-from-data-table): new function.
+	(twittering-mode-map): bind "C-c D" to `twittering-delete-status'.
+
 2010-05-08  Takashi Masuda  <masutaka@nifty.com>
 
 	* twittering-mode.el (twittering-update-jojo): 自分のツイートには返

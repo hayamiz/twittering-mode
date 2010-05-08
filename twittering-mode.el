@@ -408,6 +408,12 @@ pop-up buffer.")
 	      ,@(when id `(("in_reply_to_status_id" . ,id))))))
       (twittering-http-post twittering-api-host "1/statuses/update"
 			    parameters)))
+   ((eq command 'destroy-status)
+    ;; Destroy a status.
+    (let ((id (cdr (assq 'id args-alist))))
+      (twittering-http-post twittering-api-host
+			    "1/statuses/destroy"
+			    `(("id" . ,id)))))
    ((eq command 'retweet)
     ;; Post a retweet.
     (let ((id (cdr (assq 'id args-alist))))
@@ -1285,6 +1291,45 @@ referring the former ID."
      twittering-timeline-data-table)
     result))
 
+(defun twittering-delete-status-from-data-table (id)
+  (let ((modified-spec nil))
+    (maphash
+     (lambda (spec data)
+       (let* ((id-table (elt data 0))
+	      (referring-id-table (elt data 1))
+	      (timeline-data (elt data 2))
+	      (status (gethash id id-table)))
+	 (when status
+	   (remhash id id-table)
+	   ;; Here, `referring-id-table' is not modified.
+	   ;; Therefore, the retweet observed secondly will not appear even
+	   ;; if the retweet observed first for the same tweet is deleted.
+	   (setq modified-spec
+		 (cons `(,spec
+			 ,id-table
+			 ,referring-id-table
+			 ,(remove status timeline-data))
+		       modified-spec)))))
+     twittering-timeline-data-table)
+    (mapc
+     (lambda (data)
+       (let* ((spec (car data))
+	      (buffer (twittering-get-buffer-from-spec spec)))
+	 (puthash spec (cdr data) twittering-timeline-data-table)
+	 (when (buffer-live-p buffer)
+	   (with-current-buffer buffer
+	     (save-excursion
+	       (twittering-for-each-property-region
+		'id
+		(lambda (beg end value)
+		  (when (twittering-status-id= id value)
+		    (let ((buffer-read-only nil)
+			  (separator-pos (min (point-max) (1+ end))))
+		      (delete-region beg separator-pos)
+		      (goto-char beg))))
+		buffer))))))
+     modified-spec)))
+
 (defun twittering-get-replied-statuses (id &optional count)
   "Return a list of replied statuses starting from the status specified by ID.
 Statuses are stored in ascending-order with respect to their IDs."
@@ -2049,6 +2094,7 @@ authorized -- The account has been authorized.")
       (define-key km (kbd "C-c C-l") 'twittering-update-lambda)
       (define-key km (kbd "<mouse-1>") 'twittering-click)
       (define-key km (kbd "C-c C-v") 'twittering-view-user-page)
+      (define-key km (kbd "C-c D") 'twittering-delete-status)
       (define-key km (kbd "a") 'twittering-toggle-activate-buffer)
       (define-key km (kbd "g") 'twittering-current-timeline)
       (define-key km (kbd "u") 'twittering-update-status-interactive)
@@ -4316,6 +4362,37 @@ managed by `twittering-mode'."
 (defun twittering-update-status-interactive ()
   (interactive)
   (funcall twittering-update-status-function))
+
+(defun twittering-delete-status (&optional id)
+  (interactive)
+  (let* ((id (get-text-property (point) 'id))
+	 (username (get-text-property (point) 'username))
+	 (text (copy-sequence (get-text-property (point) 'text)))
+	 (text (progn
+		 (set-text-properties 0 (length text) nil text)
+		 text))
+	 (width (max 40 ;; XXX
+		     (- (frame-width)
+			1 ;; margin for wide characters
+			11 ;; == (length (concat "Delete \"" "\"? "))
+			9) ;; == (length "(y or n) ")
+		     ))
+	 (mes (format "Delete \"%s\"? "
+		      (if (< width (string-width text))
+			  (concat
+			   (truncate-string-to-width text (- width 3))
+			   "...")
+			text))))
+    (cond
+     ((not (string= username (twittering-get-username)))
+      (message "The status is not yours!"))
+     ((not id)
+      (message "No status selected"))
+     ((y-or-n-p mes)
+      (twittering-call-api 'destroy-status `((id . ,id)))
+      (twittering-delete-status-from-data-table id))
+     (t
+      (message "Request canceled")))))
 
 (defun twittering-update-lambda ()
   (interactive)

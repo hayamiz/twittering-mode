@@ -5,6 +5,35 @@
 
 2010-05-08  Tadashi MATSUO  <tad@mymail.twin.jp>
 
+	* twittering-mode.el: Add an abstract layer for Twitter API.
+	(twittering-call-api): new function.
+	(twittering-timeline-spec-to-host-method): removed.
+	(twittering-host-method-to-timeline-spec): removed.
+	(twittering-manage-friendships): removed.
+	(twittering-manage-favorites): removed.
+	(twittering-get-tweets): removed.
+	(twittering-verify-credentials): use `twittering-call-api' instead
+	of calling `twittering-http-get' directly.
+	(twittering-get-list-index): likewise.
+	(twittering-get-and-render-timeline): use `twittering-call-api'
+	instead of calling `twittering-get-tweets'. The function also
+	calculates how many tweets should be retrieved.
+	(twittering-update-lambda): use `twittering-call-api' instead of
+	calling `twittering-http-post' directly.
+	(twittering-update-jojo): likewise.
+	(twittering-native-retweet): likewise.
+	(twittering-follow): use `twittering-call-api'.
+	(twittering-favorite): likewise.
+
+2010-05-08  Takashi Masuda  <masutaka@nifty.com>
+
+	* twittering-mode.el (twittering-update-jojo): 自分のツイートには返
+	信しないようにした。
+	* twittering-mode.el (twittering-update-jojo): do not reply to
+	tweets posted by the current user itself.
+
+2010-05-08  Tadashi MATSUO  <tad@mymail.twin.jp>
+
 	* twittering-mode.el (twittering-jojo-mode-p): confirm that the
 	buffer has not been killed.
 

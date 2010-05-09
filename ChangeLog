@@ -1,3 +1,14 @@
+2010-05-09  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Use "\\`" as the regexp for the head of a
+	tweet instead of "^". This prevents misinterpretation of tweets
+	including multiple lines.
+	(twittering-edit-post-status): correct the regexp for determining
+	whether the "in-reply-to" ID should be attached or not.
+	(twittering-update-status-from-minibuffer): likewise.
+	(twittering-status-not-blank-p): correct the regexp for
+	distinguish a blank tweet from a non-blank tweet.
+
 2010-05-08  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Add an abstract layer for Twitter API.

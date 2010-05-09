@@ -2374,7 +2374,7 @@ been initialized yet."
 	  ;; begins with @username.
 	  (when (and reply-to-id
 		     (string-match
-		      (concat "^@" username "\\(?:[\n\r \t]+\\)*")
+		      (concat "\\`@" username "\\(?:[\n\r \t]+\\)*")
 		      status))
 	    (add-to-list 'parameters
 			 `("in_reply_to_status_id" .
@@ -4099,8 +4099,8 @@ variable `twittering-status-format'."
     (insert status)
     (goto-char (point-min))
     ;; skip user name
-    (re-search-forward "^[\n\r \t]*@[a-zA-Z0-9_-]+\\([\n\r \t]+@[a-zA-Z0-9_-]+\\)*" nil t)
-    (re-search-forward "[^\n\r \t]+" nil t)))
+    (re-search-forward "\\`[[:space:]]*@[a-zA-Z0-9_-]+\\([[:space:]]+@[a-zA-Z0-9_-]+\\)*" nil t)
+    (re-search-forward "[^[:space:]]" nil t)))
 
 (defun twittering-update-status-from-minibuffer (&optional init-str reply-to-id username spec)
   (and (not (twittering-timeline-spec-is-direct-messages-p spec))
@@ -4143,7 +4143,7 @@ variable `twittering-status-format'."
 		    (when (and reply-to-id
 			       username
 			       (string-match
-				(concat "^@" username "\\(?:[\n\r \t]+\\)*")
+				(concat "\\`@" username "\\(?:[\n\r \t]+\\)*")
 				status))
 		      (add-to-list 'parameters
 				   `("in_reply_to_status_id" . ,reply-to-id)))

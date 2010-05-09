@@ -5,10 +5,35 @@
 	「time-str の正規表現を修正」「user-name が設定されていないユーザに
 	対応」「検索時のユーザアイコンを取得出来るように修正」
 
-2010-05-08  Takashi Masuda  <masutaka@nifty.com>
+2010-05-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
-	* twittering-mode.el (twittering-update-jojo): 自分のツイートには返
-	信しないようにした。
+	* twittering-mode.el: Use "\\`" as the regexp for the head of a
+	tweet instead of "^". This prevents misinterpretation of tweets
+	including multiple lines.
+	(twittering-edit-post-status): correct the regexp for determining
+	whether the "in-reply-to" ID should be attached or not.
+	(twittering-update-status-from-minibuffer): likewise.
+	(twittering-status-not-blank-p): correct the regexp for
+	distinguish a blank tweet from a non-blank tweet.
+
+	* twittering-mode.el: Prevent applying improper functions to a
+	failed connection.
+	(twittering-verify-credentials): give up authorization if
+	`twittering-call-api' returns nil.
+	(twittering-start-http-session-curl): return nil if it failed to
+	open a connection.
+	(twittering-start-http-session-native): likewise.
+
+	* twittering-mode.el: Support HTTPS with `tls' library.
+	(twittering-tls-program): new variable.
+	(twittering-connection-type-table): register
+	`twittering-start-http-session-native-tls-p' as the "https" entry
+	for "native".
+	(twittering-start-http-session-native-tls-p): new function.
+	(twittering-start-http-session-native): call `open-tls-stream' if
+	`twittering-use-ssl' is non-nil.
+	* emacs21/tls.el: Imported from Emacs 22.2.1 on Debian 5.0 for
+	Emacs21 that does not include `tls.el'.
 
 2010-05-08  Tadashi MATSUO  <tad@mymail.twin.jp>
 
@@ -31,6 +56,13 @@
 	(twittering-native-retweet): likewise.
 	(twittering-follow): use `twittering-call-api'.
 	(twittering-favorite): likewise.
+
+	* twittering-mode.el: Bind "C-c D" to `twittering-delete-status',
+	which is a new function deleting a tweet.
+	(twittering-delete-status): new function.
+	(twittering-call-api): add a new command `destroy-status'.
+	(twittering-delete-status-from-data-table): new function.
+	(twittering-mode-map): bind "C-c D" to `twittering-delete-status'.
 
 2010-05-08  Takashi Masuda  <masutaka@nifty.com>
 

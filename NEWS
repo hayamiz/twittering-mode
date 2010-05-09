@@ -48,6 +48,9 @@ existing way.
 * Switching timeline buffers by pressing 'f' or 'b'.
 * Graphical indicators for SSL and ACTIVE/INACTIVE state on mode-line.
 * Asynchronous retrieval of icon images.
+* Deleting a tweet by inputting 'C-cD'.
+* HTTPS connection using `tls' library working with an external command
+  `gnutls' or `openssl' instead of `curl'.
 * ...
 
 ### Bug fixes

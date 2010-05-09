@@ -1,3 +1,10 @@
+2010-05-09  Takashi Masuda  <masutaka@nifty.com>
+
+	* twittering-mode.el: StatusNet 対応
+	(twittering-atom-xmltree-to-status-datum): いずれも検索関連の修正。
+	「time-str の正規表現を修正」「user-name が設定されていないユーザに
+	対応」「検索時のユーザアイコンを取得出来るように修正」
+
 2010-05-08  Takashi Masuda  <masutaka@nifty.com>
 
 	* twittering-mode.el (twittering-update-jojo): 自分のツイートには返

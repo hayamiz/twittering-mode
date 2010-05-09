@@ -3045,7 +3045,9 @@ BUFFER may be a buffer or the name of an existing buffer."
 	(time-str (car (cddr (assq 'updated atom-xml-entry))))
 	(author-str (car (cddr (assq 'name (assq 'author atom-xml-entry))))))
     `((created-at
-       . ,(if (string-match "\\(.*\\)T\\(.*\\)Z" time-str)
+       ;; Twitter -> "2010-05-08T05:59:41Z"
+       ;; StatusNet -> "2010-05-08T08:44:39+00:00"
+       . ,(if (string-match "\\(.*\\)T\\(.*\\)[Z+]" time-str)
 	      ;; time-str is formatted as
 	      ;; "Combined date and time in UTC:" in ISO 8601.
 	      (format "%s %s +0000"
@@ -3066,9 +3068,13 @@ BUFFER may be a buffer or the name of an existing buffer."
       (text . ,(twittering-decode-html-entities
 		(car (cddr (assq 'title atom-xml-entry)))))
       ,@(progn
-	  (string-match "^\\([^ ]+\\) (\\(.*\\))$" author-str)
-	  `((user-screen-name . ,(match-string 1 author-str))
-	    (user-name . ,(match-string 2 author-str))))
+	  (if (string-match "^\\([^ ]+\\) (\\(.*\\))$" author-str)
+	      ;; Twitter
+	      `((user-screen-name . ,(match-string 1 author-str))
+		(user-name . ,(match-string 2 author-str)))
+	    ;; StatusNet
+	    `((user-screen-name . ,author-str)
+	      (user-name . ""))))
       (user-profile-image-url
        . ,(let* ((link-items
 		  (mapcar
@@ -3079,7 +3085,8 @@ BUFFER may be a buffer or the name of an existing buffer."
 		 (image-urls
 		  (mapcar
 		   (lambda (item)
-		     (when (member '(rel . "image") item)
+		     (when (or (member '(rel . "image") item)    ;; Twitter
+			       (member '(rel . "related") item)) ;; StatusNet
 		       (cdr (assq 'href item))))
 		   link-items)))
 	    (car-safe (remq nil image-urls)))))))

@@ -47,12 +47,16 @@
 (require 'xml)
 (require 'parse-time)
 (when (> 22 emacs-major-version)
-  (add-to-list 'load-path
-	       (expand-file-name
-               "url-emacs21" (if load-file-name
-                                 (or (file-name-directory load-file-name)
-                                     ".")
-                               ".")))
+  (setq load-path
+	(append (mapcar (lambda (dir)
+			  (expand-file-name
+			   dir
+			   (if load-file-name
+			       (or (file-name-directory load-file-name)
+				   ".")
+			     ".")))
+			'("url-emacs21" "emacs21"))
+		load-path))
   (and (require 'un-define nil t)
        ;; the explicitly require 'unicode to update a workaround with
        ;; navi2ch. see a comment of `twittering-ucs-to-char' for more
@@ -269,12 +273,20 @@ SSL connections use 'curl' command as a backend.")
   "Cache a result of `twittering-find-curl-program'.
 DO NOT SET VALUE MANUALLY.")
 
+(defvar twittering-tls-program nil
+  "*List of strings containing commands to start TLS stream to a host.
+Each entry in the list is tried until a connection is successful.
+%h is replaced with server hostname, %p with port to connect to.
+Also see `tls-program'.
+If nil, this is initialized with a list of valied entries extracted from
+`tls-program'.")
+
 (defvar twittering-connection-type-order '(curl native))
   "*A list of connection methods in the preferred order."
 
 (defvar twittering-connection-type-table
   '((native (check . t)
-	    (https . nil)
+	    (https . twittering-start-http-session-native-tls-p)
 	    (start . twittering-start-http-session-native))
     (curl (check . twittering-start-http-session-curl-p)
 	  (https . twittering-start-http-session-curl-https-p)
@@ -2747,6 +2759,19 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 	curl-process)))
   )
 
+(defun twittering-start-http-session-native-tls-p ()
+  (when (require 'tls nil t)
+    (let ((programs
+	   (remove nil
+		   (mapcar (lambda (cmd)
+			     (when (string-match "\\`\\([^ ]+\\) " cmd)
+			       (when (executable-find (match-string 1 cmd))
+				 cmd)))
+			   tls-program))))
+      (unless twittering-tls-program
+	(setq twittering-tls-program programs))
+      programs)))
+
 ;; TODO: proxy
 (defun twittering-start-http-session-native (method headers host port path parameters &optional noninteractive sentinel)
   (let ((request (twittering-make-http-request
@@ -2768,8 +2793,19 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 	     (port (if twittering-proxy-use
 		       twittering-proxy-port
 		     (request :port)))
-	     (proc (open-network-stream
-		    "network-connection-process" temp-buffer server port))
+	     (proc
+	      (cond
+	       (twittering-use-ssl
+		(let* ((tls-program twittering-tls-program)
+		       (proc
+			(open-tls-stream
+			 "network-connection-process" nil server port)))
+		  (when proc
+		    (set-process-buffer proc temp-buffer))
+		  proc))
+	       (t
+		(open-network-stream
+		 "network-connection-process" temp-buffer server port))))
 	     )
 	(when proc
 	  (lexical-let ((sentinel sentinel)

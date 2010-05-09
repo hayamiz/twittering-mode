@@ -17,6 +17,17 @@
 	open a connection.
 	(twittering-start-http-session-native): likewise.
 
+	* twittering-mode.el: Support HTTPS with `tls' library.
+	(twittering-tls-program): new variable.
+	(twittering-connection-type-table): register
+	`twittering-start-http-session-native-tls-p' as the "https" entry
+	for "native".
+	(twittering-start-http-session-native-tls-p): new function.
+	(twittering-start-http-session-native): call `open-tls-stream' if
+	`twittering-use-ssl' is non-nil.
+	* emacs21/tls.el: Imported from Emacs 22.2.1 on Debian 5.0 for
+	Emacs21 that does not include `tls.el'.
+
 2010-05-08  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Add an abstract layer for Twitter API.

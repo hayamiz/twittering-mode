@@ -9,6 +9,14 @@
 	(twittering-status-not-blank-p): correct the regexp for
 	distinguish a blank tweet from a non-blank tweet.
 
+	* twittering-mode.el: Prevent applying improper functions to a
+	failed connection.
+	(twittering-verify-credentials): give up authorization if
+	`twittering-call-api' returns nil.
+	(twittering-start-http-session-curl): return nil if it failed to
+	open a connection.
+	(twittering-start-http-session-native): likewise.
+
 2010-05-08  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Add an abstract layer for Twitter API.

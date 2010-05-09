@@ -2020,9 +2020,16 @@ authorized -- The account has been authorized.")
   (unless (or (twittering-account-authorized-p)
 	      (twittering-account-authorization-queried-p))
     (setq twittering-account-authorization 'queried)
-    (twittering-call-api
-     'verify-credentials
-     `((sentinel . twittering-http-get-verify-credentials-sentinel)))))
+    (let ((proc
+	   (twittering-call-api
+	    'verify-credentials
+	    `((sentinel . twittering-http-get-verify-credentials-sentinel)))))
+      (unless proc
+	(setq twittering-account-authorization nil)
+	(message "Authorization for the account \"%s\" failed. Type M-x twit to retry."
+		 (twittering-get-username))
+	(setq twittering-username nil)
+	(setq twittering-password nil)))))
 
 (defun twittering-http-get-verify-credentials-sentinel (header-info proc noninteractive &optional suc-msg)
   (let ((status-line (cdr (assq 'status-line header-info)))
@@ -2731,11 +2738,12 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 		    temp-buffer
 		    twittering-curl-program
 		    curl-args)))
-	(set-process-sentinel
-	 curl-process
-	 (lambda (&rest args)
-	   (apply #'twittering-http-default-sentinel
-		  sentinel noninteractive args)))
+	(when curl-process
+	  (set-process-sentinel
+	   curl-process
+	   (lambda (&rest args)
+	     (apply #'twittering-http-default-sentinel
+		    sentinel noninteractive args))))
 	curl-process)))
   )
 
@@ -2763,15 +2771,16 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 	     (proc (open-network-stream
 		    "network-connection-process" temp-buffer server port))
 	     )
-	(lexical-let ((sentinel sentinel)
-		      (noninteractive noninteractive))
-	  (set-process-sentinel
-	   proc
-	   (lambda (&rest args)
-	     (apply #'twittering-http-default-sentinel
-		    sentinel noninteractive args))))
-	(debug-print request-str)
-	(process-send-string proc request-str)
+	(when proc
+	  (lexical-let ((sentinel sentinel)
+			(noninteractive noninteractive))
+	    (set-process-sentinel
+	     proc
+	     (lambda (&rest args)
+	       (apply #'twittering-http-default-sentinel
+		      sentinel noninteractive args))))
+	  (debug-print request-str)
+	  (process-send-string proc request-str))
 	proc)))
   )
 

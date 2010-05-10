@@ -2767,9 +2767,8 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 			     (when (string-match "\\`\\([^ ]+\\) " cmd)
 			       (when (executable-find (match-string 1 cmd))
 				 cmd)))
-			   tls-program))))
-      (unless twittering-tls-program
-	(setq twittering-tls-program programs))
+			   (or twittering-tls-program tls-program)))))
+      (setq twittering-tls-program programs)
       programs)))
 
 ;; TODO: proxy

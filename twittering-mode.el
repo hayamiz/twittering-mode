@@ -2767,9 +2767,8 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 			     (when (string-match "\\`\\([^ ]+\\) " cmd)
 			       (when (executable-find (match-string 1 cmd))
 				 cmd)))
-			   tls-program))))
-      (unless twittering-tls-program
-	(setq twittering-tls-program programs))
+			   (or twittering-tls-program tls-program)))))
+      (setq twittering-tls-program programs)
       programs)))
 
 ;; TODO: proxy
@@ -2983,7 +2982,7 @@ Available keywords:
      (t
       (setq mes (format "Failure: unknown condition: %s" status))))
     (when (and mes (twittering-buffer-related-p))
-      (message mes))))
+      (message "%s" mes))))
 
 (defun twittering-http-get-default-sentinel (header-info proc noninteractive &optional suc-msg)
   (let ((status-line (cdr (assq 'status-line header-info)))
@@ -4226,7 +4225,7 @@ variable `twittering-status-format'."
    ((stringp twittering-list-index-retrieved)
     (if (string= "" twittering-list-index-retrieved)
 	(message "%s does not have a list." username)
-      (message twittering-list-index-retrieved))
+      (message "%s" twittering-list-index-retrieved))
     nil)
    ((listp twittering-list-index-retrieved)
     twittering-list-index-retrieved)))

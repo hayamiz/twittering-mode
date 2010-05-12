@@ -1,3 +1,9 @@
+2010-05-11  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix initialization of `twittering-tls-program'.
+	(twittering-start-http-session-native-tls-p): use
+	`twittering-tls-program' if it is non-nil.
+
 2010-05-09  Takashi Masuda  <masutaka@nifty.com>
 
 	* twittering-mode.el: StatusNet 対応

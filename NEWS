@@ -52,6 +52,8 @@ existing way.
 * HTTPS connection using `tls' library working with an external command
   `gnutls' or `openssl' instead of `curl'.
 * Individual proxy configurations for HTTP and HTTPS.
+* Silent retrieval of icon images.
+  You can enable silent retrieval by "(setq twittering-url-show-status nil)".
 * ...
 
 ### Bug fixes

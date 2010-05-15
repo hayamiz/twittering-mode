@@ -44,6 +44,11 @@
 	(twittering-setup-proxy): initialize individual proxy
 	configurations for HTTP and HTTPS.
 
+	* twittering-mode.el: Enable to retrieve icon images silently.
+	(twittering-url-show-status): new variable.
+	(twittering-url-wrapper): control display of status even if the
+	retrieval is asynchronous.
+
 2010-05-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix initialization of `twittering-tls-program'.

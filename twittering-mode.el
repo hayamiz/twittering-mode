@@ -2585,12 +2585,21 @@ been initialized yet."
 ;;; Functions for URL library
 ;;;
 
+(defvar twittering-url-show-status t
+  "*Whether to show a running total of bytes transferred.")
 (defun twittering-url-wrapper (func &rest args)
   (let ((url-proxy-services
 	 (when twittering-proxy-use
 	   (twittering-url-proxy-services)))
-	(url-show-status nil))
-    (apply func args)))
+	(url-show-status twittering-url-show-status))
+    (if (eq func 'url-retrieve)
+	(let ((buffer (apply func args)))
+	  (when (buffer-live-p buffer)
+	    (with-current-buffer buffer
+	      (set (make-local-variable 'url-show-status)
+		   twittering-url-show-status)))
+	  buffer)
+      (apply func args))))
 
 (defun twittering-url-insert-file-contents (url)
   (twittering-url-wrapper 'url-insert-file-contents url))

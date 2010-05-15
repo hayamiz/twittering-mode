@@ -6,6 +6,11 @@
 	comment.
 	(twittering-inactive-indicator-image): likewise.
 
+	* twittering-mode.el: The function `twittering-icon-mode' keeps
+	the current cursor point.
+	(twittering-render-timeline): add a new argument `keep-point'.
+	(twittering-icon-mode): keep the current cursor point.
+
 2010-05-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix initialization of `twittering-tls-program'.

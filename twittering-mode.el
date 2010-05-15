@@ -453,20 +453,110 @@ pop-up buffer.")
 ;;;
 
 (defvar twittering-proxy-use nil)
-(defvar twittering-proxy-keep-alive nil)
-(defvar twittering-proxy-server nil
-  "*The proxy server for `twittering-mode'.
+(defvar twittering-http-proxy-server nil
+  "*The HTTP proxy server for `twittering-mode'.
 If nil, it is initialized on entering `twittering-mode'.
-The port number is specified by `twittering-proxy-port'.")
-(defvar twittering-proxy-port nil
-  "*The port number of a proxy server for `twittering-mode'.
+The port number is specified by `twittering-http-proxy-port'.
+For HTTPS connection, the proxy specified by `twittering-https-proxy-server'
+and `twittering-https-proxy-port' is used.")
+(defvar twittering-http-proxy-port nil
+  "*The port number of a HTTP proxy server for `twittering-mode'.
 If nil, it is initialized on entering `twittering-mode'.
-The server is specified by `twittering-proxy-server'.")
-(defvar twittering-proxy-user nil)
-(defvar twittering-proxy-password nil)
+The server is specified by `twittering-http-proxy-server'.
+For HTTPS connection, the proxy specified by `twittering-https-proxy-server'
+and `twittering-https-proxy-port' is used.")
+(defvar twittering-http-proxy-keep-alive nil
+  "*If non-nil, the Keep-alive is enabled. This is experimental.")
+(defvar twittering-http-proxy-user nil)
+(defvar twittering-http-proxy-password nil)
+
+(defvar twittering-https-proxy-server nil
+  "*The HTTPS proxy server for `twittering-mode'.
+If nil, it is initialized on entering `twittering-mode'.
+The port number is specified by `twittering-https-proxy-port'.
+For HTTP connection, the proxy specified by `twittering-http-proxy-server'
+and `twittering-http-proxy-port' is used.")
+(defvar twittering-https-proxy-port nil
+  "*The port number of a HTTPS proxy server for `twittering-mode'.
+If nil, it is initialized on entering `twittering-mode'.
+The server is specified by `twittering-https-proxy-server'.
+For HTTP connection, the proxy specified by `twittering-http-proxy-server'
+and `twittering-http-proxy-port' is used.")
+(defvar twittering-https-proxy-keep-alive nil
+  "*If non-nil, the Keep-alive is enabled. This is experimental.")
+(defvar twittering-https-proxy-user nil)
+(defvar twittering-https-proxy-password nil)
+
+(cond
+ ((> 22 emacs-major-version)
+  (defalias 'twittering-proxy-server 'twittering-http-proxy-server)
+  (defalias 'twittering-proxy-port 'twittering-http-proxy-port)
+  (defalias 'twittering-proxy-keep-alive 'twittering-http-proxy-keep-alive)
+  (defalias 'twittering-proxy-user 'twittering-http-proxy-user)
+  (defalias 'twittering-proxy-password 'twittering-http-proxy-password))
+ (t
+  (defvaralias 'twittering-proxy-server 'twittering-http-proxy-server
+    "Alias of `twittering-http-proxy-server'.")
+  (defvaralias 'twittering-proxy-port 'twittering-http-proxy-port
+    "Alias of `twittering-http-proxy-port'.")
+  (defvaralias 'twittering-proxy-keep-alive 'twittering-http-proxy-keep-alive)
+  (defvaralias 'twittering-proxy-user 'twittering-http-proxy-user)
+  (defvaralias 'twittering-proxy-password 'twittering-http-proxy-password)))
+
+(defun twittering-normalize-proxy-vars ()
+  "Normalize the type of `twittering-http-proxy-port' and
+`twittering-https-proxy-port'."
+  (mapc (lambda (sym)
+	  (let ((value (symbol-value sym)))
+	    (cond
+	     ((null value)
+	      nil)
+	     ((integerp value)
+	      nil)
+	     ((stringp value)
+	      (set sym (string-to-number value)))
+	     (t
+	      (set sym nil)))))
+	'(twittering-http-proxy-port
+	  twittering-https-proxy-port)))
+
+(defun twittering-proxy-info (scheme)
+  "Return a cons pair of the registered proxy server and its port number
+for SCHEME.
+SCHEME must be a string \"http\", \"https\" or a symbol 'http or 'https.
+The server name is a string and the port number is an integer."
+  (twittering-normalize-proxy-vars)
+  (let ((scheme (if (symbolp scheme)
+		    (symbol-name scheme)
+		  scheme))
+	(info-list
+	 `((("http")
+	    . (,twittering-http-proxy-server
+	       . ,twittering-http-proxy-port))
+	   (("https")
+	    . (,twittering-https-proxy-server
+	       . ,twittering-https-proxy-port)))))
+    (car (remove nil
+		 (mapcar
+		  (lambda (entry)
+		    (when (member scheme (car entry))
+		      (let ((info (cdr entry)))
+			(when (and (car info) (cdr info))
+			  info))))
+		  info-list)))))
+
+(defun twittering-url-proxy-services ()
+  "Return the current proxy configuration for `twittering-mode' in the format
+of `url-proxy-services'."
+  (remove nil (mapcar
+	       (lambda (scheme)
+		 (let ((info (twittering-proxy-info scheme)))
+		   (when info
+		     `(,scheme . ,(format "%s:%s" (car info) (cdr info))))))
+	       '("http" "https"))))
 
 (defun twittering-find-proxy (scheme)
-  "Find proxy server and its port for `twittering-mode' and returns
+  "Find proxy server and its port from the environmental variables and return
 a cons pair of them.
 SCHEME must be \"http\" or \"https\"."
   (cond
@@ -504,18 +594,19 @@ SCHEME must be \"http\" or \"https\"."
     ;; `url-scheme-get-property' before calling such functions.
     (url-scheme-get-property "http" 'name)
     (url-scheme-get-property "https" 'name))
-  (unless (and twittering-proxy-server twittering-proxy-port)
-    (let ((proxy-info (or (if twittering-use-ssl
-			      (twittering-find-proxy "https"))
-			  (twittering-find-proxy "http"))))
-      (when proxy-info
-	(let ((host (car proxy-info))
-	      (port (cdr proxy-info)))
-	  (setq twittering-proxy-server host)
-	  (setq twittering-proxy-port port)))))
+  (unless (and twittering-http-proxy-server
+	       twittering-http-proxy-port)
+    (let ((info (twittering-find-proxy "http")))
+      (setq twittering-http-proxy-server (car-safe info))
+      (setq twittering-http-proxy-port (cdr-safe info))))
+  (unless (and twittering-https-proxy-server
+	       twittering-https-proxy-port)
+    (let ((info (twittering-find-proxy "https")))
+      (setq twittering-https-proxy-server (car-safe info))
+      (setq twittering-https-proxy-port (cdr-safe info))))
   (if (and twittering-proxy-use
-	   (null twittering-proxy-server)
-	   (null twittering-proxy-port))
+	   (null (twittering-proxy-info "http"))
+	   (null (twittering-proxy-info "https")))
       (progn
 	(message "Disabling proxy due to lack of configuration.")
 	(setq twittering-proxy-use nil))
@@ -2497,12 +2588,7 @@ been initialized yet."
 (defun twittering-url-wrapper (func &rest args)
   (let ((url-proxy-services
 	 (when twittering-proxy-use
-	   (let ((proxy-str (format "%s:%s" twittering-proxy-server
-				    twittering-proxy-port)))
-	     (if twittering-use-ssl
-		 `(("http" . ,proxy-str)
-		   ("https" . ,proxy-str))
-	       `(("http" . ,proxy-str))))))
+	   (twittering-url-proxy-services)))
 	(url-show-status nil))
     (apply func args)))
 
@@ -2766,12 +2852,24 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 	    ,@(when twittering-use-ssl
 		`("--cacert" ,(twittering-ensure-ca-cert)))
 	    ,@(when twittering-proxy-use
-		`("-x" ,(format "%s:%s" twittering-proxy-server
-				twittering-proxy-port)))
-	    ,@(when (and twittering-proxy-use
-			 twittering-proxy-user twittering-proxy-password)
-		`("-U" ,(format "%s:%s" twittering-proxy-user
-				twittering-proxy-password)))
+		(let* ((proxy-info
+			(twittering-proxy-info (request :schema)))
+		       (host (car-safe proxy-info))
+		       (port (cdr-safe proxy-info)))
+		  (when proxy-info
+		    `("-x" ,(format "%s:%s" host port)))))
+	    ,@(when twittering-proxy-use
+		(let ((pair
+		       (cdr (assoc
+			     (request :schema)
+			     `(("http" .
+				(,twittering-http-proxy-user
+				 . ,twittering-http-proxy-password))
+			       ("https" .
+				(,twittering-https-proxy-user
+				 . ,twittering-https-proxy-password)))))))
+		  (when pair
+		    `("-U" ,(format "%s:%s" (car pair) (cdr pair))))))
 	    ,@(when (string= "POST" method)
 		(mapcan (lambda (pair)
 			  (list
@@ -2828,11 +2926,14 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 			  (concat "?" (request :query-string))
 			"")
 		      (request :headers-string)))
-	     (server (if twittering-proxy-use
-			 twittering-proxy-server
+	     (proxy-info
+	      (when twittering-proxy-use
+		(twittering-proxy-info (request :schema))))
+	     (server (if proxy-info
+			 (car proxy-info)
 		       (request :host)))
-	     (port (if twittering-proxy-use
-		       twittering-proxy-port
+	     (port (if proxy-info
+		       (cdr proxy-info)
 		     (request :port)))
 	     (proc
 	      (cond
@@ -2951,20 +3052,29 @@ Available keywords:
       (push (cons "Content-Length" "0") headers)
       (push (cons "Content-Type" "text/plain") headers))
     (when twittering-proxy-use
-      (when twittering-proxy-keep-alive
-	(push (cons "Proxy-Connection" "Keep-Alive")
-	      headers))
-      (when (and twittering-proxy-user
-		 twittering-proxy-password)
-	(push (cons "Proxy-Authorization"
-		    (concat
-		     "Basic "
-		     (base64-encode-string
-		      (concat
-		       twittering-proxy-user
-		       ":"
-		       twittering-proxy-password))))
-	      headers)))
+      (let* ((proxy-conf-alist
+	      `(("http" .
+		 (,twittering-http-proxy-keep-alive
+		  ,twittering-http-proxy-user
+		  ,twittering-http-proxy-password))
+		("https" .
+		 (,twittering-https-proxy-keep-alive
+		  ,twittering-https-proxy-user
+		  ,twittering-https-proxy-password))))
+	     (schema (if twittering-use-ssl "https" "http"))
+	     (conf (cdr (assoc schema proxy-conf-alist)))
+	     (keep-alive (elt conf 0))
+	     (user (elt conf 1))
+	     (password (elt conf 2)))
+	(when keep-alive
+	  (push (cons "Proxy-Connection" "Keep-Alive")
+		headers))
+	(when (and user password)
+	  (push (cons
+		 "Proxy-Authorization"
+		 (concat "Basic "
+			 (base64-encode-string (concat user ":" password))))
+		headers))))
     headers
     ))
 

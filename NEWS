@@ -51,6 +51,7 @@ existing way.
 * Deleting a tweet by inputting 'C-cD'.
 * HTTPS connection using `tls' library working with an external command
   `gnutls' or `openssl' instead of `curl'.
+* Individual proxy configurations for HTTP and HTTPS.
 * ...
 
 ### Bug fixes

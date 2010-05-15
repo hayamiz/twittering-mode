@@ -11,6 +11,9 @@
 	(twittering-render-timeline): add a new argument `keep-point'.
 	(twittering-icon-mode): keep the current cursor point.
 
+	* test/test-twittering-mode.el: Remove an obsolete test and update
+	`test-format-status'.
+
 2010-05-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix initialization of `twittering-tls-program'.

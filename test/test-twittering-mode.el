@@ -1,13 +1,7 @@
 
 (defcase test-version nil nil
-  (test-assert-string-match "^twittering-mode-v[0-9]+\\(\\.[0-9]+\\)*"
+  (test-assert-string-match "^twittering-mode-v\\([0-9]+\\(\\.[0-9]+\\)*\\|HEAD\\)"
     (twittering-mode-version)))
-
-(defcase test-buffer nil nil
-  (test-assert-ok (bufferp (twittering-buffer)))
-  (test-assert-ok (buffer-live-p (twittering-buffer)))
-  (test-assert-string-match (regexp-opt (list twittering-buffer))
-    (buffer-name (twittering-buffer))))
 
 (defcase test-assocref nil nil
   (test-assert-eq 'bar (assocref 'foo '((baz . qux) (foo . bar))))
@@ -228,109 +222,118 @@
    '(t t))
   )
 
+(defun format-status (status format-str)
+  (twittering-update-status-format format-str)
+  (twittering-format-status status))
+
 (lexical-let ((status (car (get-fixture 'timeline-data))))
   (defcase test-format-status nil nil
     (test-assert-string-equal "hello world"
-      (twittering-format-status status "hello world"))
+      (format-status status "hello world"))
     (test-assert-string-equal "%"
-      (twittering-format-status status "%%"))
+      (format-status status "%%"))
 
 
 
     (test-assert-string-equal "something like emacs"
-      (twittering-format-status status "something like %s"))
+      (format-status status "something like %s"))
 
     (test-assert-string-equal "We love emacs!"
-      (twittering-format-status status "We love %S!"))
+      (format-status status "We love %S!"))
 
-    (setq twittering-icon-mode nil)
-    (test-assert-string-equal ""
-      (twittering-format-status status "%i"))
-    (setq twittering-icon-mode t)
-    (test-assert-ok
-	(string-match "\\s-+" (twittering-format-status status "%i")))
+    (test-assert-string-equal
+     ""
+     (let ((twittering-icon-mode nil))
+       (format-status status "%i")))
+    (test-assert-string-equal
+     " "
+     (let ((twittering-icon-mode t)
+	   (window-system t))
+       (format-status status "%i")))
 
     (test-assert-string-equal
 	"Emacs is the extensible self-documenting text editor."
-      (twittering-format-status status "%d"))
+      (format-status status "%d"))
 
     (test-assert-string-equal "GNU project"
-      (twittering-format-status status "%l"))
-    (test-assert-string-equal " [GNU project]"
-      (twittering-format-status status "%L"))
+      (format-status status "%l"))
+    (test-assert-string-equal "[GNU project]"
+      (format-status status "%L"))
     (setcdr (assoc 'user-location status) "")
     (test-assert-string-equal ""
-      (twittering-format-status status "%l"))
+      (format-status status "%l"))
     (test-assert-string-equal ""
-      (twittering-format-status status "%L"))
+      (format-status status "%L"))
 
     (setcdr (assoc 'in-reply-to-screen-name status) "hoge")
     (setcdr (assoc 'in-reply-to-status-id status) "123456")
     (test-assert-string-equal " in reply to hoge"
-      (twittering-format-status status "%r"))
+      (format-status status "%r"))
     (setcdr (assoc 'in-reply-to-screen-name status) "foo")
     (setcdr (assoc 'in-reply-to-status-id status) "")
     (test-assert-string-equal ""
-      (twittering-format-status status "%r"))
+      (format-status status "%r"))
     (setcdr (assoc 'in-reply-to-screen-name status) "")
     (setcdr (assoc 'in-reply-to-status-id status) "654321")
     (test-assert-string-equal ""
-      (twittering-format-status status "%r"))
+      (format-status status "%r"))
     (setcdr (assoc 'in-reply-to-screen-name status) "")
     (setcdr (assoc 'in-reply-to-status-id status) "")
     (test-assert-string-equal ""
-      (twittering-format-status status "%r"))
+      (format-status status "%r"))
 
     (test-assert-string-equal "http://www.gnu.org/software/emacs/"
-      (twittering-format-status status "%u"))
+      (format-status status "%u"))
 
     (test-assert-string-equal "9492852"
-      (twittering-format-status status "%j"))
+      (format-status status "%j"))
 
     (test-assert-string-equal ""
-      (twittering-format-status status "%p"))
+      (format-status status "%p"))
     (setcdr (assoc 'user-protected status) "true")
     (test-assert-string-equal "[x]"
-      (twittering-format-status status "%p"))
+      (format-status status "%p"))
     (setcdr (assoc 'user-protected status) "false")
     (test-assert-string-equal ""
-      (twittering-format-status status "%p"))
+      (format-status status "%p"))
 
     (test-assert-string-equal "created at Wed Dec 09 00:44:57 +0000 2009"
-      (twittering-format-status status "created at %c"))
+      (format-status status "created at %c"))
 
     (test-assert-string-equal "created at 2009/12/09 09:44:57"
-      (twittering-format-status status "created at %C{%Y/%m/%d %H:%M:%S}"))
+      (format-status status "created at %C{%Y/%m/%d %H:%M:%S}"))
 
     ;; (test-assert-string-equal "09:44 午前 12月 09, 2009"
-    ;;   (twittering-format-status status "%@"))
+    ;;   (format-status status "%@"))
 
     (test-assert-string-equal "Help protect and support Free Software and the GNU Project by joining the Free Software Foundation! http://www.fsf.org/join?referrer=7019"
-      (twittering-format-status status "%T"))
+      (format-status status "%T"))
 
     (setcdr (assoc 'truncated status) "false")
     (test-assert-string-equal ""
-      (twittering-format-status status "%'"))
+      (format-status status "%'"))
     (setcdr (assoc 'truncated status) "true")
     (test-assert-string-equal "..."
-      (twittering-format-status status "%'"))
+      (format-status status "%'"))
     (setcdr (assoc 'truncated status) "false")
 
     (test-assert-string-equal "web"
-      (twittering-format-status status "%f"))
+      (format-status status "%f"))
 
     (test-assert-string-equal "6480639448"
-      (twittering-format-status status "%#"))
+      (format-status status "%#"))
 
-    (setq twittering-icon-mode nil)
-    (test-assert-string-equal " emacs,  :
+    (test-assert-string-equal
+     " emacs,  :
   Help protect and support Free Software and the GNU Project by joining the Free Software Foundation! http://www.fsf.org/join?referrer=7019 // from web"
-      (twittering-format-status status "%i %s,  :\n  %T // from %f%L%r"))
-    (setq twittering-icon-mode t)
-    (test-assert-string-equal "
-   emacs,  :
+     (let ((twittering-icon-mode nil))
+       (format-status status "%i %s,  :\n  %T // from %f%L%r")))
+    (test-assert-string-equal
+     "  emacs,  :
   Help protect and support Free Software and the GNU Project by joining the Free Software Foundation! http://www.fsf.org/join?referrer=7019 // from web"
-      (twittering-format-status status "%i %s,  :\n  %T // from %f%L%r"))
+     (let ((twittering-icon-mode t)
+	   (window-system t))
+       (format-status status "%i %s,  :\n  %T // from %f%L%r")))
     ))
 
 (defcase test-find-curl-program nil nil

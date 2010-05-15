@@ -1,3 +1,54 @@
+2010-05-15  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Add copyright of the ACTIVE/INACTIVE
+	indicators derived from Wanderlust.
+	(twittering-active-indicator-image): add the copyright as a
+	comment.
+	(twittering-inactive-indicator-image): likewise.
+
+	* twittering-mode.el: The function `twittering-icon-mode' keeps
+	the current cursor point.
+	(twittering-render-timeline): add a new argument `keep-point'.
+	(twittering-icon-mode): keep the current cursor point.
+
+	* test/test-twittering-mode.el: Remove an obsolete test and update
+	`test-format-status'.
+
+	* twittering-mode.el: The proxies for HTTP and HTTPS can be
+	configured individually. The variables
+	`twittering-proxy-{server,port,user,password,keep-alive}' are now
+	aliases.
+	(twittering-http-proxy-server): new variable.
+	(twittering-http-proxy-port): new variable.
+	(twittering-http-proxy-user): new variable.
+	(twittering-http-proxy-password): new variable.
+	(twittering-http-proxy-keep-alive): new variable.
+	(twittering-https-proxy-server): new variable.
+	(twittering-https-proxy-port): new variable.
+	(twittering-https-proxy-user): new variable.
+	(twittering-https-proxy-password): new variable.
+	(twittering-https-proxy-keep-alive): new variable.
+	(twittering-proxy-server): changed into an alias to
+	`twittering-http-proxy-server'.
+	(twittering-proxy-port): changed into an alias to
+	`twittering-http-proxy-port.
+	(twittering-proxy-user): changed into an alias to
+	`twittering-http-proxy-user.
+	(twittering-proxy-password): changed into an alias to
+	`twittering-http-proxy-password.
+	(twittering-proxy-keep-alive): changed into an alias to
+	`twittering-http-proxy-keep-alive.
+	(twittering-normalize-proxy-vars): new function.
+	(twittering-proxy-info): new function.
+	(twittering-url-proxy-services): new function.
+	(twittering-setup-proxy): initialize individual proxy
+	configurations for HTTP and HTTPS.
+
+	* twittering-mode.el: Enable to retrieve icon images silently.
+	(twittering-url-show-status): new variable.
+	(twittering-url-wrapper): control display of status even if the
+	retrieval is asynchronous.
+
 2010-05-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix initialization of `twittering-tls-program'.

@@ -1,3 +1,8 @@
+2010-05-16  Takashi Masuda  <masutaka@nifty.com>
+
+	* twittering-mode.el: merge interpret-time-diff.patch.
+	(twittering-atom-xmltree-to-status-datum): support ISO 8601
+
 2010-05-15  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Add copyright of the ACTIVE/INACTIVE

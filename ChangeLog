@@ -3,6 +3,13 @@
 	* twittering-mode.el (twittering-start-http-session-curl): fix
 	extraction of the scheme from the variable `request'.
 
+	* twittering-mode.el: Use a relative path to specify the temporary
+	cert file for `curl' to ignore the difference of path
+	representation between Windows and Cygwin.
+	(twittering-start-http-session-curl): change directory before
+	invoking `curl' and specify the temporary cert file with relative
+	path.
+
 2010-05-15  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Add copyright of the ACTIVE/INACTIVE

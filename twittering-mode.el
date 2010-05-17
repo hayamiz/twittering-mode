@@ -2848,6 +2848,23 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 	 (headers (if (assoc "Expect" headers)
 		      headers
 		    (cons '("Expect" . "") headers)))
+	 (cacert-fullpath (when twittering-use-ssl
+			    (twittering-ensure-ca-cert)))
+	 (cacert-dir (when cacert-fullpath
+		       (file-name-directory cacert-fullpath)))
+	 (cacert-filename (when cacert-fullpath
+			    (file-name-nondirectory cacert-fullpath)))
+	 (default-directory
+	   ;; If `twittering-use-ssl' is non-nil, the `curl' process
+	   ;; is executed at the same directory as the temporary cert file.
+	   ;; Without changing directory, `curl' misses the cert file if
+	   ;; you use Emacs on Cygwin because the path on Emacs differs
+	   ;; from Windows.
+	   ;; With changing directory, `curl' on Windows can find the cert
+	   ;; file if you use Emacs on Cygwin.
+	   (if twittering-use-ssl
+	       cacert-dir
+	     default-directory))
 	 (curl-args
 	  `("--include" "--silent"
 	    ,@(mapcan (lambda (pair)
@@ -2859,7 +2876,7 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 			  `("-H" ,(format "%s: %s" (car pair) (cdr pair)))))
 		      headers)
 	    ,@(when twittering-use-ssl
-		`("--cacert" ,(twittering-ensure-ca-cert)))
+		`("--cacert" ,cacert-filename))
 	    ,@(when twittering-proxy-use
 		(let* ((proxy-info
 			(twittering-proxy-info (funcall request :schema)))

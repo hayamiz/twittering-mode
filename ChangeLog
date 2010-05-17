@@ -1,3 +1,8 @@
+2010-05-17  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-start-http-session-curl): fix
+	extraction of the scheme from the variable `request'.
+
 2010-05-15  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Add copyright of the ACTIVE/INACTIVE

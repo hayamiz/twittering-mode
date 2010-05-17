@@ -2862,7 +2862,7 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 		`("--cacert" ,(twittering-ensure-ca-cert)))
 	    ,@(when twittering-proxy-use
 		(let* ((proxy-info
-			(twittering-proxy-info (request :schema)))
+			(twittering-proxy-info (funcall request :schema)))
 		       (host (car-safe proxy-info))
 		       (port (cdr-safe proxy-info)))
 		  (when proxy-info
@@ -2870,14 +2870,14 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 	    ,@(when twittering-proxy-use
 		(let ((pair
 		       (cdr (assoc
-			     (request :schema)
+			     (funcall request :schema)
 			     `(("http" .
 				(,twittering-http-proxy-user
 				 . ,twittering-http-proxy-password))
 			       ("https" .
 				(,twittering-https-proxy-user
 				 . ,twittering-https-proxy-password)))))))
-		  (when pair
+		  (when (and pair (car pair) (cdr pair))
 		    `("-U" ,(format "%s:%s" (car pair) (cdr pair))))))
 	    ,@(when (string= "POST" method)
 		(mapcan (lambda (pair)

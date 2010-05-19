@@ -52,6 +52,11 @@ existing way.
 * HTTPS connection using `tls' library working with an external command
   `gnutls' or `openssl' instead of `curl'.
 * Individual proxy configurations for HTTP and HTTPS.
+  If `twittering-proxy-server' and `twittering-proxy-port' are non-nil,
+  they have priority over the other variables `twittering-http-proxy-*' and
+  `twittering-https-proxy-*'. To use individual proxies for HTTP and HTTPS,
+  you must keep the prior variables (`twittering-proxy-server' and
+  `twittering-proxy-port') nil.
 * Silent retrieval of icon images.
   You can enable silent retrieval by "(setq twittering-url-show-status nil)".
 * ...

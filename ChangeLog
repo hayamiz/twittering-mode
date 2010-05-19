@@ -5,6 +5,21 @@
 	(twittering-proxy-info): return all configuration of the proxy for
 	the scheme.
 
+	* twittering-mode.el: Give priority to the variable
+	`twittering-proxy-*' over `twittering-http-proxy-*' and
+	`twittering-https-proxy-*'.
+	(twittering-proxy-server): defined as a variable.
+	(twittering-proxy-port): likewise.
+	(twittering-proxy-keep-alive): likewise.
+	(twittering-proxy-user): likewise.
+	(twittering-proxy-password): likewise.
+	(twittering-normalize-proxy-vars): normalize
+	`twittering-proxy-port'.
+	(twittering-proxy-info): return configuration generated from
+	`twittering-proxy-*' regardless of the scheme (HTTP or HTTPS) if
+	`twittering-proxy-server' and  `twittering-proxy-port' are
+	non-nil.
+
 2010-05-17  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-start-http-session-curl): fix

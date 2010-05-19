@@ -1,3 +1,10 @@
+2010-05-20  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: The configuration of a proxy is referred via
+	the function `twittering-proxy-info'.
+	(twittering-proxy-info): return all configuration of the proxy for
+	the scheme.
+
 2010-05-17  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-start-http-session-curl): fix

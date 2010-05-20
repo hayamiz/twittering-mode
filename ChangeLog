@@ -1,3 +1,37 @@
+2010-05-20  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: The configuration of a proxy is referred via
+	the function `twittering-proxy-info'.
+	(twittering-proxy-info): return all configuration of the proxy for
+	the scheme.
+
+	* twittering-mode.el: Give priority to the variable
+	`twittering-proxy-*' over `twittering-http-proxy-*' and
+	`twittering-https-proxy-*'.
+	(twittering-proxy-server): defined as a variable.
+	(twittering-proxy-port): likewise.
+	(twittering-proxy-keep-alive): likewise.
+	(twittering-proxy-user): likewise.
+	(twittering-proxy-password): likewise.
+	(twittering-normalize-proxy-vars): normalize
+	`twittering-proxy-port'.
+	(twittering-proxy-info): return configuration generated from
+	`twittering-proxy-*' regardless of the scheme (HTTP or HTTPS) if
+	`twittering-proxy-server' and  `twittering-proxy-port' are
+	non-nil.
+
+2010-05-17  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-start-http-session-curl): fix
+	extraction of the scheme from the variable `request'.
+
+	* twittering-mode.el: Use a relative path to specify the temporary
+	cert file for `curl' to ignore the difference of path
+	representation between Windows and Cygwin.
+	(twittering-start-http-session-curl): change directory before
+	invoking `curl' and specify the temporary cert file with relative
+	path.
+
 2010-05-16  Takashi Masuda  <masutaka@nifty.com>
 
 	* twittering-mode.el: merge interpret-time-diff.patch.

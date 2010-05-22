@@ -33,6 +33,55 @@
 	before visiting a timeline.
 	(twittering-visit-timeline): confirm connection method.
 
+	* twittering-mode.el: Support authentication via OAuth. The
+	authentication requires a consumer information registered with
+	Twitter and an external WWW browser to authorize a request token.
+	(twittering-auth-method): new variable.
+	(twittering-oauth-consumer-key, twittering-oauth-consumer-secret):
+	new variables for specifying an OAuth consumer.
+	(twittering-oauth-access-token-alist): new variable for storing
+	access token.
+	(twittering-oauth-url-encode): new function.
+	(twittering-oauth-unhex): new function.
+	(twittering-oauth-url-decode): new function.
+	(twittering-oauth-make-signature-base-string): new function.
+	(twittering-oauth-make-random-string): new function.
+	(twittering-hmac-sha1): imported from
+	http://www.emacswiki.org/emacs/HmacShaOne .
+	(twittering-oauth-auth-str): new function.
+	(twittering-oauth-auth-str-request-token): new function.
+	(twittering-oauth-auth-str-exchange-token): new function.
+	(twittering-oauth-auth-str-access): new function.
+	(twittering-oauth-make-response-alist): new function.
+	(twittering-oauth-get-response-alist): new function.
+	(twittering-oauth-get-token-alist-url): new function.
+	(twittering-oauth-get-token-alist-native): new function.
+	(twittering-oauth-get-token-alist-curl): new function.
+	(twittering-oauth-get-token-function-table): new variable.
+	(twittering-oauth-get-token-function-type): new variable.
+	(twittering-oauth-invoke-browser): new variable.
+	(twittering-oauth-get-token-alist): new function.
+	(twittering-oauth-get-request-token): new function.
+	(twittering-oauth-exchange-request-token): new function.
+	(twittering-oauth-get-access-token): new function.
+	(twittering-prepare-account-info): acquire username and password
+	only if `twittering-auth-method' is symbol `basic'.
+	(twittering-verify-credentials): support Authentication via OAuth.
+	(twittering-http-application-headers): do not add Authorization
+	header.
+	(twittering-http-application-headers-with-auth): new function for
+	generating headers adapted for each authentication method.
+	(twittering-http-get): use
+	`twittering-http-application-headers-with-auth'.
+	(twittering-http-post): likewise.
+	(twittering-percent-encode): encode a string according to
+	Percent-Encoding defined in RFC3986 instead of RFC1738. It simply
+	calls `twittering-oauth-url-encode'.
+	(twittering-url-reserved-p): removed.
+	* test/test-twittering-mode.el: add new test `test-oauth'.
+	* emacs21/hex-util.el: imported from Emacs22.
+	* emacs21/sha1.el: imported from Emacs22.
+
 2010-05-20  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: The configuration of a proxy is referred via

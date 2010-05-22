@@ -70,6 +70,12 @@
 (defvar twittering-api-host "api.twitter.com")
 (defvar twittering-api-search-host "search.twitter.com")
 (defvar twittering-web-host "twitter.com")
+(defvar twittering-oauth-request-token-url
+  "https://api.twitter.com/oauth/request_token")
+(defvar twittering-oauth-authorization-url-base
+  "https://api.twitter.com/oauth/authorize?oauth_token=")
+(defvar twittering-oauth-access-token-url
+  "https://api.twitter.com/oauth/access_token")
 
 (defun twittering-mode-version ()
   "Display a message for twittering-mode version."
@@ -79,6 +85,21 @@
     (if (interactive-p)
 	(message "%s" version-string)
       version-string)))
+
+(defvar twittering-auth-method 'basic
+  "*Authentication method for `twittering-mode'.
+The symbol `basic' means Basic Authentication. The symbol `oauth' means
+OAuth Authentication. OAuth Authentication requires
+`twittering-oauth-consumer-key' and `twittering-oauth-consumer-secret'.
+Additionally, it requires an external command `curl' or another command
+included in `tls-program', which may be `openssl' or `gnutls-cli', for SSL.")
+
+(defvar twittering-oauth-use-ssl nil
+  "*Whether to use SSL on authentication via OAuth. Non-nil is recommended
+but ")
+(defvar twittering-oauth-consumer-key nil)
+(defvar twittering-oauth-consumer-secret nil)
+(defvar twittering-oauth-access-token-alist nil)
 
 (defconst twittering-max-number-of-tweets-on-retrieval 200
   "The maximum number of `twittering-number-of-tweets-on-retrieval'.")
@@ -290,10 +311,12 @@ If nil, this is initialized with a list of valied entries extracted from
 (defvar twittering-connection-type-table
   '((native (check . t)
 	    (https . twittering-start-http-session-native-tls-p)
-	    (start . twittering-start-http-session-native))
+	    (start . twittering-start-http-session-native)
+	    (oauth-get-token . native))
     (curl (check . twittering-start-http-session-curl-p)
 	  (https . twittering-start-http-session-curl-https-p)
-	  (start . twittering-start-http-session-curl)))
+	  (start . twittering-start-http-session-curl)
+	  (oauth-get-token . curl)))
   "A list of alist of connection methods.")
 
 (defvar twittering-format-status-function-source ""
@@ -702,6 +725,571 @@ SCHEME must be \"http\" or \"https\"."
   (if (twittering-setup-proxy)
       (message (if twittering-proxy-use "Use Proxy:on" "Use Proxy:off")))
   (twittering-update-mode-line))
+
+;;;
+;;; OAuth
+;;;
+
+(defvar twittering-oauth-get-token-function-table
+  '((native . twittering-oauth-get-token-alist-native)
+    (curl . twittering-oauth-get-token-alist-curl)
+    (url . twittering-oauth-get-token-alist-url))
+  "Alist of functions used for getting a token on OAuth.")
+
+(defvar twittering-oauth-get-token-function-type 'curl
+  "*Symbol specifying function type used for getting a token on OAuth.
+The function corresponding to the symbol is determined by
+`twittering-oauth-get-token-function-table'.")
+
+(defvar twittering-oauth-invoke-browser nil
+  "*Whether to invoke a browser on authorization of access key automatically.")
+
+(defun twittering-oauth-url-encode (str &optional coding-system)
+  "Encode string according to Percent-Encoding defined in RFC 3986."
+  (let ((coding-system (or (when (and coding-system
+				      (coding-system-p coding-system))
+			     coding-system)
+			   'utf-8)))
+    (mapconcat
+     (lambda (c)
+       (cond
+	((or (and (<= ?A c) (<= c ?Z))
+	     (and (<= ?a c) (<= c ?z))
+	     (and (<= ?0 c) (<= c ?9))
+	     (eq ?. c)
+	     (eq ?- c)
+	     (eq ?_ c)
+	     (eq ?~ c))
+	 (char-to-string c))
+	(t (format "%%%02X" c))))
+     (encode-coding-string str coding-system)
+     "")))
+
+(defun twittering-oauth-unhex (c)
+  (cond
+   ((and (<= ?0 c) (<= c ?9))
+    (- c ?0))
+   ((and (<= ?A c) (<= c ?F))
+    (+ 10 (- c ?A)))
+   ((and (<= ?a c) (<= c ?f))
+    (+ 10 (- c ?a)))
+   ))
+
+(defun twittering-oauth-url-decode (str &optional coding-system)
+  (let* ((coding-system (or (when (and coding-system
+				       (coding-system-p coding-system))
+			      coding-system)
+			    'utf-8))
+	 (substr-list (split-string str "%"))
+	 (head (car substr-list))
+	 (tail (cdr substr-list)))
+    (decode-coding-string
+     (concat
+      head
+      (mapconcat
+       (lambda (substr)
+	 (if (string-match "\\`\\([0-9a-fA-F]\\)\\([0-9a-fA-F]\\)\\(.*\\)\\'"
+			   substr)
+	     (let* ((c1 (string-to-char (match-string 1 substr)))
+		    (c0 (string-to-char (match-string 2 substr)))
+		    (tail (match-string 3 substr))
+		    (ch (+ (* 16 (twittering-oauth-unhex c1))
+			   (twittering-oauth-unhex c0))))
+	       (concat (char-to-string ch) tail))
+	   substr))
+       tail
+       ""))
+     coding-system)))
+
+(defun twittering-oauth-make-signature-base-string (method base-url parameters)
+  ;; "OAuth Core 1.0a"
+  ;; http://oauth.net/core/1.0a/#anchor13
+  (let* ((sorted-parameters (copy-sequence parameters))
+	 (sorted-parameters
+	  (sort sorted-parameters
+		(lambda (entry1 entry2)
+		  (string< (car entry1) (car entry2))))))
+    (concat
+     method
+     "&"
+     (twittering-oauth-url-encode base-url)
+     "&"
+     (mapconcat
+      (lambda (entry)
+	(let ((key (car entry))
+	      (value (cdr entry)))
+	  (concat (twittering-oauth-url-encode key)
+		  "%3D"
+		  (twittering-oauth-url-encode value))))
+      sorted-parameters
+      "%26"))))
+
+(defun twittering-oauth-make-random-string (len)
+  (let* ((table
+	  (concat
+	   "0123456789"
+	   "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	   "abcdefghijklmnopqrstuvwxyz"))
+	 (n (length table))
+	 (l 0)
+	 (result (make-string len ?0)))
+    (while (< l len)
+      (aset result l (aref table (random n)))
+      (setq l (1+ l)))
+    result))
+
+;;;
+;;; The below function is derived from `hmac-sha1' retrieved
+;;; from http://www.emacswiki.org/emacs/HmacShaOne.
+;;;
+(defun twittering-hmac-sha1 (key message)
+  "Return an HMAC-SHA1 authentication code for KEY and MESSAGE.
+
+KEY and MESSAGE must be unibyte strings.  The result is a unibyte
+string.  Use the function `encode-hex-string' or the function
+`base64-encode-string' to produce human-readable output.
+
+See URL:<http://en.wikipedia.org/wiki/HMAC> for more information
+on the HMAC-SHA1 algorithm.
+
+The Emacs multibyte representation actually uses a series of
+8-bit values under the hood, so we could have allowed multibyte
+strings as arguments.  However, internal 8-bit values don't
+correspond to any external representation \(at least for major
+version 22).  This makes multibyte strings useless for generating
+hashes.
+
+Instead, callers must explicitly pick and use an encoding for
+their multibyte data.  Most callers will want to use UTF-8
+encoding, which we can generate as follows:
+
+  (let ((unibyte-key   (encode-coding-string key   'utf-8 t))
+        (unibyte-value (encode-coding-string value 'utf-8 t)))
+    (twittering-hmac-sha1 unibyte-key unibyte-value))
+
+For keys and values that are already unibyte, the
+`encode-coding-string' calls just return the same string."
+;;; Return an HMAC-SHA1 authentication code for KEY and MESSAGE.
+;;; 
+;;; KEY and MESSAGE must be unibyte strings.  The result is a unibyte
+;;; string.  Use the function `encode-hex-string' or the function
+;;; `base64-encode-string' to produce human-readable output.
+;;; 
+;;; See URL:<http://en.wikipedia.org/wiki/HMAC> for more information
+;;; on the HMAC-SHA1 algorithm.
+;;; 
+;;; The Emacs multibyte representation actually uses a series of
+;;; 8-bit values under the hood, so we could have allowed multibyte
+;;; strings as arguments.  However, internal 8-bit values don't
+;;; correspond to any external representation \(at least for major
+;;; version 22).  This makes multibyte strings useless for generating
+;;; hashes.
+;;; 
+;;; Instead, callers must explicitly pick and use an encoding for
+;;; their multibyte data.  Most callers will want to use UTF-8
+;;; encoding, which we can generate as follows:
+;;; 
+;;; (let ((unibyte-key   (encode-coding-string key   'utf-8 t))
+;;;       (unibyte-value (encode-coding-string value 'utf-8 t)))
+;;; (hmac-sha1 unibyte-key unibyte-value))
+;;; 
+;;; For keys and values that are already unibyte, the
+;;; `encode-coding-string' calls just return the same string.
+;;;
+;;; Author: Derek Upham - sand (at) blarg.net
+;;;
+;;; Copyright: This code is in the public domain.
+  (require 'sha1)
+  (when (multibyte-string-p key)
+    (error "key must be unibyte" key))
+  (when (multibyte-string-p message)
+    (error "message must be unibyte" message))
+
+  ;; The key block is always exactly the block size of the hash
+  ;; algorithm.  If the key is too small, we pad it with zeroes (or
+  ;; instead, we initialize the key block with zeroes and copy the
+  ;; key onto the nulls).  If the key is too large, we run it
+  ;; through the hash algorithm and use the hashed value (strange
+  ;; but true).
+
+  (let ((+hmac-sha1-block-size-bytes+ 64)) ; SHA-1 uses 512-bit blocks
+    (when (< +hmac-sha1-block-size-bytes+ (length key))
+      (setq key (sha1 key nil nil t)))
+
+    (let ((key-block (make-vector +hmac-sha1-block-size-bytes+ 0)))
+      (dotimes (i (length key))
+        (aset key-block i (aref key i)))
+
+      (let ((opad (make-vector +hmac-sha1-block-size-bytes+ #x5c))
+            (ipad (make-vector +hmac-sha1-block-size-bytes+ #x36)))
+
+        (dotimes (i +hmac-sha1-block-size-bytes+)
+          (aset ipad i (logxor (aref ipad i) (aref key-block i)))
+          (aset opad i (logxor (aref opad i) (aref key-block i))))
+
+        (sha1 (concat opad
+                      (sha1 (concat ipad message)
+                            nil nil t))
+              nil nil t)))))
+
+(defun twittering-oauth-auth-str (method base-url query-parameters oauth-parameters key)
+  "Generate the value for HTTP Authorization header on OAuth.
+QUERY-PARAMETERS is an alist for query parameters, where name and value
+must be encoded into the same as they will be sent."
+  (let* ((parameters (append query-parameters oauth-parameters))
+	 (base-string
+	  (twittering-oauth-make-signature-base-string method url parameters))
+	 (key (if (multibyte-string-p key)
+		  (string-make-unibyte key)
+		key))
+	 (base-string (if (multibyte-string-p base-string)
+			  (string-make-unibyte base-string)
+			base-string))
+	 (signature
+	  (base64-encode-string (twittering-hmac-sha1 key base-string))))
+    (concat
+     "OAuth "
+     (mapconcat
+      (lambda (entry)
+	(concat (car entry) "=\"" (cdr entry) "\""))
+      oauth-parameters
+      ",")
+     ",oauth_signature=\"" (twittering-oauth-url-encode signature) "\"")))
+
+(defun twittering-oauth-auth-str-request-token (url query-parameters consumer-key consumer-secret &optional oauth-parameters)
+  (let ((key (concat consumer-secret "&"))
+	(oauth-params
+	 (or oauth-parameters
+	     `(("oauth_nonce" . ,(twittering-oauth-make-random-string 43))
+	       ("oauth_callback" . "oob")
+	       ("oauth_signature_method" . "HMAC-SHA1")
+	       ("oauth_timestamp" . ,(format-time-string "%s"))
+	       ("oauth_consumer_key" . ,consumer-key)
+	       ("oauth_version" . "1.0")))))
+    (twittering-oauth-auth-str "POST" url query-parameters oauth-params key)))
+
+(defun twittering-oauth-auth-str-exchange-token (url query-parameters consumer-key consumer-secret request-token request-token-secret verifier &optional oauth-parameters)
+  (let ((key (concat consumer-secret "&" request-token-secret))
+	(oauth-params
+	 (or oauth-parameters
+	     `(("oauth_consumer_key" . ,consumer-key)
+	       ("oauth_nonce" . ,(twittering-oauth-make-random-string 43))
+	       ("oauth_signature_method" . "HMAC-SHA1")
+	       ("oauth_timestamp" . ,(format-time-string "%s"))
+	       ("oauth_version" . "1.0")
+	       ("oauth_token" . ,request-token)
+	       ("oauth_verifier" . ,verifier)))))
+    (twittering-oauth-auth-str "POST" url query-parameters oauth-params key)))
+
+(defun twittering-oauth-auth-str-access (method url query-parameters consumer-key consumer-secret access-token access-token-secret &optional oauth-parameters)
+  "Generate a string for Authorization in HTTP header on OAuth.
+METHOD means HTTP method such as \"GET\", \"POST\", etc. URL means a simple
+URL without port number and query parameters.
+QUERY-PARAMETERS means an alist of query parameters such as
+'((\"status\" . \"test%20tweet\")
+  (\"in_reply_to_status_id\" . \"12345678\")),
+where name and value must be encoded into the same as they will be sent.
+CONSUMER-KEY and CONSUMER-SECRET specifies the consumer.
+ACCESS-TOKEN and ACCESS-TOKEN-SECRET must be authorized before calling this
+function."
+  (let ((key (concat consumer-secret "&" access-token-secret))
+	(oauth-params
+	 (or oauth-parameters
+	     `(("oauth_consumer_key" . ,consumer-key)
+	       ("oauth_nonce" . ,(twittering-oauth-make-random-string 43))
+	       ("oauth_signature_method" . "HMAC-SHA1")
+	       ("oauth_timestamp" . ,(format-time-string "%s"))
+	       ("oauth_version" . "1.0")
+	       ("oauth_token" . ,access-token)))))
+    (twittering-oauth-auth-str method url query-parameters oauth-params key)))
+
+;; "OAuth Core 1.0a"
+;; http://oauth.net/core/1.0a/#response_parameters
+(defun twittering-oauth-make-response-alist (str)
+  (mapcar
+   (lambda (entry)
+     (let* ((pair (split-string entry "="))
+	    (name (twittering-oauth-url-decode (car pair)))
+	    (value (twittering-oauth-url-decode (cadr pair))))
+       `(,name . ,value)))
+   (split-string str "&")))
+
+(defun twittering-oauth-get-response-alist (buffer)
+  (with-current-buffer buffer
+    (goto-char (point-min))
+    (when (and twittering-proxy-use twittering-use-ssl)
+      ;; When using SSL via a proxy with CONNECT method,
+      ;; omit a successful HTTP response and headers if they seem to be
+      ;; sent from the proxy.
+      (save-excursion
+	(goto-char (point-min))
+	(let ((first-regexp
+	       ;; successful HTTP response
+	       "\\`HTTP/1\.[01] 2[0-9][0-9] .*?\r?\n")
+	      (next-regexp
+	       ;; following HTTP response
+	       "^\\(\r?\n\\)HTTP/1\.[01] [0-9][0-9][0-9] .*?\r?\n"))
+	  (when (and (search-forward-regexp first-regexp nil t)
+		     (search-forward-regexp next-regexp nil t))
+	    (let ((beg (point-min))
+		  (end (match-end 1)))
+	      (delete-region beg end))))))
+    (when (search-forward-regexp
+	   "\\`\\(\\(HTTP/1\.[01]\\) \\([0-9][0-9][0-9]\\) \\(.*?\\)\\)\r?\n"
+	   nil t)
+      (let ((status-line (match-string 1))
+	    (http-version (match-string 2))
+	    (status-code (match-string 3))
+	    (reason-phrase (match-string 4)))
+	(cond
+	 ((not (string-match "2[0-9][0-9]" status-code))
+	  (message "Response: %s" status-line)
+	  nil)
+	 ((search-forward-regexp "\r?\n\r?\n" nil t)
+	  (let ((beg (match-end 0))
+		(end (if (search-forward-regexp "closed\r?\n\\'" nil t)
+			 (match-beginning 0)
+		       (point-max))))
+	    (twittering-oauth-make-response-alist (buffer-substring beg end))))
+	 (t
+	  (message "Response: %s" status-line)
+	  nil))))))
+
+(defun twittering-oauth-get-token-alist-url (url auth-str)
+  (let* ((url-request-method "POST")
+	 (url-request-extra-headers
+	  `(("Authorization" . ,auth-str)
+	    ("Accept-Charset" . "us-ascii")
+	    ("Content-Type" . "application/x-www-form-urlencoded")
+	    ("Content-Length" . "0")
+	    ))
+	 (coding-system-for-read 'utf-8-unix))
+    (lexical-let ((result 'queried))
+      (let ((buffer
+	     (url-retrieve
+	      url
+	      (lambda (&rest args)
+		(let* ((status (if (< 21 emacs-major-version)
+				   (car args)
+				 nil))
+		       (callback-args (if (< 21 emacs-major-version)
+					  (cdr args)
+					args))
+		       (response-buffer (current-buffer)))
+		  (setq result
+			(twittering-oauth-get-response-alist response-buffer))
+		  )))))
+	(while (eq result 'queried)
+	  (sit-for 0.1))
+	(kill-buffer buffer)
+	result))))
+
+(defun twittering-oauth-get-token-alist-native (url auth-str)
+  (let* ((method "POST")
+	 (url-parts (url-generic-parse-url url))
+	 (scheme (and url-parts (aref url-parts 0)))
+	 (host (and url-parts (aref url-parts 3)))
+	 (port (and url-parts (aref url-parts 4)))
+	 (path (and url-parts (aref url-parts 5)))
+	 (proxy-info
+	  (when twittering-proxy-use
+	    (twittering-proxy-info scheme)))
+	 (connect-host (if proxy-info
+			   (cdr (assq 'server proxy-info))
+			 host))
+	 (connect-port (if proxy-info
+			   (cdr (assq 'port proxy-info))
+			 port))
+	 (headers
+	  `(("Authorization" . ,auth-str)
+	    ("Accept-Charset" . "us-ascii")
+	    ("Content-Type" . "application/x-www-form-urlencoded")
+	    ("Content-Length" . "0")
+	    ("Host" . ,host)))
+	 (request-str
+	  (format "%s %s HTTP/1.1\r\n%s\r\n\r\n"
+		  method path
+		  (mapconcat (lambda (pair)
+			       (format "%s: %s" (car pair) (cdr pair)))
+			     headers "\r\n"))))
+    (with-temp-buffer
+      (let* ((coding-system-for-read 'utf-8-unix)
+	     (proc (open-tls-stream "network-connection-process"
+				    nil connect-host connect-port)))
+	(when proc
+	  (set-process-buffer proc (current-buffer))
+	  (lexical-let ((result 'queried))
+	    (set-process-sentinel
+	     proc
+	     (lambda (&rest args)
+	       (let* ((proc (car args))
+		      (buffer (process-buffer proc)))
+		 (when buffer
+		   (setq result
+			 (twittering-oauth-get-response-alist buffer))))))
+	    (process-send-string proc request-str)
+	    (while (eq result 'queried)
+	      (sit-for 0.1))
+	    result))))))
+
+(defun twittering-oauth-get-token-alist-curl (url auth-str)
+  (let* ((url-parts (url-generic-parse-url url))
+	 (scheme (and url-parts (aref url-parts 0)))
+	 (host (and url-parts (aref url-parts 3)))
+	 (port (and url-parts (aref url-parts 4)))
+	 (path (and url-parts (aref url-parts 5)))
+	 (headers
+	  `(("Authorization" . ,auth-str)
+	    ("Accept-Charset" . "us-ascii")
+	    ("Content-Type" . "application/x-www-form-urlencoded")
+	    ("Content-Length" . "0")))
+	 (cacert-fullpath (when twittering-use-ssl
+			    (twittering-ensure-ca-cert)))
+	 (cacert-dir (when cacert-fullpath
+		       (file-name-directory cacert-fullpath)))
+	 (cacert-filename (when cacert-fullpath
+			    (file-name-nondirectory cacert-fullpath)))
+	 (curl-args
+	  `("--include" "--silent"
+	    ,@(mapcan (lambda (pair)
+			`("-H" ,(format "%s: %s" (car pair) (cdr pair))))
+		      headers)
+	    ,@(when twittering-use-ssl
+		`("--cacert" ,cacert-filename))
+	    ,@(when twittering-proxy-use
+		(let* ((host (twittering-proxy-info scheme 'server))
+		       (port (twittering-proxy-info scheme 'port)))
+		  (when (and host port)
+		    `("-x" ,(format "%s:%s" host port)))))
+	    ,@(when twittering-proxy-use
+		(let ((pair
+		       (cond
+			((string= scheme "https")
+			 `(,twittering-https-proxy-user
+			   . ,twittering-https-proxy-password))
+			((string= scheme "http")
+			 `(,twittering-http-proxy-user
+			   . ,twittering-http-proxy-password))
+			(t
+			 nil))))
+		  (when (and pair (car pair) (cdr pair))
+		    `("-U" ,(format "%s:%s" (car pair) (cdr pair))))))
+	    ;; HTTP method must be POST for getting a request token.
+	    "-d" ""
+	    ,url)))
+    (with-temp-buffer
+      (let* ((coding-system-for-read 'utf-8-unix)
+	     (default-directory
+	       ;; If `twittering-use-ssl' is non-nil, the `curl' process
+	       ;; is executed at the same directory as the temporary cert file.
+	       ;; Without changing directory, `curl' misses the cert file if
+	       ;; you use Emacs on Cygwin because the path on Emacs differs
+	       ;; from Windows.
+	       ;; With changing directory, `curl' on Windows can find the cert
+	       ;; file if you use Emacs on Cygwin.
+	       (if twittering-use-ssl
+		   cacert-dir
+		 default-directory))
+	     (proc (apply 'start-process "*twmode-curl*" (current-buffer)
+			  twittering-curl-program curl-args)))
+	(when proc
+	  (lexical-let ((result 'queried))
+	    (set-process-sentinel
+	     proc
+	     (lambda (&rest args)
+	       (let* ((proc (car args))
+		      (buffer (process-buffer proc)))
+		 (when buffer
+		   (setq result
+			 (twittering-oauth-get-response-alist buffer))))))
+	    (while (eq result 'queried)
+	      (sit-for 0.1))
+	    result))))))
+
+(defun twittering-oauth-get-token-alist (url auth-str)
+  (let ((func (cdr (assq twittering-oauth-get-token-function-type
+			 twittering-oauth-get-token-function-table))))
+    (when (and func (functionp func))
+      (funcall func url auth-str))))
+
+(defun twittering-oauth-get-request-token (url consumer-key consumer-secret)
+  (let ((auth-str
+	 (twittering-oauth-auth-str-request-token
+	  url nil consumer-key consumer-secret)))
+    (twittering-oauth-get-token-alist url auth-str)))
+
+(defun twittering-oauth-exchange-request-token (url consumer-key consumer-secret request-token request-token-secret verifier)
+  (let ((auth-str
+	 (twittering-oauth-auth-str-exchange-token
+	  url nil
+	  consumer-key consumer-secret
+	  request-token request-token-secret verifier)))
+    (twittering-oauth-get-token-alist url auth-str)))
+
+(defun twittering-oauth-get-access-token (request-token-url authorize-url-func access-token-url consumer-key consumer-secret consumer-name)
+  "Return an alist of authorized access token.
+The function retrieves a request token from the site specified by
+REQUEST-TOKEN-URL. Then, The function asks a WWW browser to authorize the
+token by calling `browse-url'. The URL for authorization is calculated by
+calling AUTHORIZE-URL-FUNC with the request token as an argument.
+AUTHORIZE-URL-FUNC is called as `(funcal AUTHORIZE-URL-FUNC request-token)',
+where the request-token is a string.
+After calling `browse-url', the function waits for user to input the PIN code
+that is displayed in the browser. The request token is authorized by the
+PIN code, and then it is exchanged for the access token on the site
+specified by ACCESS-TOKEN-URL.
+CONSUMER-KEY and CONSUMER-SECRET specify the consumer.
+CONSUMER-NAME is displayed at the guide of authorization.
+
+The access token is returned as a list of a cons pair of name and value
+like following:
+ ((\"oauth_token\"
+  . \"819797-Jxq8aYUDRmykzVKrgoLhXSq67TEa5ruc4GJC2rWimw\")
+  (\"oauth_token_secret\"
+   . \"J6zix3FfA9LofH0awS24M3HcBYXO5nI1iYe8EfBA\")
+  (\"user_id\" . \"819797\")
+  (\"screen_name\" . \"episod\"))
+."
+  (let* ((request-token-alist
+	  (twittering-oauth-get-request-token
+	   request-token-url consumer-key consumer-secret))
+	 (request-token (cdr (assoc "oauth_token" request-token-alist)))
+	 (request-token-secret
+	  (cdr (assoc "oauth_token_secret" request-token-alist)))
+	 (authorize-url (funcall authorize-url-func request-token))
+	 (str
+	  (concat
+	   (propertize "Authorization via OAuth\n" 'face 'bold)
+	   "\n"
+	   "1.Allow access by " consumer-name " on the below site.\n"
+	   "\n  "
+	   (propertize authorize-url 'url authorize-url 'face 'bold)
+	   "\n"
+	   "\n"
+	   (when twittering-oauth-invoke-browser
+	     "  Emacs invokes your browser by the function `browse-url'.\n"
+	     "  If the site is not opened automatically, you have to open\n"
+	     "  the site manually.\n"
+	     "\n")
+	   "2.After allowing access, the site will display the PIN code."
+	   "\n"
+	   "  Input the PIN code "
+	   (propertize "at the below minibuffer." 'face 'bold))))
+    (when request-token-alist
+      (with-temp-buffer
+	(switch-to-buffer (current-buffer))
+	(let* ((str-height (length (split-string str "\n")))
+	       (height (max 0 (- (/ (- (window-text-height) 1) 2)
+				 (/ str-height 2)))))
+	  (insert (make-string height ?\n) str)
+	  (when twittering-oauth-invoke-browser
+	    (browse-url authorize-url))
+	  (let* ((pin (read-string "Input PIN code: "))
+		 (verifier pin))
+	    (twittering-oauth-exchange-request-token
+	     access-token-url
+	     consumer-key consumer-secret
+	     request-token request-token-secret verifier)))))))
 
 ;;;
 ;;; to show image files
@@ -2237,16 +2825,48 @@ authorized -- The account has been authorized.")
   (eq twittering-account-authorization 'queried))
 
 (defun twittering-prepare-account-info ()
-  (unless (twittering-get-username)
-    (setq twittering-username (read-string "your twitter username: ")))
-  (unless (twittering-get-password)
-    (setq twittering-password
-	  (read-passwd (format "%s's twitter password: "
-			       twittering-username)))))
+  (when (eq twittering-auth-method 'basic)
+    (unless (twittering-get-username)
+      (setq twittering-username (read-string "your twitter username: ")))
+    (unless (twittering-get-password)
+      (setq twittering-password
+	    (read-passwd (format "%s's twitter password: "
+				 twittering-username))))))
 
 (defun twittering-verify-credentials ()
-  (unless (or (twittering-account-authorized-p)
-	      (twittering-account-authorization-queried-p))
+  (cond
+   ((or (twittering-account-authorized-p)
+	(twittering-account-authorization-queried-p))
+    nil)
+   ((and (eq twittering-auth-method 'oauth)
+	 (or (null twittering-oauth-consumer-key)
+	     (null twittering-oauth-consumer-secret)))
+    (message "Consumer for OAuth is not specified.")
+    nil)
+   ((eq twittering-auth-method 'oauth)
+    (let* ((entry (twittering-lookup-connection-type twittering-use-ssl))
+	   (oauth-get-token-type (cdr (assq 'oauth-get-token entry))))
+      (setq twittering-oauth-get-token-function-type oauth-get-token-type))
+    (let ((token-alist
+	   (twittering-oauth-get-access-token
+	    twittering-oauth-request-token-url
+	    (lambda (token)
+	      (concat twittering-oauth-authorization-url-base token))
+	    twittering-oauth-access-token-url
+	    twittering-oauth-consumer-key twittering-oauth-consumer-secret
+	    "twittering-mode")))
+      (cond
+       (token-alist
+	(let ((username (cdr (assoc "screen_name" token-alist))))
+	  (setq twittering-oauth-access-token-alist token-alist)
+	  (setq twittering-username username)
+	  (setq twittering-account-authorization 'authorized)
+	  (twittering-start)
+	  (message "Authorization for the account \"%s\" succeeded."
+		   username)))
+       (t
+	(message "Authorization via OAuth failed. Type M-x twit to retry.")))))
+   ((eq twittering-auth-method 'basic)
     (setq twittering-account-authorization 'queried)
     (let ((proc
 	   (twittering-call-api
@@ -2257,7 +2877,7 @@ authorized -- The account has been authorized.")
 	(message "Authorization for the account \"%s\" failed. Type M-x twit to retry."
 		 (twittering-get-username))
 	(setq twittering-username nil)
-	(setq twittering-password nil)))))
+	(setq twittering-password nil))))))
 
 (defun twittering-http-get-verify-credentials-sentinel (header-info proc noninteractive &optional suc-msg)
   (let ((status-line (cdr (assq 'status-line header-info)))
@@ -3164,14 +3784,6 @@ Available keywords:
 
   (let ((headers headers))
     (push (cons "User-Agent" (twittering-user-agent)) headers)
-    (push (cons "Authorization"
-		(concat "Basic "
-			(base64-encode-string
-			 (concat
-			  (twittering-get-username)
-			  ":"
-			  (twittering-get-password)))))
-	  headers)
     (when (string= "GET" method)
       (push (cons "Accept"
 		  (concat
@@ -3212,15 +3824,59 @@ Available keywords:
 				    (assq 'hash xmltree))))))
     nil))
 
-(defun twittering-http-get (host method &optional noninteractive parameters format sentinel)
-  (if (null format)
-      (setq format "xml"))
-  (if (null sentinel)
-      (setq sentinel 'twittering-http-get-default-sentinel))
+(defun twittering-http-application-headers-with-auth (method url query-parameters)
+  "Return an alist of HTTP headers with Authorization for `twittering-mode'.
+METHOD is HTTP method (\"GET\", \"POST\", etc.).
+QUERY-PARAMETERS is a list of cons pair of name and value such as
+'((\"status\" . \"test tweet\")
+  (\"in_reply_to_status_id\" . \"12345678\"))."
+  (let ((auth-str
+	 (cond
+	  ((eq twittering-auth-method 'basic)
+	   (concat "Basic "
+		   (base64-encode-string
+		    (concat (twittering-get-username)
+			    ":" (twittering-get-password)))))
+	  ((and (eq twittering-auth-method 'oauth)
+		(twittering-account-authorized-p))
+	   (let ((access-token
+		  (cdr (assoc "oauth_token"
+			      twittering-oauth-access-token-alist)))
+		 (access-token-secret
+		  (cdr (assoc "oauth_token_secret"
+			      twittering-oauth-access-token-alist)))
+		 (encoded-query-parameters
+		  (mapcar
+		   (lambda (entry)
+		     (let ((name (twittering-percent-encode (car entry)))
+			   (value (twittering-percent-encode (cdr entry))))
+		       `(,name . ,value)))
+		   query-parameters)))
+	     (twittering-oauth-auth-str-access
+	      method url encoded-query-parameters
+	      twittering-oauth-consumer-key twittering-oauth-consumer-secret
+	      access-token access-token-secret)))
+	  (t
+	   nil)))
+	(base-headers (twittering-http-application-headers method)))
+    (if auth-str
+	`(,@base-headers
+	  ("Authorization" . ,auth-str))
+      base-headers)))
 
-  (twittering-start-http-session
-   "GET" (twittering-http-application-headers "GET")
-   host nil (concat "/" method "." format) parameters noninteractive sentinel))
+(defun twittering-http-get (host method &optional noninteractive parameters format sentinel)
+  (let* ((format (or format "xml"))
+	 (sentinel (or sentinel 'twittering-http-get-default-sentinel))
+	 (scheme (if twittering-use-ssl
+		     "https"
+		   "http"))
+	 (path (concat "/" method "." format))
+	 (url (format "%s://%s%s" scheme host path))
+	 (headers
+	  (twittering-http-application-headers-with-auth
+	   "GET" url parameters)))
+    (twittering-start-http-session
+     "GET" headers host nil path parameters noninteractive sentinel)))
 
 (defun twittering-created-at-to-seconds (created-at)
   (let ((encoded-time (apply 'encode-time (parse-time-string created-at))))
@@ -3356,16 +4012,19 @@ METHOD must be one of Twitter API method classes
 PARAMETERS is alist of URI parameters.
  ex) ((\"mode\" . \"view\") (\"page\" . \"6\")) => <URI>?mode=view&page=6
 FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
-  (if (null format)
-      (setq format "xml"))
-  (if (null sentinel)
-      (setq sentinel 'twittering-http-post-default-sentinel))
-
-  (add-to-list 'parameters '("source" . "twmode"))
-
-  (twittering-start-http-session
-   "POST" (twittering-http-application-headers "POST")
-   host nil (concat "/" method "." format) parameters noninteractive sentinel))
+  (let* ((format (or format "xml"))
+	 (sentinel (or sentinel 'twittering-http-post-default-sentinel))
+	 (parameters (cons '("source" . "twmode") parameters))
+	 (scheme (if twittering-use-ssl
+		     "https"
+		   "http"))
+	 (path (concat "/" method "." format))
+	 (url (format "%s://%s%s" scheme host path))
+	 (headers
+	  (twittering-http-application-headers-with-auth
+	   "POST" url parameters)))
+    (twittering-start-http-session
+     "POST" headers host nil path parameters noninteractive sentinel)))
 
 (defun twittering-http-post-default-sentinel (header-info proc noninteractive &optional suc-msg)
   (let ((status-line (cdr (assq 'status-line header-info)))
@@ -3732,27 +4391,8 @@ BUFFER may be a buffer or the name of an existing buffer."
 			      xmltree))))
 
 (defun twittering-percent-encode (str &optional coding-system)
-  (if (or (null coding-system)
-	  (not (coding-system-p coding-system)))
-      (setq coding-system 'utf-8))
-  (mapconcat
-   (lambda (c)
-     (cond
-      ((twittering-url-reserved-p c)
-       (char-to-string c))
-      ((eq c ? ) "+")
-      (t (format "%%%02x" c))))
-   (encode-coding-string str coding-system)
-   ""))
-
-(defun twittering-url-reserved-p (ch)
-  (or (and (<= ?A ch) (<= ch ?Z))
-      (and (<= ?a ch) (<= ch ?z))
-      (and (<= ?0 ch) (<= ch ?9))
-      (eq ?. ch)
-      (eq ?- ch)
-      (eq ?_ ch)
-      (eq ?~ ch)))
+  "Encode STR according to Percent-Encoding defined in RFC 3986."
+  (twittering-oauth-url-encode str coding-system))
 
 (defun twittering-decode-html-entities (encoded-str)
   (if encoded-str

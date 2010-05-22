@@ -59,6 +59,15 @@ existing way.
   `twittering-proxy-port') nil.
 * Silent retrieval of icon images.
   You can enable silent retrieval by "(setq twittering-url-show-status nil)".
+* Authentication via OAuth.
+  It requires a consumer information registered with Twitter and an external
+  WWW browser to authorize a request token. Additionally, for SSL, it
+  requires an external command `curl' or another command included in the
+  variable `tls-program', which may be `openssl' or `gnutls-cli'.
+  (Caution: Neither `openssl' nor `gnutls-cli' support SSL via proxy.)
+  You can enable OAuth by "(setq twittering-auth-method 'oauth)".
+  If `twittering-oauth-invoke-browser' is non-nil, twittering-mode
+  automatically opens a browser on authorization.
 * ...
 
 ### Bug fixes

@@ -1,5 +1,11 @@
 2010-05-23  Takashi Masuda  <masutaka@nifty.com>
 
+	* twittering-mode.el: ハッシュタグの上で Enter した時は、
+	browse-url ではなく twittering-search を使うようにした。
+	(twittering-extract-hashtag): new function.
+	(twittering-enter): uri がハッシュタグの時は twittering-search を使
+	うようにした。
+
 	* twittering-mode.el: StatusNet 関連の実装は別ブランチでやることに
 	したので、一端 hayamizu/master と同じ内容にする。
 

@@ -1511,6 +1511,13 @@ image are displayed."
   (format "http://%s/search?q=%s"
 	  twittering-web-host (twittering-percent-encode query-string)))
 
+(defun twittering-extract-hashtag (uri)
+  (if (string-match (format "http://%s/search\\?q=%%23\\(.+\\)"
+			    twittering-web-host)
+		    uri)
+      (concat "#" (match-string 1 uri))
+    ""))
+
 (defun twittering-user-agent-default-function ()
   "Twittering mode default User-Agent function."
   (format "Emacs/%d.%d Twittering-mode/%s"
@@ -5468,7 +5475,10 @@ managed by `twittering-mode'."
 		      (concat "@" screen-name-in-text " "))
 		    id screen-name-in-text spec))
 	  (uri
-	   (browse-url uri))
+	   (let ((hashtag (twittering-extract-hashtag uri)))
+	     (if hashtag
+		 (twittering-search hashtag)
+	       (browse-url uri))))
 	  (username
 	   (funcall twittering-update-status-function
 		    (if (twittering-timeline-spec-is-direct-messages-p spec)

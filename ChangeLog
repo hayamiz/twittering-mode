@@ -93,6 +93,12 @@
 	strings even on Emacs23 and later.
 	* test/test-twittering-mode.el: add new test `test-hmac-sha1'.
 
+	* emacs21/sha1.el: Imported from Gnus distributed with Emacs
+	22.2.1 on Debian 5.0 for Emacs21 that does not include `sha1.el'.
+	* emacs21/hex-util.el: Imported from Gnus distributed with Emacs
+	22.2.1 on Debian 5.0 for Emacs21 that does not include
+	`hex-util.el'.
+
 2010-05-20  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: The configuration of a proxy is referred via

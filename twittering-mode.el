@@ -1515,8 +1515,7 @@ image are displayed."
   (if (string-match (format "http://%s/search\\?q=%%23\\(.+\\)"
 			    twittering-web-host)
 		    uri)
-      (concat "#" (match-string 1 uri))
-    ""))
+      (concat "#" (match-string 1 uri))))
 
 (defun twittering-user-agent-default-function ()
   "Twittering mode default User-Agent function."

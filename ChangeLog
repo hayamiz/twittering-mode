@@ -1,5 +1,10 @@
 2010-05-23  Takashi Masuda  <masutaka@nifty.com>
 
+	* twittering-mode.el: url がハッシュタグでない場合も
+	twittering-search を使うバグを修正
+	(twittering-extract-hashtag): ハッシュタグを抽出できない場合は ""
+	ではなく nil を返すようにした。
+
 	* twittering-mode.el: ハッシュタグの上で Enter した時は、
 	browse-url ではなく twittering-search を使うようにした。
 	(twittering-extract-hashtag): new function.

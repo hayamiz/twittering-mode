@@ -4953,15 +4953,16 @@ managed by `twittering-mode'."
 
 (defun twittering-visit-timeline (&optional timeline-spec initial)
   (interactive)
-  (twittering-initialize-global-variables-if-necessary)
-  (twittering-prepare-account-info)
-  (let ((timeline-spec
-	 (or timeline-spec
-	     (twittering-read-timeline-spec-with-completion
-	      "timeline: " initial t))))
-    (when timeline-spec
-      (twittering-verify-credentials)
-      (switch-to-buffer (twittering-get-managed-buffer timeline-spec)))))
+  (when (twittering-lookup-http-start-function)
+    (twittering-initialize-global-variables-if-necessary)
+    (twittering-prepare-account-info)
+    (let ((timeline-spec
+	   (or timeline-spec
+	       (twittering-read-timeline-spec-with-completion
+		"timeline: " initial t))))
+      (when timeline-spec
+	(twittering-verify-credentials)
+	(switch-to-buffer (twittering-get-managed-buffer timeline-spec))))))
 
 (defun twittering-other-user-timeline ()
   (interactive)

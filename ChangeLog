@@ -29,6 +29,10 @@
 	(twittering-lookup-http-start-function): reimplemented.
 	(twittering-lookup-connection-type): new function.
 
+	* twittering-mode.el: Confirm an available connection method
+	before visiting a timeline.
+	(twittering-visit-timeline): confirm connection method.
+
 2010-05-20  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: The configuration of a proxy is referred via

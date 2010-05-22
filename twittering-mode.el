@@ -3203,6 +3203,25 @@ Available keywords:
   (let ((temp-buffer (process-buffer proc))
 	(status (process-status proc))
 	(mes nil))
+    (when (and twittering-proxy-use twittering-use-ssl
+	       (buffer-live-p temp-buffer))
+      ;; When using SSL via a proxy with CONNECT method,
+      ;; omit a successful HTTP response and headers if they seem to be
+      ;; sent from the proxy.
+      (with-current-buffer temp-buffer
+	(save-excursion
+	  (goto-char (point-min))
+	  (let ((first-regexp
+		 ;; successful HTTP response
+		 "\\`HTTP/1\.[01] 2[0-9][0-9] .*?\r?\n")
+		(next-regexp
+		 ;; following HTTP response
+		 "^\\(\r?\n\\)HTTP/1\.[01] [0-9][0-9][0-9] .*?\r?\n"))
+	    (when (and (search-forward-regexp first-regexp nil t)
+		       (search-forward-regexp next-regexp nil t))
+	      (let ((beg (point-min))
+		    (end (match-end 1)))
+		(delete-region beg end)))))))
     (cond
      ((null status)
       (setq mes "Failure: no such process exists."))
@@ -3338,10 +3357,6 @@ BUFFER may be a buffer or the name of an existing buffer which contains the HTTP
   (with-current-buffer buffer
     (save-excursion
       (goto-char (point-min))
-      ;; FIXME: curl prints HTTP proxy response header, so strip it
-      (when (search-forward-regexp
-	     "HTTP/1\\.[01] 200 Connection established\r\n\r\n" nil t)
-	(delete-region (point-min) (point)))
       (if (search-forward-regexp "\r?\n\r?\n" nil t)
 	  (buffer-substring (point-min) (match-end 0))
 	nil))))

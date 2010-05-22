@@ -6,6 +6,13 @@
 	`utf-8-unix' for reading data retrieved from Twitter.
 	(twittering-start-http-session-native): likewise.
 
+	* twittering-mode.el: Omit a successful HTTP response and headers
+	if they seem to be sent from a proxy for CONNECT method.
+	(twittering-http-default-sentinel): omit a successful HTTP
+	response and headers from a proxy if using SSL via the proxy.
+	(twittering-get-response-header): do not remove headers from a
+	proxy.
+
 2010-05-20  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: The configuration of a proxy is referred via

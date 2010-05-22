@@ -4098,19 +4098,11 @@ BUFFER may be a buffer or the name of an existing buffer."
 	(time-str (car (cddr (assq 'updated atom-xml-entry))))
 	(author-str (car (cddr (assq 'name (assq 'author atom-xml-entry))))))
     `((created-at
-       ;; ISO 8601
-       ;; Twitter -> "2010-05-08T05:59:41Z"
-       ;; StatusNet -> "2010-05-08T08:44:39+00:00"
-       . ,(if (string-match "\\(.*\\)T\\(.*\\)\\(Z\\|\\([-+][0-2][0-9]\\):?\\([0-5][0-9]\\)\\)" time-str)
+       . ,(if (string-match "\\(.*\\)T\\(.*\\)Z" time-str)
 	      ;; time-str is formatted as
 	      ;; "Combined date and time in UTC:" in ISO 8601.
-	      (let ((timezone (match-string 3 time-str)))
-		(format "%s %s %s"
-			(match-string 1 time-str) (match-string 2 time-str)
-			(if (string= "Z" timezone)
-			    "+0000"
-			  (concat (match-string 4 time-str)
-				  (match-string 5 time-str)))))
+	      (format "%s %s +0000"
+		      (match-string 1 time-str) (match-string 2 time-str))
 	    ;; unknown format?
 	    time-str))
       (id . ,(progn
@@ -4127,13 +4119,9 @@ BUFFER may be a buffer or the name of an existing buffer."
       (text . ,(twittering-decode-html-entities
 		(car (cddr (assq 'title atom-xml-entry)))))
       ,@(progn
-	  (if (string-match "^\\([^ ]+\\) (\\(.*\\))$" author-str)
-	      ;; Twitter
-	      `((user-screen-name . ,(match-string 1 author-str))
-		(user-name . ,(match-string 2 author-str)))
-	    ;; StatusNet
-	    `((user-screen-name . ,author-str)
-	      (user-name . ""))))
+	  (string-match "^\\([^ ]+\\) (\\(.*\\))$" author-str)
+	  `((user-screen-name . ,(match-string 1 author-str))
+	    (user-name . ,(match-string 2 author-str))))
       (user-profile-image-url
        . ,(let* ((link-items
 		  (mapcar
@@ -4144,8 +4132,7 @@ BUFFER may be a buffer or the name of an existing buffer."
 		 (image-urls
 		  (mapcar
 		   (lambda (item)
-		     (when (or (member '(rel . "image") item)    ;; Twitter
-			       (member '(rel . "related") item)) ;; StatusNet
+		     (when (member '(rel . "image") item)
 		       (cdr (assq 'href item))))
 		   link-items)))
 	    (car-safe (remq nil image-urls)))))))

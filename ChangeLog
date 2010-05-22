@@ -1,3 +1,8 @@
+2010-05-23  Takashi Masuda  <masutaka@nifty.com>
+
+	* twittering-mode.el: StatusNet 関連の実装は別ブランチでやることに
+	したので、一端 hayamizu/master と同じ内容にする。
+
 2010-05-22  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Use the coding-system `utf-8-unix' for

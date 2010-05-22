@@ -81,9 +81,9 @@
     (twittering-percent-encode "Rinko"))
   (test-assert-string-equal "%25"
     (twittering-percent-encode "%"))
-  (test-assert-string-equal "love+plus"
+  (test-assert-string-equal "love%20plus"
     (twittering-percent-encode "love plus"))
-  (test-assert-string-equal "%0a"
+  (test-assert-string-equal "%0A"
     (twittering-percent-encode "\n")))
 
 (with-network
@@ -356,17 +356,6 @@
 		       (twittering-ensure-ca-cert)
 		       "https://twitter.com/"))))))
 
-(defcase test-url-reserved-p nil nil
-  (test-assert-ok (twittering-url-reserved-p ?a))
-  (test-assert-ok (twittering-url-reserved-p ?A))
-  (test-assert-ok (twittering-url-reserved-p ?Z))
-  (test-assert-ok (twittering-url-reserved-p ?z))
-  (test-assert-ok (not (twittering-url-reserved-p ?\[)))
-  (test-assert-ok (not (twittering-url-reserved-p ?\])))
-  (test-assert-ok (not (twittering-url-reserved-p ?\\)))
-  (test-assert-ok (not (twittering-url-reserved-p ?^)))
-  (test-assert-ok (not (twittering-url-reserved-p ?`))))
-
 (defcase test-status-not-blank-p nil nil
   (test-assert-ok (not (twittering-status-not-blank-p "")))
   (test-assert-ok (not (twittering-status-not-blank-p "\n")))
@@ -379,4 +368,101 @@
   (test-assert-ok (twittering-status-not-blank-p "hello\n"))
   (test-assert-ok (twittering-status-not-blank-p "@foo hello @bar"))
   (test-assert-ok (twittering-status-not-blank-p "hello @foo"))
+  )
+
+(defcase test-oauth nil nil
+  ;; "Authenticating Requests | dev.twitter.com"
+  ;; http://dev.twitter.com/pages/auth
+  (setq sample-consumer-key "GDdmIQH6jhtmLUypg82g")
+  (setq sample-consumer-secret "MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98")
+
+  ;; Acquiring a request token
+  ;; http://dev.twitter.com/pages/auth#request-token
+  (test-assert-string-equal
+   (let* ((oauth-params
+	   `(("oauth_nonce" . "QP70eNmVz8jvdPevU3oJD2AfF7R7odC2XJcn4XlZJqk")
+	     ("oauth_callback" . ,(twittering-oauth-url-encode "http://localhost:3005/the_dance/process_callback?service_provider_id=11"))
+	     ("oauth_signature_method" . "HMAC-SHA1")
+	     ("oauth_timestamp" . "1272323042")
+	     ("oauth_consumer_key" . ,sample-consumer-key)
+	     ("oauth_version" . "1.0")))
+	  (url "https://api.twitter.com/oauth/request_token"))
+     (twittering-oauth-auth-str-request-token
+      url nil sample-consumer-key sample-consumer-secret oauth-params))
+   "OAuth oauth_nonce=\"QP70eNmVz8jvdPevU3oJD2AfF7R7odC2XJcn4XlZJqk\",oauth_callback=\"http%3A%2F%2Flocalhost%3A3005%2Fthe_dance%2Fprocess_callback%3Fservice_provider_id%3D11\",oauth_signature_method=\"HMAC-SHA1\",oauth_timestamp=\"1272323042\",oauth_consumer_key=\"GDdmIQH6jhtmLUypg82g\",oauth_version=\"1.0\",oauth_signature=\"8wUi7m5HFQy76nowoCThusfgB%2BQ%3D\"")
+
+  ;; response
+  (test-assert-equal
+   (let ((response-str "oauth_token=8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc&oauth_token_secret=x6qpRnlEmW9JbQn4PQVVeVG8ZLPEx6A0TOebgwcuA&oauth_callback_confirmed=true"))
+     (twittering-oauth-make-response-alist response-str))
+   '(("oauth_token" . "8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc")
+     ("oauth_token_secret"
+      . "x6qpRnlEmW9JbQn4PQVVeVG8ZLPEx6A0TOebgwcuA")
+     ("oauth_callback_confirmed" . "true")))
+
+  ;; Sending the user to authorization
+  ;; http://dev.twitter.com/pages/auth#authorization
+  ;; response (when using callback)
+  (test-assert-equal
+   (let ((response-str "oauth_token=8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc&oauth_verifier=pDNg57prOHapMbhv25RNf75lVRd6JDsni1AJJIDYoTY"))
+     (twittering-oauth-make-response-alist response-str))
+   '(("oauth_token" . "8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc")
+     ("oauth_verifier"
+      . "pDNg57prOHapMbhv25RNf75lVRd6JDsni1AJJIDYoTY")))
+
+  ;; Exchanging a request token for an access token
+  ;; http://dev.twitter.com/pages/auth#access-token
+  (test-assert-string-equal
+   (let* ((request-token "8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc")
+	  (request-token-secret "x6qpRnlEmW9JbQn4PQVVeVG8ZLPEx6A0TOebgwcuA")
+	  (verifier "pDNg57prOHapMbhv25RNf75lVRd6JDsni1AJJIDYoTY")
+	  (oauth-params
+	   `(("oauth_nonce" . "9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8")
+	     ("oauth_signature_method" . "HMAC-SHA1")
+	     ("oauth_timestamp" . "1272323047")
+	     ("oauth_consumer_key" . ,sample-consumer-key)
+	     ("oauth_token" . ,request-token)
+	     ("oauth_verifier" . ,verifier)
+	     ("oauth_version" . "1.0")))
+	  (url "https://api.twitter.com/oauth/access_token"))
+     (twittering-oauth-auth-str-exchange-token
+      url nil
+      sample-consumer-key sample-consumer-secret
+      request-token request-token-secret verifier oauth-params))
+   "OAuth oauth_nonce=\"9zWH6qe0qG7Lc1telCn7FhUbLyVdjEaL3MO5uHxn8\",oauth_signature_method=\"HMAC-SHA1\",oauth_timestamp=\"1272323047\",oauth_consumer_key=\"GDdmIQH6jhtmLUypg82g\",oauth_token=\"8ldIZyxQeVrFZXFOZH5tAwj6vzJYuLQpl0WUEYtWc\",oauth_verifier=\"pDNg57prOHapMbhv25RNf75lVRd6JDsni1AJJIDYoTY\",oauth_version=\"1.0\",oauth_signature=\"PUw%2FdHA4fnlJYM6RhXk5IU%2F0fCc%3D\"")
+
+  ;; response
+  (test-assert-equal
+   (let ((response-str "oauth_token=819797-Jxq8aYUDRmykzVKrgoLhXSq67TEa5ruc4GJC2rWimw&oauth_token_secret=J6zix3FfA9LofH0awS24M3HcBYXO5nI1iYe8EfBA&user_id=819797&screen_name=episod"))
+     (twittering-oauth-make-response-alist response-str))
+   '(("oauth_token"
+      . "819797-Jxq8aYUDRmykzVKrgoLhXSq67TEa5ruc4GJC2rWimw")
+     ("oauth_token_secret"
+      . "J6zix3FfA9LofH0awS24M3HcBYXO5nI1iYe8EfBA")
+     ("user_id" . "819797")
+     ("screen_name" . "episod")))
+
+  ;; Making a resource request on a user's behalf
+  ;; http://dev.twitter.com/pages/auth#auth-request
+  (test-assert-string-equal
+   (let* ((access-token "819797-Jxq8aYUDRmykzVKrgoLhXSq67TEa5ruc4GJC2rWimw")
+	  (access-token-secret "J6zix3FfA9LofH0awS24M3HcBYXO5nI1iYe8EfBA")
+	  (oauth-params
+	   `(("oauth_nonce" . "oElnnMTQIZvqvlfXM56aBLAf5noGD0AQR3Fmi7Q6Y")
+	     ("oauth_signature_method" . "HMAC-SHA1")
+	     ("oauth_timestamp" . "1272325550")
+	     ("oauth_consumer_key" . ,sample-consumer-key)
+	     ("oauth_token" . ,access-token)
+	     ("oauth_version" . "1.0")))
+	  (url "http://api.twitter.com/1/statuses/update.json")
+	  (encoded-query-parameters
+	   `((,(twittering-percent-encode "status")
+	      . ,(twittering-percent-encode
+		  "setting up my twitter 私のさえずりを設定する")))))
+     (twittering-oauth-auth-str-access
+      "POST" url encoded-query-parameters
+      sample-consumer-key sample-consumer-secret
+      access-token access-token-secret
+      oauth-params))
+   "OAuth oauth_nonce=\"oElnnMTQIZvqvlfXM56aBLAf5noGD0AQR3Fmi7Q6Y\",oauth_signature_method=\"HMAC-SHA1\",oauth_timestamp=\"1272325550\",oauth_consumer_key=\"GDdmIQH6jhtmLUypg82g\",oauth_token=\"819797-Jxq8aYUDRmykzVKrgoLhXSq67TEa5ruc4GJC2rWimw\",oauth_version=\"1.0\",oauth_signature=\"yOahq5m0YjDDjfjxHaXEsW9D%2BX0%3D\"")
   )

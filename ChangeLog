@@ -18,6 +18,13 @@
 	(twittering-start-http-session-native-tls-p): check `tls-program'
 	only if `twittering-tls-program' is nil.
 
+	* twittering-mode.el: Cache the result of capability confirmation
+	for `curl'.
+	(twittering-start-http-session-curl-p): do not initialize
+	`twittering-curl-program' multiple times.
+	(twittering-start-http-session-curl-https-p): do not execute
+	`curl' multiple times.
+
 2010-05-20  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: The configuration of a proxy is referred via

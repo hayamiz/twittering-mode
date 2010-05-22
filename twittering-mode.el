@@ -272,6 +272,9 @@ SSL connections use 'curl' command as a backend.")
 (defvar twittering-curl-program nil
   "Cache a result of `twittering-find-curl-program'.
 DO NOT SET VALUE MANUALLY.")
+(defvar twittering-curl-program-https-capability nil
+  "Cache a result of `twittering-start-http-session-curl-https-p'.
+DO NOT SET VALUE MANUALLY.")
 
 (defvar twittering-tls-program nil
   "*List of strings containing commands to start TLS stream to a host.
@@ -2800,20 +2803,24 @@ The retrieved data can be referred as (gethash url twittering-url-data-hash)."
 
 (defun twittering-start-http-session-curl-p ()
   "Return t if curl was installed, otherwise nil."
-  (and (setq twittering-curl-program (twittering-find-curl-program))
-       t))
+  (unless twittering-curl-program
+    (setq twittering-curl-program (twittering-find-curl-program)))
+  (not (null twittering-curl-program)))
 
 (defun twittering-start-http-session-curl-https-p ()
   "Return t if curl was installed and the curl support HTTPS, otherwise nil."
-  (if twittering-curl-program
+  (when (twittering-start-http-session-curl-p)
+    (unless twittering-curl-program-https-capability
       (with-temp-buffer
 	(call-process twittering-curl-program
 		      nil (current-buffer) nil
 		      "--version")
 	(goto-char (point-min))
-	(and (search-forward-regexp "^Protocols: .*https" nil t)
-	     t))
-    nil))
+	(setq twittering-curl-program-https-capability
+	      (if (search-forward-regexp "^Protocols: .*https" nil t)
+		  'capable
+		'incapable))))
+    (eq twittering-curl-program-https-capability 'capable)))
 
 (defun twittering-lookup-http-start-function (order table)
   "Decide a connection method from currently available methods."

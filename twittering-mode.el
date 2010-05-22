@@ -2822,49 +2822,70 @@ The retrieved data can be referred as (gethash url twittering-url-data-hash)."
 		'incapable))))
     (eq twittering-curl-program-https-capability 'capable)))
 
-(defun twittering-lookup-http-start-function (order table)
-  "Decide a connection method from currently available methods."
-  (let ((rest order)
-	(result nil)
-	(msg-format "A function \"%s\" (referred from %s.%s) was not found"))
-    (while rest
+(defun twittering-lookup-connection-type (use-ssl &optional order table)
+  "Return available entry extracted fron connection type table.
+TABLE is connection type table, which is an alist of type symbol and its
+item alist, such as
+ '((native (check . t)
+           (https . twittering-start-http-session-native-tls-p)
+           (start . twittering-start-http-session-native))
+   (curl (check . twittering-start-http-session-curl-p)
+         (https . twittering-start-http-session-curl-https-p)
+         (start . twittering-start-http-session-curl))) .
+ORDER means the priority order of type symbols.
+If USE-SSL is nil, the item `https' is ignored.
+When the type `curl' has priority and is available for the above table,
+the function returns
+ '((check . twittering-start-http-session-curl-p)
+   (https . twittering-start-http-session-curl-https-p)
+   (start . twittering-start-http-session-curl)) ."
+  (let ((rest (or order twittering-connection-type-order))
+	(table (or table twittering-connection-type-table))
+	(result nil))
+    (while (and rest (null result))
       (let* ((candidate (car rest))
-	     (entry (assq candidate table))
-	     (entry-sym (car-safe entry))
-	     (check-func (cdr (assq 'check entry)))
-	     (https-func (if twittering-use-ssl
-			     (cdr (assq 'https entry))
-			   ;; Ignore `https' when `twittering-use-ssl' is nil.
-			   t))
-	     (start-func (cdr (assq 'start entry))))
-	(if (and (cond
-		  ((null check-func) nil)
-		  ((eq t check-func) t)
-		  ((functionp check-func) (funcall check-func))
-		  (t (message msg-format check-func entry-sym 'check)
-		     (error msg-format check-func entry-sym 'check)))
-		 (cond
-		  ((null https-func) nil)
-		  ((eq t https-func) t)
-		  ((functionp https-func) (funcall https-func))
-		  (t (message msg-format https-func entry-sym 'https)
-		     (error msg-format https-func entry-sym 'https)))
-		 (cond
-		  ((functionp start-func) t)
-		  (t (message msg-format start-func entry-sym 'start)
-		     (error msg-format start-func entry-sym 'start))))
-	    (setq result start-func
-		  rest nil)
-	  (setq rest (cdr rest)))))
-    (unless result
-      (if twittering-use-ssl
-	  ;; Fall back on connection without SSL.
-	  (when (yes-or-no-p "HTTPS(SSL) is not available because your 'cURL' cannot use HTTPS. Use HTTP instead? ")
-	    (setq twittering-use-ssl nil)
-	    (twittering-update-mode-line)
-	    (setq result (twittering-lookup-http-start-function order table)))
-	(message "All connection methods are unavailable.")))
+	     (entry (cdr (assq candidate table)))
+	     (validate (lambda (item)
+			 (let ((v (cdr (assq item entry))))
+			   (or (null v) (eq t v) (functionp v)))))
+	     (confirm (lambda (item)
+			(let ((v (cdr (assq item entry))))
+			  (cond
+			   ((null v) nil)
+			   ((eq t v) t)
+			   ((functionp v) (funcall v)))))))
+	(if (and (funcall validate 'check)
+		 (or (not use-ssl) (funcall validate 'https)))
+	    (cond
+	     ((and (funcall confirm 'check)
+		   (or (not use-ssl) (funcall confirm 'https)))
+	      (setq rest nil)
+	      (setq result entry))
+	     (t
+	      (setq rest (cdr rest))))
+	  (message "The configuration for conncetion type `%s' is invalid."
+		   candidate)
+	  (setq rest nil))))
     result))
+
+(defun twittering-lookup-http-start-function (&optional order table)
+  "Decide a connection method from currently available methods."
+  (let* ((order (or order twittering-connection-type-order))
+	 (table (or table twittering-connection-type-table))
+	 (entry (twittering-lookup-connection-type
+		 twittering-use-ssl order table)))
+    (if entry
+	(cdr (assq 'start entry))
+      (cond
+       ((and twittering-use-ssl
+	     (yes-or-no-p "HTTPS(SSL) is unavailable. Use HTTP instead? "))
+	;; Fall back on connection without SSL.
+	(setq twittering-use-ssl nil)
+	(twittering-update-mode-line)
+	(twittering-lookup-http-start-function order table))
+       (t
+	(message "No connection methods are available.")
+	nil)))))
 
 (defun twittering-start-http-session (method headers host port path parameters &optional noninteractive sentinel)
   "METHOD    : http method

@@ -25,6 +25,10 @@
 	(twittering-start-http-session-curl-https-p): do not execute
 	`curl' multiple times.
 
+	* twittering-mode.el: Look-up of connection type is rearranged.
+	(twittering-lookup-http-start-function): reimplemented.
+	(twittering-lookup-connection-type): new function.
+
 2010-05-20  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: The configuration of a proxy is referred via

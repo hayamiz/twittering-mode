@@ -370,6 +370,42 @@
   (test-assert-ok (twittering-status-not-blank-p "hello @foo"))
   )
 
+(defcase test-hmac-sha1 nil nil
+  ;; The following tests are copied from RFC 2022.
+  (test-assert-string-equal
+   (let* ((v (make-vector 20 ?\x0b))
+	  (key (cond
+		((fboundp 'unibyte-string) (apply 'unibyte-string v))
+		(t (concat v))))
+	  (data "Hi There"))
+     (mapconcat (lambda (c) (format "%02x" c))
+		(twittering-hmac-sha1 key data)
+		""))
+   "b617318655057264e28bc0b6fb378c8ef146be00")
+
+  (test-assert-string-equal
+   (let* ((key "Jefe")
+	  (data "what do ya want for nothing?"))
+     (mapconcat (lambda (c) (format "%02x" c))
+		(twittering-hmac-sha1 key data)
+		""))
+   "effcdf6ae5eb2fa2d27416d5f184df9c259a7c79")
+
+  (test-assert-string-equal
+   (let* ((key-v (make-vector 20 ?\xaa))
+	  (key (cond
+		((fboundp 'unibyte-string) (apply 'unibyte-string key-v))
+		(t (concat key-v))))
+	  (data-v (make-vector 50 ?\xdd))
+	  (data (cond
+		 ((fboundp 'unibyte-string) (apply 'unibyte-string data-v))
+		 (t (concat data-v)))))
+     (mapconcat (lambda (c) (format "%02x" c))
+		(twittering-hmac-sha1 key data)
+		""))
+   "125d7342b9ac11cd91a39af48aa17b4f63f175d3")
+  )
+
 (defcase test-oauth nil nil
   ;; "Authenticating Requests | dev.twitter.com"
   ;; http://dev.twitter.com/pages/auth

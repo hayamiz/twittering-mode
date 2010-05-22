@@ -918,19 +918,29 @@ For keys and values that are already unibyte, the
 
     (let ((key-block (make-vector +hmac-sha1-block-size-bytes+ 0)))
       (dotimes (i (length key))
-        (aset key-block i (aref key i)))
+	(aset key-block i (aref key i)))
 
       (let ((opad (make-vector +hmac-sha1-block-size-bytes+ #x5c))
-            (ipad (make-vector +hmac-sha1-block-size-bytes+ #x36)))
+	    (ipad (make-vector +hmac-sha1-block-size-bytes+ #x36)))
 
-        (dotimes (i +hmac-sha1-block-size-bytes+)
-          (aset ipad i (logxor (aref ipad i) (aref key-block i)))
-          (aset opad i (logxor (aref opad i) (aref key-block i))))
+	(dotimes (i +hmac-sha1-block-size-bytes+)
+	  (aset ipad i (logxor (aref ipad i) (aref key-block i)))
+	  (aset opad i (logxor (aref opad i) (aref key-block i))))
 
-        (sha1 (concat opad
-                      (sha1 (concat ipad message)
-                            nil nil t))
-              nil nil t)))))
+	(when (fboundp 'unibyte-string)
+	  ;; `concat' of Emacs23 (and later?) generates a multi-byte
+	  ;; string from a vector of characters with eight bit.
+	  ;; Since `opad' and `ipad' must be unibyte, we have to
+	  ;; convert them by using `unibyte-string'.
+	  ;; We cannot use `string-as-unibyte' here because it encodes
+	  ;; bytes with the manner of UTF-8.
+	  (setq opad (apply 'unibyte-string (mapcar 'identity opad)))
+	  (setq ipad (apply 'unibyte-string (mapcar 'identity ipad))))
+
+	(sha1 (concat opad
+		      (sha1 (concat ipad message)
+			    nil nil t))
+	      nil nil t)))))
 
 (defun twittering-oauth-auth-str (method base-url query-parameters oauth-parameters key)
   "Generate the value for HTTP Authorization header on OAuth.
@@ -1267,10 +1277,11 @@ like following:
 	   "\n"
 	   "\n"
 	   (when twittering-oauth-invoke-browser
-	     "  Emacs invokes your browser by the function `browse-url'.\n"
-	     "  If the site is not opened automatically, you have to open\n"
-	     "  the site manually.\n"
-	     "\n")
+	     (concat
+	      "  Emacs invokes your browser by the function `browse-url'.\n"
+	      "  If the site is not opened automatically, you have to open\n"
+	      "  the site manually.\n"
+	      "\n"))
 	   "2.After allowing access, the site will display the PIN code."
 	   "\n"
 	   "  Input the PIN code "

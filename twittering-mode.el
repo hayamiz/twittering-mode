@@ -2985,7 +2985,8 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 			parameters))
 	    ,(concat (funcall request :uri)
 		     (when parameters
-		       (concat "?" (funcall request :query-string)))))))
+		       (concat "?" (funcall request :query-string))))))
+	 (coding-system-for-read 'utf-8-unix))
     (debug-print curl-args)
     (lexical-let ((noninteractive noninteractive)
 		  (sentinel sentinel))
@@ -3040,6 +3041,7 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 	     (port (if proxy-info
 		       (cdr (assq 'port proxy-info))
 		     (request :port)))
+	     (coding-system-for-read 'utf-8-unix)
 	     (proc
 	      (cond
 	       (twittering-use-ssl

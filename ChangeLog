@@ -1,3 +1,11 @@
+2010-05-22  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Use the coding-system `utf-8-unix' for
+	reading data retrieved from Twitter.
+	(twittering-start-http-session-curl): use the coding-system
+	`utf-8-unix' for reading data retrieved from Twitter.
+	(twittering-start-http-session-native): likewise.
+
 2010-05-20  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: The configuration of a proxy is referred via

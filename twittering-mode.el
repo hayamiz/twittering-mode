@@ -918,19 +918,19 @@ For keys and values that are already unibyte, the
 
     (let ((key-block (make-vector +hmac-sha1-block-size-bytes+ 0)))
       (dotimes (i (length key))
-        (aset key-block i (aref key i)))
+	(aset key-block i (aref key i)))
 
       (let ((opad (make-vector +hmac-sha1-block-size-bytes+ #x5c))
-            (ipad (make-vector +hmac-sha1-block-size-bytes+ #x36)))
+	    (ipad (make-vector +hmac-sha1-block-size-bytes+ #x36)))
 
-        (dotimes (i +hmac-sha1-block-size-bytes+)
-          (aset ipad i (logxor (aref ipad i) (aref key-block i)))
-          (aset opad i (logxor (aref opad i) (aref key-block i))))
+	(dotimes (i +hmac-sha1-block-size-bytes+)
+	  (aset ipad i (logxor (aref ipad i) (aref key-block i)))
+	  (aset opad i (logxor (aref opad i) (aref key-block i))))
 
-        (sha1 (concat opad
-                      (sha1 (concat ipad message)
-                            nil nil t))
-              nil nil t)))))
+	(sha1 (concat opad
+		      (sha1 (concat ipad message)
+			    nil nil t))
+	      nil nil t)))))
 
 (defun twittering-oauth-auth-str (method base-url query-parameters oauth-parameters key)
   "Generate the value for HTTP Authorization header on OAuth.

@@ -927,6 +927,16 @@ For keys and values that are already unibyte, the
 	  (aset ipad i (logxor (aref ipad i) (aref key-block i)))
 	  (aset opad i (logxor (aref opad i) (aref key-block i))))
 
+	(when (fboundp 'unibyte-string)
+	  ;; `concat' of Emacs23 (and later?) generates a multi-byte
+	  ;; string from a vector of characters with eight bit.
+	  ;; Since `opad' and `ipad' must be unibyte, we have to
+	  ;; convert them by using `unibyte-string'.
+	  ;; We cannot use `string-as-unibyte' here because it encodes
+	  ;; bytes with the manner of UTF-8.
+	  (setq opad (apply 'unibyte-string (mapcar 'identity opad)))
+	  (setq ipad (apply 'unibyte-string (mapcar 'identity ipad))))
+
 	(sha1 (concat opad
 		      (sha1 (concat ipad message)
 			    nil nil t))

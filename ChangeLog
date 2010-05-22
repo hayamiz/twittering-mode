@@ -87,6 +87,12 @@
 
 	* twittering-mode.el (twittering-hmac-sha1): fix indentation.
 
+	* twittering-mode.el: Fix `twittering-hmac-sha1' so that it works
+	well on Emacs23 and later.
+	(twittering-hmac-sha1): ensure that internal variables are unibyte
+	strings even on Emacs23 and later.
+	* test/test-twittering-mode.el: add new test `test-hmac-sha1'.
+
 2010-05-20  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: The configuration of a proxy is referred via

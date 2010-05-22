@@ -1267,10 +1267,11 @@ like following:
 	   "\n"
 	   "\n"
 	   (when twittering-oauth-invoke-browser
-	     "  Emacs invokes your browser by the function `browse-url'.\n"
-	     "  If the site is not opened automatically, you have to open\n"
-	     "  the site manually.\n"
-	     "\n")
+	     (concat
+	      "  Emacs invokes your browser by the function `browse-url'.\n"
+	      "  If the site is not opened automatically, you have to open\n"
+	      "  the site manually.\n"
+	      "\n"))
 	   "2.After allowing access, the site will display the PIN code."
 	   "\n"
 	   "  Input the PIN code "

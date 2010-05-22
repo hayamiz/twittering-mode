@@ -82,6 +82,9 @@
 	* emacs21/hex-util.el: imported from Emacs22.
 	* emacs21/sha1.el: imported from Emacs22.
 
+	* twittering-mode.el (twittering-oauth-get-access-token): fix the
+	guide string of authorization via OAuth.
+
 2010-05-20  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: The configuration of a proxy is referred via

@@ -13,6 +13,11 @@
 	(twittering-get-response-header): do not remove headers from a
 	proxy.
 
+	* twittering-mode.el: Do not initialize `twittering-tls-program'
+	multiple times.
+	(twittering-start-http-session-native-tls-p): check `tls-program'
+	only if `twittering-tls-program' is nil.
+
 2010-05-20  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: The configuration of a proxy is referred via

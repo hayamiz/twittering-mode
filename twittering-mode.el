@@ -3007,15 +3007,16 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 
 (defun twittering-start-http-session-native-tls-p ()
   (when (require 'tls nil t)
-    (let ((programs
-	   (remove nil
-		   (mapcar (lambda (cmd)
-			     (when (string-match "\\`\\([^ ]+\\) " cmd)
-			       (when (executable-find (match-string 1 cmd))
-				 cmd)))
-			   (or twittering-tls-program tls-program)))))
-      (setq twittering-tls-program programs)
-      programs)))
+    (unless twittering-tls-program
+      (let ((programs
+	     (remove nil
+		     (mapcar (lambda (cmd)
+			       (when (string-match "\\`\\([^ ]+\\) " cmd)
+				 (when (executable-find (match-string 1 cmd))
+				   cmd)))
+			     tls-program))))
+	(setq twittering-tls-program programs)))
+    (not (null twittering-tls-program))))
 
 ;; TODO: proxy
 (defun twittering-start-http-session-native (method headers host port path parameters &optional noninteractive sentinel)

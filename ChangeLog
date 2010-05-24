@@ -1,3 +1,8 @@
+2010-05-24  Naohiro Aota  <naota@elisp.net>
+
+	* twittering-mode.el (twittering-native-retweet): Check if tweet
+	is my own one.
+
 2010-05-22  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Use the coding-system `utf-8-unix' for

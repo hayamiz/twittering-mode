@@ -2449,8 +2449,13 @@ to the current one."
   (let ((buffer (or buffer (current-buffer))))
     (when (twittering-buffer-p buffer)
       (with-current-buffer buffer
-	(setq twittering-active-mode (not twittering-active-mode))
-	(twittering-update-mode-line)))))
+	(let* ((new-mode (not twittering-active-mode))
+	       (active-buffer-list (twittering-get-active-buffer-list))
+	       (start-timer (and new-mode (null active-buffer-list))))
+	  (setq twittering-active-mode new-mode)
+	  (when start-timer
+	    (twittering-start))
+	  (twittering-update-mode-line))))))
 
 (defun twittering-activate-buffer (&optional buffer)
   "Activate BUFFER to retrieve timeline for it periodically."

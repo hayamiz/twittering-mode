@@ -1,3 +1,8 @@
+2010-05-27  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-toggle-activate-buffer): restart
+	the timer if it is not active when activating a buffer.
+
 2010-05-24  Naohiro Aota  <naota@elisp.net>
 
 	* twittering-mode.el (twittering-native-retweet): Check if tweet

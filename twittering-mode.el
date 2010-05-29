@@ -2449,8 +2449,13 @@ to the current one."
   (let ((buffer (or buffer (current-buffer))))
     (when (twittering-buffer-p buffer)
       (with-current-buffer buffer
-	(setq twittering-active-mode (not twittering-active-mode))
-	(twittering-update-mode-line)))))
+	(let* ((new-mode (not twittering-active-mode))
+	       (active-buffer-list (twittering-get-active-buffer-list))
+	       (start-timer (and new-mode (null active-buffer-list))))
+	  (setq twittering-active-mode new-mode)
+	  (when start-timer
+	    (twittering-start))
+	  (twittering-update-mode-line))))))
 
 (defun twittering-activate-buffer (&optional buffer)
   "Activate BUFFER to retrieve timeline for it periodically."
@@ -5554,6 +5559,7 @@ managed by `twittering-mode'."
   (interactive)
   (let ((id (get-text-property (point) 'id))
 	(text (copy-sequence (get-text-property (point) 'text)))
+	(user (get-text-property (point) 'username))
 	(width (max 40 ;; XXX
 		    (- (frame-width)
 		       1 ;; margin for wide characters
@@ -5562,15 +5568,17 @@ managed by `twittering-mode'."
 		    )))
     (set-text-properties 0 (length text) nil text)
     (if id
-	(let ((mes (format "Retweet \"%s\"? "
-			   (if (< width (string-width text))
-			       (concat
-				(truncate-string-to-width text (- width 3))
-				"...")
-			     text))))
-	  (if (y-or-n-p mes)
-	      (twittering-call-api 'retweet `((id . ,id)))
-	    (message "Request canceled")))
+	(if (not (string= user twittering-username))
+	    (let ((mes (format "Retweet \"%s\"? "
+			       (if (< width (string-width text))
+				   (concat
+				    (truncate-string-to-width text (- width 3))
+				    "...")
+				 text))))
+	      (if (y-or-n-p mes)
+		  (twittering-call-api 'retweet `((id . ,id)))
+		(message "Request canceled")))
+	  (message "Cannot retweet your own tweet"))
       (message "No status selected"))))
 
 (defun twittering-favorite (&optional remove)

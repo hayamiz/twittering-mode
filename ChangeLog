@@ -29,6 +29,18 @@
 	(twittering-redisplay-status-on-buffer): do not update buffer
 	in which the mark and region are active.
 
+	* twittering-mode.el: Reimplement the status formater that allows
+	recursive specifiers such as "%FILL{%FACE[bold]{%C{%m/%d}}: %T}".
+	(twittering-parse-format-string): removed.
+	(twittering-generate-formater): removed.
+	(twittering-generate-status-formater-base): removed.
+	(twittering-generate-format-table): new function.
+	(twittering-generate-formater-for-first-spec): new function.
+	(twittering-generate-formater-for-current-level): new function.
+	(twittering-generate-format-status-function): new function.
+	(twittering-generate-format-status-function): use new
+	implementation.
+
 2010-05-27  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-toggle-activate-buffer): restart

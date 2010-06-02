@@ -24,6 +24,11 @@
 	(twittering-make-icon-string): give different strings for
 	displayed and undisplayed icon.
 
+	* twittering-mode.el: Stop automatic redisplaying of buffers in
+	which the mark and region are active.
+	(twittering-redisplay-status-on-buffer): do not update buffer
+	in which the mark and region are active.
+
 2010-05-27  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-toggle-activate-buffer): restart

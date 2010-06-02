@@ -4497,7 +4497,9 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 ;;;
 
 (defun twittering-redisplay-status-on-buffer ()
-  (mapc 'twittering-redisplay-status-on-each-buffer
+  (mapc (lambda (buffer)
+	  (unless (with-current-buffer buffer mark-active)
+	    (twittering-redisplay-status-on-each-buffer buffer)))
 	(twittering-get-buffer-list)))
 
 (defun twittering-redisplay-status-on-each-buffer (buffer)

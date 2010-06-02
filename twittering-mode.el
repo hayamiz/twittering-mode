@@ -247,6 +247,9 @@ Items:
  %FACE[face-name]{...} - strings decorated with the specified face.
  %FILL[prefix]{...} - strings filled as a paragraph. The prefix is optional.
                       You can use any other specifiers in braces.
+ %FOLD[prefix]{...} - strings folded within the frame width.
+                      The prefix is optional. This keeps newlines.
+                      You can use any other specifiers in braces.
  %f - source
  %# - id
 ")
@@ -1577,7 +1580,7 @@ image are displayed."
 (defun twittering-status-id= (id1 id2)
   (equal id1 id2))
 
-(defun twittering-fill-string (str &optional adjustment prefix)
+(defun twittering-fill-string (str &optional adjustment prefix keep-newline)
   (when (and (not (boundp 'kinsoku-limit))
 	     enable-kinsoku)
     ;; `kinsoku-limit' is defined on loading "international/kinsoku.el".
@@ -1608,8 +1611,16 @@ image are displayed."
       (let ((fill-column temporary-fill-column)
 	    (fill-prefix (or prefix fill-prefix))
 	    (adaptive-fill-regexp ""))
-	(insert (concat prefix str))
-	(fill-region-as-paragraph (point-min) (point-max))
+	(if keep-newline
+	    (let* ((hard-newline (propertize "\n" 'hard t))
+		   (str (mapconcat 'identity (split-string str "\n")
+				   (concat hard-newline fill-prefix))))
+	      (use-hard-newlines)
+	      (insert (concat prefix str))
+	      (fill-region (point-min) (point-max))
+	      (remove-text-properties (point-min) (point-max) '(hard nil)))
+	  (insert (concat prefix str))
+	  (fill-region-as-paragraph (point-min) (point-max)))
 	(buffer-substring (point-min) (point-max))))))
 
 (defun twittering-set-window-end (window pos)
@@ -1659,9 +1670,10 @@ image are displayed."
 			      time-string))
     time-string))
 
-(defun twittering-update-filled-string (beg end formater status prefix local-prefix)
+(defun twittering-update-filled-string (beg end formater status prefix local-prefix &optional keep-newline)
   (let* ((str (twittering-fill-string (funcall formater status prefix)
-				      (length prefix) local-prefix))
+				      (length prefix) local-prefix
+				      keep-newline))
 	 (next (next-single-property-change 0 'need-to-be-updated str))
 	 (properties
 	  (and beg
@@ -1678,7 +1690,8 @@ image are displayed."
 	    (and next (< next (length str))))
 	(put-text-property 0 (length str) 'need-to-be-updated
 			   `(twittering-update-filled-string
-			     ,formater ,status ,prefix ,local-prefix)
+			     ,formater ,status ,prefix ,local-prefix
+			     ,keep-newline)
 			   str)
       ;; Remove the property required no longer.
       (remove-text-properties 0 (length str) '(need-to-be-updated nil) str))
@@ -4937,9 +4950,11 @@ following symbols;
 	       (rest (cdr pair)))
 	  `((propertize (concat ,@braced-body) 'face ',face-sym)
 	    . ,rest)))
-       ((string-match "\\`FILL\\(\\[\\([^]]*\\)\\]\\)?{" following)
+       ((string-match "\\`\\(FILL\\|FOLD\\)\\(\\[\\([^]]*\\)\\]\\)?{"
+		      following)
 	(let* ((str-after-brace (substring following (match-end 0)))
-	       (prefix-str (match-string 2 following))
+	       (specifier (match-string 1 following))
+	       (prefix-str (match-string 3 following))
 	       (pair (twittering-generate-formater-for-current-level
 		      str-after-brace status-sym prefix-sym))
 	       (filled-body (car pair))
@@ -4947,9 +4962,11 @@ following symbols;
 		`(lambda (,status-sym ,prefix-sym)
 		   (let ((,prefix-sym (concat ,prefix-sym ,prefix-str)))
 		     (concat ,@filled-body))))
+	       (keep-newline (string= "FOLD" specifier))
 	       (rest (cdr pair)))
 	  `((twittering-update-filled-string
-	     nil nil ,formater ,status-sym ,prefix-sym ,prefix-str)
+	     nil nil ,formater ,status-sym ,prefix-sym ,prefix-str
+	     ,keep-newline)
 	    . ,rest)))
        ((string-match regexp following)
 	(let ((specifier (match-string 1 following))

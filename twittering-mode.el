@@ -1683,6 +1683,28 @@ image are displayed."
       (remove-text-properties 0 (length str) '(need-to-be-updated nil) str))
     str))
 
+(defun twittering-current-window-config (window-list)
+  "Return window parameters of WINDOW-LIST."
+  (mapcar (lambda (win)
+	    (let ((start (window-start win))
+		  (point (window-point win)))
+	      `(,win ,start ,point)))
+	  window-list))
+
+(defun twittering-restore-window-config-after-modification (config beg end)
+  "Restore window parameters changed by modification on given region.
+CONFIG is window parameters made by `twittering-current-window-config'.
+BEG and END mean a region that had been modified."
+  (mapc (lambda (entry)
+	  (let ((win (elt entry 0))
+		(start (elt entry 1))
+		(point (elt entry 2)))
+	    (when (and (< beg start) (< start end))
+	      (set-window-start win start))
+	    (when (and (< beg point) (< point end))
+	      (set-window-point win point))))
+	config))
+
 ;;;
 ;;; Utility functions for portability
 ;;;
@@ -4477,7 +4499,10 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 	(twittering-get-buffer-list)))
 
 (defun twittering-redisplay-status-on-each-buffer (buffer)
-  (let ((deactivate-mark deactivate-mark))
+  (let ((deactivate-mark deactivate-mark)
+	(window-list (get-buffer-window-list buffer nil t))
+	(marker (with-current-buffer buffer (point-marker)))
+	(result nil))
     (with-current-buffer buffer
       (save-excursion
 	(twittering-for-each-property-region
@@ -4486,11 +4511,27 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 	   (let* ((func (car value))
 		  (args (cdr value))
 		  (updated-str (apply func beg end args))
+		  (config (twittering-current-window-config window-list))
 		  (buffer-read-only nil))
+	     ;; If the region to be modified includes the current position,
+	     ;; the point moves to the beginning of the region.
+	     (when (and (< beg marker) (< marker end))
+	       ;; This is required because the point moves to the center if
+	       ;; the point becomes outside of the window by the effect of
+	       ;; `set-window-start'.
+	       (setq result beg))
 	     (delete-region beg end)
 	     (goto-char beg)
-	     (insert updated-str)))
-	 buffer)))))
+	     (insert-before-markers updated-str)
+	     (twittering-restore-window-config-after-modification
+	      config beg end)))
+	 buffer))
+      (set-marker marker nil)
+      (when (and result (eq (window-buffer) buffer))
+	(let ((win (selected-window)))
+	  (when (< result (window-start win))
+	    (set-window-start win result))
+	  (set-window-point win result))))))
 
 ;;;
 ;;; display functions

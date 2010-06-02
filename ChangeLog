@@ -9,6 +9,13 @@
 	(twittering-oauth-get-token-alist-curl): likewise.
 	(twittering-verify-credentials): likewise.
 
+	* twittering-mode.el: Restore window parameters after automatic
+	redisplaying.
+	(twittering-current-window-config): new function.
+	(twittering-restore-window-config-after-modification): new function.
+	(twittering-redisplay-status-on-each-buffer): restore window
+	parameters after redisplaying.
+
 2010-05-27  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-toggle-activate-buffer): restart

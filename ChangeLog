@@ -1,3 +1,14 @@
+2010-06-03  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Use `twittering-oauth-use-ssl' instead of
+	`twittering-use-ssl' on functions for OAuth.
+	(twittering-oauth-use-ssl): add docstring.
+	(twittering-oauth-get-response-alist): use
+	`twittering-oauth-use-ssl' instead of `twittering-use-ssl'.
+	(twittering-oauth-get-token-alist-native): likewise.
+	(twittering-oauth-get-token-alist-curl): likewise.
+	(twittering-verify-credentials): likewise.
+
 2010-05-27  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-toggle-activate-buffer): restart

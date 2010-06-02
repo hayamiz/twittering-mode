@@ -94,9 +94,9 @@ OAuth Authentication. OAuth Authentication requires
 Additionally, it requires an external command `curl' or another command
 included in `tls-program', which may be `openssl' or `gnutls-cli', for SSL.")
 
-(defvar twittering-oauth-use-ssl nil
-  "*Whether to use SSL on authentication via OAuth. Non-nil is recommended
-but ")
+(defvar twittering-oauth-use-ssl t
+  "*Whether to use SSL on authentication via OAuth. Twitter requires SSL
+on authorization via OAuth.")
 (defvar twittering-oauth-consumer-key nil)
 (defvar twittering-oauth-consumer-secret nil)
 (defvar twittering-oauth-access-token-alist nil)
@@ -1027,7 +1027,7 @@ function."
 (defun twittering-oauth-get-response-alist (buffer)
   (with-current-buffer buffer
     (goto-char (point-min))
-    (when (and twittering-proxy-use twittering-use-ssl)
+    (when (and twittering-proxy-use twittering-oauth-use-ssl)
       ;; When using SSL via a proxy with CONNECT method,
       ;; omit a successful HTTP response and headers if they seem to be
       ;; sent from the proxy.
@@ -1124,8 +1124,12 @@ function."
 			     headers "\r\n"))))
     (with-temp-buffer
       (let* ((coding-system-for-read 'utf-8-unix)
-	     (proc (open-tls-stream "network-connection-process"
-				    nil connect-host connect-port)))
+	     (proc
+	      (funcall (if twittering-oauth-use-ssl
+			   'open-tls-stream
+			 'open-network-stream)
+		       "network-connection-process"
+		       nil connect-host connect-port)))
 	(when proc
 	  (set-process-buffer proc (current-buffer))
 	  (lexical-let ((result 'queried))
@@ -1153,7 +1157,7 @@ function."
 	    ("Accept-Charset" . "us-ascii")
 	    ("Content-Type" . "application/x-www-form-urlencoded")
 	    ("Content-Length" . "0")))
-	 (cacert-fullpath (when twittering-use-ssl
+	 (cacert-fullpath (when twittering-oauth-use-ssl
 			    (twittering-ensure-ca-cert)))
 	 (cacert-dir (when cacert-fullpath
 		       (file-name-directory cacert-fullpath)))
@@ -1164,7 +1168,7 @@ function."
 	    ,@(mapcan (lambda (pair)
 			`("-H" ,(format "%s: %s" (car pair) (cdr pair))))
 		      headers)
-	    ,@(when twittering-use-ssl
+	    ,@(when twittering-oauth-use-ssl
 		`("--cacert" ,cacert-filename))
 	    ,@(when twittering-proxy-use
 		(let* ((host (twittering-proxy-info scheme 'server))
@@ -1190,14 +1194,14 @@ function."
     (with-temp-buffer
       (let* ((coding-system-for-read 'utf-8-unix)
 	     (default-directory
-	       ;; If `twittering-use-ssl' is non-nil, the `curl' process
+	       ;; If `twittering-oauth-use-ssl' is non-nil, the `curl' process
 	       ;; is executed at the same directory as the temporary cert file.
 	       ;; Without changing directory, `curl' misses the cert file if
 	       ;; you use Emacs on Cygwin because the path on Emacs differs
 	       ;; from Windows.
 	       ;; With changing directory, `curl' on Windows can find the cert
 	       ;; file if you use Emacs on Cygwin.
-	       (if twittering-use-ssl
+	       (if twittering-oauth-use-ssl
 		   cacert-dir
 		 default-directory))
 	     (proc (apply 'start-process "*twmode-curl*" (current-buffer)
@@ -2860,7 +2864,7 @@ authorized -- The account has been authorized.")
     (message "Consumer for OAuth is not specified.")
     nil)
    ((eq twittering-auth-method 'oauth)
-    (let* ((entry (twittering-lookup-connection-type twittering-use-ssl))
+    (let* ((entry (twittering-lookup-connection-type twittering-oauth-use-ssl))
 	   (oauth-get-token-type (cdr (assq 'oauth-get-token entry))))
       (setq twittering-oauth-get-token-function-type oauth-get-token-type))
     (let ((token-alist

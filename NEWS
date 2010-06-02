@@ -65,6 +65,7 @@ existing way.
   requires an external command `curl' or another command included in the
   variable `tls-program', which may be `openssl' or `gnutls-cli'.
   (Caution: Neither `openssl' nor `gnutls-cli' support SSL via proxy.)
+  You can disable SSL for OAuth by "(setq twittering-oauth-use-ssl nil)".
   You can enable OAuth by "(setq twittering-auth-method 'oauth)".
   If `twittering-oauth-invoke-browser' is non-nil, twittering-mode
   automatically opens a browser on authorization.

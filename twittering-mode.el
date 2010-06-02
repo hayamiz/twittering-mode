@@ -221,7 +221,7 @@ Do not modify this variable directly. Use `twittering-activate-buffer',
   "*Non-nil means tweets are aligned in reverse order of `http://twitter.com/'.")
 (defvar twittering-display-remaining nil
   "*If non-nil, display remaining of rate limit on the mode line.")
-(defvar twittering-status-format "%i %s,  %@:\n%FILL{  %T // from %f%L%r%R}\n "
+(defvar twittering-status-format "%i %s,  %@:\n%FILL[  ]{%T // from %f%L%r%R}\n "
   "Format string for rendering statuses.
 Ex. \"%i %s,  %@:\\n%FILL{  %T // from %f%L%r%R}\n \"
 
@@ -245,8 +245,8 @@ Items:
  %t - text filled as one paragraph
  %' - truncated
  %FACE[face-name]{...} - strings decorated with the specified face.
- %FILL{...} - strings filled as a paragraph.
-              You can use any other specifiers in braces.
+ %FILL[prefix]{...} - strings filled as a paragraph. The prefix is optional.
+                      You can use any other specifiers in braces.
  %f - source
  %# - id
 ")
@@ -1577,7 +1577,7 @@ image are displayed."
 (defun twittering-status-id= (id1 id2)
   (equal id1 id2))
 
-(defun twittering-fill-string (str &optional adjustment)
+(defun twittering-fill-string (str &optional adjustment prefix)
   (when (and (not (boundp 'kinsoku-limit))
 	     enable-kinsoku)
     ;; `kinsoku-limit' is defined on loading "international/kinsoku.el".
@@ -1591,9 +1591,6 @@ image are displayed."
     (load "international/kinsoku"))
   (let* ((kinsoku-limit 1)
 	 (adjustment (+ (or adjustment 0)
-			(if (and (boundp 'fill-prefix) (stringp fill-prefix))
-			    (string-width fill-prefix)
-			  0)
 			(if enable-kinsoku
 			    kinsoku-limit
 			  0)))
@@ -1608,8 +1605,10 @@ image are displayed."
 	 (temporary-fill-column (- (or twittering-fill-column (1- min-width))
 				   adjustment)))
     (with-temp-buffer
-      (let ((fill-column temporary-fill-column))
-	(insert str)
+      (let ((fill-column temporary-fill-column)
+	    (fill-prefix (or prefix fill-prefix))
+	    (adaptive-fill-regexp ""))
+	(insert (concat prefix str))
 	(fill-region-as-paragraph (point-min) (point-max))
 	(buffer-substring (point-min) (point-max))))))
 
@@ -1660,9 +1659,9 @@ image are displayed."
 			      time-string))
     time-string))
 
-(defun twittering-update-filled-string (beg end formater status prefix)
+(defun twittering-update-filled-string (beg end formater status prefix local-prefix)
   (let* ((str (twittering-fill-string (funcall formater status prefix)
-				      (length prefix)))
+				      (length prefix) local-prefix))
 	 (next (next-single-property-change 0 'need-to-be-updated str))
 	 (properties
 	  (and beg
@@ -1679,7 +1678,7 @@ image are displayed."
 	    (and next (< next (length str))))
 	(put-text-property 0 (length str) 'need-to-be-updated
 			   `(twittering-update-filled-string
-			     ,formater ,status ,prefix)
+			     ,formater ,status ,prefix ,local-prefix)
 			   str)
       ;; Remove the property required no longer.
       (remove-text-properties 0 (length str) '(need-to-be-updated nil) str))
@@ -4938,16 +4937,19 @@ following symbols;
 	       (rest (cdr pair)))
 	  `((propertize (concat ,@braced-body) 'face ',face-sym)
 	    . ,rest)))
-       ((string-match "\\`FILL{" following)
+       ((string-match "\\`FILL\\(\\[\\([^]]*\\)\\]\\)?{" following)
 	(let* ((str-after-brace (substring following (match-end 0)))
+	       (prefix-str (match-string 2 following))
 	       (pair (twittering-generate-formater-for-current-level
 		      str-after-brace status-sym prefix-sym))
 	       (filled-body (car pair))
-	       (formater `(lambda (,status-sym ,prefix-sym)
-			    (concat ,@filled-body)))
+	       (formater
+		`(lambda (,status-sym ,prefix-sym)
+		   (let ((,prefix-sym (concat ,prefix-sym ,prefix-str)))
+		     (concat ,@filled-body))))
 	       (rest (cdr pair)))
 	  `((twittering-update-filled-string
-	     nil nil ,formater ,status-sym ,prefix-sym)
+	     nil nil ,formater ,status-sym ,prefix-sym ,prefix-str)
 	    . ,rest)))
        ((string-match regexp following)
 	(let ((specifier (match-string 1 following))

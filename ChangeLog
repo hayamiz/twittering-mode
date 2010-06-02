@@ -41,6 +41,19 @@
 	(twittering-generate-format-status-function): use new
 	implementation.
 
+	* twittering-mode.el: Add an optional argument for the format
+	specifier `FILL'. The argument specifies the prefix for the filled
+	region.
+	(twittering-status-format): use 2 white spaces as fill-prefix in
+	default.
+	(twittering-fill-string): use an additional argument `prefix' as
+	`fill-prefix' for `fill-region-as-paragraph' if the argument is
+	non-nil.
+	(twittering-update-filled-string): transfer the local prefix for
+	`twittering-fill-string'.
+	(twittering-generate-formater-for-first-spec): recognize an
+	optional argument for the format specifier `FILL'.
+
 2010-05-27  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-toggle-activate-buffer): restart

@@ -16,6 +16,14 @@
 	(twittering-redisplay-status-on-each-buffer): restore window
 	parameters after redisplaying.
 
+	* twittering-mode.el: Suppress automatic redisplaying if
+	unnecessary.
+	(twittering-redisplay-status-on-each-buffer): do not modify buffer
+	if updated string is same as the current string in the meaning of
+	`string='.
+	(twittering-make-icon-string): give different strings for
+	displayed and undisplayed icon.
+
 2010-05-27  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-toggle-activate-buffer): restart

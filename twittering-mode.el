@@ -1476,11 +1476,13 @@ image are displayed."
       (add-text-properties 0 (length icon-string) properties icon-string))
     (cond
      (display-spec
-      ;; Remove the property required no longer.
-      (remove-text-properties 0 (length icon-string)
-			      '(need-to-be-updated nil)
-			      icon-string)
-      (apply 'propertize icon-string display-spec))
+      (let ((icon-string (apply 'propertize "_"
+				(append properties display-spec))))
+	;; Remove the property required no longer.
+	(remove-text-properties 0 (length icon-string)
+				'(need-to-be-updated nil)
+				icon-string)
+	icon-string))
      (image-data
       (twittering-register-image-data image-url image-data)
       (twittering-make-icon-string beg end image-url))
@@ -4510,21 +4512,30 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 	 (lambda (beg end value)
 	   (let* ((func (car value))
 		  (args (cdr value))
+		  (current-str (buffer-substring beg end))
 		  (updated-str (apply func beg end args))
 		  (config (twittering-current-window-config window-list))
 		  (buffer-read-only nil))
-	     ;; If the region to be modified includes the current position,
-	     ;; the point moves to the beginning of the region.
-	     (when (and (< beg marker) (< marker end))
-	       ;; This is required because the point moves to the center if
-	       ;; the point becomes outside of the window by the effect of
-	       ;; `set-window-start'.
-	       (setq result beg))
-	     (delete-region beg end)
-	     (goto-char beg)
-	     (insert-before-markers updated-str)
-	     (twittering-restore-window-config-after-modification
-	      config beg end)))
+	     ;; Replace `current-str' if it differs to `updated-str' with
+	     ;; ignoring properties. This is an ad-hoc solution.
+	     ;; `current-str' is a part of the displayed status, but it has
+	     ;; properties which are determined by the whole status.
+	     ;; (For example, the `id' property.)
+	     ;; Therefore, we cannot compare the strings with their
+	     ;; properties.
+	     (unless (string= current-str updated-str)
+	       ;; If the region to be modified includes the current position,
+	       ;; the point moves to the beginning of the region.
+	       (when (and (< beg marker) (< marker end))
+		 ;; This is required because the point moves to the center if
+		 ;; the point becomes outside of the window by the effect of
+		 ;; `set-window-start'.
+		 (setq result beg))
+	       (delete-region beg end)
+	       (goto-char beg)
+	       (insert-before-markers updated-str)
+	       (twittering-restore-window-config-after-modification
+		config beg end))))
 	 buffer))
       (set-marker marker nil)
       (when (and result (eq (window-buffer) buffer))

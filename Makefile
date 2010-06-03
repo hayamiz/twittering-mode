@@ -27,11 +27,17 @@ README: README.markdown
 	cp $< $@
 release: $(DISTRIB_FILES)
 	@(! [ -z "$${SF_USERNAME}" ] || (echo "Environmental variable 'SF_USERNAME', which is a username of sf.net, is required."; false))
-	@echo -n "updated VERSION and LAST-VERSION files? [y or n]: "; read ans; [ "$${ans}" = "y" ]
 	@echo -n "wrote NEWS file? [y or n]: "; read ans; [ "$${ans}" = "y" ]
+	@echo -n "What is next version number?: " && \
+	  read version && \
+	  mv VERSION LAST-VERSION && \
+	  echo $${version} > VERSION
 	ruby misc/vernum-updater.rb \
 	  --prev-version=$$(cat LAST-VERSION) --next-version=$$(cat VERSION) \
-	  VERSION twittering-mode.el doc/web/index.html
+	  doc/web/index.html
+	ruby misc/vernum-updater.rb \
+	  --prev-version=HEAD --next-version=$$(cat VERSION) \
+	  twittering-mode.el NEWS NEWS.ja
 	-git commit -a
 	@([ -d $(DISTRIB_DIR) ] && rm -rf $(DISTRIB_DIR)) || true
 	mkdir $(DISTRIB_DIR)

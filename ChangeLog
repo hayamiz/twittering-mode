@@ -1,3 +1,7 @@
+2010-06-03  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el: add encrypted oauth consumer key/secret
+
 2010-06-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Use `twittering-oauth-use-ssl' instead of

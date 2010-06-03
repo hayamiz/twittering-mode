@@ -37,6 +37,9 @@ existing way.
 * Auto proxy setup with environment variables (http_proxy, HTTP_PROXY)
 * Support for official ReTweet.
 * Added some format specifiers of tweets.
+* Support for recursive format specifiers such as
+  "%FILL{%FACE[bold]{%C{%m/%d}}: %T}".
+* Support for user-defined prefix on filling by "%FILL[prefix]{...}".
 * Displaying image files without temporary files.
 * Support multiple buffers, where their name is derived from timeline spec.
 * Multiple initial timelines by setting a list of timeline spec strings to
@@ -44,7 +47,6 @@ existing way.
 * Toggle automatic retrieval of the timeline by pressing 'a'.
 * Improved compatibility with global-font-lock mode.
 * Unread statuses notifier on mode-line (experimental).
-* Fixed fill-column for the format specifier "%FILL{...}".
 * Switching timeline buffers by pressing 'f' or 'b'.
 * Graphical indicators for SSL and ACTIVE/INACTIVE state on mode-line.
 * Asynchronous retrieval of icon images.
@@ -65,6 +67,7 @@ existing way.
   requires an external command `curl' or another command included in the
   variable `tls-program', which may be `openssl' or `gnutls-cli'.
   (Caution: Neither `openssl' nor `gnutls-cli' support SSL via proxy.)
+  You can disable SSL for OAuth by "(setq twittering-oauth-use-ssl nil)".
   You can enable OAuth by "(setq twittering-auth-method 'oauth)".
   If `twittering-oauth-invoke-browser' is non-nil, twittering-mode
   automatically opens a browser on authorization.

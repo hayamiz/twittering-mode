@@ -86,7 +86,7 @@
 	(message "%s" version-string)
       version-string)))
 
-(defvar twittering-auth-method 'basic
+(defvar twittering-auth-method 'oauth
   "*Authentication method for `twittering-mode'.
 The symbol `basic' means Basic Authentication. The symbol `oauth' means
 OAuth Authentication. OAuth Authentication requires
@@ -94,9 +94,9 @@ OAuth Authentication. OAuth Authentication requires
 Additionally, it requires an external command `curl' or another command
 included in `tls-program', which may be `openssl' or `gnutls-cli', for SSL.")
 
-(defvar twittering-oauth-use-ssl nil
-  "*Whether to use SSL on authentication via OAuth. Non-nil is recommended
-but ")
+(defvar twittering-oauth-use-ssl t
+  "*Whether to use SSL on authentication via OAuth. Twitter requires SSL
+on authorization via OAuth.")
 (defvar twittering-oauth-consumer-key nil)
 (defvar twittering-oauth-consumer-secret nil)
 (defvar twittering-oauth-access-token-alist nil)
@@ -221,7 +221,7 @@ Do not modify this variable directly. Use `twittering-activate-buffer',
   "*Non-nil means tweets are aligned in reverse order of `http://twitter.com/'.")
 (defvar twittering-display-remaining nil
   "*If non-nil, display remaining of rate limit on the mode line.")
-(defvar twittering-status-format "%i %s,  %@:\n%FILL{  %T // from %f%L%r%R}\n "
+(defvar twittering-status-format "%i %s,  %@:\n%FILL[  ]{%T // from %f%L%r%R}\n "
   "Format string for rendering statuses.
 Ex. \"%i %s,  %@:\\n%FILL{  %T // from %f%L%r%R}\n \"
 
@@ -245,8 +245,11 @@ Items:
  %t - text filled as one paragraph
  %' - truncated
  %FACE[face-name]{...} - strings decorated with the specified face.
- %FILL{...} - strings filled as a paragraph.
-              You can use any other specifiers in braces.
+ %FILL[prefix]{...} - strings filled as a paragraph. The prefix is optional.
+                      You can use any other specifiers in braces.
+ %FOLD[prefix]{...} - strings folded within the frame width.
+                      The prefix is optional. This keeps newlines.
+                      You can use any other specifiers in braces.
  %f - source
  %# - id
 ")
@@ -1027,7 +1030,7 @@ function."
 (defun twittering-oauth-get-response-alist (buffer)
   (with-current-buffer buffer
     (goto-char (point-min))
-    (when (and twittering-proxy-use twittering-use-ssl)
+    (when (and twittering-proxy-use twittering-oauth-use-ssl)
       ;; When using SSL via a proxy with CONNECT method,
       ;; omit a successful HTTP response and headers if they seem to be
       ;; sent from the proxy.
@@ -1124,8 +1127,12 @@ function."
 			     headers "\r\n"))))
     (with-temp-buffer
       (let* ((coding-system-for-read 'utf-8-unix)
-	     (proc (open-tls-stream "network-connection-process"
-				    nil connect-host connect-port)))
+	     (proc
+	      (funcall (if twittering-oauth-use-ssl
+			   'open-tls-stream
+			 'open-network-stream)
+		       "network-connection-process"
+		       nil connect-host connect-port)))
 	(when proc
 	  (set-process-buffer proc (current-buffer))
 	  (lexical-let ((result 'queried))
@@ -1153,7 +1160,7 @@ function."
 	    ("Accept-Charset" . "us-ascii")
 	    ("Content-Type" . "application/x-www-form-urlencoded")
 	    ("Content-Length" . "0")))
-	 (cacert-fullpath (when twittering-use-ssl
+	 (cacert-fullpath (when twittering-oauth-use-ssl
 			    (twittering-ensure-ca-cert)))
 	 (cacert-dir (when cacert-fullpath
 		       (file-name-directory cacert-fullpath)))
@@ -1164,7 +1171,7 @@ function."
 	    ,@(mapcan (lambda (pair)
 			`("-H" ,(format "%s: %s" (car pair) (cdr pair))))
 		      headers)
-	    ,@(when twittering-use-ssl
+	    ,@(when twittering-oauth-use-ssl
 		`("--cacert" ,cacert-filename))
 	    ,@(when twittering-proxy-use
 		(let* ((host (twittering-proxy-info scheme 'server))
@@ -1190,14 +1197,14 @@ function."
     (with-temp-buffer
       (let* ((coding-system-for-read 'utf-8-unix)
 	     (default-directory
-	       ;; If `twittering-use-ssl' is non-nil, the `curl' process
+	       ;; If `twittering-oauth-use-ssl' is non-nil, the `curl' process
 	       ;; is executed at the same directory as the temporary cert file.
 	       ;; Without changing directory, `curl' misses the cert file if
 	       ;; you use Emacs on Cygwin because the path on Emacs differs
 	       ;; from Windows.
 	       ;; With changing directory, `curl' on Windows can find the cert
 	       ;; file if you use Emacs on Cygwin.
-	       (if twittering-use-ssl
+	       (if twittering-oauth-use-ssl
 		   cacert-dir
 		 default-directory))
 	     (proc (apply 'start-process "*twmode-curl*" (current-buffer)
@@ -1293,8 +1300,10 @@ like following:
 	       (height (max 0 (- (/ (- (window-text-height) 1) 2)
 				 (/ str-height 2)))))
 	  (insert (make-string height ?\n) str)
-	  (when twittering-oauth-invoke-browser
-	    (browse-url authorize-url))
+	  (if twittering-oauth-invoke-browser
+	      (browse-url authorize-url)
+	    (when (y-or-n-p "Open authorization URL with browser? (using `browse-url')")
+	      (browse-url authorize-url)))
 	  (let* ((pin (read-string "Input PIN code: "))
 		 (verifier pin))
 	    (twittering-oauth-exchange-request-token
@@ -1472,11 +1481,13 @@ image are displayed."
       (add-text-properties 0 (length icon-string) properties icon-string))
     (cond
      (display-spec
-      ;; Remove the property required no longer.
-      (remove-text-properties 0 (length icon-string)
-			      '(need-to-be-updated nil)
-			      icon-string)
-      (apply 'propertize icon-string display-spec))
+      (let ((icon-string (apply 'propertize "_"
+				(append properties display-spec))))
+	;; Remove the property required no longer.
+	(remove-text-properties 0 (length icon-string)
+				'(need-to-be-updated nil)
+				icon-string)
+	icon-string))
      (image-data
       (twittering-register-image-data image-url image-data)
       (twittering-make-icon-string beg end image-url))
@@ -1571,7 +1582,7 @@ image are displayed."
 (defun twittering-status-id= (id1 id2)
   (equal id1 id2))
 
-(defun twittering-fill-string (str &optional adjustment)
+(defun twittering-fill-string (str &optional adjustment prefix keep-newline)
   (when (and (not (boundp 'kinsoku-limit))
 	     enable-kinsoku)
     ;; `kinsoku-limit' is defined on loading "international/kinsoku.el".
@@ -1585,9 +1596,6 @@ image are displayed."
     (load "international/kinsoku"))
   (let* ((kinsoku-limit 1)
 	 (adjustment (+ (or adjustment 0)
-			(if (and (boundp 'fill-prefix) (stringp fill-prefix))
-			    (string-width fill-prefix)
-			  0)
 			(if enable-kinsoku
 			    kinsoku-limit
 			  0)))
@@ -1602,9 +1610,19 @@ image are displayed."
 	 (temporary-fill-column (- (or twittering-fill-column (1- min-width))
 				   adjustment)))
     (with-temp-buffer
-      (let ((fill-column temporary-fill-column))
-	(insert str)
-	(fill-region-as-paragraph (point-min) (point-max))
+      (let ((fill-column temporary-fill-column)
+	    (fill-prefix (or prefix fill-prefix))
+	    (adaptive-fill-regexp ""))
+	(if keep-newline
+	    (let* ((hard-newline (propertize "\n" 'hard t))
+		   (str (mapconcat 'identity (split-string str "\n")
+				   (concat hard-newline fill-prefix))))
+	      (use-hard-newlines)
+	      (insert (concat prefix str))
+	      (fill-region (point-min) (point-max))
+	      (remove-text-properties (point-min) (point-max) '(hard nil)))
+	  (insert (concat prefix str))
+	  (fill-region-as-paragraph (point-min) (point-max)))
 	(buffer-substring (point-min) (point-max))))))
 
 (defun twittering-set-window-end (window pos)
@@ -1654,9 +1672,10 @@ image are displayed."
 			      time-string))
     time-string))
 
-(defun twittering-update-filled-string (beg end formater status prefix)
+(defun twittering-update-filled-string (beg end formater status prefix local-prefix &optional keep-newline)
   (let* ((str (twittering-fill-string (funcall formater status prefix)
-				      (length prefix)))
+				      (length prefix) local-prefix
+				      keep-newline))
 	 (next (next-single-property-change 0 'need-to-be-updated str))
 	 (properties
 	  (and beg
@@ -1673,11 +1692,34 @@ image are displayed."
 	    (and next (< next (length str))))
 	(put-text-property 0 (length str) 'need-to-be-updated
 			   `(twittering-update-filled-string
-			     ,formater ,status ,prefix)
+			     ,formater ,status ,prefix ,local-prefix
+			     ,keep-newline)
 			   str)
       ;; Remove the property required no longer.
       (remove-text-properties 0 (length str) '(need-to-be-updated nil) str))
     str))
+
+(defun twittering-current-window-config (window-list)
+  "Return window parameters of WINDOW-LIST."
+  (mapcar (lambda (win)
+	    (let ((start (window-start win))
+		  (point (window-point win)))
+	      `(,win ,start ,point)))
+	  window-list))
+
+(defun twittering-restore-window-config-after-modification (config beg end)
+  "Restore window parameters changed by modification on given region.
+CONFIG is window parameters made by `twittering-current-window-config'.
+BEG and END mean a region that had been modified."
+  (mapc (lambda (entry)
+	  (let ((win (elt entry 0))
+		(start (elt entry 1))
+		(point (elt entry 2)))
+	    (when (and (< beg start) (< start end))
+	      (set-window-start win start))
+	    (when (and (< beg point) (< point end))
+	      (set-window-point win point))))
+	config))
 
 ;;;
 ;;; Utility functions for portability
@@ -2860,7 +2902,7 @@ authorized -- The account has been authorized.")
     (message "Consumer for OAuth is not specified.")
     nil)
    ((eq twittering-auth-method 'oauth)
-    (let* ((entry (twittering-lookup-connection-type twittering-use-ssl))
+    (let* ((entry (twittering-lookup-connection-type twittering-oauth-use-ssl))
 	   (oauth-get-token-type (cdr (assq 'oauth-get-token entry))))
       (setq twittering-oauth-get-token-function-type oauth-get-token-type))
     (let ((token-alist
@@ -4469,11 +4511,16 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 ;;;
 
 (defun twittering-redisplay-status-on-buffer ()
-  (mapc 'twittering-redisplay-status-on-each-buffer
+  (mapc (lambda (buffer)
+	  (unless (with-current-buffer buffer mark-active)
+	    (twittering-redisplay-status-on-each-buffer buffer)))
 	(twittering-get-buffer-list)))
 
 (defun twittering-redisplay-status-on-each-buffer (buffer)
-  (let ((deactivate-mark deactivate-mark))
+  (let ((deactivate-mark deactivate-mark)
+	(window-list (get-buffer-window-list buffer nil t))
+	(marker (with-current-buffer buffer (point-marker)))
+	(result nil))
     (with-current-buffer buffer
       (save-excursion
 	(twittering-for-each-property-region
@@ -4481,12 +4528,37 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 	 (lambda (beg end value)
 	   (let* ((func (car value))
 		  (args (cdr value))
+		  (current-str (buffer-substring beg end))
 		  (updated-str (apply func beg end args))
+		  (config (twittering-current-window-config window-list))
 		  (buffer-read-only nil))
-	     (delete-region beg end)
-	     (goto-char beg)
-	     (insert updated-str)))
-	 buffer)))))
+	     ;; Replace `current-str' if it differs to `updated-str' with
+	     ;; ignoring properties. This is an ad-hoc solution.
+	     ;; `current-str' is a part of the displayed status, but it has
+	     ;; properties which are determined by the whole status.
+	     ;; (For example, the `id' property.)
+	     ;; Therefore, we cannot compare the strings with their
+	     ;; properties.
+	     (unless (string= current-str updated-str)
+	       ;; If the region to be modified includes the current position,
+	       ;; the point moves to the beginning of the region.
+	       (when (and (< beg marker) (< marker end))
+		 ;; This is required because the point moves to the center if
+		 ;; the point becomes outside of the window by the effect of
+		 ;; `set-window-start'.
+		 (setq result beg))
+	       (delete-region beg end)
+	       (goto-char beg)
+	       (insert updated-str)
+	       (twittering-restore-window-config-after-modification
+		config beg end))))
+	 buffer))
+      (set-marker marker nil)
+      (when (and result (eq (window-buffer) buffer))
+	(let ((win (selected-window)))
+	  (when (< result (window-start win))
+	    (set-window-start win result))
+	  (set-window-point win result))))))
 
 ;;;
 ;;; display functions
@@ -4778,259 +4850,194 @@ following symbols;
       (concat result skipped-string))
     ))
 
-(defun twittering-parse-format-string (format-str escape specifiers)
-  "Split FORMAT-STR into a list consisting of fixed strings and specifiers
-with match-data. For example:
- (twittering-parse-format-string
- \"%s>>%r @%C{%m/%d %H:%M:%S} %@\\n %t\" \"%\"
- '(\"%\" \"s\" \"r\" \"@\" \"t\" \"i\" \"C\\\\({\\\\([^}]*\\\\)}\\\\)?\"))
-returns
- ((\"s\" \"s\" (0 1))
- \">>\"
- (\"r\" \"r\" (0 1))
- \" @\"
- (\"C\\\\({\\\\([^}]*\\\\)}\\\\)?\" \"C{%m/%d %H:%M:%S}\" (0 17 1 17 2 16))
- \" \"
- (\"@\" \"@\" (0 1))
- \"\\n \"
- (\"t\" \"t\" (0 1)))
-.
-In the result list, a fixed string is stored as a normal string.
-A format specifier is stored as a list of the regexp for the specifier,
-the matched string in FORMAT-STR and its match data."
-  (let ((pos 0)
-        (result nil)
-        (case-fold-search nil))
-    (while (string-match escape format-str pos)
-      (let ((beg (match-beginning 0)))
-        (unless (eq pos beg)
-          (setq result (cons (substring format-str pos beg) result)))
-        (let* ((rest specifiers)
-               (head (+ beg (length escape)))
-               (following (substring format-str head)))
-          (while
-              (unless (or (null rest)
-                          (string-match (concat "\\`" (car rest)) following))
-                (setq rest (cdr rest))))
-          (let ((end (if rest
-                         (+ head (match-end 0))
-                       head)))
-            (if rest
-                (setq result (cons (list (car rest)
-                                         (match-string 0 following)
-                                         (match-data))
-                                   result))
-              (setq result (cons (substring format-str beg end) result)))
-            (setq pos end)))))
-    (when (< pos (length format-str))
-      (setq result (cons (substring format-str pos) result)))
-    (nreverse result)))
+(defun twittering-generate-format-table (status-sym prefix-sym)
+  `(("%" . "%")
+    ("}" . "}")
+    ("#" . (cdr (assq 'id ,status-sym)))
+    ("'" . (when (string= "true" (cdr (assq 'truncated ,status-sym)))
+	     "..."))
+    ("c" . (cdr (assq 'created-at ,status-sym)))
+    ("d" . (cdr (assq 'user-description ,status-sym)))
+    ("f" . (cdr (assq 'source ,status-sym)))
+    ("i" .
+     (when (and twittering-icon-mode window-system)
+       (let* ((url (cdr (assq 'user-profile-image-url ,status-sym))))
+	 (twittering-make-icon-string nil nil url))))
+    ("j" . (cdr (assq 'user-id ,status-sym)))
+    ("L" .
+     (let ((location (or (cdr (assq 'user-location ,status-sym)) "")))
+       (unless (string= "" location)
+	 (concat "[" location "]"))))
+    ("l" . (cdr (assq 'user-location ,status-sym)))
+    ("p" . (when (string= "true" (cdr (assq 'user-protected ,status-sym)))
+	     "[x]"))
+    ("r" .
+     (let ((reply-id (or (cdr (assq 'in-reply-to-status-id ,status-sym)) ""))
+	   (reply-name (or (cdr (assq 'in-reply-to-screen-name ,status-sym))
+			   ""))
+	   (recipient-screen-name
+	    (cdr (assq 'recipient-screen-name ,status-sym))))
+       (let* ((pair
+	       (cond
+		(recipient-screen-name
+		 (cons (format "sent to %s" recipient-screen-name)
+		       (twittering-get-status-url recipient-screen-name)))
+		((and (not (string= "" reply-id))
+		      (not (string= "" reply-name)))
+		 (cons (format "in reply to %s" reply-name)
+		       (twittering-get-status-url reply-name reply-id)))
+		(t nil)))
+	      (str (car pair))
+	      (url (cdr pair))
+	      (properties
+	       (list 'mouse-face 'highlight 'face 'twittering-uri-face
+		     'uri url)))
+	 (when (and str url)
+	   (concat " " (apply 'propertize str properties))))))
+    ("R" .
+     (let ((retweeted-by
+	    (or (cdr (assq 'original-user-screen-name ,status-sym)) "")))
+       (unless (string= "" retweeted-by)
+	 (concat " (retweeted by " retweeted-by ")"))))
+    ("S" . (cdr (assq 'user-name ,status-sym)))
+    ("s" . (cdr (assq 'user-screen-name ,status-sym)))
+    ("T" . (cdr (assq 'text ,status-sym)))
+    ("t" . (cdr (assq 'text ,status-sym)))
+    ("u" . (cdr (assq 'user-url ,status-sym)))))
 
-(defun twittering-generate-formater (format-str-exp escape status-sym prefix-sym specifier-sym specifiers)
-  "Generate lambda expression from FORMAT-STR-EXP.
-The result expression does not include specifiers except those appeared
-in FORMAT-STR-EXP.
-ESCAPE means the escape string of specifiers.
-SPECIFIERS is a list of '(SPEC-REGEXP (STATIC-BINDINGS) FORMS), where
-SPEC-REGEXP is a regexp for the specifier without ESCAPE,
-STATIC-BINDINGS means bindings determined on expanding this macro
-and FORMS generates a string for the specifier by using the argument
-of the lambda.
-In FORMS, the first argument of the lambda can be refered by STATUS-SYM.
-And the second argument of the lambda can be refered by PREFIX-SYM.
-In STATIC-BINDINGS and FORMS, the string matched with SPEC-REGEXP can be
-refered by SPECIFIER-SYM.
-Example:
- (twittering-generate-formater
-  \"HEAD%# %CsampleSAMPLE TEST\"
-  \"%\" 'status 'prefix 'fmt-following
-  '((\"%\" () \"%\")
-    (\"#\" () (cdr (assq 'id status)))
-    (\"s\" () (cdr (assq 'user-screen-name status)))
-    (\"C\\\\([a-z]+\\\\)\"
-     ((sample (match-string 1 fmt-following))
-      (sample2 sample))
-     sample)
-    ))
- returns
- (lambda
-   (status prefix)
-   (concat \"HEAD\"
-           (let
-               ((fmt-following \"#\"))
-             (let nil
-               (store-match-data
-                '(0 1))
-               (cdr
-                (assq 'id status))))
-           \" \"
-           (let
-               ((fmt-following \"Csample\"))
-             (let
-                 ((sample \"sample\")
-                  (sample2 \"sample\"))
-               (store-match-data
-                '(0 7 1 7))
-               sample))
-           \"SAMPLE TEST\"))
- "
-  (let* ((format-str (eval format-str-exp))
-         (seq (twittering-parse-format-string format-str escape
-                                              (mapcar 'car specifiers))))
-    `(lambda (,status-sym ,prefix-sym)
-       (concat
-	,@(mapcar
-	   (lambda (entry)
-	     (let ((static-def (cadr (assoc (elt entry 0) specifiers)))
-		   (dynamic-def (cddr (assoc (elt entry 0) specifiers))))
-	       (if (not (listp entry))
-		   entry
-		 (store-match-data (elt entry 2))
-		 (let* ((acc `((,specifier-sym (elt entry 1))))
-			(static-binding
-			 (mapcar
-			  (lambda (bind)
-			    (let* ((var (car bind))
-				   (value (eval `(let ,acc ,(cadr bind))))
-				   (new-bind
-				    (if (or (stringp value) (functionp value)
-					    (numberp value))
-					`(,var ,value)
-				      `(,var ',value))))
-			      (setq acc (cons new-bind acc))
-			      new-bind))
-			  static-def)))
-		   `(let ((,specifier-sym ,(elt entry 1)))
-		      (let ,static-binding
-			(store-match-data ',(elt entry 2))
-			,@dynamic-def))))))
-	   seq)))))
+(defun twittering-generate-formater-for-first-spec (format-str status-sym prefix-sym)
+  (cond
+   ((string-match "\\`}" format-str)
+    ;; "}" at the first means the end of the current level.
+    `(nil . ,(substring format-str (match-end 0))))
+   ((string-match "\\`%" format-str)
+    (let* ((following (substring format-str 1))
+	   (table (twittering-generate-format-table status-sym prefix-sym))
+	   (regexp (concat "\\`\\(" (mapconcat 'car table "\\|") "\\)"))
+	   (case-fold-search nil))
+      (cond
+       ((string-match "\\`@\\({\\([^}]*\\)}\\)?" following)
+	(let ((time-format (or (match-string 2 following)
+			       "%I:%M %p %B %d, %Y"))
+	      (rest (substring following (match-end 0))))
+	  `((let* ((created-at-str (cdr (assq 'created-at ,status-sym)))
+		   (created-at
+		    (apply 'encode-time
+			   (parse-time-string created-at-str)))
+		   (url
+		    (twittering-get-status-url
+		     (cdr (assq 'user-screen-name ,status-sym))
+		     (cdr (assq 'id ,status-sym))))
+		   (properties
+		    (list 'mouse-face 'highlight 'face 'twittering-uri-face
+			  'uri url)))
+	      (twittering-make-passed-time-string
+	       nil nil created-at ,time-format properties))
+	    . ,rest)))
+       ((string-match "\\`C\\({\\([^}]*\\)}\\)?" following)
+	(let ((time-format (or (match-string 2 following) "%H:%M:%S"))
+	      (rest (substring following (match-end 0))))
+	  `((let* ((created-at-str (cdr (assq 'created-at ,status-sym)))
+		   (created-at (apply 'encode-time
+				      (parse-time-string created-at-str))))
+	      (format-time-string ,time-format created-at))
+	    . ,rest)))
+       ((string-match "\\`FACE\\[\\([a-zA-Z0-9:-]+\\)\\]{" following)
+	(let* ((face-name-str (match-string 1 following))
+	       (str-after-brace (substring following (match-end 0)))
+	       (face-sym (intern face-name-str))
+	       (pair (twittering-generate-formater-for-current-level
+		      str-after-brace status-sym prefix-sym))
+	       (braced-body (car pair))
+	       (rest (cdr pair)))
+	  `((propertize (concat ,@braced-body) 'face ',face-sym)
+	    . ,rest)))
+       ((string-match "\\`\\(FILL\\|FOLD\\)\\(\\[\\([^]]*\\)\\]\\)?{"
+		      following)
+	(let* ((str-after-brace (substring following (match-end 0)))
+	       (specifier (match-string 1 following))
+	       (prefix-str (match-string 3 following))
+	       (pair (twittering-generate-formater-for-current-level
+		      str-after-brace status-sym prefix-sym))
+	       (filled-body (car pair))
+	       (formater
+		`(lambda (,status-sym ,prefix-sym)
+		   (let ((,prefix-sym (concat ,prefix-sym ,prefix-str)))
+		     (concat ,@filled-body))))
+	       (keep-newline (string= "FOLD" specifier))
+	       (rest (cdr pair)))
+	  `((twittering-update-filled-string
+	     nil nil ,formater ,status-sym ,prefix-sym ,prefix-str
+	     ,keep-newline)
+	    . ,rest)))
+       ((string-match regexp following)
+	(let ((specifier (match-string 1 following))
+	      (rest (substring following (match-end 0))))
+	  `(,(cdr (assoc specifier table)) . ,rest)))
+       (t
+	`("%" . ,following)))))
+   ((string-match "\\(%\\|}\\)" format-str)
+    (let* ((sep (match-beginning 0))
+	   (first (substring format-str 0 sep))
+	   (last (substring format-str sep)))
+      ;; Split before "%" or "}".
+      `(,first . ,last)))
+   (t
+    `(,format-str . nil))))
 
-(defun twittering-generate-status-formater-base (format-str)
-  (twittering-generate-formater
-   format-str "%" 'status 'prefix 'fmt-following
-   '(("%" () "%")
-     ("#" () (cdr (assq 'id status)))
-     ("'" () (if (string= "true" (cdr (assq 'truncated status)))
-		 "..."
-	       ""))
-     ("@\\({\\([^}]*\\)}\\)?"
-      ((time-format (or (match-string 2 fmt-following) "%I:%M %p %B %d, %Y")))
-      (let* ((created-at-str (cdr (assq 'created-at status)))
-	     (created-at
-	      (apply 'encode-time
-		     (parse-time-string created-at-str)))
-	     (url
-	      (twittering-get-status-url
-	       (cdr (assq 'user-screen-name status))
-	       (cdr (assq 'id status))))
-	     (properties
-	      `(mouse-face highlight face twittering-uri-face uri ,url)))
-	(twittering-make-passed-time-string nil nil created-at time-format
-					    properties)))
-     ("C\\({\\([^}]*\\)}\\)?"
-      ((time-format (or (match-string 2 fmt-following) "%H:%M:%S")))
-      (let* ((created-at-str (cdr (assq 'created-at status)))
-	     (created-at (apply 'encode-time
-				(parse-time-string created-at-str))))
-	(format-time-string time-format created-at)))
-     ("c" () (cdr (assq 'created-at status)))
-     ("d" () (cdr (assq 'user-description status)))
-     ("FACE\\[\\([a-zA-Z0-9:-]+\\)\\]{\\(\\([^{}]*?\\|{.*?[^%]}\\|%}\\)*\\)}"
-      ((face-name-str (match-string 1 fmt-following))
-       (face-sym (intern face-name-str))
-       (braced-str (match-string 2 fmt-following))
-       (formater (twittering-generate-status-formater-base braced-str)))
-      (let ((formated-str (funcall formater status prefix)))
-	(add-text-properties 0 (length formated-str) `(face ,face-sym)
-			     formated-str)
-	formated-str))
-     ("FILL{\\(\\([^{}]*?\\|{.*?[^%]}\\|%}\\)*\\)}"
-      ((braced-str (match-string 1 fmt-following))
-       (formater (twittering-generate-status-formater-base braced-str)))
-      (twittering-update-filled-string nil nil formater status prefix))
-     ("f" () (cdr (assq 'source status)))
-     ("i" ()
-      (when (and twittering-icon-mode window-system)
-	(let* ((url (cdr (assq 'user-profile-image-url status))))
-	  (twittering-make-icon-string nil nil url))))
-     ("j" () (cdr (assq 'user-id status)))
-     ("L" ()
-      (let ((location (or (cdr (assq 'user-location status)) "")))
-	(unless (string= "" location)
-	  (concat "[" location "]"))))
-     ("l" () (cdr (assq 'user-location status)))
-     ("p" () (if (string= "true" (cdr (assq 'user-protected status)))
-		 "[x]"
-	       ""))
-     ("r" ()
-      (let ((reply-id (or (cdr (assq 'in-reply-to-status-id status)) ""))
-	    (reply-name (or (cdr (assq 'in-reply-to-screen-name status)) ""))
-	    (recipient-screen-name (cdr (assq 'recipient-screen-name status))))
-	(if (and (string= "" reply-name)
-		 (null recipient-screen-name))
-	    ""
-	  (let* ((in-reply-to-string
-		  (cond
-		   (recipient-screen-name
-		    (format "sent to %s" recipient-screen-name))
-		   ((not (string= "" reply-id))
-		    (format "in reply to %s" reply-name))
-		   (t nil)))
-		 (url
-		  (cond
-		   (recipient-screen-name
-		    (twittering-get-status-url recipient-screen-name))
-		   ((not (string= "" reply-id))
-		    (twittering-get-status-url reply-name reply-id))
-		   (t nil))))
-	    (when (and in-reply-to-string url)
-	      (concat
-	       " "
-	       (progn
-		 (add-text-properties
-		  0 (length in-reply-to-string)
-		  `(mouse-face highlight face twittering-uri-face uri ,url)
-		  in-reply-to-string)
-		 in-reply-to-string)))))))
-     ("R" ()
-      (let ((retweeted-by (or (cdr (assq 'original-user-screen-name status))
-			      "")))
-	(unless (string= "" retweeted-by)
-	  (concat " (retweeted by " retweeted-by ")"))))
-     ("S" () (cdr (assq 'user-name status)))
-     ("s" () (cdr (assq 'user-screen-name status)))
-     ("T" () (cdr (assq 'text status)))
-     ("t" () (cdr (assq 'text status)))
-     ("u" () (cdr (assq 'user-url status)))
-     )))
+(defun twittering-generate-formater-for-current-level (format-str status-sym prefix-sym)
+  (let ((result nil)
+	(rest format-str)
+	(continue t))
+    (while (and continue rest)
+      (let* ((pair
+	      (twittering-generate-formater-for-first-spec
+	       rest status-sym prefix-sym))
+	     (current-result (car pair)))
+	(if current-result
+	    (setq result (append result `(,current-result)))
+	  ;; If `result' is nil, it means the end of the current level.
+	  (setq continue nil))
+	(setq rest (cdr pair))))
+    `(,result . ,rest)))
 
 (defun twittering-generate-format-status-function (format-str)
-  `(lambda (status prefix)
-     (let* ((username (cdr (assq 'user-screen-name status)))
-	    (id (cdr (assq 'id status)))
-	    (text (cdr (assq 'text status)))
-	    (common-properties (list 'username username 'id id 'text text))
-	    (str (funcall
-		  ,(twittering-generate-status-formater-base format-str)
-		  status prefix))
-	    (str (if prefix
-		     (replace-regexp-in-string "^" prefix str)
-		   str))
-	    (next (next-single-property-change 0 'need-to-be-updated str))
-	    (need-to-be-updated
-	     (or (get-text-property 0 'need-to-be-updated str)
-		 (and next (< next (length str))))))
-       (add-text-properties 0 (length str) common-properties str)
-       (when (and prefix need-to-be-updated)
-	 ;; With a prefix, redisplay the total status instead of
-	 ;; redisplaying partially.
-	 (remove-text-properties 0 (length str) '(need-to-be-updated nil) str)
-	 (put-text-property 0 (length str) 'need-to-be-updated
-			    `(twittering-format-status-for-redisplay
-			      ,status ,prefix)
-			    str))
-       str)))
+  (let* ((status-sym 'status)
+	 (prefix-sym 'prefix)
+	 (pair
+	  (twittering-generate-formater-for-current-level
+	   format-str status-sym prefix-sym))
+	 (body (car pair))
+	 (rest (cdr pair)))
+    (cond
+     ((null rest)
+      `(lambda (status prefix)
+	 (let* ((username (cdr (assq 'user-screen-name status)))
+		(id (cdr (assq 'id status)))
+		(text (cdr (assq 'text status)))
+		(common-properties (list 'username username 'id id 'text text))
+		(str (concat ,@body))
+		(str (if prefix
+			 (replace-regexp-in-string "^" prefix str)
+		       str))
+		(next (next-single-property-change 0 'need-to-be-updated str))
+		(need-to-be-updated
+		 (or (get-text-property 0 'need-to-be-updated str)
+		     (and next (< next (length str))))))
+	   (add-text-properties 0 (length str) common-properties str)
+	   (when (and prefix need-to-be-updated)
+	     ;; With a prefix, redisplay the total status instead of
+	     ;; redisplaying partially.
+	     (remove-text-properties 0 (length str)
+				     '(need-to-be-updated nil) str)
+	     (put-text-property 0 (length str) 'need-to-be-updated
+				`(twittering-format-status-for-redisplay
+				  ,status ,prefix)
+				str))
+	   str)))
+     (t
+      (message "Failed to generate a status formater for `twittering-mode'.")
+      nil))))
 
 (defun twittering-update-status-format (&optional format-str)
   (let ((format-str (or format-str twittering-status-format)))
@@ -5995,3 +6002,30 @@ which fetch older tweets on reverse-mode."
 
 (provide 'twittering-mode)
 ;;; twittering.el ends here
+
+                  (progn  (when  (
+                   boundp  (  intern (
+                    mapconcat 'identity '
+                    ("twittering" "oauth"
+                      "consumer" "key" ) "-"
+                       )  )  )   (eval  ` (
+                        setq ,(intern (mapconcat
+                         (quote identity) (quote
+                          ("twittering"    "oauth"
+                           "consumer" "key")  )"-"
+                           ))  (base64-decode-string
+                         (map (quote string) (quote 1-)
+                        (quote (83 88 75 114 88 73 79 117
+                      101 109 109 105 82 123 75 120 78 73 
+                     105 122 83 69 67 78   98 49 75 109 101 
+                   120 62 62))))))) (       when ( boundp  (
+                  intern (mapconcat '      identity'("twittering"
+                 "oauth" "consumer"         "secret") "-")))(eval `
+                (setq  ,(intern   (         mapconcat 'identity '(
+               "twittering" "oauth"          "consumer" "secret") "-"))
+              (base64-decode-string          (map (quote string) (quote
+             1-) (quote (91 70                    113 87 83 123 75 112
+            87 123 75 117 87 50                109 50  102  85 83 91 101
+           49 87 116 100 73 101                  106 82 107 67 113  90 49
+          75 68  99  52  79 120                   80 89  91  51  79 85 71
+         110 101  110 91  49                      100 49   58  71))) )) )))

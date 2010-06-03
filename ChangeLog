@@ -1,3 +1,82 @@
+2010-06-03  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el: add encrypted oauth consumer key/secret
+	(twittering-auth-method): changed default value to 'oauth
+	(twittering-oauth-get-access-token): give users a choise to open
+	authrization URL with browser or not when
+	twittering-oauth-invoke-browser is nil.
+
+2010-06-03  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Use `twittering-oauth-use-ssl' instead of
+	`twittering-use-ssl' on functions for OAuth.
+	(twittering-oauth-use-ssl): add docstring.
+	(twittering-oauth-get-response-alist): use
+	`twittering-oauth-use-ssl' instead of `twittering-use-ssl'.
+	(twittering-oauth-get-token-alist-native): likewise.
+	(twittering-oauth-get-token-alist-curl): likewise.
+	(twittering-verify-credentials): likewise.
+
+	* twittering-mode.el: Restore window parameters after automatic
+	redisplaying.
+	(twittering-current-window-config): new function.
+	(twittering-restore-window-config-after-modification): new function.
+	(twittering-redisplay-status-on-each-buffer): restore window
+	parameters after redisplaying.
+
+	* twittering-mode.el: Suppress automatic redisplaying if
+	unnecessary.
+	(twittering-redisplay-status-on-each-buffer): do not modify buffer
+	if updated string is same as the current string in the meaning of
+	`string='.
+	(twittering-make-icon-string): give different strings for
+	displayed and undisplayed icon.
+
+	* twittering-mode.el: Stop automatic redisplaying of buffers in
+	which the mark and region are active.
+	(twittering-redisplay-status-on-buffer): do not update buffer
+	in which the mark and region are active.
+
+	* twittering-mode.el: Reimplement the status formater that allows
+	recursive specifiers such as "%FILL{%FACE[bold]{%C{%m/%d}}: %T}".
+	(twittering-parse-format-string): removed.
+	(twittering-generate-formater): removed.
+	(twittering-generate-status-formater-base): removed.
+	(twittering-generate-format-table): new function.
+	(twittering-generate-formater-for-first-spec): new function.
+	(twittering-generate-formater-for-current-level): new function.
+	(twittering-generate-format-status-function): new function.
+	(twittering-generate-format-status-function): use new
+	implementation.
+
+	* twittering-mode.el: Add an optional argument for the format
+	specifier `FILL'. The argument specifies the prefix for the filled
+	region.
+	(twittering-status-format): use 2 white spaces as fill-prefix in
+	default.
+	(twittering-fill-string): use an additional argument `prefix' as
+	`fill-prefix' for `fill-region-as-paragraph' if the argument is
+	non-nil.
+	(twittering-update-filled-string): transfer the local prefix for
+	`twittering-fill-string'.
+	(twittering-generate-formater-for-first-spec): recognize an
+	optional argument for the format specifier `FILL'.
+
+	* twittering-mode.el: Add a new format specifier
+	"%FOLD[prefix]{...}".
+	(twittering-fill-string): add an argument `keep-newline'. If it is
+	non-nil, do not remove newlines in given string.
+	(twittering-update-filled-string): add an argument
+	`keep-newline'.
+	(twittering-generate-formater-for-first-spec): add a new specifier
+	"%FOLD[prefix]{...}".
+
+	* twittering-mode.el: Fix unintended cursor motion caused by
+	automatic redisplaying.
+	(twittering-redisplay-status-on-each-buffer): fix the incorrect
+	cursor motion occurring when it points the beginning of region
+	that will be be modified.
+
 2010-05-27  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-toggle-activate-buffer): restart

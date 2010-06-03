@@ -86,7 +86,7 @@
 	(message "%s" version-string)
       version-string)))
 
-(defvar twittering-auth-method 'basic
+(defvar twittering-auth-method 'oauth
   "*Authentication method for `twittering-mode'.
 The symbol `basic' means Basic Authentication. The symbol `oauth' means
 OAuth Authentication. OAuth Authentication requires
@@ -1300,8 +1300,10 @@ like following:
 	       (height (max 0 (- (/ (- (window-text-height) 1) 2)
 				 (/ str-height 2)))))
 	  (insert (make-string height ?\n) str)
-	  (when twittering-oauth-invoke-browser
-	    (browse-url authorize-url))
+	  (if twittering-oauth-invoke-browser
+	      (browse-url authorize-url)
+	    (when (y-or-n-p "Open authorization URL with browser? (using `browse-url')")
+	      (browse-url authorize-url)))
 	  (let* ((pin (read-string "Input PIN code: "))
 		 (verifier pin))
 	    (twittering-oauth-exchange-request-token

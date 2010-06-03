@@ -1,6 +1,10 @@
 2010-06-03  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el: add encrypted oauth consumer key/secret
+	(twittering-auth-method): changed default value to 'oauth
+	(twittering-oauth-get-access-token): give users a choise to open
+	authrization URL with browser or not when
+	twittering-oauth-invoke-browser is nil.
 
 2010-06-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 

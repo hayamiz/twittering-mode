@@ -63,6 +63,12 @@
 	(twittering-generate-formater-for-first-spec): add a new specifier
 	"%FOLD[prefix]{...}".
 
+	* twittering-mode.el: Fix unintended cursor motion caused by
+	automatic redisplaying.
+	(twittering-redisplay-status-on-each-buffer): fix the incorrect
+	cursor motion occurring when it points the beginning of region
+	that will be be modified.
+
 2010-05-27  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-toggle-activate-buffer): restart

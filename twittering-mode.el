@@ -4547,7 +4547,7 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 		 (setq result beg))
 	       (delete-region beg end)
 	       (goto-char beg)
-	       (insert-before-markers updated-str)
+	       (insert updated-str)
 	       (twittering-restore-window-config-after-modification
 		config beg end))))
 	 buffer))

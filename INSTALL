@@ -6,35 +6,41 @@ Installation Guide
 For Windows users
 -----------------
 
-* For those who do not have cURL binaries:
-  * Copy `twittering-mode.el` and `win-curl` to the same directory,
-    which is included in `load-path` of your Emacs environment.
-  * Proceed to **Set up your Emacs**
-* Others:
-  * Copy `twittering-mode.el` to the directory included in
-    `load-path`.
-  * Proceed to **Set up your Emacs**
+* Uncompress the archive file, and add a path of a directory
+  containing `twittering-mode.el` to your `load-path`.
+  * For example, if you uncompressed it under `C:\foo\`, there may be
+    a directory `C:\foo\twittering-mode-X.X.X\` which contains
+    `twittering-mode.el`. So add the following code to your `.emacs`
+
+    (add-to-list 'load-path "C:/foo/twittering-mode-X.X.X")
+
+* Proceed to **Set up your Emacs**
 
 For Linux and other Unix users
 ------------------------------
 
-* Copy `twittering-mode.el` to the directory included in `load-path`
-  of your Emacs environment.
-* (Optional) Install cURL in your way. For example, `apt-get install
-  curl` would do in Debian and its variants.
+* Uncompress the archive file, and add a path of a directory
+  containing `twittering-mode.el` to your `load-path`.
+  * For example, if you uncompressed it under `/path/to/foo`, there may be
+    a directory `/path/to/foo/twittering-mode-X.X.X/` which contains
+    `twittering-mode.el`. So add the following code to your `.emacs`
+
+    (add-to-list 'load-path "/path/to/foo/twittering-mode-X.X.X")
+
+* Install cURL, gnutls, or openssl for using SSL connection.
+* Proceed to **Set up your Emacs**
 
 Set up your Emacs
 -----------------
 
 * Add following code to your `.emacs`:
 
-    (add-to-list 'load-path "/path/to/installed/dir") ;; if you need
     (require 'twittering-mode)
-    (setq twittering-username "your twitter ID")
 
 Run twittering-mode
 -------------------
 
 1. Execute `M-x twit` to run twittering-mode.
-2. Enter the password which is prompted.
+2. Open OAuth authorization page with your browser, click "Allow", and
+enter the PIN code.
 3. Your friends' timeline will appear. Enjoy!

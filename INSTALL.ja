@@ -6,33 +6,44 @@
  Windows
 ---------
 
-* cURLのプログラムを持っていない、またはわからない人:
-  * `twittering-mode.el`と`win-curl`を、Emacsの`load-path`に含まれてい
-    るディレクトリにコピーする
-  * **Emacsの設定** へ進む
-* cURLを持っている人:
-  * `twittering-mode.el`をEmacsの`load-path`に含まれているディレクトリへコピー
-  * **Emacsの設定** へ進む
+* twittering-modeのファイルを展開して現れたディレクトリを`load-path`に
+  追加する。
+  * 例: `C:\foo\`というディレクトリの下に展開したとすると、
+    `twittering-mode.el`が入っているディレクトリ
+    `C:\foo\twittering-mode-X.X.X\`があるはずなので、`.emacs`に次の内容
+    を追加する:
+
+    (add-to-list 'load-path "C:/foo/twittering-mode-X.X.X")
+
+* **Emacsの設定** へ進む
 
  Linuxやその他Unix環境
 -----------------------
 
-* `twittering-mode.el`をEmacsの`load-path`に含まれているディレクトリへコピー
-* cURLをインストールする。例えばDebianやその派生ディストリビューション
-  では `apt-get install curl` でcURLがインストールできる
+* twittering-modeのファイルを展開して現れたディレクトリを`load-path`に
+  追加する。
+  * 例: `/path/to/foo`というディレクトリの下に展開したとすると、
+    `twittering-mode.el`が入っているディレクトリ
+    `/path/to/foo/twittering-mode-X.X.X/`があるはずなので、`.emacs`に次の内容
+    を追加する:
+
+    (add-to-list 'load-path "/path/to/foo/twittering-mode-X.X.X")
+
+* SSL通信を利用するためには、cURL、gnutls、opensslのどれかをインストー
+  ルしておく
+* **Emacsの設定** へ進む
 
  Emacsの設定
 -------------
 
 * 次のコードを`.emacs`に追加する:
 
-    (add-to-list 'load-path "/path/to/installed/dir") ;; if you need
     (require 'twittering-mode)
-    (setq twittering-username "your twitter ID")
 
  twittering-modeを動かす
 -------------------------
 
 1. `M-x twit`を実行
-2. パスワードを入力
+2. 画面の指示に従いOAuthの認証ページを開き、"Allow"ボタンをクリックして、
+表示されたPINコードをEmacsに入力する
 3. Twitterのタイムラインが表示されるはず!

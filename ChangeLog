@@ -1,8 +1,10 @@
 2010-06-04  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
-	* twittering-mode.el (twittering-mode-map): changed key bindings:
+	* twittering-mode.el: removed (set-terminal-coding-system 'utf-8)
+	(twittering-mode-map): changed key bindings:
 	twittering-public-timeline: C-c C-g -> C-c C-p,
 	twittering-set-current-hashtag: C-c C-h -> C-c C-t
+	
 
 2010-06-03  Yuto Hayamizu  <y.hayamizu@gmail.com>
 

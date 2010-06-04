@@ -336,7 +336,7 @@ If nil, this is initialized with a list of valied entries extracted from
   "Post retweets using native retweets if this variable is non-nil.")
 
 (defvar twittering-update-status-function
-  'twittering-update-status-from-minibuffer
+  'twittering-update-status-from-pop-up-buffer
   "The function used to posting a tweet. It takes two arguments:
 the first argument INIT-STR is initial text to be edited and the
 second argument REPLY-TO-ID is a user ID of a tweet to which you

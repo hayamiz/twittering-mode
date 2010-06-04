@@ -13,15 +13,9 @@ There's two way to edit and post tweets in twittering-mode: with
 minibuffer (existing way), and with pop-up buffer (new feature!).  You
 can choose it by setting the variable
 `twittering-update-status-function`. Currently its default value is
-the existing way, `twittering-update-status-from-minibuffer`, but in
-next release it will be changed to the new way
-`twittering-update-status-from-pop-up-buffer`.
-
-We recommend you to use the new feature by adding following code to
-your `.emacs`:
-
-    (setq twittering-update-status-function
-          'twittering-update-status-from-pop-up-buffer)
+the new way, `twittering-update-status-from-pop-up-buffer`. If you
+want to post from minibuffer, set the variable value to
+`twittering-update-status-from-minibuffer`.
 
 The new feature, pop-up buffer, has several advantages over the
 existing way.

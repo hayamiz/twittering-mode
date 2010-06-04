@@ -5,7 +5,9 @@ DISTRIB_FILES = twittering-mode.el \
 		README README.ja \
 		NEWS NEWS.ja \
 		INSTALL INSTALL.ja \
-		win-curl
+		win-curl \
+		url-emacs21 \
+		emacs21
 
 .PHONY: all check clean update-po release release-upload
 
@@ -30,8 +32,10 @@ release: $(DISTRIB_FILES)
 	@echo -n "wrote NEWS file? [y or n]: "; read ans; [ "$${ans}" = "y" ]
 	@echo -n "What is next version number?: " && \
 	  read version && \
-	  mv VERSION LAST-VERSION && \
-	  echo $${version} > VERSION
+	  (if [ "$${version}" != "$$(cat VERSION)" ]; then \
+	     mv VERSION LAST-VERSION; \
+	     echo $${version} > VERSION; \
+	 fi) && \
 	ruby misc/vernum-updater.rb \
 	  --prev-version=$$(cat LAST-VERSION) --next-version=$$(cat VERSION) \
 	  doc/web/index.html

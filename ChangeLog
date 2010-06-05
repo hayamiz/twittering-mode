@@ -1,3 +1,11 @@
+2010-06-05  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: confirm that a valid access token has been
+	retrieved.
+	(twittering-oauth-make-response-alist): do not decode a null entry.
+	(twittering-verify-credentials): confirm that the retrieved
+	`token-alist' is valid as an access token.
+
 2010-06-04  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el: removed (set-terminal-coding-system 'utf-8)

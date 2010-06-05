@@ -2,7 +2,20 @@
  NEWS -- The history of twittering-mode
 ========================================
 
- HEAD: 2010-06-05
+ HEAD: XXXX-XX-XX
+------------------
+
+### Important notice
+
+### Improvements
+
+* ...
+
+### Bug fixes
+
+* ...
+
+ 1.0.0: 2010-06-05
 ------------------
 
 ### Important notice
@@ -76,14 +89,12 @@ existing way.
   * twittering-percent-encode
 * Improved portability.
   * twittering-completing-read
-* ...
 * And lots of minor fixes
 
 ### Thanks to
 
 * Alberto Garcia
 * IMAI Toshiyuki
-* ...
 
  0.9.0: 2009-12-29
 -------------------

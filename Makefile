@@ -38,7 +38,7 @@ release: $(DISTRIB_FILES)
 	 fi) && \
 	ruby misc/vernum-updater.rb \
 	  --prev-version=$$(cat LAST-VERSION) --next-version=$$(cat VERSION) \
-	  doc/web/index.html
+	  doc/web/index.text
 	ruby misc/vernum-updater.rb \
 	  --prev-version=HEAD --next-version=$$(cat VERSION) \
 	  twittering-mode.el NEWS NEWS.ja

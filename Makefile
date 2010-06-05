@@ -42,7 +42,6 @@ release: $(DISTRIB_FILES)
 	ruby misc/vernum-updater.rb \
 	  --prev-version=HEAD --next-version=$$(cat VERSION) \
 	  twittering-mode.el NEWS NEWS.ja
-	-git commit -a
 	@([ -d $(DISTRIB_DIR) ] && rm -rf $(DISTRIB_DIR)) || true
 	mkdir $(DISTRIB_DIR)
 	cp -r -t $(DISTRIB_DIR)/ $(DISTRIB_FILES)

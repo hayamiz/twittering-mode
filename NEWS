@@ -65,7 +65,6 @@ existing way.
   You can enable OAuth by "(setq twittering-auth-method 'oauth)".
   If `twittering-oauth-invoke-browser' is non-nil, twittering-mode
   automatically opens a browser on authorization.
-* ...
 
 ### Bug fixes
 

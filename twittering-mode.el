@@ -1021,8 +1021,11 @@ function."
   (mapcar
    (lambda (entry)
      (let* ((pair (split-string entry "="))
-	    (name (twittering-oauth-url-decode (car pair)))
-	    (value (twittering-oauth-url-decode (cadr pair))))
+	    (name-entry (car pair))
+	    (value-entry (cadr pair))
+	    (name (and name-entry (twittering-oauth-url-decode name-entry)))
+	    (value (and value-entry
+			(twittering-oauth-url-decode value-entry))))
        `(,name . ,value)))
    (split-string str "&")))
 
@@ -2913,7 +2916,9 @@ authorized -- The account has been authorized.")
 	    twittering-oauth-consumer-key twittering-oauth-consumer-secret
 	    "twittering-mode")))
       (cond
-       (token-alist
+       ((and (assoc "oauth_token" token-alist)
+	     (assoc "oauth_token_secret" token-alist)
+	     (assoc "screen_name" token-alist))
 	(let ((username (cdr (assoc "screen_name" token-alist))))
 	  (setq twittering-oauth-access-token-alist token-alist)
 	  (setq twittering-username username)

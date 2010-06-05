@@ -61,8 +61,7 @@
        ;; the explicitly require 'unicode to update a workaround with
        ;; navi2ch. see a comment of `twittering-ucs-to-char' for more
        ;; details.
-       (require 'unicode nil t))
-  (set-terminal-coding-system 'utf-8))
+       (require 'unicode nil t)))
 (require 'url)
 
 (defconst twittering-mode-version "HEAD")

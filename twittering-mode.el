@@ -336,7 +336,7 @@ If nil, this is initialized with a list of valied entries extracted from
   "Post retweets using native retweets if this variable is non-nil.")
 
 (defvar twittering-update-status-function
-  'twittering-update-status-from-minibuffer
+  'twittering-update-status-from-pop-up-buffer
   "The function used to posting a tweet. It takes two arguments:
 the first argument INIT-STR is initial text to be edited and the
 second argument REPLY-TO-ID is a user ID of a tweet to which you
@@ -2995,7 +2995,7 @@ authorized -- The account has been authorized.")
     (let ((km twittering-mode-map))
       (define-key km (kbd "C-c C-f") 'twittering-friends-timeline)
       (define-key km (kbd "C-c C-r") 'twittering-replies-timeline)
-      (define-key km (kbd "C-c C-p") 'twittering-public-timeline)
+      (define-key km (kbd "C-c . C-p") 'twittering-public-timeline)
       (define-key km (kbd "C-c C-u") 'twittering-user-timeline)
       (define-key km (kbd "C-c C-d") 'twittering-direct-messages-timeline)
       (define-key km (kbd "C-c C-s") 'twittering-update-status-interactive)

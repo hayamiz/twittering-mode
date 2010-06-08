@@ -1,3 +1,8 @@
+2010-06-09  Yuto Hayamizu  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-oauth-get-access-token): reject
+	invalid PIN code input and strip extra white spaces.
+
 2010-06-05  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: confirm that a valid access token has been

@@ -1306,7 +1306,13 @@ like following:
 	      (browse-url authorize-url)
 	    (when (y-or-n-p "Open authorization URL with browser? (using `browse-url')")
 	      (browse-url authorize-url)))
-	  (let* ((pin (read-string "Input PIN code: "))
+	  (let* ((pin
+		  (block pin-input-block
+		    (while t
+		      (let ((pin-input (read-string "Input PIN code: ")))
+			(when (string-match "^\\s-*\\([0-9]+\\)\\s-*$" pin-input)
+			  (return-from pin-input-block
+			    (match-string 1 pin-input)))))))
 		 (verifier pin))
 	    (twittering-oauth-exchange-request-token
 	     access-token-url

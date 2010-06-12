@@ -1445,7 +1445,7 @@ like following:
       (epg-context-set-passphrase-callback
        context #'epa-passphrase-callback-function)
       (epg-context-set-progress-callback
-       context #'epa-progress-callback-function "Encrypting...")
+       context (cons #'epa-progress-callback-function "Encrypting..."))
       (message "Encrypting...")
       (condition-case err
 	  (with-temp-file file

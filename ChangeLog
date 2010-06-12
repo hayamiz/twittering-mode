@@ -1,3 +1,9 @@
+2010-06-13  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-write-and-encrypt): fix arguments
+	of `epg-context-set-progress-callback' because of the difference
+	between EasyPG 0.0.16 and that included in Emacs23.
+
 2010-06-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix bugs.

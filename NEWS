@@ -9,6 +9,17 @@
 
 ### Improvements
 
+* Support for storing private information in a file encrypted by master
+  password. Once you save the authorized account by using master password,
+  you have to input PIN no longer. This is enabled by
+  `(setq twittering-use-master-password t)'.
+  The private information is stored in `~/.twittering-mode.gpg', which can
+  be specified by `twittering-private-info-file'.
+  To enable master password, you need GnuPG and an additional Emacs LISP
+  program, which is `alpaca.el' or EasyPG (Emacs23 includes EasyPG).
+  To use with `alpaca.el', you should use the version 0.13. With other
+  versions of `alpaca.el' the current implementation may not work well
+  because it deeply depends on internal implementation of `alpaca.el'.
 * ...
 
 ### Bug fixes

@@ -350,6 +350,15 @@ Twittering-mode provides two functions for updating status:
   "*If *non-nil*, confirmation will be requested on posting a tweet edited in
 pop-up buffer.")
 
+(defvar twittering-use-master-password nil
+  "*Wheter to store private information encrypted with a master password.")
+(defvar twittering-private-info-file
+  (expand-file-name "~/.twittering-mode.gpg")
+  "*File for storing encrypted private information when
+`twittering-use-master-password' is non-nil.")
+(defvar twittering-variables-stored-with-encryption
+  '(twittering-oauth-access-token-alist))
+
 ;;;
 ;;; Abstract layer for Twitter API
 ;;;
@@ -1318,6 +1327,146 @@ like following:
 	     access-token-url
 	     consumer-key consumer-secret
 	     request-token request-token-secret verifier)))))))
+
+;;;
+;;; Private storage
+;;;
+
+(defun twittering-load-private-info ()
+  (let* ((file twittering-private-info-file)
+	 (decrypted-str (twittering-read-from-encrypted-file file)))
+    (when decrypted-str
+      (mapcar (lambda (pair)
+		(let ((sym (car pair))
+		      (value (cdr pair)))
+		  (set sym value)
+		  sym))
+	      (condition-case nil
+		  (read decrypted-str)
+		(error
+		 nil))))))
+
+(defun twittering-load-private-info-with-guide ()
+  (let ((str (concat
+	      "Loading authorized access token for OAuth from\n"
+	      (format "%s.\n" twittering-private-info-file)
+	      "\n"
+	      (propertize "Please input the master password.\n" 'face 'bold)
+	      "\n"
+	      "To cancel it, you may need to press C-g multiple times.\n"
+	      )))
+    (with-temp-buffer
+      (switch-to-buffer (current-buffer))
+      (let* ((str-height (length (split-string str "\n")))
+	     (height (max 0 (- (/ (- (window-text-height) 1) 2)
+			       (/ str-height 2)))))
+	(insert (make-string height ?\n) str)
+	(set-buffer-modified-p nil)
+	(twittering-load-private-info)))))
+
+(defun twittering-save-private-info ()
+  (let* ((obj (mapcar (lambda (sym)
+			`(,sym . ,(symbol-value sym)))
+		      twittering-variables-stored-with-encryption))
+	 (str (with-output-to-string (pp obj))))
+    (twittering-write-and-encrypt twittering-private-info-file str)))
+
+
+
+(defun twittering-save-private-info-with-guide ()
+  (let ((str (concat
+	      "Saving authorized access token for OAuth to "
+	      (format "%s.\n" twittering-private-info-file)
+	      "\n"
+	      (propertize "Please input a master password twice."
+			  'face 'bold))))
+    (with-temp-buffer
+      (switch-to-buffer (current-buffer))
+      (let* ((str-height (length (split-string str "\n")))
+	     (height (max 0 (- (/ (- (window-text-height) 1) 2)
+			       (/ str-height 2)))))
+	(insert (make-string height ?\n) str)
+	(set-buffer-modified-p nil)
+	(twittering-save-private-info)))))
+
+(defun twittering-capable-of-encryption-p ()
+  (and (or (require 'epa nil t) (require 'alpaca nil t))
+       (executable-find "gpg")))
+
+(defun twittering-read-from-encrypted-file (file)
+  (cond
+   ((require 'epa nil t)
+    (let ((context (epg-make-context epa-protocol)))
+      (epg-context-set-passphrase-callback
+       context #'epa-passphrase-callback-function)
+      (epg-context-set-progress-callback
+       context
+       (cons #'epa-progress-callback-function
+	     (format "Decrypting %s..." (file-name-nondirectory file))))
+      (message "Decrypting %s..." (file-name-nondirectory file))
+      (condition-case err
+	  (epg-decrypt-file context file nil)
+	(error
+	 (message "%s" (cdr err))
+	 nil))))
+   ((require 'alpaca nil t)
+    (with-temp-buffer
+      (let ((buffer-file-name file)
+	    (alpaca-regex-suffix ".*")
+	    (temp-buffer (current-buffer)))
+	(insert-file-contents-literally file)
+	(set-buffer-modified-p nil)
+	(condition-case nil
+	    (progn
+	      (alpaca-after-find-file)
+	      (if (eq temp-buffer (current-buffer))
+		  (buffer-string)
+		;; `alpaca-after-find-file' kills the current buffer
+		;; if the decryption is failed.
+		nil))
+	  (error
+	   (when (eq temp-buffer (current-buffer))
+	     (delete-region (point-min) (point-max)))
+	   nil)))))
+   (t
+    nil)))
+
+(defun twittering-write-and-encrypt (file str)
+  (cond
+   ((require 'epg nil t)
+    (let ((context (epg-make-context epa-protocol)))
+      (epg-context-set-passphrase-callback
+       context #'epa-passphrase-callback-function)
+      (epg-context-set-progress-callback
+       context #'epa-progress-callback-function "Encrypting...")
+      (message "Encrypting...")
+      (condition-case err
+	  (with-temp-file file
+	    (set-buffer-multibyte nil)
+	    (delete-region (point-min) (point-max))
+	    (insert (epg-encrypt-string context str nil))
+	    (message "Encrypting...wrote %s" file))
+	(error
+	 (message "%s" (cdr err))
+	 nil))))
+   ((require 'alpaca nil t)
+    ;; Create the file.
+    ;; This is required because `alpaca-save-buffer' checks its timestamp.
+    (with-temp-file file)
+    (with-temp-buffer
+      (let ((buffer-file-name file))
+	(insert str)
+	(condition-case nil
+	    (if (alpaca-save-buffer)
+		t
+	      (delete-file file)
+	      nil)
+	  (error
+	   (when (file-exists-p file)
+	     (delete-file file))
+	   nil)))))
+   (t
+    nil)))
 
 ;;;
 ;;; to show image files
@@ -2900,6 +3049,12 @@ authorized -- The account has been authorized.")
 				 twittering-username))))))
 
 (defun twittering-verify-credentials ()
+  (when (and (not (twittering-account-authorized-p))
+	     (not (twittering-account-authorization-queried-p))
+	     (eq twittering-auth-method 'oauth))
+    (let* ((entry (twittering-lookup-connection-type twittering-oauth-use-ssl))
+	   (oauth-get-token-type (cdr (assq 'oauth-get-token entry))))
+      (setq twittering-oauth-get-token-function-type oauth-get-token-type)))
   (cond
    ((or (twittering-account-authorized-p)
 	(twittering-account-authorization-queried-p))
@@ -2909,10 +3064,34 @@ authorized -- The account has been authorized.")
 	     (null twittering-oauth-consumer-secret)))
     (message "Consumer for OAuth is not specified.")
     nil)
+   ((and twittering-use-master-password
+	 (not (twittering-capable-of-encryption-p)))
+    (message "You need GnuPG and (EasyPG or alpaca.el) for master password!")
+    nil)
+   ((and (eq twittering-auth-method 'oauth)
+	 twittering-use-master-password
+	 (twittering-capable-of-encryption-p)
+	 (file-exists-p twittering-private-info-file))
+    (cond
+     ((twittering-load-private-info-with-guide)
+      (message "The authorized token is loaded.")
+      (setq twittering-account-authorization 'queried)
+      (setq twittering-username
+	    (cdr (assoc "screen_name" twittering-oauth-access-token-alist)))
+      (let ((proc
+	     (twittering-call-api
+	      'verify-credentials
+	      `((sentinel
+		 . twittering-http-get-verify-credentials-sentinel)))))
+	(unless proc
+	  (setq twittering-account-authorization nil)
+	  (message "Authorization failed. Type M-x twit to retry.")
+	  (setq twittering-oauth-access-token-alist nil))))
+     (t
+      (message "Failed to load an authorized token from \"%s\"."
+	       twittering-private-info-file)
+      nil)))
    ((eq twittering-auth-method 'oauth)
-    (let* ((entry (twittering-lookup-connection-type twittering-oauth-use-ssl))
-	   (oauth-get-token-type (cdr (assq 'oauth-get-token entry))))
-      (setq twittering-oauth-get-token-function-type oauth-get-token-type))
     (let ((token-alist
 	   (twittering-oauth-get-access-token
 	    twittering-oauth-request-token-url
@@ -2931,7 +3110,11 @@ authorized -- The account has been authorized.")
 	  (setq twittering-account-authorization 'authorized)
 	  (twittering-start)
 	  (message "Authorization for the account \"%s\" succeeded."
-		   username)))
+		   username)
+	  (when (and twittering-use-master-password
+		     (twittering-capable-of-encryption-p)
+		     (not (file-exists-p twittering-private-info-file)))
+	    (twittering-save-private-info-with-guide))))
        (t
 	(message "Authorization via OAuth failed. Type M-x twit to retry.")))))
    ((eq twittering-auth-method 'basic)
@@ -2962,8 +3145,12 @@ authorized -- The account has been authorized.")
       (let ((error-mes
 	     (format "Authorization for the account \"%s\" failed. Type M-x twit to retry."
 		     (twittering-get-username))))
-	(setq twittering-username nil)
-	(setq twittering-password nil)
+	(cond
+	 ((eq twittering-auth-method 'oauth)
+	  (setq twittering-oauth-access-token-alist nil))
+	 ((eq twittering-auth-method 'basic)
+	  (setq twittering-username nil)
+	  (setq twittering-password nil)))
 	error-mes)))))
 
 ;;;
@@ -3904,8 +4091,7 @@ QUERY-PARAMETERS is a list of cons pair of name and value such as
 		   (base64-encode-string
 		    (concat (twittering-get-username)
 			    ":" (twittering-get-password)))))
-	  ((and (eq twittering-auth-method 'oauth)
-		(twittering-account-authorized-p))
+	  ((eq twittering-auth-method 'oauth)
 	   (let ((access-token
 		  (cdr (assoc "oauth_token"
 			      twittering-oauth-access-token-alist)))

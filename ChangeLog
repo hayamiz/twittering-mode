@@ -4,6 +4,20 @@
 	(twittering-hmac-sha1): remove invalid arguments.
 	(twittering-oauth-auth-str): correct a variable.
 
+	* twittering-mode.el: Support master password for storing private
+	information in an encrypted file.
+	(twittering-use-master-password): new variable.
+	(twittering-private-info-file): new variable.
+	(twittering-variables-stored-with-encryption): new variable.
+	(twittering-load-private-info): new function.
+	(twittering-load-private-info-with-guide): new function.
+	(twittering-save-private-info): new function.
+	(twittering-save-private-info-with-guide): new function.
+	(twittering-capable-of-encryption-p): new function.
+	(twittering-read-from-encrypted-file): new function.
+	(twittering-write-and-encrypt): new function.
+	(twittering-verify-credentials): support master password.
+
 2010-06-09  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-oauth-get-access-token): reject

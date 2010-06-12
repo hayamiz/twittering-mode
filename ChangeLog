@@ -1,3 +1,9 @@
+2010-06-12  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix bugs.
+	(twittering-hmac-sha1): remove invalid arguments.
+	(twittering-oauth-auth-str): correct a variable.
+
 2010-06-09  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-oauth-get-access-token): reject

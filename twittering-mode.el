@@ -903,9 +903,9 @@ For keys and values that are already unibyte, the
 ;;; Copyright: This code is in the public domain.
   (require 'sha1)
   (when (multibyte-string-p key)
-    (error "key must be unibyte" key))
+    (error "key must be unibyte"))
   (when (multibyte-string-p message)
-    (error "message must be unibyte" message))
+    (error "message must be unibyte"))
 
   ;; The key block is always exactly the block size of the hash
   ;; algorithm.  If the key is too small, we pad it with zeroes (or
@@ -950,7 +950,7 @@ QUERY-PARAMETERS is an alist for query parameters, where name and value
 must be encoded into the same as they will be sent."
   (let* ((parameters (append query-parameters oauth-parameters))
 	 (base-string
-	  (twittering-oauth-make-signature-base-string method url parameters))
+	  (twittering-oauth-make-signature-base-string method base-url parameters))
 	 (key (if (multibyte-string-p key)
 		  (string-make-unibyte key)
 		key))

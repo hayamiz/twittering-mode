@@ -1105,7 +1105,8 @@ function."
 		  )))))
 	(while (eq result 'queried)
 	  (sit-for 0.1))
-	(kill-buffer buffer)
+	(unless twittering-debug-mode
+	  (kill-buffer buffer))
 	result))))
 
 (defun twittering-oauth-get-token-alist-native (url auth-str)
@@ -1153,6 +1154,9 @@ function."
 	       (let* ((proc (car args))
 		      (buffer (process-buffer proc)))
 		 (when buffer
+		   (when twittering-debug-mode
+		     (with-current-buffer (twittering-debug-buffer)
+		       (insert-buffer-substring buffer)))
 		   (setq result
 			 (twittering-oauth-get-response-alist buffer))))))
 	    (process-send-string proc request-str)
@@ -1228,6 +1232,9 @@ function."
 	       (let* ((proc (car args))
 		      (buffer (process-buffer proc)))
 		 (when buffer
+		   (when twittering-debug-mode
+		     (with-current-buffer (twittering-debug-buffer)
+		       (insert-buffer-substring buffer)))
 		   (setq result
 			 (twittering-oauth-get-response-alist buffer))))))
 	    (while (eq result 'queried)

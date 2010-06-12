@@ -18,6 +18,12 @@
 	(twittering-write-and-encrypt): new function.
 	(twittering-verify-credentials): support master password.
 
+	* twittering-mode.el: Add codes for debugging functions for
+	OAuth.
+	(twittering-oauth-get-token-alist-url): add codes for debug.
+	(twittering-oauth-get-token-alist-native): likewise.
+	(twittering-oauth-get-token-alist-curl): likewise.
+
 2010-06-09  Yuto Hayamizu  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-oauth-get-access-token): reject

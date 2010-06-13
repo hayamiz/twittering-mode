@@ -1375,10 +1375,10 @@ like following:
   (let* ((obj (mapcar (lambda (sym)
 			`(,sym . ,(symbol-value sym)))
 		      twittering-variables-stored-with-encryption))
-	 (str (with-output-to-string (pp obj))))
-    (twittering-write-and-encrypt twittering-private-info-file str)))
-
-
+	 (str (with-output-to-string (pp obj)))
+	 (file twittering-private-info-file))
+    (when (twittering-write-and-encrypt file str)
+      (set-file-modes file #o600))))
 
 (defun twittering-save-private-info-with-guide ()
   (let ((str (concat
@@ -1452,7 +1452,8 @@ like following:
 	    (set-buffer-multibyte nil)
 	    (delete-region (point-min) (point-max))
 	    (insert (epg-encrypt-string context str nil))
-	    (message "Encrypting...wrote %s" file))
+	    (message "Encrypting...wrote %s" file)
+	    t)
 	(error
 	 (message "%s" (cdr err))
 	 nil))))

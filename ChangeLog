@@ -4,6 +4,12 @@
 	of `epg-context-set-progress-callback' because of the difference
 	between EasyPG 0.0.16 and that included in Emacs23.
 
+	* twittering-mode.el (twittering-save-private-info): change the
+	permission of the encrypted file in order to prevent others from
+	reading the file.
+	(twittering-write-and-encrypt): return t explicitly when it
+	succeeded in encrypting private information.
+
 2010-06-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix bugs.

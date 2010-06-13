@@ -1448,12 +1448,21 @@ like following:
        context (cons #'epa-progress-callback-function "Encrypting..."))
       (message "Encrypting...")
       (condition-case err
-	  (with-temp-file file
-	    (set-buffer-multibyte nil)
-	    (delete-region (point-min) (point-max))
-	    (insert (epg-encrypt-string context str nil))
-	    (message "Encrypting...wrote %s" file)
-	    t)
+	  (unwind-protect
+	      ;; In order to prevent `epa-file' to encrypt the file double,
+	      ;; `epa-file-name-regexp' is temorarily changed into the null
+	      ;; regexp that never matches any string.
+	      (let ((epa-file-name-regexp "\\`\\'"))
+		(when (fboundp 'epa-file-name-regexp-update)
+		  (epa-file-name-regexp-update))
+		(with-temp-file file
+		  (set-buffer-multibyte nil)
+		  (delete-region (point-min) (point-max))
+		  (insert (epg-encrypt-string context str nil))
+		  (message "Encrypting...wrote %s" file)
+		  t))
+	    (when (fboundp 'epa-file-name-regexp-update)
+	      (epa-file-name-regexp-update)))
 	(error
 	 (message "%s" (cdr err))
 	 nil))))

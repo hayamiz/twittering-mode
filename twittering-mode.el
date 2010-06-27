@@ -1722,7 +1722,7 @@ image are displayed."
   "Generate status URL for StatusNet."
   (if id
       (format "http://%s/%snotice/%s" twittering-web-host twittering-web-path-prefix id)
-    (format "http://%s/%s" twittering-web-host username)))
+    (format "http://%s/%s/%s" twittering-web-host twittering-web-path-prefix username)))
 
 (defun twittering-lookup-get-search-url ()
   (cdr (assoc

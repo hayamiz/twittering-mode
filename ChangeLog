@@ -1,3 +1,8 @@
+2010-06-27  Takashi Masuda  <masutaka@nifty.com>
+
+	* twittering-mode.el: fix statusnet user URL
+	(twittering-get-status-url-statusnet): fix user URL
+
 2010-06-15  Takashi Masuda  <masutaka@nifty.com>
 
 	* twittering-mode.el: StatusNet 対応

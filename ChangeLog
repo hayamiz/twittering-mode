@@ -10,6 +10,9 @@
 	in order to avoid dead-lock.
 	(twittering-get-list-index-sync): likewise.
 
+	* twittering-mode.el (twittering-verify-credentials): wait for the
+	process to exit in order to avoid dead-lock.
+
 2010-06-13  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-write-and-encrypt): fix arguments

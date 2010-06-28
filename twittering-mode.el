@@ -3114,10 +3114,19 @@ authorized -- The account has been authorized.")
 	      'verify-credentials
 	      `((sentinel
 		 . twittering-http-get-verify-credentials-sentinel)))))
-	(unless proc
+	(cond
+	 ((null proc)
 	  (setq twittering-account-authorization nil)
 	  (message "Authorization failed. Type M-x twit to retry.")
-	  (setq twittering-oauth-access-token-alist nil))))
+	  (setq twittering-oauth-access-token-alist nil))
+	 (t
+	  (while (and (eq twittering-account-authorization 'queried)
+		      (memq (process-status proc) '(run connect open)))
+	    (sit-for 0.1))
+	  (when (eq twittering-account-authorization 'queried)
+	    (message "Authorization failed. Type M-x twit to retry.")
+	    (setq twittering-oauth-access-token-alist nil)
+	    (setq twittering-account-authorization nil))))))
      (t
       (message "Failed to load an authorized token from \"%s\"."
 	       twittering-private-info-file)

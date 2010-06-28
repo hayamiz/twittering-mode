@@ -13,6 +13,22 @@
 	* twittering-mode.el (twittering-verify-credentials): wait for the
 	process to exit in order to avoid dead-lock.
 
+	* twittering-mode.el: Support authentication via xAuth.
+	(twittering-get-list-index-sync): likewise.
+	(twittering-xauth-auth-str-access-token): new function.
+	(twittering-oauth-get-token-alist-url): add an argument
+	`post-body'.
+	(twittering-oauth-get-token-alist-native): likewise.
+	(twittering-oauth-get-token-alist-curl): likewise.
+	(twittering-oauth-get-token-alist): add an optional argument
+	`post-body'.
+	(twittering-xauth-get-access-token): new function.
+	(twittering-prepare-account-info): support xAuth.
+	(twittering-verify-credentials): likewise.
+	(twittering-http-application-headers-with-auth): likewise.
+	(twittering-visit-timeline): call
+	`twittering-prepare-account-info' for xAuth.
+
 2010-06-13  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-write-and-encrypt): fix arguments

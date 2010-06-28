@@ -1152,13 +1152,20 @@ function."
 	     proc
 	     (lambda (&rest args)
 	       (let* ((proc (car args))
-		      (buffer (process-buffer proc)))
-		 (when buffer
+		      (buffer (process-buffer proc))
+		      (status (process-status proc)))
+		 (cond
+		  ((not (memq status '(nil closed exit failed signal)))
+		   ;; continue
+		   )
+		  (buffer
 		   (when twittering-debug-mode
 		     (with-current-buffer (twittering-debug-buffer)
 		       (insert-buffer-substring buffer)))
 		   (setq result
-			 (twittering-oauth-get-response-alist buffer))))))
+			 (twittering-oauth-get-response-alist buffer)))
+		  (t
+		   (setq result nil))))))
 	    (process-send-string proc request-str)
 	    (while (eq result 'queried)
 	      (sit-for 0.1))
@@ -1230,13 +1237,20 @@ function."
 	     proc
 	     (lambda (&rest args)
 	       (let* ((proc (car args))
-		      (buffer (process-buffer proc)))
-		 (when buffer
+		      (buffer (process-buffer proc))
+		      (status (process-status proc)))
+		 (cond
+		  ((not (memq status '(nil closed exit failed signal)))
+		   ;; continue
+		   )
+		  (buffer
 		   (when twittering-debug-mode
 		     (with-current-buffer (twittering-debug-buffer)
 		       (insert-buffer-substring buffer)))
 		   (setq result
-			 (twittering-oauth-get-response-alist buffer))))))
+			 (twittering-oauth-get-response-alist buffer)))
+		  (t
+		   (setq result nil))))))
 	    (while (eq result 'queried)
 	      (sit-for 0.1))
 	    result))))))
@@ -3140,12 +3154,22 @@ authorized -- The account has been authorized.")
 	   (twittering-call-api
 	    'verify-credentials
 	    `((sentinel . twittering-http-get-verify-credentials-sentinel)))))
-      (unless proc
+      (cond
+       ((null proc)
 	(setq twittering-account-authorization nil)
 	(message "Authorization for the account \"%s\" failed. Type M-x twit to retry."
 		 (twittering-get-username))
 	(setq twittering-username nil)
-	(setq twittering-password nil))))))
+	(setq twittering-password nil))
+       (t
+	(while (and (eq twittering-account-authorization 'queried)
+		    (memq (process-status proc) '(run connect open)))
+	  (sit-for 0.1))
+	(when (eq twittering-account-authorization 'queried)
+	  (setq twittering-account-authorization nil)
+	  (message "Authorization failed. Type M-x twit to retry.")
+	  (setq twittering-username nil)
+	  (setq twittering-password nil))))))))
 
 (defun twittering-http-get-verify-credentials-sentinel (header-info proc noninteractive &optional suc-msg)
   (let ((status-line (cdr (assq 'status-line header-info)))
@@ -5388,10 +5412,15 @@ variable `twittering-status-format'."
 
 (defun twittering-get-list-index-sync (username)
   (setq twittering-list-index-retrieved nil)
-  (twittering-get-list-index username)
-  (while (not twittering-list-index-retrieved)
-    (sit-for 0.1))
+  (let ((proc (twittering-get-list-index username)))
+    (when proc
+      (while (and (not twittering-list-index-retrieved)
+		  (not (memq (process-status proc)
+			     '(exit signal closed failed nil))))
+	(sit-for 0.1))))
   (cond
+   ((null twittering-list-index-retrieved)
+    nil)
    ((stringp twittering-list-index-retrieved)
     (if (string= "" twittering-list-index-retrieved)
 	(message "%s does not have a list." username)

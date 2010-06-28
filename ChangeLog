@@ -1,3 +1,15 @@
+2010-06-29  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Confirm process status for avoiding
+	dead-lock.
+	(twittering-oauth-get-token-alist-native): confirm the process
+	status in order to avoid dead-lock. If the process exited
+	abnormally, the variable `result' becomes nil.
+	(twittering-oauth-get-token-alist-curl): likewise.
+	(twittering-verify-credentials): wait for the process to exit
+	in order to avoid dead-lock.
+	(twittering-get-list-index-sync): likewise.
+
 2010-06-13  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-write-and-encrypt): fix arguments

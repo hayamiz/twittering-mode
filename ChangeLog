@@ -1,3 +1,8 @@
+2010-06-30  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-verify-credentials): reset
+	`twittering-username' when authentication via xAuth failed.
+
 2010-06-29  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Confirm process status for avoiding

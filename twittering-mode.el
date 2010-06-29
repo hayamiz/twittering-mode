@@ -3218,6 +3218,7 @@ authorized -- The account has been authorized.")
 	  (twittering-save-private-info-with-guide))
 	(twittering-start))
        (t
+	(setq twittering-username nil)
 	(message "Authorization via xAuth failed. Type M-x twit to retry.")))))
    ((eq twittering-auth-method 'basic)
     (setq twittering-account-authorization 'queried)

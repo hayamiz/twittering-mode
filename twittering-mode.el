@@ -1045,6 +1045,26 @@ function."
 	       ("oauth_token" . ,access-token)))))
     (twittering-oauth-auth-str method url query-parameters oauth-params key)))
 
+;; "Using xAuth | dev.twitter.com"
+;; http://dev.twitter.com/pages/xauth
+(defun twittering-xauth-auth-str-access-token (url query-parameters consumer-key consumer-secret username password &optional oauth-parameters)
+  (let ((key (concat consumer-secret "&"))
+	(oauth-params
+	 (or oauth-parameters
+	     `(("oauth_nonce" . ,(twittering-oauth-make-random-string 43))
+	       ("oauth_signature_method" . "HMAC-SHA1")
+	       ("oauth_timestamp" . ,(format-time-string "%s"))
+	       ("oauth_consumer_key" . ,consumer-key)
+	       ("oauth_version" . "1.0"))))
+	(query-params
+	 (append query-parameters
+		 `(("x_auth_mode" . "client_auth")
+		   ("x_auth_password"
+		    . ,(twittering-oauth-url-encode password))
+		   ("x_auth_username"
+		    . ,(twittering-oauth-url-encode username))))))
+    (twittering-oauth-auth-str "POST" url query-params oauth-params key)))
+
 ;; "OAuth Core 1.0a"
 ;; http://oauth.net/core/1.0a/#response_parameters
 (defun twittering-oauth-make-response-alist (str)
@@ -1100,14 +1120,14 @@ function."
 	  (message "Response: %s" status-line)
 	  nil))))))
 
-(defun twittering-oauth-get-token-alist-url (url auth-str)
+(defun twittering-oauth-get-token-alist-url (url auth-str post-body)
   (let* ((url-request-method "POST")
 	 (url-request-extra-headers
 	  `(("Authorization" . ,auth-str)
 	    ("Accept-Charset" . "us-ascii")
 	    ("Content-Type" . "application/x-www-form-urlencoded")
-	    ("Content-Length" . "0")
-	    ))
+	    ("Content-Length" . ,(format "%d" (length post-body))))
+	  (url-request-data post-body))
 	 (coding-system-for-read 'utf-8-unix))
     (lexical-let ((result 'queried))
       (let ((buffer
@@ -1130,7 +1150,7 @@ function."
 	  (kill-buffer buffer))
 	result))))
 
-(defun twittering-oauth-get-token-alist-native (url auth-str)
+(defun twittering-oauth-get-token-alist-native (url auth-str post-body)
   (let* ((method "POST")
 	 (url-parts (url-generic-parse-url url))
 	 (scheme (and url-parts (aref url-parts 0)))
@@ -1150,14 +1170,15 @@ function."
 	  `(("Authorization" . ,auth-str)
 	    ("Accept-Charset" . "us-ascii")
 	    ("Content-Type" . "application/x-www-form-urlencoded")
-	    ("Content-Length" . "0")
+	    ("Content-Length" . ,(format "%d" (length post-body)))
 	    ("Host" . ,host)))
 	 (request-str
-	  (format "%s %s HTTP/1.1\r\n%s\r\n\r\n"
+	  (format "%s %s HTTP/1.1\r\n%s\r\n\r\n%s"
 		  method path
 		  (mapconcat (lambda (pair)
 			       (format "%s: %s" (car pair) (cdr pair)))
-			     headers "\r\n"))))
+			     headers "\r\n")
+		  (or post-body ""))))
     (with-temp-buffer
       (let* ((coding-system-for-read 'utf-8-unix)
 	     (proc
@@ -1173,19 +1194,26 @@ function."
 	     proc
 	     (lambda (&rest args)
 	       (let* ((proc (car args))
-		      (buffer (process-buffer proc)))
-		 (when buffer
+		      (buffer (process-buffer proc))
+		      (status (process-status proc)))
+		 (cond
+		  ((not (memq status '(nil closed exit failed signal)))
+		   ;; continue
+		   )
+		  (buffer
 		   (when twittering-debug-mode
 		     (with-current-buffer (twittering-debug-buffer)
 		       (insert-buffer-substring buffer)))
 		   (setq result
-			 (twittering-oauth-get-response-alist buffer))))))
+			 (twittering-oauth-get-response-alist buffer)))
+		  (t
+		   (setq result nil))))))
 	    (process-send-string proc request-str)
 	    (while (eq result 'queried)
 	      (sit-for 0.1))
 	    result))))))
 
-(defun twittering-oauth-get-token-alist-curl (url auth-str)
+(defun twittering-oauth-get-token-alist-curl (url auth-str post-body)
   (let* ((url-parts (url-generic-parse-url url))
 	 (scheme (and url-parts (aref url-parts 0)))
 	 (host (and url-parts (aref url-parts 3)))
@@ -1195,7 +1223,8 @@ function."
 	  `(("Authorization" . ,auth-str)
 	    ("Accept-Charset" . "us-ascii")
 	    ("Content-Type" . "application/x-www-form-urlencoded")
-	    ("Content-Length" . "0")))
+	    ("Content-Length" . ,(format "%d" (length post-body)))
+	    ))
 	 (cacert-fullpath (when twittering-oauth-use-ssl
 			    (twittering-ensure-ca-cert)))
 	 (cacert-dir (when cacert-fullpath
@@ -1228,7 +1257,7 @@ function."
 		  (when (and pair (car pair) (cdr pair))
 		    `("-U" ,(format "%s:%s" (car pair) (cdr pair))))))
 	    ;; HTTP method must be POST for getting a request token.
-	    "-d" ""
+	    "-d" ,(or post-body "")
 	    ,url)))
     (with-temp-buffer
       (let* ((coding-system-for-read 'utf-8-unix)
@@ -1251,22 +1280,29 @@ function."
 	     proc
 	     (lambda (&rest args)
 	       (let* ((proc (car args))
-		      (buffer (process-buffer proc)))
-		 (when buffer
+		      (buffer (process-buffer proc))
+		      (status (process-status proc)))
+		 (cond
+		  ((not (memq status '(nil closed exit failed signal)))
+		   ;; continue
+		   )
+		  (buffer
 		   (when twittering-debug-mode
 		     (with-current-buffer (twittering-debug-buffer)
 		       (insert-buffer-substring buffer)))
 		   (setq result
-			 (twittering-oauth-get-response-alist buffer))))))
+			 (twittering-oauth-get-response-alist buffer)))
+		  (t
+		   (setq result nil))))))
 	    (while (eq result 'queried)
 	      (sit-for 0.1))
 	    result))))))
 
-(defun twittering-oauth-get-token-alist (url auth-str)
+(defun twittering-oauth-get-token-alist (url auth-str &optional post-body)
   (let ((func (cdr (assq twittering-oauth-get-token-function-type
 			 twittering-oauth-get-token-function-table))))
     (when (and func (functionp func))
-      (funcall func url auth-str))))
+      (funcall func url auth-str post-body))))
 
 (defun twittering-oauth-get-request-token (url consumer-key consumer-secret)
   (let ((auth-str
@@ -1355,6 +1391,21 @@ like following:
 	     access-token-url
 	     consumer-key consumer-secret
 	     request-token request-token-secret verifier)))))))
+
+(defun twittering-xauth-get-access-token (access-token-url consumer-key consumer-secret username password)
+  (let ((auth-str
+	 (twittering-xauth-auth-str-access-token
+	  access-token-url nil consumer-key consumer-secret
+	  username password))
+	(post-body
+	 (mapconcat (lambda (pair)
+		      (format "%s=%s" (car pair)
+			      (twittering-oauth-url-encode (cdr pair))))
+		    `(("x_auth_mode" . "client_auth")
+		      ("x_auth_password" . ,password)
+		      ("x_auth_username" . ,username))
+		    "&")))
+    (twittering-oauth-get-token-alist access-token-url auth-str post-body)))
 
 ;;;
 ;;; Private storage
@@ -3103,7 +3154,7 @@ authorized -- The account has been authorized.")
   (eq twittering-account-authorization 'queried))
 
 (defun twittering-prepare-account-info ()
-  (when (eq twittering-auth-method 'basic)
+  (when (memq twittering-auth-method '(basic xauth))
     (unless (twittering-get-username)
       (setq twittering-username (read-string "your twitter username: ")))
     (unless (twittering-get-password)
@@ -3114,7 +3165,7 @@ authorized -- The account has been authorized.")
 (defun twittering-verify-credentials ()
   (when (and (not (twittering-account-authorized-p))
 	     (not (twittering-account-authorization-queried-p))
-	     (eq twittering-auth-method 'oauth))
+	     (memq twittering-auth-method '(oauth xauth)))
     (let* ((entry (twittering-lookup-connection-type twittering-oauth-use-ssl))
 	   (oauth-get-token-type (cdr (assq 'oauth-get-token entry))))
       (setq twittering-oauth-get-token-function-type oauth-get-token-type)))
@@ -3122,7 +3173,7 @@ authorized -- The account has been authorized.")
    ((or (twittering-account-authorized-p)
 	(twittering-account-authorization-queried-p))
     nil)
-   ((and (eq twittering-auth-method 'oauth)
+   ((and (memq twittering-auth-method '(oauth xauth))
 	 (or (null twittering-oauth-consumer-key)
 	     (null twittering-oauth-consumer-secret)))
     (message "Consumer for OAuth is not specified.")
@@ -3131,7 +3182,7 @@ authorized -- The account has been authorized.")
 	 (not (twittering-capable-of-encryption-p)))
     (message "You need GnuPG and (EasyPG or alpaca.el) for master password!")
     nil)
-   ((and (eq twittering-auth-method 'oauth)
+   ((and (memq twittering-auth-method '(oauth xauth))
 	 twittering-use-master-password
 	 (twittering-capable-of-encryption-p)
 	 (file-exists-p twittering-private-info-file))
@@ -3146,10 +3197,19 @@ authorized -- The account has been authorized.")
 	      'verify-credentials
 	      `((sentinel
 		 . twittering-http-get-verify-credentials-sentinel)))))
-	(unless proc
+	(cond
+	 ((null proc)
 	  (setq twittering-account-authorization nil)
 	  (message "Authorization failed. Type M-x twit to retry.")
-	  (setq twittering-oauth-access-token-alist nil))))
+	  (setq twittering-oauth-access-token-alist nil))
+	 (t
+	  (while (and (eq twittering-account-authorization 'queried)
+		      (memq (process-status proc) '(run connect open)))
+	    (sit-for 0.1))
+	  (when (eq twittering-account-authorization 'queried)
+	    (message "Authorization failed. Type M-x twit to retry.")
+	    (setq twittering-oauth-access-token-alist nil)
+	    (setq twittering-account-authorization nil))))))
      (t
       (message "Failed to load an authorized token from \"%s\"."
 	       twittering-private-info-file)
@@ -3180,18 +3240,53 @@ authorized -- The account has been authorized.")
 	    (twittering-save-private-info-with-guide))))
        (t
 	(message "Authorization via OAuth failed. Type M-x twit to retry.")))))
+   ((eq twittering-auth-method 'xauth)
+    (let ((token-alist
+	   (twittering-xauth-get-access-token
+	    twittering-oauth-access-token-url
+	    twittering-oauth-consumer-key twittering-oauth-consumer-secret
+	    (twittering-get-username)
+	    (twittering-get-password))))
+      ;; Dispose of password as recommended by Twitter.
+      ;; http://dev.twitter.com/pages/xauth
+      (setq twittering-password nil)
+      (cond
+       ((and token-alist
+	     (assoc "oauth_token" token-alist)
+	     (assoc "oauth_token_secret" token-alist))
+	(setq twittering-oauth-access-token-alist token-alist)
+	(setq twittering-account-authorization 'authorized)
+	(message "Authorization for the account \"%s\" succeeded."
+		 (twittering-get-username))
+	(when (and twittering-use-master-password
+		   (twittering-capable-of-encryption-p)
+		   (not (file-exists-p twittering-private-info-file)))
+	  (twittering-save-private-info-with-guide))
+	(twittering-start))
+       (t
+	(message "Authorization via xAuth failed. Type M-x twit to retry.")))))
    ((eq twittering-auth-method 'basic)
     (setq twittering-account-authorization 'queried)
     (let ((proc
 	   (twittering-call-api
 	    'verify-credentials
 	    `((sentinel . twittering-http-get-verify-credentials-sentinel)))))
-      (unless proc
+      (cond
+       ((null proc)
 	(setq twittering-account-authorization nil)
 	(message "Authorization for the account \"%s\" failed. Type M-x twit to retry."
 		 (twittering-get-username))
 	(setq twittering-username nil)
-	(setq twittering-password nil))))))
+	(setq twittering-password nil))
+       (t
+	(while (and (eq twittering-account-authorization 'queried)
+		    (memq (process-status proc) '(run connect open)))
+	  (sit-for 0.1))
+	(when (eq twittering-account-authorization 'queried)
+	  (setq twittering-account-authorization nil)
+	  (message "Authorization failed. Type M-x twit to retry.")
+	  (setq twittering-username nil)
+	  (setq twittering-password nil))))))))
 
 (defun twittering-http-get-verify-credentials-sentinel (header-info proc noninteractive &optional suc-msg)
   (let ((status-line (cdr (assq 'status-line header-info)))
@@ -3209,7 +3304,7 @@ authorized -- The account has been authorized.")
 	     (format "Authorization for the account \"%s\" failed. Type M-x twit to retry."
 		     (twittering-get-username))))
 	(cond
-	 ((eq twittering-auth-method 'oauth)
+	 ((memq twittering-auth-method '(oauth xauth))
 	  (setq twittering-oauth-access-token-alist nil))
 	 ((eq twittering-auth-method 'basic)
 	  (setq twittering-username nil)
@@ -4156,7 +4251,7 @@ QUERY-PARAMETERS is a list of cons pair of name and value such as
 		   (base64-encode-string
 		    (concat (twittering-get-username)
 			    ":" (twittering-get-password)))))
-	  ((eq twittering-auth-method 'oauth)
+	  ((memq twittering-auth-method '(oauth xauth))
 	   (let ((access-token
 		  (cdr (assoc "oauth_token"
 			      twittering-oauth-access-token-alist)))
@@ -5450,10 +5545,15 @@ variable `twittering-status-format'."
 
 (defun twittering-get-list-index-sync (username)
   (setq twittering-list-index-retrieved nil)
-  (twittering-get-list-index username)
-  (while (not twittering-list-index-retrieved)
-    (sit-for 0.1))
+  (let ((proc (twittering-get-list-index username)))
+    (when proc
+      (while (and (not twittering-list-index-retrieved)
+		  (not (memq (process-status proc)
+			     '(exit signal closed failed nil))))
+	(sit-for 0.1))))
   (cond
+   ((null twittering-list-index-retrieved)
+    nil)
    ((stringp twittering-list-index-retrieved)
     (if (string= "" twittering-list-index-retrieved)
 	(message "%s does not have a list." username)
@@ -5895,7 +5995,10 @@ managed by `twittering-mode'."
   (interactive)
   (when (twittering-lookup-http-start-function)
     (twittering-initialize-global-variables-if-necessary)
-    (twittering-prepare-account-info)
+    (when (or (eq twittering-auth-method 'basic)
+	      (and (eq twittering-auth-method 'xauth)
+		   (not (twittering-account-authorized-p))))
+      (twittering-prepare-account-info))
     (let ((timeline-spec
 	   (or timeline-spec
 	       (twittering-read-timeline-spec-with-completion

@@ -20,6 +20,8 @@
   To use with `alpaca.el', you should use the version 0.13. With other
   versions of `alpaca.el' the current implementation may not work well
   because it deeply depends on internal implementation of `alpaca.el'.
+* Authentication via xAuth.
+  You can enable xAuth by "(setq twittering-auth-method 'xauth)".
 * ...
 
 ### Bug fixes

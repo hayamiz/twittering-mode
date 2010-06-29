@@ -3195,6 +3195,7 @@ authorized -- The account has been authorized.")
        (t
 	(message "Authorization via OAuth failed. Type M-x twit to retry.")))))
    ((eq twittering-auth-method 'xauth)
+    (twittering-prepare-account-info)
     (let ((token-alist
 	   (twittering-xauth-get-access-token
 	    twittering-oauth-access-token-url
@@ -3221,6 +3222,7 @@ authorized -- The account has been authorized.")
 	(setq twittering-username nil)
 	(message "Authorization via xAuth failed. Type M-x twit to retry.")))))
    ((eq twittering-auth-method 'basic)
+    (twittering-prepare-account-info)
     (setq twittering-account-authorization 'queried)
     (let ((proc
 	   (twittering-call-api
@@ -5934,16 +5936,12 @@ managed by `twittering-mode'."
   (interactive)
   (when (twittering-lookup-http-start-function)
     (twittering-initialize-global-variables-if-necessary)
-    (when (or (eq twittering-auth-method 'basic)
-	      (and (eq twittering-auth-method 'xauth)
-		   (not (twittering-account-authorized-p))))
-      (twittering-prepare-account-info))
+    (twittering-verify-credentials)
     (let ((timeline-spec
 	   (or timeline-spec
 	       (twittering-read-timeline-spec-with-completion
 		"timeline: " initial t))))
       (when timeline-spec
-	(twittering-verify-credentials)
 	(switch-to-buffer (twittering-get-managed-buffer timeline-spec))))))
 
 (defun twittering-other-user-timeline ()

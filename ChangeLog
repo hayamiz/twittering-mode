@@ -3,6 +3,12 @@
 	* twittering-mode.el (twittering-verify-credentials): reset
 	`twittering-username' when authentication via xAuth failed.
 
+	* twittering-mode.el (twittering-verify-credentials): invoke
+	`twittering-prepare-account-info' before authentication method
+	requiring account information.
+	(twittering-visit-timeline): invoke
+	`twittering-verify-credentials' before reading timeline spec.
+
 2010-06-29  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Confirm process status for avoiding

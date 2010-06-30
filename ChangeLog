@@ -7,6 +7,9 @@
 	as `structure'.
 	(twittering-oauth-get-token-alist-curl): likewise.
 
+	* twittering-mode.el (twittering-call-api): `user', `friends',
+	`mentions' and `public' timelines include native retweets.
+
 2010-06-30  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-verify-credentials): reset

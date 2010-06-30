@@ -1,3 +1,12 @@
+2010-07-01  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Support the url library included in Emacs 23
+	and later.
+	(twittering-oauth-get-token-alist-native): support the function
+	`url-generic-parse-url' that returns parsed URL object generated
+	as `structure'.
+	(twittering-oauth-get-token-alist-curl): likewise.
+
 2010-06-29  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Confirm process status for avoiding

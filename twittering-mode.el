@@ -1101,11 +1101,25 @@ function."
 
 (defun twittering-oauth-get-token-alist-native (url auth-str)
   (let* ((method "POST")
-	 (url-parts (url-generic-parse-url url))
-	 (scheme (and url-parts (aref url-parts 0)))
-	 (host (and url-parts (aref url-parts 3)))
-	 (port (and url-parts (aref url-parts 4)))
-	 (path (and url-parts (aref url-parts 5)))
+	 (parts-alist
+	  (let ((parsed-url (url-generic-parse-url url)))
+	    (cond
+	     ((and (fboundp 'url-p) (url-p parsed-url))
+	      `((scheme . ,(url-type parsed-url))
+		(host . ,(url-host parsed-url))
+		(port . ,(url-portspec parsed-url))
+		(path . ,(url-filename parsed-url))))
+	     ((vectorp parsed-url)
+	      `((scheme . ,(aref parsed-url 0))
+		(host . ,(aref parsed-url 3))
+		(port . ,(aref parsed-url 4))
+		(path . ,(aref parsed-url 5))))
+	     (t
+	      nil))))
+	 (scheme (cdr (assq 'scheme parts-alist)))
+	 (host (cdr (assq 'host parts-alist)))
+	 (port (cdr (assq 'port parts-alist)))
+	 (path (cdr (assq 'path parts-alist)))
 	 (proxy-info
 	  (when twittering-proxy-use
 	    (twittering-proxy-info scheme)))
@@ -1162,11 +1176,16 @@ function."
 	    result))))))
 
 (defun twittering-oauth-get-token-alist-curl (url auth-str)
-  (let* ((url-parts (url-generic-parse-url url))
-	 (scheme (and url-parts (aref url-parts 0)))
-	 (host (and url-parts (aref url-parts 3)))
-	 (port (and url-parts (aref url-parts 4)))
-	 (path (and url-parts (aref url-parts 5)))
+  (let* ((parts-alist
+	  (let ((parsed-url (url-generic-parse-url url)))
+	    (cond
+	     ((and (fboundp 'url-p) (url-p parsed-url))
+	      `((scheme . ,(url-type parsed-url))))
+	     ((vectorp parsed-url)
+	      `((scheme . ,(aref parsed-url 0))))
+	     (t
+	      nil))))
+	 (scheme (cdr (assq 'scheme parts-alist)))
 	 (headers
 	  `(("Authorization" . ,auth-str)
 	    ("Accept-Charset" . "us-ascii")

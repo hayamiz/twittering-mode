@@ -1,3 +1,26 @@
+2010-07-01  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Support the url library included in Emacs 23
+	and later.
+	(twittering-oauth-get-token-alist-native): support the function
+	`url-generic-parse-url' that returns parsed URL object generated
+	as `structure'.
+	(twittering-oauth-get-token-alist-curl): likewise.
+
+	* twittering-mode.el (twittering-call-api): `user', `friends',
+	`mentions' and `public' timelines include native retweets.
+
+2010-06-30  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-verify-credentials): reset
+	`twittering-username' when authentication via xAuth failed.
+
+	* twittering-mode.el (twittering-verify-credentials): invoke
+	`twittering-prepare-account-info' before authentication method
+	requiring account information.
+	(twittering-visit-timeline): invoke
+	`twittering-verify-credentials' before reading timeline spec.
+
 2010-06-29  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Confirm process status for avoiding

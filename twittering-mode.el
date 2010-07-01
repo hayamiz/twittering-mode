@@ -404,6 +404,9 @@ StatusNet Service.")
 		    ("rpp" . ,number-str)))
 		 ((eq spec-type 'list)
 		  `(("per_page" . ,number-str)))
+		 ((memq spec-type '(user friends mentions public))
+		  `(("count" . ,number-str)
+		    ("include_rts" . "true")))
 		 (t
 		  `(("count" . ,number-str))))))
 	   (format (if (eq spec-type 'search)
@@ -1152,11 +1155,25 @@ function."
 
 (defun twittering-oauth-get-token-alist-native (url auth-str post-body)
   (let* ((method "POST")
-	 (url-parts (url-generic-parse-url url))
-	 (scheme (and url-parts (aref url-parts 0)))
-	 (host (and url-parts (aref url-parts 3)))
-	 (port (and url-parts (aref url-parts 4)))
-	 (path (and url-parts (aref url-parts 5)))
+	 (parts-alist
+	  (let ((parsed-url (url-generic-parse-url url)))
+	    (cond
+	     ((and (fboundp 'url-p) (url-p parsed-url))
+	      `((scheme . ,(url-type parsed-url))
+		(host . ,(url-host parsed-url))
+		(port . ,(url-portspec parsed-url))
+		(path . ,(url-filename parsed-url))))
+	     ((vectorp parsed-url)
+	      `((scheme . ,(aref parsed-url 0))
+		(host . ,(aref parsed-url 3))
+		(port . ,(aref parsed-url 4))
+		(path . ,(aref parsed-url 5))))
+	     (t
+	      nil))))
+	 (scheme (cdr (assq 'scheme parts-alist)))
+	 (host (cdr (assq 'host parts-alist)))
+	 (port (cdr (assq 'port parts-alist)))
+	 (path (cdr (assq 'path parts-alist)))
 	 (proxy-info
 	  (when twittering-proxy-use
 	    (twittering-proxy-info scheme)))
@@ -1214,11 +1231,16 @@ function."
 	    result))))))
 
 (defun twittering-oauth-get-token-alist-curl (url auth-str post-body)
-  (let* ((url-parts (url-generic-parse-url url))
-	 (scheme (and url-parts (aref url-parts 0)))
-	 (host (and url-parts (aref url-parts 3)))
-	 (port (and url-parts (aref url-parts 4)))
-	 (path (and url-parts (aref url-parts 5)))
+  (let* ((parts-alist
+	  (let ((parsed-url (url-generic-parse-url url)))
+	    (cond
+	     ((and (fboundp 'url-p) (url-p parsed-url))
+	      `((scheme . ,(url-type parsed-url))))
+	     ((vectorp parsed-url)
+	      `((scheme . ,(aref parsed-url 0))))
+	     (t
+	      nil))))
+	 (scheme (cdr (assq 'scheme parts-alist)))
 	 (headers
 	  `(("Authorization" . ,auth-str)
 	    ("Accept-Charset" . "us-ascii")
@@ -3241,6 +3263,7 @@ authorized -- The account has been authorized.")
        (t
 	(message "Authorization via OAuth failed. Type M-x twit to retry.")))))
    ((eq twittering-auth-method 'xauth)
+    (twittering-prepare-account-info)
     (let ((token-alist
 	   (twittering-xauth-get-access-token
 	    twittering-oauth-access-token-url
@@ -3264,8 +3287,10 @@ authorized -- The account has been authorized.")
 	  (twittering-save-private-info-with-guide))
 	(twittering-start))
        (t
+	(setq twittering-username nil)
 	(message "Authorization via xAuth failed. Type M-x twit to retry.")))))
    ((eq twittering-auth-method 'basic)
+    (twittering-prepare-account-info)
     (setq twittering-account-authorization 'queried)
     (let ((proc
 	   (twittering-call-api
@@ -5995,16 +6020,12 @@ managed by `twittering-mode'."
   (interactive)
   (when (twittering-lookup-http-start-function)
     (twittering-initialize-global-variables-if-necessary)
-    (when (or (eq twittering-auth-method 'basic)
-	      (and (eq twittering-auth-method 'xauth)
-		   (not (twittering-account-authorized-p))))
-      (twittering-prepare-account-info))
+    (twittering-verify-credentials)
     (let ((timeline-spec
 	   (or timeline-spec
 	       (twittering-read-timeline-spec-with-completion
 		"timeline: " initial t))))
       (when timeline-spec
-	(twittering-verify-credentials)
 	(switch-to-buffer (twittering-get-managed-buffer timeline-spec))))))
 
 (defun twittering-other-user-timeline ()

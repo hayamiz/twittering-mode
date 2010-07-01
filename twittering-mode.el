@@ -1143,6 +1143,7 @@ function."
 			     headers "\r\n"))))
     (with-temp-buffer
       (let* ((coding-system-for-read 'utf-8-unix)
+	     (tls-program twittering-tls-program)
 	     (proc
 	      (funcall (if twittering-oauth-use-ssl
 			   'open-tls-stream

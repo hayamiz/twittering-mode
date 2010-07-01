@@ -1,3 +1,8 @@
+2010-07-02  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-oauth-get-token-alist-native):
+	use `twittering-tls-program' correctly.
+
 2010-07-01  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Support the url library included in Emacs 23

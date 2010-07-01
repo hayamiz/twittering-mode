@@ -9,6 +9,18 @@
 	(twittering-oauth-get-token-alist-curl): likewise.
 	(twittering-http-default-sentinel): likewise.
 
+	* twittering-mode.el: Allow insecure server certificates if
+	`twittering-allow-insecure-server-cert' is non-nil.
+	(twittering-allow-insecure-server-cert): new variable.
+	(twittering-oauth-get-token-alist-curl): add "--insecure" option
+	to the arguments for `curl' if
+	`twittering-allow-insecure-server-cert' is non-nil.
+	(twittering-start-http-session-curl): likewise.
+	(twittering-start-http-session-native-tls-p): add options to the
+	programs in `tls-program' in order to allow insecure server
+	certificates if `twittering-allow-insecure-server-cert' is
+	non-nil.
+
 2010-07-01  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Support the url library included in Emacs 23

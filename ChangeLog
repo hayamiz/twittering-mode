@@ -3,6 +3,12 @@
 	* twittering-mode.el (twittering-oauth-get-token-alist-native):
 	use `twittering-tls-program' correctly.
 
+	* twittering-mode.el: Detect abnormal exit of an invoked process.
+	(twittering-oauth-get-token-alist-native): confirm the exit
+	status of the invoked process.
+	(twittering-oauth-get-token-alist-curl): likewise.
+	(twittering-http-default-sentinel): likewise.
+
 2010-07-01  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Support the url library included in Emacs 23

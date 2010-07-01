@@ -1177,6 +1177,7 @@ function."
 		  (or post-body ""))))
     (with-temp-buffer
       (let* ((coding-system-for-read 'utf-8-unix)
+	     (tls-program twittering-tls-program)
 	     (proc
 	      (funcall (if twittering-oauth-use-ssl
 			   'open-tls-stream
@@ -1191,11 +1192,19 @@ function."
 	     (lambda (&rest args)
 	       (let* ((proc (car args))
 		      (buffer (process-buffer proc))
-		      (status (process-status proc)))
+		      (status (process-status proc))
+		      (exit-status (process-exit-status proc)))
+		 (debug-printf "proc=%s stat=%s exit-status=%s"
+			       proc status exit-status)
 		 (cond
 		  ((not (memq status '(nil closed exit failed signal)))
 		   ;; continue
 		   )
+		  ((and (process-command proc)
+			(not (= 0 exit-status)))
+		   (message "%s exited abnormally (exit-status=%s)."
+			    (car (process-command proc)) exit-status)
+		   (setq result nil))
 		  (buffer
 		   (when twittering-debug-mode
 		     (with-current-buffer (twittering-debug-buffer)
@@ -1282,11 +1291,19 @@ function."
 	     (lambda (&rest args)
 	       (let* ((proc (car args))
 		      (buffer (process-buffer proc))
-		      (status (process-status proc)))
+		      (status (process-status proc))
+		      (exit-status (process-exit-status proc)))
+		 (debug-printf "proc=%s stat=%s exit-status=%s"
+			       proc status exit-status)
 		 (cond
 		  ((not (memq status '(nil closed exit failed signal)))
 		   ;; continue
 		   )
+		  ((and (process-command proc)
+			(not (= 0 exit-status)))
+		   (message "%s exited abnormally (exit-status=%s)."
+			    (car (process-command proc)) exit-status)
+		   (setq result nil))
 		  (buffer
 		   (when twittering-debug-mode
 		     (with-current-buffer (twittering-debug-buffer)
@@ -4274,9 +4291,10 @@ QUERY-PARAMETERS is a list of cons pair of name and value such as
        (cadr encoded-time))))
 
 (defun twittering-http-default-sentinel (func noninteractive proc stat &optional suc-msg)
-  (debug-printf "http-default-sentinel: proc=%s stat=%s" proc stat)
+  (debug-printf "http-default-sentinel: proc=%s stat=%s exit-status=%s" proc stat (process-exit-status proc))
   (let ((temp-buffer (process-buffer proc))
 	(status (process-status proc))
+	(exit-status (process-exit-status proc))
 	(mes nil))
     (when (and twittering-proxy-use twittering-use-ssl
 	       (buffer-live-p temp-buffer))
@@ -4306,18 +4324,24 @@ QUERY-PARAMETERS is a list of cons pair of name and value such as
       t)
      ((memq status '(exit signal closed failed))
       (unwind-protect
-	  (let* ((header (twittering-get-response-header temp-buffer))
-		 (header-info
-		  (and header (twittering-update-server-info header))))
-	    (setq mes
-		  (cond
-		   ((null header-info)
-		    "Failure: Bad http response.")
-		   ((and func (fboundp func))
-		    (with-current-buffer temp-buffer
-		      (funcall func header-info proc noninteractive suc-msg)))
-		   (t
-		    nil))))
+	  (setq mes
+		(if (and (process-command proc)
+			 (not (= 0 exit-status)))
+		    ;; The process exited abnormally.
+		    (format "%s exited abnormally (exit-status=%s)."
+			    (car (process-command proc)) exit-status)
+		  (let* ((header (twittering-get-response-header temp-buffer))
+			 (header-info
+			  (and header (twittering-update-server-info header))))
+		    (cond
+		     ((null header-info)
+		      "Failure: Bad http response.")
+		     ((and func (fboundp func))
+		      (with-current-buffer temp-buffer
+			(funcall func header-info proc noninteractive
+				 suc-msg)))
+		     (t
+		      nil)))))
 	;; unwindforms
 	(twittering-release-process proc)
 	(when (and (not twittering-debug-mode) (buffer-live-p temp-buffer))

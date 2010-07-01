@@ -21,6 +21,10 @@
 	certificates if `twittering-allow-insecure-server-cert' is
 	non-nil.
 
+	* twittering-mode.el (twittering-verify-credentials): display an
+	error message if the variable `twittering-auth-method' is
+	invalid.
+
 2010-07-01  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Support the url library included in Emacs 23

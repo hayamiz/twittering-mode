@@ -3287,7 +3287,10 @@ authorized -- The account has been authorized.")
 	  (setq twittering-account-authorization nil)
 	  (message "Authorization failed. Type M-x twit to retry.")
 	  (setq twittering-username nil)
-	  (setq twittering-password nil))))))))
+	  (setq twittering-password nil))))))
+   (t
+    (message "%s is invalid as an authorization method."
+	     twittering-auth-method))))
 
 (defun twittering-http-get-verify-credentials-sentinel (header-info proc noninteractive &optional suc-msg)
   (let ((status-line (cdr (assq 'status-line header-info)))

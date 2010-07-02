@@ -1,3 +1,30 @@
+2010-07-02  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-oauth-get-token-alist-native):
+	use `twittering-tls-program' correctly.
+
+	* twittering-mode.el: Detect abnormal exit of an invoked process.
+	(twittering-oauth-get-token-alist-native): confirm the exit
+	status of the invoked process.
+	(twittering-oauth-get-token-alist-curl): likewise.
+	(twittering-http-default-sentinel): likewise.
+
+	* twittering-mode.el: Allow insecure server certificates if
+	`twittering-allow-insecure-server-cert' is non-nil.
+	(twittering-allow-insecure-server-cert): new variable.
+	(twittering-oauth-get-token-alist-curl): add "--insecure" option
+	to the arguments for `curl' if
+	`twittering-allow-insecure-server-cert' is non-nil.
+	(twittering-start-http-session-curl): likewise.
+	(twittering-start-http-session-native-tls-p): add options to the
+	programs in `tls-program' in order to allow insecure server
+	certificates if `twittering-allow-insecure-server-cert' is
+	non-nil.
+
+	* twittering-mode.el (twittering-verify-credentials): display an
+	error message if the variable `twittering-auth-method' is
+	invalid.
+
 2010-07-01  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Support the url library included in Emacs 23

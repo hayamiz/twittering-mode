@@ -1,3 +1,22 @@
+2010-07-03  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Replace `xml-parse-region' with
+	`twittering-xml-parse-region' in order to prevent abnormal exit
+	caused by decoding unknown numeric character references.
+	(twittering-unicode-replacement-char): new variable.
+	(twittering-ucs-to-char): return
+	`twittering-unicode-replacement-char' if decoding failed.
+	(decode-char): new advice in order to return
+	`twittering-unicode-replacement-char' for unknown code-points.
+	(twittering-xml-parse-region): new function. This function does
+	not exit abnormally even if given XML includes unknown numeric
+	references. Unknown numeric references are replaced with
+	`twittering-unicode-replacement-char'.
+	(twittering-get-error-message): replace `xml-parse-region' with
+	`twittering-xml-parse-region'.
+	(twittering-http-get-list-index-sentinel): likewise.
+	(twittering-get-status-from-http-response): likewise.
+
 2010-07-02  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-oauth-get-token-alist-native):

@@ -1110,8 +1110,8 @@ function."
 	  `(("Authorization" . ,auth-str)
 	    ("Accept-Charset" . "us-ascii")
 	    ("Content-Type" . "application/x-www-form-urlencoded")
-	    ("Content-Length" . ,(format "%d" (length post-body))))
-	  (url-request-data post-body))
+	    ("Content-Length" . ,(format "%d" (length post-body)))))
+	 (url-request-data post-body)
 	 (coding-system-for-read 'utf-8-unix))
     (lexical-let ((result 'queried))
       (let ((buffer

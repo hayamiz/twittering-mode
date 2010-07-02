@@ -17,6 +17,9 @@
 	(twittering-http-get-list-index-sentinel): likewise.
 	(twittering-get-status-from-http-response): likewise.
 
+	* twittering-mode.el (twittering-oauth-get-token-alist-url): fix a
+	list of bindings.
+
 2010-07-02  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-oauth-get-token-alist-native):

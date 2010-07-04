@@ -3,6 +3,14 @@
 	* twittering-mode.el (twittering-redisplay-status-on-buffer): Fix
 	the condition of redisplaying a timeline.
 
+	* twittering-mode.el: If it fails to retrieve an image a certain
+	times, retry no longer.
+	(twittering-create-image-pair): return
+	`twittering-error-icon-data-pair' if the argument `image-data' is
+	nil.
+	(twittering-make-icon-string): fix the condition of
+	`image-data'. If it is an integer, it means the time of retries.
+
 2010-07-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Replace `xml-parse-region' with

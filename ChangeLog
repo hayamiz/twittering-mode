@@ -15,6 +15,13 @@
 	(twittering-generate-format-table): generate the URL of the scaled
 	icon image by API.
 
+	* twittering-mode.el: Use `GET users/profile_image' API only if
+	the variable `twittering-use-profile-image-api' is non-nil. Since
+	the API is rate limited, it may cause troubles on other API calls.
+	(twittering-use-profile-image-api): new variable.
+	(twittering-generate-format-table): call `GET users/profile_imagne'
+	API only if `twittering-use-profile-image-api' is non-nil.
+
 2010-07-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Replace `xml-parse-region' with

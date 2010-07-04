@@ -1695,11 +1695,13 @@ return nil."
   "Return a pair of image type and image data.
 IMAGE-DATA is converted by `convert' if the image type of IMAGE-DATA is not
 available and `twittering-use-convert' is non-nil."
-  (let* ((image-type (image-type-from-data image-data))
+  (let* ((image-type (and image-data (image-type-from-data image-data)))
 	 (image-pair `(,image-type . ,image-data))
 	 (converted-size
 	  `(,twittering-convert-fix-size . ,twittering-convert-fix-size)))
     (cond
+     ((null image-data)
+      twittering-error-icon-data-pair)
      ((and (image-type-available-p image-type)
 	   (or (not (integerp twittering-convert-fix-size))
 	       (equal (image-size (create-image image-data image-type t) t)
@@ -1778,7 +1780,12 @@ image are displayed."
 				'(need-to-be-updated nil)
 				icon-string)
 	icon-string))
-     (image-data
+     ((and (integerp image-data)
+	   (<= twittering-url-request-retry-limit image-data))
+      ;; Try to retrieve the image no longer.
+      (twittering-register-image-data image-url nil)
+      (twittering-make-icon-string beg end image-url))
+     ((and image-data (not (integerp image-data)))
       (twittering-register-image-data image-url image-data)
       (twittering-make-icon-string beg end image-url))
      (t
@@ -4985,7 +4992,9 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 
 (defun twittering-redisplay-status-on-buffer ()
   (mapc (lambda (buffer)
-	  (unless (with-current-buffer buffer mark-active)
+	  (unless (with-current-buffer buffer
+		    (or (and (fboundp 'use-region-p) (use-region-p))
+			(and transient-mark-mode mark-active)))
 	    (twittering-redisplay-status-on-each-buffer buffer)))
 	(twittering-get-buffer-list)))
 
@@ -5334,7 +5343,20 @@ following symbols;
     ("f" . (cdr (assq 'source ,status-sym)))
     ("i" .
      (when (and twittering-icon-mode window-system)
-       (let* ((url (cdr (assq 'user-profile-image-url ,status-sym))))
+       (let ((url
+	      (cond
+	       ((or (null twittering-convert-fix-size)
+		    (member twittering-convert-fix-size '(48 73)))
+		(let ((user (cdr (assq 'user-screen-name ,status-sym)))
+		      (size
+		       (if (or (null twittering-convert-fix-size)
+			       (= 48 twittering-convert-fix-size))
+			   "normal"
+			 "bigger")))
+		  (format "http://%s/1/users/profile_image/%s.xml?size=%s"
+			  twittering-api-host user size)))
+	       (t
+		(cdr (assq 'user-profile-image-url ,status-sym))))))
 	 (twittering-make-icon-string nil nil url))))
     ("j" . (cdr (assq 'user-id ,status-sym)))
     ("L" .

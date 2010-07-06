@@ -1635,6 +1635,10 @@ is the display property for the icon.")
 is non-nil. If this variable is non-nil, icon images are converted by
 invoking \"convert\". Otherwise, cropped images are displayed.")
 
+(defvar twittering-use-profile-image-api nil
+  "*Whether to use `profile_image' API for retrieving scaled icon images.
+NOTE: This API is rate limited.")
+
 (defconst twittering-error-icon-data-pair
   '(xpm . "/* XPM */
 static char * yellow3_xpm[] = {
@@ -5345,7 +5349,8 @@ following symbols;
      (when (and twittering-icon-mode window-system)
        (let ((url
 	      (cond
-	       ((and (eq twittering-service-method 'twitter)
+	       ((and twittering-use-profile-image-api
+		     (eq twittering-service-method 'twitter)
 		     (or (null twittering-convert-fix-size)
 			 (member twittering-convert-fix-size '(48 73))))
 		(let ((user (cdr (assq 'user-screen-name ,status-sym)))

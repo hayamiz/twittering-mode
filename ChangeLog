@@ -1,3 +1,9 @@
+2010-07-25  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-mode): avoid repeating
+	authorization when `twittering-initial-timeline-spec-string' is a
+	list of multiple timeline spec strings.
+
 2010-07-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-redisplay-status-on-buffer): Fix

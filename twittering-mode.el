@@ -3263,10 +3263,13 @@ been initialized yet."
   "Major mode for Twitter
 \\{twittering-mode-map}"
   (interactive)
-  (if (listp twittering-initial-timeline-spec-string)
-      (mapc 'twittering-visit-timeline
-	    twittering-initial-timeline-spec-string)
-    (twittering-visit-timeline twittering-initial-timeline-spec-string)))
+  (let ((timeline-spec-list
+	 (if (listp twittering-initial-timeline-spec-string)
+	     twittering-initial-timeline-spec-string
+	   (cons twittering-initial-timeline-spec-string nil))))
+    (twittering-visit-timeline (car timeline-spec-list))
+    (when (twittering-account-authorized-p)
+      (mapc 'twittering-visit-timeline (cdr timeline-spec-list)))))
 
 ;;;
 ;;; Edit mode

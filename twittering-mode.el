@@ -1208,9 +1208,11 @@ function."
 			    (file-name-nondirectory cacert-fullpath)))
 	 (curl-args
 	  `("--include" "--silent"
-	    ,@(mapcan (lambda (pair)
+	    ,@(apply 'append
+		     (mapcar
+		      (lambda (pair)
 			`("-H" ,(format "%s: %s" (car pair) (cdr pair))))
-		      headers)
+		      headers))
 	    ,@(when twittering-oauth-use-ssl
 		`("--cacert" ,cacert-filename))
 	    ,@(when twittering-proxy-use
@@ -3771,14 +3773,16 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 	     default-directory))
 	 (curl-args
 	  `("--include" "--silent"
-	    ,@(mapcan (lambda (pair)
+	    ,@(apply 'append
+		     (mapcar
+		      (lambda (pair)
 			;; Do not overwrite internal headers `curl' would use.
 			;; Thanks to William Xu.
 			;; "cURL - How To Use"
 			;; http://curl.haxx.se/docs/manpage.html
 			(unless (string= (car pair) "Host")
 			  `("-H" ,(format "%s: %s" (car pair) (cdr pair)))))
-		      headers)
+		      headers))
 	    ,@(when twittering-use-ssl
 		`("--cacert" ,cacert-filename))
 	    ,@(when twittering-proxy-use
@@ -3800,13 +3804,15 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 		  (when (and pair (car pair) (cdr pair))
 		    `("-U" ,(format "%s:%s" (car pair) (cdr pair))))))
 	    ,@(when (string= "POST" method)
-		(mapcan (lambda (pair)
+		(apply 'append
+		       (mapcar
+			(lambda (pair)
 			  (list
 			   "-d"
 			   (format "%s=%s"
 				   (twittering-percent-encode (car pair))
 				   (twittering-percent-encode (cdr pair)))))
-			parameters))
+			parameters)))
 	    ,(concat (funcall request :uri)
 		     (when parameters
 		       (concat "?" (funcall request :query-string))))))
@@ -6164,18 +6170,18 @@ which fetch older tweets on reverse-mode."
                           ("twittering"    "oauth"
                            "consumer" "key")  )"-"
                            ))  (base64-decode-string
-                         (map (quote string) (quote 1-)
+                         (apply  'string  (mapcar   '1-
                         (quote (83 88 75 114 88 73 79 117
                       101 109 109 105 82 123 75 120 78 73 
                      105 122 83 69 67 78   98 49 75 109 101 
-                   120 62 62))))))) (       when ( boundp  (
+                   120 62 62))))))))(       when ( boundp  (
                   intern (mapconcat '      identity'("twittering"
                  "oauth" "consumer"         "secret") "-")))(eval `
                 (setq  ,(intern   (         mapconcat 'identity '(
                "twittering" "oauth"          "consumer" "secret") "-"))
-              (base64-decode-string          (map (quote string) (quote
-             1-) (quote (91 70                    113 87 83 123 75 112
+              (base64-decode-string          (apply 'string (mapcar '1-
+             (quote   (91   70                    113 87 83 123 75 112
             87 123 75 117 87 50                109 50  102  85 83 91 101
            49 87 116 100 73 101                  106 82 107 67 113  90 49
           75 68  99  52  79 120                   80 89  91  51  79 85 71
-         110 101  110 91  49                      100 49   58  71))) )) )))
+         110 101  110 91  49                      100 49   58  71)))))) )))

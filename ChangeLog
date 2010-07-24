@@ -1,3 +1,20 @@
+2010-07-25  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-mode): avoid repeating
+	authorization when `twittering-initial-timeline-spec-string' is a
+	list of multiple timeline spec strings.
+
+	* twittering-mode.el (twittering-http-default-sentinel): display
+	an error message when waiting for a response of an authorization
+	query.
+
+	* twittering-mode.el: Replace functions `mapcan' and `map' defined
+	in `cl-extra' with built-in functions in order to prevent the
+	byte-compiled `twittering-mode' from depending on `cl-extra'.
+	(twittering-oauth-get-token-alist-curl): replace `mapcan' with a
+	combination of `apply', `append' and `mapcar'.
+	(twittering-start-http-session-curl): likewise.
+
 2010-07-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-redisplay-status-on-buffer): Fix

@@ -4,6 +4,10 @@
 	authorization when `twittering-initial-timeline-spec-string' is a
 	list of multiple timeline spec strings.
 
+	* twittering-mode.el (twittering-http-default-sentinel): display
+	an error message when waiting for a response of an authorization
+	query.
+
 2010-07-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-redisplay-status-on-buffer): Fix

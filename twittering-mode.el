@@ -4064,6 +4064,7 @@ QUERY-PARAMETERS is a list of cons pair of name and value such as
   (let ((temp-buffer (process-buffer proc))
 	(status (process-status proc))
 	(exit-status (process-exit-status proc))
+	(authorization-queried (twittering-account-authorization-queried-p))
 	(mes nil))
     (when (and twittering-proxy-use twittering-use-ssl
 	       (buffer-live-p temp-buffer))
@@ -4117,7 +4118,8 @@ QUERY-PARAMETERS is a list of cons pair of name and value such as
 	  (kill-buffer temp-buffer))))
      (t
       (setq mes (format "Failure: unknown condition: %s" status))))
-    (when (and mes (twittering-buffer-related-p))
+    (when (and mes (or (twittering-buffer-related-p)
+		       authorization-queried))
       (message "%s" mes))))
 
 (defun twittering-http-get-default-sentinel (header-info proc noninteractive &optional suc-msg)

@@ -1827,7 +1827,7 @@ image are displayed."
 (defun twittering-get-status-url-statusnet (username &optional id)
   "Generate status URL for StatusNet."
   (if id
-      (format "http://%s/%snotice/%s" twittering-web-host twittering-web-path-prefix id)
+      (format "http://%s/%s/notice/%s" twittering-web-host twittering-web-path-prefix id)
     (format "http://%s/%s/%s" twittering-web-host twittering-web-path-prefix username)))
 
 (defun twittering-lookup-get-search-url ()
@@ -1841,7 +1841,7 @@ image are displayed."
 
 (defun twittering-get-search-url-statusnet (query-string)
   (if (string-match "^#\\(.+\\)" query-string)
-      (format "http://%s/%stag/%s"
+      (format "http://%s/%s/tag/%s"
 	      twittering-web-host
 	      twittering-web-path-prefix
 	      (twittering-percent-encode (match-string 1 query-string)))

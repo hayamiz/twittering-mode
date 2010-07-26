@@ -1,3 +1,9 @@
+2010-07-26  Takashi Masuda  <masutaka@nifty.com>
+
+	* twittering-mode.el: fix statusnet URL
+	(twittering-get-status-url-statusnet): fix id URL
+	(twittering-get-status-url-statusnet): fix hashtag URL
+
 2010-07-06  Takashi Masuda  <masutaka@nifty.com>
 
 	* twittering-mode.el (twittering-generate-format-table):

@@ -3804,15 +3804,18 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 		  (when (and pair (car pair) (cdr pair))
 		    `("-U" ,(format "%s:%s" (car pair) (cdr pair))))))
 	    ,@(when (string= "POST" method)
-		(apply 'append
-		       (mapcar
-			(lambda (pair)
-			  (list
-			   "-d"
-			   (format "%s=%s"
-				   (twittering-percent-encode (car pair))
-				   (twittering-percent-encode (cdr pair)))))
-			parameters)))
+		(cond
+		 (parameters
+		  (apply 'append
+			 (mapcar
+			  (lambda (pair)
+			    (list
+			     "-d"
+			     (format "%s=%s"
+				     (twittering-percent-encode (car pair))
+				     (twittering-percent-encode (cdr pair)))))
+			  parameters)))
+		 (t '("-d" ""))))
 	    ,(concat (funcall request :uri)
 		     (when parameters
 		       (concat "?" (funcall request :query-string))))))

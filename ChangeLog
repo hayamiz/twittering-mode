@@ -1,3 +1,26 @@
+2010-08-06  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix options of `curl' for POST with an empty
+	body.
+	(twittering-start-http-session-curl): add an option "-d" whenever
+	`method' equals to "POST".
+
+	* twittering-mode.el: Use the ID of the retweeted original tweet
+	on generating a URL or retweeting it.
+	(twittering-status-to-status-datum): add new property `source-id'
+	specifying a source tweet of a retweet.
+	(twittering-generate-formater-for-first-spec): generate a URL for
+	a retweet from the ID of its source.
+	(twittering-generate-format-status-function): add `source-id' as a
+	common property.
+	(twittering-native-retweet): use `source-id' for a retweet.
+
+	* twittering-mode.el: Update the embedded CA certificate into
+	`Equifax Secure Certificate Authority'.
+	(twittering-ensure-ca-cert): replace the CA certificate with
+	`Equifax Secure Certificate Authority' currently referred by
+	`api.twitter.com' and `search.twitter.com'.
+
 2010-07-25  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-mode): avoid repeating

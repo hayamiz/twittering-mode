@@ -4003,29 +4003,35 @@ PARAMETERS: http request parameters (query string)"
     (setq twittering-cert-file nil)))
 
 ;;; FIXME: file name is hard-coded. More robust way is desired.
+;;; https://www.geotrust.com/resources/root_certificates/certificates/Equifax_Secure_Certificate_Authority.cer
 (defun twittering-ensure-ca-cert ()
   "Create a CA certificate file if it does not exist, and return
-its file name."
+its file name. The certificate is retrieved from
+`https://www.geotrust.com/resources/root_certificates/certificates/Equifax_Secure_Certificate_Authority.cer'."
   (if twittering-cert-file
       twittering-cert-file
     (let ((file-name (make-temp-file "twmode-cacert")))
       (with-temp-file file-name
 	(insert "-----BEGIN CERTIFICATE-----
-MIICkDCCAfmgAwIBAgIBATANBgkqhkiG9w0BAQQFADBaMQswCQYDVQQGEwJVUzEc
-MBoGA1UEChMTRXF1aWZheCBTZWN1cmUgSW5jLjEtMCsGA1UEAxMkRXF1aWZheCBT
-ZWN1cmUgR2xvYmFsIGVCdXNpbmVzcyBDQS0xMB4XDTk5MDYyMTA0MDAwMFoXDTIw
-MDYyMTA0MDAwMFowWjELMAkGA1UEBhMCVVMxHDAaBgNVBAoTE0VxdWlmYXggU2Vj
-dXJlIEluYy4xLTArBgNVBAMTJEVxdWlmYXggU2VjdXJlIEdsb2JhbCBlQnVzaW5l
-c3MgQ0EtMTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAuucXkAJlsTRVPEnC
-UdXfp9E3j9HngXNBUmCbnaEXJnitx7HoJpQytd4zjTov2/KaelpzmKNc6fuKcxtc
-58O/gGzNqfTWK8D3+ZmqY6KxRwIP1ORROhI8bIpaVIRw28HFkM9yRcuoWcDNM50/
-o5brhTMhHD4ePmBudpxnhcXIw2ECAwEAAaNmMGQwEQYJYIZIAYb4QgEBBAQDAgAH
-MA8GA1UdEwEB/wQFMAMBAf8wHwYDVR0jBBgwFoAUvqigdHJQa0S3ySPY+6j/s1dr
-aGwwHQYDVR0OBBYEFL6ooHRyUGtEt8kj2Puo/7NXa2hsMA0GCSqGSIb3DQEBBAUA
-A4GBADDiAVGqx+pf2rnQZQ8w1j7aDRRJbpGTJxQx78T3LUX47Me/okENI7SS+RkA
-Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
-8qIYNMR1pHMc8Y3c7635s3a0kr/clRAevsvIO1qEYBlWlKlV
------END CERTIFICATE-----"))
+MIIDIDCCAomgAwIBAgIENd70zzANBgkqhkiG9w0BAQUFADBOMQswCQYDVQQGEwJV
+UzEQMA4GA1UEChMHRXF1aWZheDEtMCsGA1UECxMkRXF1aWZheCBTZWN1cmUgQ2Vy
+dGlmaWNhdGUgQXV0aG9yaXR5MB4XDTk4MDgyMjE2NDE1MVoXDTE4MDgyMjE2NDE1
+MVowTjELMAkGA1UEBhMCVVMxEDAOBgNVBAoTB0VxdWlmYXgxLTArBgNVBAsTJEVx
+dWlmYXggU2VjdXJlIENlcnRpZmljYXRlIEF1dGhvcml0eTCBnzANBgkqhkiG9w0B
+AQEFAAOBjQAwgYkCgYEAwV2xWGcIYu6gmi0fCG2RFGiYCh7+2gRvE4RiIcPRfM6f
+BeC4AfBONOziipUEZKzxa1NfBbPLZ4C/QgKO/t0BCezhABRP/PvwDN1Dulsr4R+A
+cJkVV5MW8Q+XarfCaCMczE1ZMKxRHjuvK9buY0V7xdlfUNLjUA86iOe/FP3gx7kC
+AwEAAaOCAQkwggEFMHAGA1UdHwRpMGcwZaBjoGGkXzBdMQswCQYDVQQGEwJVUzEQ
+MA4GA1UEChMHRXF1aWZheDEtMCsGA1UECxMkRXF1aWZheCBTZWN1cmUgQ2VydGlm
+aWNhdGUgQXV0aG9yaXR5MQ0wCwYDVQQDEwRDUkwxMBoGA1UdEAQTMBGBDzIwMTgw
+ODIyMTY0MTUxWjALBgNVHQ8EBAMCAQYwHwYDVR0jBBgwFoAUSOZo+SvSspXXR9gj
+IBBPM5iQn9QwHQYDVR0OBBYEFEjmaPkr0rKV10fYIyAQTzOYkJ/UMAwGA1UdEwQF
+MAMBAf8wGgYJKoZIhvZ9B0EABA0wCxsFVjMuMGMDAgbAMA0GCSqGSIb3DQEBBQUA
+A4GBAFjOKer89961zgK5F7WF0bnj4JXMJTENAKaSbn+2kmOeUJXRmm/kEd5jhW6Y
+7qj/WsjTVbJmcVfewCHrPSqnI0kBBIZCe/zuf6IWUrVnZ9NA2zsmWLIodz2uFHdh
+1voqZiegDfqnc1zqcPGUIWVEX/r87yloqaKHee9570+sB3c4
+-----END CERTIFICATE-----
+"))
       (add-hook 'kill-emacs-hook 'twittering-delete-ca-cert-file)
       (setq twittering-cert-file file-name))))
 
@@ -4090,15 +4096,18 @@ Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
 		  (when (and pair (car pair) (cdr pair))
 		    `("-U" ,(format "%s:%s" (car pair) (cdr pair))))))
 	    ,@(when (string= "POST" method)
-		(apply 'append
-		       (mapcar
-			(lambda (pair)
-			  (list
-			   "-d"
-			   (format "%s=%s"
-				   (twittering-percent-encode (car pair))
-				   (twittering-percent-encode (cdr pair)))))
-			parameters)))
+		(cond
+		 (parameters
+		  (apply 'append
+			 (mapcar
+			  (lambda (pair)
+			    (list
+			     "-d"
+			     (format "%s=%s"
+				     (twittering-percent-encode (car pair))
+				     (twittering-percent-encode (cdr pair)))))
+			  parameters)))
+		 (t '("-d" ""))))
 	    ,(concat (funcall request :uri)
 		     (when parameters
 		       (concat "?" (funcall request :query-string))))))
@@ -4708,6 +4717,7 @@ BUFFER may be a buffer or the name of an existing buffer."
                '(id text source created-at truncated
                     in-reply-to-status-id
                     in-reply-to-screen-name
+                    source-id
                     user-id user-name user-screen-name user-location
                     user-description
                     user-profile-image-url
@@ -5377,7 +5387,8 @@ following symbols;
 		   (url
 		    (twittering-get-status-url
 		     (cdr (assq 'user-screen-name ,status-sym))
-		     (cdr (assq 'id ,status-sym))))
+		     (or (cdr (assq 'source-id ,status-sym))
+			 (cdr (assq 'id ,status-sym)))))
 		   (properties
 		    (list 'mouse-face 'highlight 'face 'twittering-uri-face
 			  'uri url)))
@@ -5464,8 +5475,11 @@ following symbols;
       `(lambda (status prefix)
 	 (let* ((username (cdr (assq 'user-screen-name status)))
 		(id (cdr (assq 'id status)))
+		(source-id (cdr (assq 'source-id status)))
 		(text (cdr (assq 'text status)))
-		(common-properties (list 'username username 'id id 'text text))
+		(common-properties
+		 (list 'username username 'id id 'source-id source-id
+		       'text text))
 		(str (concat ,@body))
 		(str (if prefix
 			 (replace-regexp-in-string "^" prefix str)
@@ -6019,7 +6033,8 @@ managed by `twittering-mode'."
 
 (defun twittering-native-retweet ()
   (interactive)
-  (let ((id (get-text-property (point) 'id))
+  (let ((id (or (get-text-property (point) 'source-id)
+		(get-text-property (point) 'id)))
 	(text (copy-sequence (get-text-property (point) 'text)))
 	(user (get-text-property (point) 'username))
 	(width (max 40 ;; XXX

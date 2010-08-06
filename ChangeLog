@@ -15,6 +15,12 @@
 	common property.
 	(twittering-native-retweet): use `source-id' for a retweet.
 
+	* twittering-mode.el: Update the embedded CA certificate into
+	`Equifax Secure Certificate Authority'.
+	(twittering-ensure-ca-cert): replace the CA certificate with
+	`Equifax Secure Certificate Authority' currently referred by
+	`api.twitter.com' and `search.twitter.com'.
+
 2010-07-25  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-mode): avoid repeating

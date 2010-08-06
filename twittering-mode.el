@@ -4412,6 +4412,7 @@ BUFFER may be a buffer or the name of an existing buffer."
                '(id text source created-at truncated
                     in-reply-to-status-id
                     in-reply-to-screen-name
+                    source-id
                     user-id user-name user-screen-name user-location
                     user-description
                     user-profile-image-url
@@ -5081,7 +5082,8 @@ following symbols;
 		   (url
 		    (twittering-get-status-url
 		     (cdr (assq 'user-screen-name ,status-sym))
-		     (cdr (assq 'id ,status-sym))))
+		     (or (cdr (assq 'source-id ,status-sym))
+			 (cdr (assq 'id ,status-sym)))))
 		   (properties
 		    (list 'mouse-face 'highlight 'face 'twittering-uri-face
 			  'uri url)))
@@ -5168,8 +5170,11 @@ following symbols;
       `(lambda (status prefix)
 	 (let* ((username (cdr (assq 'user-screen-name status)))
 		(id (cdr (assq 'id status)))
+		(source-id (cdr (assq 'source-id status)))
 		(text (cdr (assq 'text status)))
-		(common-properties (list 'username username 'id id 'text text))
+		(common-properties
+		 (list 'username username 'id id 'source-id source-id
+		       'text text))
 		(str (concat ,@body))
 		(str (if prefix
 			 (replace-regexp-in-string "^" prefix str)
@@ -5723,7 +5728,8 @@ managed by `twittering-mode'."
 
 (defun twittering-native-retweet ()
   (interactive)
-  (let ((id (get-text-property (point) 'id))
+  (let ((id (or (get-text-property (point) 'source-id)
+		(get-text-property (point) 'id)))
 	(text (copy-sequence (get-text-property (point) 'text)))
 	(user (get-text-property (point) 'username))
 	(width (max 40 ;; XXX

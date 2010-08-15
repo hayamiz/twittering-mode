@@ -1438,17 +1438,28 @@ like following:
 
 (defun twittering-load-private-info ()
   (let* ((file twittering-private-info-file)
-	 (decrypted-str (twittering-read-from-encrypted-file file)))
-    (when decrypted-str
-      (mapcar (lambda (pair)
-		(let ((sym (car pair))
-		      (value (cdr pair)))
-		  (set sym value)
-		  sym))
-	      (condition-case nil
-		  (read decrypted-str)
-		(error
-		 nil))))))
+	 (decrypted-str (twittering-read-from-encrypted-file file))
+	 (loaded-alist
+	  (when decrypted-str
+	    (condition-case nil
+		(read decrypted-str)
+	      (error
+	       nil)))))
+    (when loaded-alist
+      (remove
+       nil
+       (mapcar
+	(lambda (pair)
+	  (when (consp pair)
+	    (let ((sym (car pair))
+		  (value (cdr pair)))
+	      (cond
+	       ((memq sym twittering-variables-stored-with-encryption)
+		(set sym value)
+		sym)
+	       (t
+		nil)))))
+	loaded-alist)))))
 
 (defun twittering-load-private-info-with-guide ()
   (let ((str (concat
@@ -3202,6 +3213,18 @@ authorized -- The account has been authorized.")
 	    (read-passwd (format "%s's twitter password: "
 				 twittering-username))))))
 
+(defun twittering-has-oauth-access-token-p ()
+  (let* ((required-entries '("oauth_token"
+			     "oauth_token_secret"
+			     "user_id"
+			     "screen_name"))
+	 (value-list
+	  (mapcar
+	   (lambda (key)
+	     (cdr (assoc key twittering-oauth-access-token-alist)))
+	   required-entries)))
+    (null (remove t (mapcar 'stringp value-list)))))
+
 (defun twittering-verify-credentials ()
   (when (and (not (twittering-account-authorized-p))
 	     (not (twittering-account-authorization-queried-p))
@@ -3227,7 +3250,8 @@ authorized -- The account has been authorized.")
 	 (twittering-capable-of-encryption-p)
 	 (file-exists-p twittering-private-info-file))
     (cond
-     ((twittering-load-private-info-with-guide)
+     ((and (twittering-load-private-info-with-guide)
+	   (twittering-has-oauth-access-token-p))
       (message "The authorized token is loaded.")
       (setq twittering-account-authorization 'queried)
       (setq twittering-username

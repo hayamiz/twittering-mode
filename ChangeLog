@@ -1,3 +1,15 @@
+2010-08-15  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Confirm that sufficient information is
+	loaded from the private file.
+	(twittering-load-private-info): load only variables that are
+	enumerated in `twittering-variables-stored-with-encryption'.
+	(twittering-has-oauth-access-token-p): new function for checking
+	whether `twittering-oauth-access-token-alist' has sufficient
+	information.
+	(twittering-verify-credentials): confirm that sufficient
+	information is loaded from the private file.
+
 2010-08-06  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix options of `curl' for POST with an empty

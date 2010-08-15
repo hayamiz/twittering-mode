@@ -22,10 +22,35 @@
   because it deeply depends on internal implementation of `alpaca.el'.
 * Authentication via xAuth.
   You can enable xAuth by "(setq twittering-auth-method 'xauth)".
+* Rejection of invalid PIN code input and strip extra white spaces.
+* Confirmation of process status for avoiding dead-lock.
+* Native retweets on `user', `friends', `mentions' and `public' timelines.
+* Detection of abnormal exit of an invoked process.
+  The exit-status on abnormal exit is printed to the buffer "*Messages*".
+* Support for disabling server authentication.
+  Server authentication is enabled by default.
+  It can be disabled by "(setq twittering-allow-insecure-server-cert t)".
+* Replacement of unknown numeric character references with its alternative.
+  The alternative can be specified by "twittering-unicode-replacement-char".
+  Its default value is U+FFFD.
+* Addition of the files ".nosearch".
+  The files ".nosearch" are added to sub-directories. This makes the sub-
+  directories be excluded from recursive registration of "load-path".
+* Suppression of multiple authorization.
+  Authorization will be performed only once even if multiple timelines
+  are specified as initial timelines.
+* Independence of byte-compiled form from "cl".
+  Byte-compiled `twittering-mode.el' does not depend on `cl'.
+* Update of the embedded CA certificate.
+  The embedded CA certificate is replaced with `Equifax Secure Certificate
+  Authority'.
 * ...
 
 ### Bug fixes
 
+* Support for the url library included in Emacs 23 and later.
+* Fix of options of `curl' for POST with an empty body.
+* Fix of retweeting a retweet.
 * ...
 
  1.0.0: 2010-06-05

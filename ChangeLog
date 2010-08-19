@@ -20,6 +20,14 @@
 	(twittering-mode-map): bind "U" to
 	`twittering-push-uri-onto-kill-ring'.
 
+	* twittering-mode.el: Add `twittering-new-tweets-statuses' for the
+	hook functions of `twittering-new-tweets-hook'. Thanks to Faried
+	Nawaz.
+	(twittering-new-tweets-statuses): new variable.
+	(twittering-add-statuses-to-timeline-data): bind
+	`twittering-new-tweets-statuses' to `new-statuses' so that the
+	hook functions can refer to the new tweets.
+
 2010-08-15  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Confirm that sufficient information is

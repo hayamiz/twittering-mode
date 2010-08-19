@@ -201,6 +201,9 @@ directly. Use `twittering-current-timeline-spec-string' or
 (defvar twittering-new-tweets-spec nil
   "Timeline spec, which new tweets belong to, when
 `twittering-new-tweets-hook' is run.")
+(defvar twittering-new-tweets-statuses nil
+  "New tweet status messages, when
+`twittering-new-tweets-hook' is run.")
 
 (defvar twittering-new-tweets-hook nil
   "*Hook run when new tweets are received.
@@ -2546,6 +2549,7 @@ Statuses are stored in ascending-order with respect to their IDs."
 					  (cdr (assq 'text status))))
 		new-statuses))
 	(let ((twittering-new-tweets-spec spec)
+	      (twittering-new-tweets-statuses new-statuses)
 	      (twittering-new-tweets-count (length new-statuses)))
 	  (run-hooks 'twittering-new-tweets-hook))
 	new-statuses))))

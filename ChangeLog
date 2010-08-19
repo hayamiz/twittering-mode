@@ -4,6 +4,12 @@
 	`twittering-call-api' instead of calling `twittering-http-post'
 	directly.
 
+	* twittering-mode.el: Do not add unnecessary parameter `source' to
+	API calls.
+	(twittering-http-post): do not add unnecessary parameter `source'.
+	(twittering-call-api): add the parameter `source' when using BASIC
+	authentication.
+
 2010-08-15  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Confirm that sufficient information is

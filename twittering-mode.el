@@ -459,6 +459,8 @@ pop-up buffer.")
 	   (id (cdr (assq 'in-reply-to-status-id args-alist)))
 	   (parameters
 	    `(("status" . ,status)
+	      ,@(when (eq twittering-auth-method 'basic)
+		  '(("source" . "twmode")))
 	      ,@(when id `(("in_reply_to_status_id" . ,id))))))
       (twittering-http-post twittering-api-host "1/statuses/update"
 			    parameters)))
@@ -4537,7 +4539,6 @@ PARAMETERS is alist of URI parameters.
 FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
   (let* ((format (or format "xml"))
 	 (sentinel (or sentinel 'twittering-http-post-default-sentinel))
-	 (parameters (cons '("source" . "twmode") parameters))
 	 (scheme (if twittering-use-ssl
 		     "https"
 		   "http"))

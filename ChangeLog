@@ -13,6 +13,13 @@
 	* twittering-mode.el (twittering-call-api): Change parameters in
 	order to follow the update of Twitter API.
 
+	* twittering-mode.el: Add `twittering-push-uri-onto-kill-ring' and
+	bind "U" to it. Thanks to Faried Nawaz.
+	(twittering-push-uri-onto-kill-ring): new function for pushing the
+	uri property of the current position onto the kill-ring.
+	(twittering-mode-map): bind "U" to
+	`twittering-push-uri-onto-kill-ring'.
+
 2010-08-15  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Confirm that sufficient information is

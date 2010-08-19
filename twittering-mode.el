@@ -3436,6 +3436,7 @@ authorized -- The account has been authorized.")
       (define-key km (kbd "a") 'twittering-toggle-activate-buffer)
       (define-key km (kbd "g") 'twittering-current-timeline)
       (define-key km (kbd "u") 'twittering-update-status-interactive)
+      (define-key km (kbd "U") 'twittering-push-uri-onto-kill-ring)
       (define-key km (kbd "d") 'twittering-direct-message)
       (define-key km (kbd "v") 'twittering-other-user-timeline)
       (define-key km (kbd "V") 'twittering-visit-timeline)
@@ -6456,6 +6457,17 @@ The return value is nil or a positive integer less than POS."
                          (point-min)))
              (pos (max (point-min) (1- border))))
         (get-text-property pos 'username))))
+
+(defun twittering-push-uri-onto-kill-ring ()
+  "Push URI on the current position onto the kill ring.
+If the character on the current position does not have `uri' property,
+this function does nothing."
+  (interactive)
+  (let ((uri (get-text-property (point) 'uri)))
+    (when (stringp uri)
+      (kill-new uri)
+      (message "Copied %s" uri)
+      uri)))
 
 (defun twittering-suspend ()
   "Suspend twittering-mode then switch to another buffer."

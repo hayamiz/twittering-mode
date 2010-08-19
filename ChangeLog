@@ -10,6 +10,9 @@
 	(twittering-call-api): add the parameter `source' when using BASIC
 	authentication.
 
+	* twittering-mode.el (twittering-call-api): Change parameters in
+	order to follow the update of Twitter API.
+
 2010-08-15  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Confirm that sufficient information is

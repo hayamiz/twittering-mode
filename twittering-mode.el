@@ -468,8 +468,7 @@ pop-up buffer.")
     ;; Destroy a status.
     (let ((id (cdr (assq 'id args-alist))))
       (twittering-http-post twittering-api-host
-			    "1/statuses/destroy"
-			    `(("id" . ,id)))))
+			    (concat "1/statuses/destroy/" id))))
    ((eq command 'retweet)
     ;; Post a retweet.
     (let ((id (cdr (assq 'id args-alist))))
@@ -485,7 +484,7 @@ pop-up buffer.")
    ((eq command 'send-direct-message)
     ;; Send a direct message.
     (let ((parameters
-	   `(("user" . ,(cdr (assq 'username args-alist)))
+	   `(("screen_name" . ,(cdr (assq 'username args-alist)))
 	     ("text" . ,(cdr (assq 'status args-alist))))))
       (twittering-http-post twittering-api-host "1/direct_messages/new"
 			    parameters)))

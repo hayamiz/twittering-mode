@@ -9,10 +9,54 @@
 
 ### 改良
 
+* OAuth, xAuthで取得した認証済みaccess tokenの暗号化保存に対応
+  認証済みaccess tokenをGnuPGで暗号化して保存することができます。
+  tokenを保存しておけば、次回以降の起動時にOAuthのための外部
+  ブラウザ起動やPIN入力等の手続きは必要なくなります。代わりに暗号化を
+  解くためのpassphraseを入力してください。
+  この機能は"(setq twittering-use-master-password t)"とすれば有効に
+  なります(デフォルトでは無効です)。
+  暗号化された秘密情報はデフォルトでは`~/.twittering-mode.gpg'に記録
+  されますがこの保存先は変数`twittering-private-info-file'で変更可能
+  です。
+  この機能を有効にするには外部プログラムGnuPGに加えてEmacs LISPプロ
+  グラム`alpaca.el'かEasyPGが必要です。Emacsは23以降であればEasyPGを
+  同梱していますので追加のEmacs LISPプログラムは必要ありません。
+  `alpaca.el'はversion 0.13を想定していますので、他のversionでは動作に
+  問題がある恐れがあります。
+* xAuthのサポート
+  OAuth認証の他にxAuthによる認証にも対応しました。xAuthによる認証を
+  有効にするには"(setq twittering-auth-method 'xauth)"の設定を追加して
+  ください。
+* PINコード入力時に不必要な空白を自動で削除
+* 起動した外部プロセスのstatusを確認してdead-lockを回避
+* `user', `friends', `mentions', `public'でもnative retweetを表示
+* 起動した外部プロセスの異常終了を検出
+  異常終了したプロセスのexit-statusは"*Messages*"バッファで確認できます。
+* HTTPS通信でのサーバ認証の無効化に対応
+  サーバ認証はデフォルトでは有効ですが、これを無効化することもできる
+  ようになりました。"(setq twittering-allow-insecure-server-cert t)"の
+  設定でHTTPS通信時にもサーバ認証を行わなくなります。
+* 未知の数値文字参照を代替文字で置換
+  decodeできない数値文字参照が現れたときにその文字を変数
+  `twittering-unicode-replacement-char'で指定された文字に置換して表示
+  します。代替文字のデフォルトはU+FFFDです。
+* サブディレクトリに`.nosearch'を追加
+  必要のないサブディレクトリが再帰的に`load-path'に追加されるのを防ぎ
+  ます。
+* 初期timelineを複数設定している場合の認証情報入力回数を1回に変更
+* byte-compile後のclライブラリへの依存を解消
+* 内蔵しているCA証明書を更新
+  内蔵しているCA証明書を`Equifax Secure Certificate Authority'で置き
+  換えました。
 * ...
 
 ### バグ修正
 
+* Emacs 23以降に同梱されているurlライブラリでも正しく動くよう修正
+* 外部コマンドcURLでbodyが空のPOSTを正しく行えるよう修正
+* Native retweetをさらにretweetできるよう修正
+  オリジナルのtweetへのretweet扱いになります。
 * ...
 
  1.0.0: 2010-06-05

@@ -1,3 +1,9 @@
+2010-08-20  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-edit-post-status): call
+	`twittering-call-api' instead of calling `twittering-http-post'
+	directly.
+
 2010-08-15  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Confirm that sufficient information is

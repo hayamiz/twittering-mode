@@ -3703,24 +3703,23 @@ been initialized yet."
       (cond
        ((twittering-timeline-spec-is-direct-messages-p spec)
 	(if username
-	    (let ((parameters `(("user" . ,username)
-				("text" . ,status))))
-	      (twittering-http-post twittering-api-host "1/direct_messages/new"
-				    parameters))
+	    (twittering-call-api 'send-direct-message
+				 `((username . ,username)
+				   (status . ,status)))
 	  (message "No username specified")))
        (t
-	(let ((parameters `(("status" . ,status))))
+	(let ((as-reply
+	       (and reply-to-id
+		    (string-match
+		     (concat "\\`@" username "\\(?:[\n\r \t]+\\)*")
+		     status))))
 	  ;; Add in_reply_to_status_id only when a posting status
 	  ;; begins with @username.
-	  (when (and reply-to-id
-		     (string-match
-		      (concat "\\`@" username "\\(?:[\n\r \t]+\\)*")
-		      status))
-	    (add-to-list 'parameters
-			 `("in_reply_to_status_id" .
-			   ,(format "%s" reply-to-id))))
-	  (twittering-http-post twittering-api-host "1/statuses/update"
-				parameters))))
+	  (twittering-call-api
+	   'update-status
+	   `((status . ,status)
+	     ,@(when as-reply
+		 `((in-reply-to-status-id . ,(format "%s" reply-to-id)))))))))
       (twittering-edit-close))
      (t
       nil))))

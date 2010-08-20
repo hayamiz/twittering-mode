@@ -30,6 +30,9 @@
 	(twittering-generate-format-table): likewise.
 	(twittering-generate-formater-for-first-spec): likewise.
 
+	* twittering-mode.el: fix statusnet user URL
+	(twittering-get-status-url-statusnet): fix user URL
+
 2010-08-20  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-edit-post-status): call

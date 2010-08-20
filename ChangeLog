@@ -21,6 +21,11 @@
 	* twittering-mode.el: Simplify `twittering-call-api'.
 	(twittering-call-api): reduce calls of `twittering-api-path'.
 
+	* twittering-mode.el: Replace direct calls of
+	`twittering-http-post' with calls of `twittering-call-api'.
+	(twittering-update-status-from-minibuffer): use
+	`twittering-call-api' instead of `twittering-http-post'.
+
 2010-08-20  Takashi Masuda  <masutaka@nifty.com>
 
 	* twittering-mode.el: Support StatusNet.

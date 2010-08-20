@@ -18,6 +18,9 @@
 	(twittering-atom-xmltree-to-status-datum): switch ways to parse
 	XML depending on `twittering-service-method'.
 
+	* twittering-mode.el: Simplify `twittering-call-api'.
+	(twittering-call-api): reduce calls of `twittering-api-path'.
+
 2010-08-20  Takashi Masuda  <masutaka@nifty.com>
 
 	* twittering-mode.el: Support StatusNet.

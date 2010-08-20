@@ -44,6 +44,25 @@
 * Update of the embedded CA certificate.
   The embedded CA certificate is replaced with `Equifax Secure Certificate
   Authority'.
+* Support for StatusNet.
+  You can switch `twittering-mode.el' to StatusNet mode by
+  "(setq twittering-service-method 'statusnet)". Note that you cannot
+  use one instance of Emacs with `twittering-mode.el' for Twitter and
+  StatusNet simultaneously.
+  To use StatusNet, you must configure variables of host information.
+  For the service on `http://identi.ca/', you may require the below
+  configuration.
+  (setq twittering-service-method 'statusnet)
+  (setq twittering-auth-method 'basic)
+  (setq twittering-username "YOUR-ACCOUNT-NAME")
+  ;; host
+  (setq twittering-api-host "identi.ca")
+  (setq twittering-api-search-host "identi.ca")
+  (setq twittering-web-host "identi.ca")
+  ;; paths for API
+  (setq twittering-api-prefix "api/")
+  (setq twittering-search-api-method "api/search")
+  (setq twittering-web-path-prefix "")
 * ...
 
 ### Bug fixes

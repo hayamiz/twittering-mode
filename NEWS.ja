@@ -49,6 +49,24 @@
 * 内蔵しているCA証明書を更新
   内蔵しているCA証明書を`Equifax Secure Certificate Authority'で置き
   換えました。
+* StatusNetモードをサポート
+  `twittering-mode.el'をStatusNet用に切り替えられるようになりました。
+  "(setq twittering-service-method 'statusnet)"という設定で切り替わ
+  ります。TwitterとStatusNetを同時に使うことはできませんので注意して
+  ください。
+  StatusNet向けに使うにはホスト情報の設定も必要になります。
+  `http://identi.ca/'でのサービスの場合、以下のような設定が必要です。
+  (setq twittering-service-method 'statusnet)
+  (setq twittering-auth-method 'basic)
+  (setq twittering-username "YOUR-ACCOUNT-NAME")
+  ;; host
+  (setq twittering-api-host "identi.ca")
+  (setq twittering-api-search-host "identi.ca")
+  (setq twittering-web-host "identi.ca")
+  ;; paths for API
+  (setq twittering-api-prefix "api/")
+  (setq twittering-search-api-method "api/search")
+  (setq twittering-web-path-prefix "")
 * ...
 
 ### バグ修正

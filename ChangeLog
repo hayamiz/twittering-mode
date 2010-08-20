@@ -13,6 +13,11 @@
 	(twittering-generate-format-table): likewise.
 	(twittering-generate-formater-for-first-spec): likewise.
 
+	* twittering-mode.el: Switch ways to parse XML depending on
+	`twittering-service-method'.
+	(twittering-atom-xmltree-to-status-datum): switch ways to parse
+	XML depending on `twittering-service-method'.
+
 2010-08-20  Takashi Masuda  <masutaka@nifty.com>
 
 	* twittering-mode.el: Support StatusNet.

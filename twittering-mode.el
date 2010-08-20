@@ -4696,14 +4696,18 @@ BUFFER may be a buffer or the name of an existing buffer."
 		caption))))
       (text . ,(twittering-decode-html-entities
 		(car (cddr (assq 'title atom-xml-entry)))))
-      ,@(progn
-	  (if (string-match "^\\([^ ]+\\) (\\(.*\\))$" author-str)
-	      ;; Twitter
-	      `((user-screen-name . ,(match-string 1 author-str))
-		(user-name . ,(match-string 2 author-str)))
-	    ;; StatusNet
-	    `((user-screen-name . ,author-str)
-	      (user-name . ""))))
+      ,@(cond
+	 ((eq twittering-service-method 'statusnet)
+	  ;; StatusNet
+	  `((user-screen-name . ,author-str)
+	    (user-name . "")))
+	 ((string-match "^\\([^ ]+\\) (\\(.*\\))$" author-str)
+	  ;; Twitter (default)
+	  `((user-screen-name . ,(match-string 1 author-str))
+	    (user-name . ,(match-string 2 author-str))))
+	 (t
+	  '((user-screen-name . "PARSING FAILED!!")
+	    (user-name . ""))))
       (user-profile-image-url
        . ,(let* ((link-items
 		  (mapcar
@@ -4714,9 +4718,16 @@ BUFFER may be a buffer or the name of an existing buffer."
 		 (image-urls
 		  (mapcar
 		   (lambda (item)
-		     (when (or (member '(rel . "image") item)    ;; Twitter
-			       (member '(rel . "related") item)) ;; StatusNet
-		       (cdr (assq 'href item))))
+		     (cond
+		      ((and (eq twittering-service-method 'statusnet)
+			    (member '(rel . "related") item))
+		       ;; StatusNet
+		       (cdr (assq 'href item)))
+		      ((member '(rel . "image") item)
+		       ;; Twitter (default)
+		       (cdr (assq 'href item)))
+		      (t
+		       nil)))
 		   link-items)))
 	    (car-safe (remq nil image-urls)))))))
 

@@ -1830,10 +1830,14 @@ image are displayed."
 	(or (get-buffer buffer)
 	    (generate-new-buffer buffer)))))
 
-(defun twittering-lookup-get-status-url ()
-  (cdr (assoc
-	'status-url (assoc twittering-service-method
-			   twittering-service-method-table))))
+(defun twittering-get-status-url (username &optional id)
+  "Generate a URL of a user or a specific status."
+  (let ((func
+	 (cdr (assq
+	       'status-url
+	       (assq twittering-service-method
+		     twittering-service-method-table)))))
+    (funcall func username id)))
 
 (defun twittering-get-status-url-twitter (username &optional id)
   "Generate status URL for Twitter."
@@ -1847,10 +1851,12 @@ image are displayed."
       (format "http://%s/%s/notice/%s" twittering-web-host twittering-web-path-prefix id)
     (format "http://%s/%s/%s" twittering-web-host twittering-web-path-prefix username)))
 
-(defun twittering-lookup-get-search-url ()
-  (cdr (assoc
-	'search-url (assoc twittering-service-method
-			   twittering-service-method-table))))
+(defun twittering-get-search-url (query-string)
+  "Generate a URL for searching QUERY-STRING."
+  (let ((func (cdr (assq
+		    'search-url (assq twittering-service-method
+				      twittering-service-method-table)))))
+    (funcall func query-string)))
 
 (defun twittering-get-search-url-twitter (query-string)
   (format "http://%s/search?q=%s"
@@ -4838,7 +4844,7 @@ BUFFER may be a buffer or the name of an existing buffer."
       (add-text-properties
        0 (length user-name)
        `(mouse-face highlight
-		    uri ,(funcall (twittering-lookup-get-status-url) user-screen-name)
+		    uri ,(twittering-get-status-url user-screen-name)
 		    screen-name-in-text ,user-screen-name
 		    goto-spec ,(twittering-string-to-timeline-spec
 				user-screen-name)
@@ -4849,7 +4855,7 @@ BUFFER may be a buffer or the name of an existing buffer."
       (add-text-properties
        0 (length user-screen-name)
        `(mouse-face highlight
-		    uri ,(funcall (twittering-lookup-get-status-url) user-screen-name)
+		    uri ,(twittering-get-status-url user-screen-name)
 		    screen-name-in-text ,user-screen-name
 		    goto-spec ,(twittering-string-to-timeline-spec
 				user-screen-name)
@@ -4882,7 +4888,7 @@ BUFFER may be a buffer or the name of an existing buffer."
 			     end (match-end 1))
 		       (let ((spec (twittering-string-to-timeline-spec
 				    (concat "#" hashtag)))
-			     (url (funcall (twittering-lookup-get-search-url)
+			     (url (twittering-get-search-url
 				   (concat "#" hashtag))))
 			 (setq prop
 			       `(mouse-face
@@ -4894,7 +4900,7 @@ BUFFER may be a buffer or the name of an existing buffer."
 			     end (match-end 2)
 			     prop `(mouse-face
 				    highlight
-				    uri ,(funcall (twittering-lookup-get-status-url) listname)
+				    uri ,(twittering-get-status-url listname)
 				    goto-spec
 				    ,(twittering-string-to-timeline-spec
 				      listname)
@@ -4904,7 +4910,7 @@ BUFFER may be a buffer or the name of an existing buffer."
 			     end (match-end 3)
 			     prop `(mouse-face
 				    highlight
-				    uri ,(funcall (twittering-lookup-get-status-url)
+				    uri ,(twittering-get-status-url
 					  screenname)
 				    screen-name-in-text ,screenname
 				    goto-spec
@@ -5429,11 +5435,11 @@ following symbols;
 	       (cond
 		(recipient-screen-name
 		 (cons (format "sent to %s" recipient-screen-name)
-		       (funcall (twittering-lookup-get-status-url) recipient-screen-name)))
+		       (twittering-get-status-url recipient-screen-name)))
 		((and (not (string= "" reply-id))
 		      (not (string= "" reply-name)))
 		 (cons (format "in reply to %s" reply-name)
-		       (funcall (twittering-lookup-get-status-url) reply-name reply-id)))
+		       (twittering-get-status-url reply-name reply-id)))
 		(t nil)))
 	      (str (car pair))
 	      (url (cdr pair))
@@ -5473,8 +5479,7 @@ following symbols;
 		    (apply 'encode-time
 			   (parse-time-string created-at-str)))
 		   (url
-		    (funcall
-		     (twittering-lookup-get-status-url)
+		    (twittering-get-status-url
 		     (cdr (assq 'user-screen-name ,status-sym))
 		     (or (cdr (assq 'source-id ,status-sym))
 			 (cdr (assq 'id ,status-sym)))))

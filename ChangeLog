@@ -1,3 +1,18 @@
+2010-08-21  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Restore `twittering-get-{search,status}-url'.
+	(twittering-lookup-get-status-url): removed.
+	(twittering-lookup-get-search-url): removed.
+	(twittering-get-status-url): look up a function suitable for
+	`twittering-service-method' and call it.
+	(twittering-get-search-url): likewise.
+	(twittering-make-clickable-status-datum): directly call
+	`twittering-get-status-url' and `twittering-get-search-url'
+	instead of calling them via `twittering-lookup-get-status-url' or
+	`twittering-lookup-get-search-url'.
+	(twittering-generate-format-table): likewise.
+	(twittering-generate-formater-for-first-spec): likewise.
+
 2010-08-20  Takashi Masuda  <masutaka@nifty.com>
 
 	* twittering-mode.el: Support StatusNet.

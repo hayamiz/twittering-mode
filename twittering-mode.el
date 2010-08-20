@@ -364,9 +364,28 @@ pop-up buffer.")
 (defvar twittering-variables-stored-with-encryption
   '(twittering-oauth-access-token-alist))
 
+(defvar twittering-api-prefix "1/")
+(defvar twittering-search-api-method "search")
+(defvar twittering-web-path-prefix "")
+
+(defvar twittering-service-method 'twitter
+  "*Service method for `twittering-mode'.
+The symbol `twitter' means Twitter Service. The symbol `statusnet' means
+StatusNet Service.")
+
+(defvar twittering-service-method-table
+  '((twitter (status-url . twittering-get-status-url-twitter)
+	     (search-url . twittering-get-search-url-twitter))
+    (statusnet (status-url . twittering-get-status-url-statusnet)
+	       (search-url . twittering-get-search-url-statusnet)))
+  "A list of alist of service methods.")
+
 ;;;
 ;;; Abstract layer for Twitter API
 ;;;
+
+(defun twittering-api-path (&rest params)
+  (mapconcat 'identity `(,twittering-api-prefix ,@params) ""))
 
 (defun twittering-call-api (command args-alist &optional noninteractive)
   "Call Twitter API and return the process object for the request."
@@ -399,28 +418,28 @@ pop-up buffer.")
 		       "atom"
 		     "xml"))
 	   (simple-spec-list
-	    '((direct_messages . "1/direct_messages")
-	      (direct_messages_sent . "1/direct_messages/sent")
-	      (friends . "1/statuses/friends_timeline")
-	      (home . "1/statuses/home_timeline")
-	      (mentions . "1/statuses/mentions")
-	      (public . "1/statuses/public_timeline")
-	      (replies . "1/statuses/replies")
-	      (retweeted_by_me . "1/statuses/retweeted_by_me")
-	      (retweeted_to_me . "1/statuses/retweeted_to_me")
-	      (retweets_of_me . "1/statuses/retweets_of_me")
-	      (search . "search")))
+	    `((direct_messages . ,(twittering-api-path "direct_messages"))
+	      (direct_messages_sent . ,(twittering-api-path "direct_messages/sent"))
+	      (friends . ,(twittering-api-path "statuses/friends_timeline"))
+	      (home . ,(twittering-api-path "statuses/home_timeline"))
+	      (mentions . ,(twittering-api-path "statuses/mentions"))
+	      (public . ,(twittering-api-path "statuses/public_timeline"))
+	      (replies . ,(twittering-api-path "statuses/replies"))
+	      (retweeted_by_me . ,(twittering-api-path "statuses/retweeted_by_me"))
+	      (retweeted_to_me . ,(twittering-api-path "statuses/retweeted_to_me"))
+	      (retweets_of_me . ,(twittering-api-path "statuses/retweets_of_me"))
+	      (search . ,twittering-search-api-method)))
 	   (host (cond ((eq spec-type 'search) twittering-api-search-host)
 		       (t twittering-api-host)))
 	   (method
 	    (cond
 	     ((eq spec-type 'user)
 	      (let ((username (elt spec 1)))
-		(concat "1/statuses/user_timeline/" username)))
+		(twittering-api-path "statuses/user_timeline/" username)))
 	     ((eq spec-type 'list)
 	      (let ((username (elt spec 1))
 		    (list-name (elt spec 2)))
-		(concat "1/" username "/lists/" list-name "/statuses")))
+		(twittering-api-path username "/lists/" list-name "/statuses")))
 	     ((assq spec-type simple-spec-list)
 	      (cdr (assq spec-type simple-spec-list)))
 	     (t nil))))
@@ -432,30 +451,30 @@ pop-up buffer.")
     (let ((username (cdr (assq 'username args-alist)))
 	  (sentinel (cdr (assq 'sentinel args-alist))))
       (twittering-http-get twittering-api-host
-			   (concat "1/" username "/lists")
+			   (twittering-api-path username "/lists")
 			   t nil nil sentinel)))
    ((eq command 'create-friendships)
     ;; Create a friendship.
     (let ((username (cdr (assq 'username args-alist))))
       (twittering-http-post twittering-api-host
-			    "1/friendships/create"
+			    (twittering-api-path "friendships/create")
 			    `(("screen_name" . ,username)))))
    ((eq command 'destroy-friendships)
     ;; Destroy a friendship
     (let ((username (cdr (assq 'username args-alist))))
       (twittering-http-post twittering-api-host
-			    "1/friendships/destroy"
+			    (twittering-api-path "friendships/destroy")
 			    `(("screen_name" . ,username)))))
    ((eq command 'create-favorites)
     ;; Create a favorite.
     (let ((id (cdr (assq 'id args-alist))))
       (twittering-http-post twittering-api-host
-			    (concat "1/favorites/create/" id))))
+			    (twittering-api-path "favorites/create/" id))))
    ((eq command 'destroy-favorites)
     ;; Destroy a favorite.
     (let ((id (cdr (assq 'id args-alist))))
       (twittering-http-post twittering-api-host
-			    (concat "1/favorites/destroy/" id))))
+			    (twittering-api-path "favorites/destroy/" id))))
    ((eq command 'update-status)
     ;; Post a tweet.
     (let* ((status (cdr (assq 'status args-alist)))
@@ -465,23 +484,24 @@ pop-up buffer.")
 	      ,@(when (eq twittering-auth-method 'basic)
 		  '(("source" . "twmode")))
 	      ,@(when id `(("in_reply_to_status_id" . ,id))))))
-      (twittering-http-post twittering-api-host "1/statuses/update"
+      (twittering-http-post twittering-api-host
+			    (twittering-api-path "statuses/update")
 			    parameters)))
    ((eq command 'destroy-status)
     ;; Destroy a status.
     (let ((id (cdr (assq 'id args-alist))))
       (twittering-http-post twittering-api-host
-			    (concat "1/statuses/destroy/" id))))
+			    (twittering-api-path "statuses/destroy/" id))))
    ((eq command 'retweet)
     ;; Post a retweet.
     (let ((id (cdr (assq 'id args-alist))))
       (twittering-http-post twittering-api-host
-			    (concat "1/statuses/retweet/" id))))
+			    (twittering-api-path "statuses/retweet/" id))))
    ((eq command 'verify-credentials)
     ;; Verify the account.
     (let ((sentinel (cdr (assq 'sentinel args-alist))))
       (twittering-http-get twittering-api-host
-			   "1/account/verify_credentials"
+			   (twittering-api-path "account/verify_credentials")
 			   t nil nil
 			   sentinel)))
    ((eq command 'send-direct-message)
@@ -489,7 +509,8 @@ pop-up buffer.")
     (let ((parameters
 	   `(("screen_name" . ,(cdr (assq 'username args-alist)))
 	     ("text" . ,(cdr (assq 'status args-alist))))))
-      (twittering-http-post twittering-api-host "1/direct_messages/new"
+      (twittering-http-post twittering-api-host
+			    (twittering-api-path "direct_messages/new")
 			    parameters)))
    (t
     nil)))
@@ -1809,15 +1830,40 @@ image are displayed."
 	(or (get-buffer buffer)
 	    (generate-new-buffer buffer)))))
 
-(defun twittering-get-status-url (username &optional id)
-  "Generate status URL."
+(defun twittering-lookup-get-status-url ()
+  (cdr (assoc
+	'status-url (assoc twittering-service-method
+			   twittering-service-method-table))))
+
+(defun twittering-get-status-url-twitter (username &optional id)
+  "Generate status URL for Twitter."
   (if id
       (format "http://%s/%s/status/%s" twittering-web-host username id)
     (format "http://%s/%s" twittering-web-host username)))
 
-(defun twittering-get-search-url (query-string)
+(defun twittering-get-status-url-statusnet (username &optional id)
+  "Generate status URL for StatusNet."
+  (if id
+      (format "http://%s/%snotice/%s" twittering-web-host twittering-web-path-prefix id)
+    (format "http://%s/%s" twittering-web-host username)))
+
+(defun twittering-lookup-get-search-url ()
+  (cdr (assoc
+	'search-url (assoc twittering-service-method
+			   twittering-service-method-table))))
+
+(defun twittering-get-search-url-twitter (query-string)
   (format "http://%s/search?q=%s"
 	  twittering-web-host (twittering-percent-encode query-string)))
+
+(defun twittering-get-search-url-statusnet (query-string)
+  (if (string-match "^#\\(.+\\)" query-string)
+      (format "http://%s/%stag/%s"
+	      twittering-web-host
+	      twittering-web-path-prefix
+	      (twittering-percent-encode (match-string 1 query-string)))
+    (format "http://%s/search?q=%s"
+	    twittering-web-host (twittering-percent-encode query-string))))
 
 (defun twittering-user-agent-default-function ()
   "Twittering mode default User-Agent function."
@@ -4616,11 +4662,19 @@ BUFFER may be a buffer or the name of an existing buffer."
 	(time-str (car (cddr (assq 'updated atom-xml-entry))))
 	(author-str (car (cddr (assq 'name (assq 'author atom-xml-entry))))))
     `((created-at
-       . ,(if (string-match "\\(.*\\)T\\(.*\\)Z" time-str)
+       ;; ISO 8601
+       ;; Twitter -> "2010-05-08T05:59:41Z"
+       ;; StatusNet -> "2010-05-08T08:44:39+00:00"
+       . ,(if (string-match "\\(.*\\)T\\(.*\\)\\(Z\\|\\([-+][0-2][0-9]\\):?\\([0-5][0-9]\\)\\)" time-str)
 	      ;; time-str is formatted as
 	      ;; "Combined date and time in UTC:" in ISO 8601.
-	      (format "%s %s +0000"
-		      (match-string 1 time-str) (match-string 2 time-str))
+	      (let ((timezone (match-string 3 time-str)))
+		(format "%s %s %s"
+			(match-string 1 time-str) (match-string 2 time-str)
+			(if (string= "Z" timezone)
+			    "+0000"
+			  (concat (match-string 4 time-str)
+				  (match-string 5 time-str)))))
 	    ;; unknown format?
 	    time-str))
       (id . ,(progn
@@ -4637,9 +4691,13 @@ BUFFER may be a buffer or the name of an existing buffer."
       (text . ,(twittering-decode-html-entities
 		(car (cddr (assq 'title atom-xml-entry)))))
       ,@(progn
-	  (string-match "^\\([^ ]+\\) (\\(.*\\))$" author-str)
-	  `((user-screen-name . ,(match-string 1 author-str))
-	    (user-name . ,(match-string 2 author-str))))
+	  (if (string-match "^\\([^ ]+\\) (\\(.*\\))$" author-str)
+	      ;; Twitter
+	      `((user-screen-name . ,(match-string 1 author-str))
+		(user-name . ,(match-string 2 author-str)))
+	    ;; StatusNet
+	    `((user-screen-name . ,author-str)
+	      (user-name . ""))))
       (user-profile-image-url
        . ,(let* ((link-items
 		  (mapcar
@@ -4650,7 +4708,8 @@ BUFFER may be a buffer or the name of an existing buffer."
 		 (image-urls
 		  (mapcar
 		   (lambda (item)
-		     (when (member '(rel . "image") item)
+		     (when (or (member '(rel . "image") item)    ;; Twitter
+			       (member '(rel . "related") item)) ;; StatusNet
 		       (cdr (assq 'href item))))
 		   link-items)))
 	    (car-safe (remq nil image-urls)))))))
@@ -4779,7 +4838,7 @@ BUFFER may be a buffer or the name of an existing buffer."
       (add-text-properties
        0 (length user-name)
        `(mouse-face highlight
-		    uri ,(twittering-get-status-url user-screen-name)
+		    uri ,(funcall (twittering-lookup-get-status-url) user-screen-name)
 		    screen-name-in-text ,user-screen-name
 		    goto-spec ,(twittering-string-to-timeline-spec
 				user-screen-name)
@@ -4790,7 +4849,7 @@ BUFFER may be a buffer or the name of an existing buffer."
       (add-text-properties
        0 (length user-screen-name)
        `(mouse-face highlight
-		    uri ,(twittering-get-status-url user-screen-name)
+		    uri ,(funcall (twittering-lookup-get-status-url) user-screen-name)
 		    screen-name-in-text ,user-screen-name
 		    goto-spec ,(twittering-string-to-timeline-spec
 				user-screen-name)
@@ -4823,7 +4882,7 @@ BUFFER may be a buffer or the name of an existing buffer."
 			     end (match-end 1))
 		       (let ((spec (twittering-string-to-timeline-spec
 				    (concat "#" hashtag)))
-			     (url (twittering-get-search-url
+			     (url (funcall (twittering-lookup-get-search-url)
 				   (concat "#" hashtag))))
 			 (setq prop
 			       `(mouse-face
@@ -4835,7 +4894,7 @@ BUFFER may be a buffer or the name of an existing buffer."
 			     end (match-end 2)
 			     prop `(mouse-face
 				    highlight
-				    uri ,(twittering-get-status-url listname)
+				    uri ,(funcall (twittering-lookup-get-status-url) listname)
 				    goto-spec
 				    ,(twittering-string-to-timeline-spec
 				      listname)
@@ -4845,7 +4904,7 @@ BUFFER may be a buffer or the name of an existing buffer."
 			     end (match-end 3)
 			     prop `(mouse-face
 				    highlight
-				    uri ,(twittering-get-status-url
+				    uri ,(funcall (twittering-lookup-get-status-url)
 					  screenname)
 				    screen-name-in-text ,screenname
 				    goto-spec
@@ -5369,11 +5428,11 @@ following symbols;
 	       (cond
 		(recipient-screen-name
 		 (cons (format "sent to %s" recipient-screen-name)
-		       (twittering-get-status-url recipient-screen-name)))
+		       (funcall (twittering-lookup-get-status-url) recipient-screen-name)))
 		((and (not (string= "" reply-id))
 		      (not (string= "" reply-name)))
 		 (cons (format "in reply to %s" reply-name)
-		       (twittering-get-status-url reply-name reply-id)))
+		       (funcall (twittering-lookup-get-status-url) reply-name reply-id)))
 		(t nil)))
 	      (str (car pair))
 	      (url (cdr pair))
@@ -5413,7 +5472,8 @@ following symbols;
 		    (apply 'encode-time
 			   (parse-time-string created-at-str)))
 		   (url
-		    (twittering-get-status-url
+		    (funcall
+		     (twittering-lookup-get-status-url)
 		     (cdr (assq 'user-screen-name ,status-sym))
 		     (or (cdr (assq 'source-id ,status-sym))
 			 (cdr (assq 'id ,status-sym)))))
@@ -5634,7 +5694,7 @@ variable `twittering-status-format'."
 		      (let ((parameters `(("user" . ,username)
 					  ("text" . ,status))))
 			(twittering-http-post twittering-api-host
-					      "1/direct_messages/new"
+					      (twittering-api-path "direct_messages/new")
 					      parameters))
 		    (message "No username specified")))
 		 (t
@@ -5649,7 +5709,7 @@ variable `twittering-status-format'."
 		      (add-to-list 'parameters
 				   `("in_reply_to_status_id" . ,reply-to-id)))
 		    (twittering-http-post twittering-api-host
-					  "1/statuses/update"
+					  (twittering-api-path "statuses/update")
 					  parameters))))
 		(setq not-posted-p nil))
 	      )))

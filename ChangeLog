@@ -1,3 +1,35 @@
+2010-08-20  Takashi Masuda  <masutaka@nifty.com>
+
+	* twittering-mode.el: Support StatusNet.
+	(twittering-api-prefix): new variable.
+	(twittering-search-api-method): new variable.
+	(twittering-web-path-prefix): new variable.
+	(twittering-service-method): new variable.
+	(twittering-service-method-table): new variable.
+	(twittering-api-path): new function.
+	(twittering-lookup-get-status-url): new function.
+	(twittering-get-status-url-twitter): new function.
+	(twittering-get-status-url-statusnet): new function.
+	(twittering-lookup-get-search-url): new function.
+	(twittering-get-search-url-twitter): new function.
+	(twittering-get-search-url-statusnet): new function.
+	(twittering-call-api): generate a path of API by
+	`twittering-api-path'. (API のパスは twittering-api-path から取得
+	するようにした。)
+	(twittering-edit-post-status): likewise.
+	(twittering-update-status-from-minibuffer): likewise.
+	(twittering-atom-xmltree-to-status-datum): support the format
+	used in StatusNet.(いずれも検索関連の修正。
+	「interpret-time-diff.patch」「user-name が設定されていないユーザ
+	に対応」「検索時のユーザアイコンを取得出来るように修正」)
+	(twittering-make-clickable-status-datum): retrieve `status-url'
+	and `search-url' via `twittering-lookup-get-status-url' and
+	`twittering-lookup-get-search-url'. (twittering-lookup-get-status-url
+	と twittering-lookup-get-search-url を介して status-url と
+	search-url を取得するようにした。
+	(twittering-generate-format-table): likewise.
+	(twittering-generate-formater-for-first-spec): likewise.
+
 2010-08-20  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-edit-post-status): call

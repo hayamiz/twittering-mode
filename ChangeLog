@@ -36,6 +36,10 @@
 	* twittering-mode.el (twittering-generate-format-table):
 	Do not use icon images scaled by API unless Twitter.
 
+	* twittering-mode.el: fix statusnet URL
+	(twittering-get-status-url-statusnet): fix id URL
+	(twittering-get-status-url-statusnet): fix hashtag URL
+
 2010-08-20  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-edit-post-status): call

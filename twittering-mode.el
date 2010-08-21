@@ -4698,10 +4698,11 @@ BUFFER may be a buffer or the name of an existing buffer."
       (text . ,(twittering-decode-html-entities
 		(car (cddr (assq 'title atom-xml-entry)))))
       ,@(cond
-	 ((eq twittering-service-method 'statusnet)
+	 ((and (eq twittering-service-method 'statusnet)
+	       (string-match "^\\([^ ]+\\)\\( (\\(.*\\))\\)?$" author-str))
 	  ;; StatusNet
-	  `((user-screen-name . ,author-str)
-	    (user-name . "")))
+	  `((user-screen-name . ,(match-string 1 author-str))
+	    (user-name . ,(or (match-string 3 author-str) ""))))
 	 ((string-match "^\\([^ ]+\\) (\\(.*\\))$" author-str)
 	  ;; Twitter (default)
 	  `((user-screen-name . ,(match-string 1 author-str))

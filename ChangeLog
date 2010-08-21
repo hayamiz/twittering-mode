@@ -1,3 +1,9 @@
+2010-08-22  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-atom-xmltree-to-status-datum):
+	retrieve `user-screen-name' and optional `user-name' from XML for
+	StatusNet correctly. Thanks to Takashi Masuda.
+
 2010-08-21  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Restore `twittering-get-{search,status}-url'.

@@ -450,10 +450,11 @@ StatusNet Service.")
    ((eq command 'get-list-index)
     ;; Get list names.
     (let ((username (cdr (assq 'username args-alist)))
-	  (sentinel (cdr (assq 'sentinel args-alist))))
+	  (sentinel (cdr (assq 'sentinel args-alist)))
+	  (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
       (twittering-http-get twittering-api-host
 			   (twittering-api-path username "/lists")
-			   t nil nil sentinel)))
+			   t nil nil sentinel clean-up-sentinel)))
    ((eq command 'create-friendships)
     ;; Create a friendship.
     (let ((username (cdr (assq 'username args-alist))))
@@ -500,11 +501,12 @@ StatusNet Service.")
 			    (twittering-api-path "statuses/retweet/" id))))
    ((eq command 'verify-credentials)
     ;; Verify the account.
-    (let ((sentinel (cdr (assq 'sentinel args-alist))))
+    (let ((sentinel (cdr (assq 'sentinel args-alist)))
+	  (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
       (twittering-http-get twittering-api-host
 			   (twittering-api-path "account/verify_credentials")
 			   t nil nil
-			   sentinel)))
+			   sentinel clean-up-sentinel)))
    ((eq command 'send-direct-message)
     ;; Send a direct message.
     (let ((parameters
@@ -4050,13 +4052,16 @@ the function returns
 	(message "No connection methods are available.")
 	nil)))))
 
-(defun twittering-start-http-session (method headers host port path parameters &optional noninteractive sentinel)
+(defun twittering-start-http-session (method headers host port path parameters &optional noninteractive sentinel clean-up-sentinel)
   "METHOD    : http method
 HEADERS   : http request headers in assoc list
 HOST      : remote host name
 PORT      : destination port number. nil means default port (http: 80, https: 443)
 PATH      : http request path
-PARAMETERS: http request parameters (query string)"
+PARAMETERS: http request parameters (query string)
+NONINTERACTIVE: non-nil if this is called in noninteractive way.
+SENTINEL  : sentinel executed if HTTP response is valid.
+CLEAN-UP-SENTINEL: sentinel always executed."
   (unless (member method '("POST" "GET"))
     (error "Unknown HTTP method: %s" method))
   (unless (string-match "^/" path)
@@ -4073,7 +4078,7 @@ PARAMETERS: http request parameters (query string)"
 	       twittering-connection-type-table)))
     (if (and func (fboundp func))
 	(funcall func method headers host port path parameters
-		 noninteractive sentinel)
+		 noninteractive sentinel clean-up-sentinel)
       nil)))
 
 (defvar twittering-cert-file nil)
@@ -4117,7 +4122,7 @@ A4GBAFjOKer89961zgK5F7WF0bnj4JXMJTENAKaSbn+2kmOeUJXRmm/kEd5jhW6Y
       (add-hook 'kill-emacs-hook 'twittering-delete-ca-cert-file)
       (setq twittering-cert-file file-name))))
 
-(defun twittering-start-http-session-curl (method headers host port path parameters &optional noninteractive sentinel)
+(defun twittering-start-http-session-curl (method headers host port path parameters &optional noninteractive sentinel clean-up-sentinel)
   ;; TODO: use curl
   (let* ((request (twittering-make-http-request
 		   method headers host port path parameters))
@@ -4196,6 +4201,7 @@ A4GBAFjOKer89961zgK5F7WF0bnj4JXMJTENAKaSbn+2kmOeUJXRmm/kEd5jhW6Y
 	 (coding-system-for-read 'utf-8-unix))
     (debug-print curl-args)
     (lexical-let ((noninteractive noninteractive)
+		  (clean-up-sentinel clean-up-sentinel)
 		  (sentinel sentinel))
       (let ((curl-process
 	     (apply 'start-process
@@ -4208,7 +4214,7 @@ A4GBAFjOKer89961zgK5F7WF0bnj4JXMJTENAKaSbn+2kmOeUJXRmm/kEd5jhW6Y
 	   curl-process
 	   (lambda (&rest args)
 	     (apply #'twittering-http-default-sentinel
-		    sentinel noninteractive args))))
+		    sentinel noninteractive clean-up-sentinel args))))
 	curl-process)))
   )
 
@@ -4240,7 +4246,7 @@ A4GBAFjOKer89961zgK5F7WF0bnj4JXMJTENAKaSbn+2kmOeUJXRmm/kEd5jhW6Y
     (not (null twittering-tls-program))))
 
 ;; TODO: proxy
-(defun twittering-start-http-session-native (method headers host port path parameters &optional noninteractive sentinel)
+(defun twittering-start-http-session-native (method headers host port path parameters &optional noninteractive sentinel clean-up-sentinel)
   (let ((request (twittering-make-http-request
 		  method headers host port path parameters))
 	(temp-buffer (generate-new-buffer "*twmode-http-buffer*")))
@@ -4280,12 +4286,13 @@ A4GBAFjOKer89961zgK5F7WF0bnj4JXMJTENAKaSbn+2kmOeUJXRmm/kEd5jhW6Y
 	     )
 	(when proc
 	  (lexical-let ((sentinel sentinel)
+			(clean-up-sentinel clean-up-sentinel)
 			(noninteractive noninteractive))
 	    (set-process-sentinel
 	     proc
 	     (lambda (&rest args)
 	       (apply #'twittering-http-default-sentinel
-		      sentinel noninteractive args))))
+		      sentinel noninteractive clean-up-sentinel args))))
 	  (debug-print request-str)
 	  (process-send-string proc request-str))
 	proc)))
@@ -4436,7 +4443,7 @@ QUERY-PARAMETERS is a list of cons pair of name and value such as
 	  ("Authorization" . ,auth-str))
       base-headers)))
 
-(defun twittering-http-get (host method &optional noninteractive parameters format sentinel)
+(defun twittering-http-get (host method &optional noninteractive parameters format sentinel clean-up-sentinel)
   (let* ((format (or format "xml"))
 	 (sentinel (or sentinel 'twittering-http-get-default-sentinel))
 	 (scheme (if twittering-use-ssl
@@ -4448,14 +4455,15 @@ QUERY-PARAMETERS is a list of cons pair of name and value such as
 	  (twittering-http-application-headers-with-auth
 	   "GET" url parameters)))
     (twittering-start-http-session
-     "GET" headers host nil path parameters noninteractive sentinel)))
+     "GET" headers host nil path parameters noninteractive sentinel
+     clean-up-sentinel)))
 
 (defun twittering-created-at-to-seconds (created-at)
   (let ((encoded-time (apply 'encode-time (parse-time-string created-at))))
     (+ (* (car encoded-time) 65536)
        (cadr encoded-time))))
 
-(defun twittering-http-default-sentinel (func noninteractive proc stat &optional suc-msg)
+(defun twittering-http-default-sentinel (func noninteractive clean-up-sentinel proc stat &optional suc-msg)
   (debug-printf "http-default-sentinel: proc=%s stat=%s exit-status=%s" proc stat (process-exit-status proc))
   (let ((temp-buffer (process-buffer proc))
 	(status (process-status proc))
@@ -4516,7 +4524,9 @@ QUERY-PARAMETERS is a list of cons pair of name and value such as
       (setq mes (format "Failure: unknown condition: %s" status))))
     (when (and mes (or (twittering-buffer-related-p)
 		       authorization-queried))
-      (message "%s" mes))))
+      (message "%s" mes))
+    (when (and clean-up-sentinel (functionp clean-up-sentinel))
+      (funcall clean-up-sentinel proc noninteractive mes))))
 
 (defun twittering-http-get-default-sentinel (header-info proc noninteractive &optional suc-msg)
   (let ((status-line (cdr (assq 'status-line header-info)))
@@ -4585,7 +4595,7 @@ QUERY-PARAMETERS is a list of cons pair of name and value such as
 	      "")) ;; set "" explicitly if user does not have a list.
     nil))
 
-(defun twittering-http-post (host method &optional parameters format sentinel)
+(defun twittering-http-post (host method &optional parameters format sentinel clean-up-sentinel)
   "Send HTTP POST request to api.twitter.com (or search.twitter.com)
 
 HOST is hostname of remote side, api.twitter.com (or search.twitter.com).
@@ -4605,7 +4615,8 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
 	  (twittering-http-application-headers-with-auth
 	   "POST" url parameters)))
     (twittering-start-http-session
-     "POST" headers host nil path parameters noninteractive sentinel)))
+     "POST" headers host nil path parameters noninteractive sentinel
+     clean-up-sentinel)))
 
 (defun twittering-http-post-default-sentinel (header-info proc noninteractive &optional suc-msg)
   (let ((status-line (cdr (assq 'status-line header-info)))

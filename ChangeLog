@@ -4,6 +4,21 @@
 	retrieve `user-screen-name' and optional `user-name' from XML for
 	StatusNet correctly. Thanks to Takashi Masuda.
 
+	* twittering-mode.el: Introduce `clean-up-sentinel' to
+	`twittering-call-api'. It is executed whenever the process
+	sentinel is invoked.
+	(twittering-call-api): add new argument `clean-up-sentinel' for
+	the command `get-list-index' and `verify-credentials'.
+	(twittering-start-http-session): add new argument
+	`clean-up-sentinel' executed whenever the process sentinel is
+	invoked.
+	(twittering-start-http-session-curl): likewise.
+	(twittering-start-http-session-native): likewise.
+	(twittering-http-get): likewise.
+	(twittering-http-post): likewise.
+	(twittering-http-default-sentinel): invoke `clean-up-sentinel' if
+	it is non-nil.
+
 2010-08-21  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Restore `twittering-get-{search,status}-url'.

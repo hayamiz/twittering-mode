@@ -3320,20 +3320,14 @@ authorized -- The account has been authorized.")
 	     (twittering-call-api
 	      'verify-credentials
 	      `((sentinel
-		 . twittering-http-get-verify-credentials-sentinel)))))
-	(cond
-	 ((null proc)
+		 . twittering-http-get-verify-credentials-sentinel)
+		(clean-up-sentinel
+		 . twittering-http-get-verify-credentials-clean-up-sentinel))
+	      )))
+	(when (null proc)
 	  (setq twittering-account-authorization nil)
 	  (message "Authorization failed. Type M-x twit to retry.")
-	  (setq twittering-oauth-access-token-alist nil))
-	 (t
-	  (while (and (eq twittering-account-authorization 'queried)
-		      (memq (process-status proc) '(run connect open)))
-	    (sit-for 0.1))
-	  (when (eq twittering-account-authorization 'queried)
-	    (message "Authorization failed. Type M-x twit to retry.")
-	    (setq twittering-oauth-access-token-alist nil)
-	    (setq twittering-account-authorization nil))))))
+	  (setq twittering-oauth-access-token-alist nil))))
      (t
       (message "Failed to load an authorized token from \"%s\"."
 	       twittering-private-info-file)
@@ -3397,23 +3391,15 @@ authorized -- The account has been authorized.")
     (let ((proc
 	   (twittering-call-api
 	    'verify-credentials
-	    `((sentinel . twittering-http-get-verify-credentials-sentinel)))))
-      (cond
-       ((null proc)
+	    `((sentinel . twittering-http-get-verify-credentials-sentinel)
+	      (clean-up-sentinel
+	       . twittering-http-get-verify-credentials-clean-up-sentinel)))))
+      (when (null proc)
 	(setq twittering-account-authorization nil)
 	(message "Authorization for the account \"%s\" failed. Type M-x twit to retry."
 		 (twittering-get-username))
 	(setq twittering-username nil)
-	(setq twittering-password nil))
-       (t
-	(while (and (eq twittering-account-authorization 'queried)
-		    (memq (process-status proc) '(run connect open)))
-	  (sit-for 0.1))
-	(when (eq twittering-account-authorization 'queried)
-	  (setq twittering-account-authorization nil)
-	  (message "Authorization failed. Type M-x twit to retry.")
-	  (setq twittering-username nil)
-	  (setq twittering-password nil))))))
+	(setq twittering-password nil))))
    (t
     (message "%s is invalid as an authorization method."
 	     twittering-auth-method))))
@@ -3440,6 +3426,15 @@ authorized -- The account has been authorized.")
 	  (setq twittering-username nil)
 	  (setq twittering-password nil)))
 	error-mes)))))
+
+(defun twittering-http-get-verify-credentials-clean-up-sentinel (proc noninteractive mes)
+  (let ((status (process-status proc)))
+    (when (and (memq status '(exit signal closed failed))
+	       (eq twittering-account-authorization 'queried))
+      (setq twittering-account-authorization nil)
+      (message "Authorization failed. Type M-x twit to retry.")
+      (setq twittering-username nil)
+      (setq twittering-password nil))))
 
 ;;;
 ;;; Debug mode

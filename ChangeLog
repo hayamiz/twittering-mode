@@ -19,6 +19,15 @@
 	(twittering-http-default-sentinel): invoke `clean-up-sentinel' if
 	it is non-nil.
 
+	* twittering-mode.el: Fix the race condition on resetting
+	authorization information when the process exits abnormally.
+	(twittering-verify-credentials): use `clean-up-sentinel' for
+	resetting variables when the process exits abnormally or the HTTP
+	response is invalid.
+	(twittering-http-get-verify-credentials-clean-up-sentinel): new
+	function for resetting some variables when the process for
+	`verify-credentials' API exits abnormally.
+
 2010-08-21  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Restore `twittering-get-{search,status}-url'.

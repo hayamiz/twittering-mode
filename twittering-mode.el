@@ -1235,7 +1235,7 @@ function."
 		   (message "%s exited abnormally (exit-status=%s)."
 			    (car (process-command proc)) exit-status)
 		   (setq result nil))
-		  (buffer
+		  ((buffer-live-p buffer)
 		   (when twittering-debug-mode
 		     (with-current-buffer (twittering-debug-buffer)
 		       (insert-buffer-substring buffer)))
@@ -1339,7 +1339,7 @@ function."
 		   (message "%s exited abnormally (exit-status=%s)."
 			    (car (process-command proc)) exit-status)
 		   (setq result nil))
-		  (buffer
+		  ((buffer-live-p buffer)
 		   (when twittering-debug-mode
 		     (with-current-buffer (twittering-debug-buffer)
 		       (insert-buffer-substring buffer)))

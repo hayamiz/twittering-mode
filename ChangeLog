@@ -1,3 +1,11 @@
+2010-08-25  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Confirm that a buffer associated with a
+	process hs not been killed.
+	(twittering-oauth-get-token-alist-native): confirm that the buffer
+	associated with the process has not been killed.
+	(twittering-oauth-get-token-alist-curl): likewise.
+
 2010-08-22  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-atom-xmltree-to-status-datum):

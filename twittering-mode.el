@@ -3324,10 +3324,15 @@ authorized -- The account has been authorized.")
 		(clean-up-sentinel
 		 . twittering-http-get-verify-credentials-clean-up-sentinel))
 	      )))
-	(when (null proc)
+	(cond
+	 ((null proc)
 	  (setq twittering-account-authorization nil)
 	  (message "Authorization failed. Type M-x twit to retry.")
-	  (setq twittering-oauth-access-token-alist nil))))
+	  (setq twittering-oauth-access-token-alist nil))
+	 (t
+	  ;; wait for verification to finish.
+	  (while (twittering-account-authorization-queried-p)
+	    (sit-for 0.1))))))
      (t
       (message "Failed to load an authorized token from \"%s\"."
 	       twittering-private-info-file)
@@ -3394,15 +3399,21 @@ authorized -- The account has been authorized.")
 	    `((sentinel . twittering-http-get-verify-credentials-sentinel)
 	      (clean-up-sentinel
 	       . twittering-http-get-verify-credentials-clean-up-sentinel)))))
-      (when (null proc)
+      (cond
+       ((null proc)
 	(setq twittering-account-authorization nil)
 	(message "Authorization for the account \"%s\" failed. Type M-x twit to retry."
 		 (twittering-get-username))
 	(setq twittering-username nil)
-	(setq twittering-password nil))))
+	(setq twittering-password nil))
+       (t
+	;; wait for verification to finish.
+	(while (twittering-account-authorization-queried-p)
+	  (sit-for 0.1))))))
    (t
     (message "%s is invalid as an authorization method."
-	     twittering-auth-method))))
+	     twittering-auth-method)))
+  (twittering-account-authorized-p))
 
 (defun twittering-http-get-verify-credentials-sentinel (header-info proc noninteractive &optional suc-msg)
   (let ((status-line (cdr (assq 'status-line header-info)))

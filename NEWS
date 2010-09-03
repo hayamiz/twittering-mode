@@ -71,6 +71,8 @@
 * Fix of options of `curl' for POST with an empty body.
 * Fix of retweeting a retweet.
 * Fix of a race condition on abnormal exit of a process for verification.
+* Fix of replying to tweets displayed as replied tweets.
+  Thanks to Naohiro Aota.
 * ...
 
  1.0.0: 2010-06-05

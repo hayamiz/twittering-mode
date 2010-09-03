@@ -39,6 +39,11 @@
 	(twittering-http-default-sentinel): pre-process buffer with the
 	function registered as `pre-process-buffer' in `connection-info'.
 
+	* twittering-mode.el: Fix replying to tweets displayed as replied
+	tweets. Thanks to Naohiro Aota.
+	(twittering-enter): correctly use `original-id' for tweets
+	displayed by `twittering-show-replied-statuses'.
+
 2010-08-25  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Confirm that a buffer associated with a

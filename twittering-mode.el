@@ -6120,7 +6120,8 @@ managed by `twittering-mode'."
 (defun twittering-enter ()
   (interactive)
   (let ((username (get-text-property (point) 'username))
-	(id (get-text-property (point) 'id))
+	(id (or (get-text-property (point) 'original-id)
+		(get-text-property (point) 'id)))
 	(uri (get-text-property (point) 'uri))
 	(spec (get-text-property (point) 'belongs-spec))
 	(screen-name-in-text

@@ -454,7 +454,7 @@ StatusNet Service.")
 	  (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
       (twittering-http-get twittering-api-host
 			   (twittering-api-path username "/lists")
-			   t nil nil sentinel clean-up-sentinel)))
+			   noninteractive nil nil sentinel clean-up-sentinel)))
    ((eq command 'create-friendships)
     ;; Create a friendship.
     (let ((username (cdr (assq 'username args-alist))))
@@ -505,7 +505,7 @@ StatusNet Service.")
 	  (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
       (twittering-http-get twittering-api-host
 			   (twittering-api-path "account/verify_credentials")
-			   t nil nil
+			   noninteractive nil nil
 			   sentinel clean-up-sentinel)))
    ((eq command 'send-direct-message)
     ;; Send a direct message.

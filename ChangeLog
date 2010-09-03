@@ -22,6 +22,9 @@
 	* twittering-mode.el (twittering-http-post): remove use of unbound
 	variable `noninteractive'.
 
+	* twittering-mode.el (twittering-call-api): use the argument
+	`noninteractive' correctly.
+
 2010-08-25  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Confirm that a buffer associated with a

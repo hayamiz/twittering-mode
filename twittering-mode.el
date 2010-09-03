@@ -319,11 +319,13 @@ If nil, this is initialized with a list of valied entries extracted from
   '((native (check . t)
 	    (https . twittering-start-http-session-native-tls-p)
 	    (start . twittering-start-http-session-native)
-	    (oauth-get-token . native))
+	    (oauth-get-token . native)
+	    (pre-process-buffer . twittering-pre-process-buffer-native))
     (curl (check . twittering-start-http-session-curl-p)
 	  (https . twittering-start-http-session-curl-https-p)
 	  (start . twittering-start-http-session-curl)
-	  (oauth-get-token . curl)))
+	  (oauth-get-token . curl)
+	  (pre-process-buffer . twittering-pre-process-buffer-curl)))
   "A list of alist of connection methods.")
 
 (defvar twittering-format-status-function-source ""
@@ -1124,9 +1126,7 @@ function."
 	  nil)
 	 ((search-forward-regexp "\r?\n\r?\n" nil t)
 	  (let ((beg (match-end 0))
-		(end (if (search-forward-regexp "closed\r?\n\\'" nil t)
-			 (match-beginning 0)
-		       (point-max))))
+		(end (point-max)))
 	    (twittering-oauth-make-response-alist (buffer-substring beg end))))
 	 (t
 	  (message "Response: %s" status-line)
@@ -1207,6 +1207,8 @@ function."
 		  (or post-body ""))))
     (with-temp-buffer
       (let* ((coding-system-for-read 'utf-8-unix)
+	     (connection-info `((use-ssl . ,twittering-oauth-use-ssl)
+				(use-proxy . ,proxy-info)))
 	     (tls-program twittering-tls-program)
 	     (proc
 	      (funcall (if twittering-oauth-use-ssl
@@ -1216,7 +1218,8 @@ function."
 		       nil connect-host connect-port)))
 	(when proc
 	  (set-process-buffer proc (current-buffer))
-	  (lexical-let ((result 'queried))
+	  (lexical-let ((result 'queried)
+			(connection-info connection-info))
 	    (set-process-sentinel
 	     proc
 	     (lambda (&rest args)
@@ -1239,6 +1242,8 @@ function."
 		   (when twittering-debug-mode
 		     (with-current-buffer (twittering-debug-buffer)
 		       (insert-buffer-substring buffer)))
+		   (twittering-pre-process-buffer-native proc buffer
+							 connection-info)
 		   (setq result
 			 (twittering-oauth-get-response-alist buffer)))
 		  (t
@@ -1317,10 +1322,13 @@ function."
 	       (if twittering-oauth-use-ssl
 		   cacert-dir
 		 default-directory))
+	     (connection-info `((use-ssl . ,twittering-oauth-use-ssl)
+				(use-proxy . ,(member "-U" curl-args))))
 	     (proc (apply 'start-process "*twmode-curl*" (current-buffer)
 			  twittering-curl-program curl-args)))
 	(when proc
-	  (lexical-let ((result 'queried))
+	  (lexical-let ((result 'queried)
+			(connection-info connection-info))
 	    (set-process-sentinel
 	     proc
 	     (lambda (&rest args)
@@ -1343,6 +1351,8 @@ function."
 		   (when twittering-debug-mode
 		     (with-current-buffer (twittering-debug-buffer)
 		       (insert-buffer-substring buffer)))
+		   (twittering-pre-process-buffer-curl
+		    proc buffer connection-info)
 		   (setq result
 			 (twittering-oauth-get-response-alist buffer)))
 		  (t
@@ -3993,6 +4003,28 @@ The retrieved data can be referred as (gethash url twittering-url-data-hash)."
 		'incapable))))
     (eq twittering-curl-program-https-capability 'capable)))
 
+(defun twittering-pre-process-buffer-curl (proc buffer connection-info)
+  (let ((use-ssl (cdr (assq 'use-ssl connection-info)))
+	(use-proxy (cdr (assq 'use-proxy connection-info))))
+    (when (and use-ssl use-proxy)
+      ;; When using SSL via a proxy with CONNECT method,
+      ;; omit a successful HTTP response and headers if they seem to be
+      ;; sent from the proxy.
+      (with-current-buffer buffer
+	(save-excursion
+	  (goto-char (point-min))
+	  (let ((first-regexp
+		 ;; successful HTTP response
+		 "\\`HTTP/1\.[01] 2[0-9][0-9] .*?\r?\n")
+		(next-regexp
+		 ;; following HTTP response
+		 "^\\(\r?\n\\)HTTP/1\.[01] [0-9][0-9][0-9] .*?\r?\n"))
+	    (when (and (search-forward-regexp first-regexp nil t)
+		       (search-forward-regexp next-regexp nil t))
+	      (let ((beg (point-min))
+		    (end (match-end 1)))
+		(delete-region beg end)))))))))
+
 (defun twittering-lookup-connection-type (use-ssl &optional order table)
   "Return available entry extracted fron connection type table.
 TABLE is connection type table, which is an alist of type symbol and its
@@ -4309,6 +4341,41 @@ A4GBAFjOKer89961zgK5F7WF0bnj4JXMJTENAKaSbn+2kmOeUJXRmm/kEd5jhW6Y
 	proc)))
   )
 
+(defun twittering-pre-process-buffer-native (proc buffer connection-info)
+  (let ((use-ssl (cdr (assq 'use-ssl connection-info)))
+	(args (process-command proc)))
+    (cond
+     ((and use-ssl args
+	   (car
+	    (remove nil
+		    (mapcar (lambda (cmd)
+			      (string-match "^\\(.*/\\)?gnutls-cli\\b" cmd))
+			    args))))
+      (with-current-buffer buffer
+	(save-excursion
+	  (goto-char (point-max))
+	  (when (search-backward-regexp
+		 "- Peer has closed the GNUTLS connection\r?\n\\'")
+	    (let ((beg (match-beginning 0))
+		  (end (match-end 0)))
+	      (delete-region beg end))))))
+     ((and use-ssl args
+	   (car
+	    (remove nil
+		    (mapcar
+		     (lambda (cmd)
+		       (string-match "^\\(.*/\\)?openssl s_client\\b" cmd))
+		     args))))
+      (with-current-buffer buffer
+	(save-excursion
+	  (goto-char (point-max))
+	  (when (search-backward-regexp "closed\r?\n\\'")
+	    (let ((beg (match-beginning 0))
+		  (end (match-end 0)))
+	      (delete-region beg end))))))
+     (t
+      nil))))
+
 ;;; TODO: proxy
 (defun twittering-make-http-request (method headers host port path parameters)
   "Returns an anonymous function, which holds request data.
@@ -4481,27 +4548,7 @@ QUERY-PARAMETERS is a list of cons pair of name and value such as
 	(exit-status (process-exit-status proc))
 	(authorization-queried (twittering-account-authorization-queried-p))
 	(noninteractive (cdr (assq 'noninteractive connection-info)))
-	(use-ssl (cdr (assq 'use-ssl connection-info)))
-	(use-proxy (cdr (assq 'use-proxy connection-info)))
 	(mes nil))
-    (when (and use-proxy use-ssl (buffer-live-p temp-buffer))
-      ;; When using SSL via a proxy with CONNECT method,
-      ;; omit a successful HTTP response and headers if they seem to be
-      ;; sent from the proxy.
-      (with-current-buffer temp-buffer
-	(save-excursion
-	  (goto-char (point-min))
-	  (let ((first-regexp
-		 ;; successful HTTP response
-		 "\\`HTTP/1\.[01] 2[0-9][0-9] .*?\r?\n")
-		(next-regexp
-		 ;; following HTTP response
-		 "^\\(\r?\n\\)HTTP/1\.[01] [0-9][0-9][0-9] .*?\r?\n"))
-	    (when (and (search-forward-regexp first-regexp nil t)
-		       (search-forward-regexp next-regexp nil t))
-	      (let ((beg (point-min))
-		    (end (match-end 1)))
-		(delete-region beg end)))))))
     (cond
      ((null status)
       (setq mes "Failure: no such process exists."))
@@ -4510,6 +4557,10 @@ QUERY-PARAMETERS is a list of cons pair of name and value such as
       (debug-printf "http-default-sentinel: postponed by status `%s'" status)
       t)
      ((memq status '(exit signal closed failed))
+      (let ((func (cdr (assq 'pre-process-buffer connection-info))))
+	(when (and (buffer-live-p temp-buffer) (functionp func))
+	  ;; Pre-process buffer.
+	  (funcall func proc temp-buffer connection-info)))
       (unwind-protect
 	  (setq mes
 		(if (and (process-command proc)

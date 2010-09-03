@@ -25,6 +25,20 @@
 	* twittering-mode.el (twittering-call-api): use the argument
 	`noninteractive' correctly.
 
+	* twittering-mode.el: Introduce a framework to pre-process HTTP
+	response buffer.
+	(twittering-connection-type-table): add the entries for
+	`pre-process-buffer'.
+	(twittering-oauth-get-response-alist): remove redundant
+	pre-processing for `openssl s_client'.
+	(twittering-oauth-get-token-alist-native): pre-process buffer
+	according to the variable `connection-info'.
+	(twittering-oauth-get-token-alist-curl): likewise.
+	(twittering-pre-process-buffer-curl): new function.
+	(twittering-pre-process-buffer-native): new function.
+	(twittering-http-default-sentinel): pre-process buffer with the
+	function registered as `pre-process-buffer' in `connection-info'.
+
 2010-08-25  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Confirm that a buffer associated with a

@@ -8,6 +8,17 @@
 	the POST body. `gnutls-cli', which may be invoked by
 	`open-tls-stream', requires the CRLF at the end of input.
 
+	* twittering-mode.el: Introduce `connection-info', which is
+	transferred to a sentinel.
+	(twittering-start-http-session): introduce the variable
+	`connection-info' to transfer the connection information to a
+	sentinel. Since `connection-info' includes `noninteractive', the
+	argument `noninteractive' is replaced with `connection-info'.
+	(twittering-start-http-session-curl): likewise.
+	(twittering-start-http-session-native): likewise.
+	(twittering-http-default-sentinel): use `connection-info' instead
+	of the current `twittering-use-ssl' and `twittering-proxy-use'.
+
 2010-08-25  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Confirm that a buffer associated with a

@@ -4079,12 +4079,17 @@ CLEAN-UP-SENTINEL: sentinel always executed."
     (setq headers (cons `("User-Agent" . ,(twittering-user-agent))
 			headers)))
 
-  (let ((func (twittering-lookup-http-start-function
-	       twittering-connection-type-order
-	       twittering-connection-type-table)))
+  (let* ((func (twittering-lookup-http-start-function
+		twittering-connection-type-order
+		twittering-connection-type-table))
+	 (entry (twittering-lookup-connection-type twittering-use-ssl))
+	 (connection-info `((use-ssl . ,twittering-use-ssl)
+			    (use-proxy . ,twittering-proxy-use)
+			    (noninteractive . ,noninteractive)
+			    ,@entry)))
     (if (and func (fboundp func))
 	(funcall func method headers host port path parameters
-		 noninteractive sentinel clean-up-sentinel)
+		 connection-info sentinel clean-up-sentinel)
       nil)))
 
 (defvar twittering-cert-file nil)
@@ -4128,7 +4133,7 @@ A4GBAFjOKer89961zgK5F7WF0bnj4JXMJTENAKaSbn+2kmOeUJXRmm/kEd5jhW6Y
       (add-hook 'kill-emacs-hook 'twittering-delete-ca-cert-file)
       (setq twittering-cert-file file-name))))
 
-(defun twittering-start-http-session-curl (method headers host port path parameters &optional noninteractive sentinel clean-up-sentinel)
+(defun twittering-start-http-session-curl (method headers host port path parameters &optional connection-info sentinel clean-up-sentinel)
   ;; TODO: use curl
   (let* ((request (twittering-make-http-request
 		   method headers host port path parameters))
@@ -4206,7 +4211,7 @@ A4GBAFjOKer89961zgK5F7WF0bnj4JXMJTENAKaSbn+2kmOeUJXRmm/kEd5jhW6Y
 		       (concat "?" (funcall request :query-string))))))
 	 (coding-system-for-read 'utf-8-unix))
     (debug-print curl-args)
-    (lexical-let ((noninteractive noninteractive)
+    (lexical-let ((connection-info connection-info)
 		  (clean-up-sentinel clean-up-sentinel)
 		  (sentinel sentinel))
       (let ((curl-process
@@ -4220,7 +4225,7 @@ A4GBAFjOKer89961zgK5F7WF0bnj4JXMJTENAKaSbn+2kmOeUJXRmm/kEd5jhW6Y
 	   curl-process
 	   (lambda (&rest args)
 	     (apply #'twittering-http-default-sentinel
-		    sentinel noninteractive clean-up-sentinel args))))
+		    sentinel connection-info clean-up-sentinel args))))
 	curl-process)))
   )
 
@@ -4252,7 +4257,7 @@ A4GBAFjOKer89961zgK5F7WF0bnj4JXMJTENAKaSbn+2kmOeUJXRmm/kEd5jhW6Y
     (not (null twittering-tls-program))))
 
 ;; TODO: proxy
-(defun twittering-start-http-session-native (method headers host port path parameters &optional noninteractive sentinel clean-up-sentinel)
+(defun twittering-start-http-session-native (method headers host port path parameters &optional connection-info sentinel clean-up-sentinel)
   (let ((request (twittering-make-http-request
 		  method headers host port path parameters))
 	(temp-buffer (generate-new-buffer "*twmode-http-buffer*")))
@@ -4293,12 +4298,12 @@ A4GBAFjOKer89961zgK5F7WF0bnj4JXMJTENAKaSbn+2kmOeUJXRmm/kEd5jhW6Y
 	(when proc
 	  (lexical-let ((sentinel sentinel)
 			(clean-up-sentinel clean-up-sentinel)
-			(noninteractive noninteractive))
+			(connection-info connection-info))
 	    (set-process-sentinel
 	     proc
 	     (lambda (&rest args)
 	       (apply #'twittering-http-default-sentinel
-		      sentinel noninteractive clean-up-sentinel args))))
+		      sentinel connection-info clean-up-sentinel args))))
 	  (debug-print request-str)
 	  (process-send-string proc request-str))
 	proc)))
@@ -4469,15 +4474,17 @@ QUERY-PARAMETERS is a list of cons pair of name and value such as
     (+ (* (car encoded-time) 65536)
        (cadr encoded-time))))
 
-(defun twittering-http-default-sentinel (func noninteractive clean-up-sentinel proc stat &optional suc-msg)
+(defun twittering-http-default-sentinel (func connection-info clean-up-sentinel proc stat &optional suc-msg)
   (debug-printf "http-default-sentinel: proc=%s stat=%s exit-status=%s" proc stat (process-exit-status proc))
   (let ((temp-buffer (process-buffer proc))
 	(status (process-status proc))
 	(exit-status (process-exit-status proc))
 	(authorization-queried (twittering-account-authorization-queried-p))
+	(noninteractive (cdr (assq 'noninteractive connection-info)))
+	(use-ssl (cdr (assq 'use-ssl connection-info)))
+	(use-proxy (cdr (assq 'use-proxy connection-info)))
 	(mes nil))
-    (when (and twittering-proxy-use twittering-use-ssl
-	       (buffer-live-p temp-buffer))
+    (when (and use-proxy use-ssl (buffer-live-p temp-buffer))
       ;; When using SSL via a proxy with CONNECT method,
       ;; omit a successful HTTP response and headers if they seem to be
       ;; sent from the proxy.

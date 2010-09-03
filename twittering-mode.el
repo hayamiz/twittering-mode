@@ -6565,10 +6565,16 @@ If the character on the current position does not have `uri' property,
 this function does nothing."
   (interactive)
   (let ((uri (get-text-property (point) 'uri)))
-    (when (stringp uri)
+    (cond
+     ((not (stringp uri))
+      nil)
+     ((string= uri (current-kill 0 t))
+      (message "Already copied %s" uri)
+      uri)
+     (t
       (kill-new uri)
       (message "Copied %s" uri)
-      uri)))
+      uri))))
 
 (defun twittering-suspend ()
   "Suspend twittering-mode then switch to another buffer."

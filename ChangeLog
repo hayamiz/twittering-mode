@@ -1,3 +1,8 @@
+2010-09-04  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el (twittering-push-uri-onto-kill-ring): avoid
+	pushing the same URL repeatedly.
+
 2010-08-25  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Confirm that a buffer associated with a

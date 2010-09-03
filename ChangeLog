@@ -3,6 +3,11 @@
 	* twittering-mode.el (twittering-push-uri-onto-kill-ring): avoid
 	pushing the same URL repeatedly.
 
+	* twittering-mode.el: Fix xAuth with `gnutls-cli'.
+	(twittering-oauth-get-token-alist-native): add a CRLF following
+	the POST body. `gnutls-cli', which may be invoked by
+	`open-tls-stream', requires the CRLF at the end of input.
+
 2010-08-25  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Confirm that a buffer associated with a

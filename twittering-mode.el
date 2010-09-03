@@ -4628,7 +4628,7 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
 	  (twittering-http-application-headers-with-auth
 	   "POST" url parameters)))
     (twittering-start-http-session
-     "POST" headers host nil path parameters noninteractive sentinel
+     "POST" headers host nil path parameters nil sentinel
      clean-up-sentinel)))
 
 (defun twittering-http-post-default-sentinel (header-info proc noninteractive &optional suc-msg)

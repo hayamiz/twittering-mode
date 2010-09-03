@@ -19,6 +19,9 @@
 	(twittering-http-default-sentinel): use `connection-info' instead
 	of the current `twittering-use-ssl' and `twittering-proxy-use'.
 
+	* twittering-mode.el (twittering-http-post): remove use of unbound
+	variable `noninteractive'.
+
 2010-08-25  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Confirm that a buffer associated with a

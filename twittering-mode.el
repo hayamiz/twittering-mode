@@ -88,10 +88,11 @@
 (defvar twittering-auth-method 'oauth
   "*Authentication method for `twittering-mode'.
 The symbol `basic' means Basic Authentication. The symbol `oauth' means
-OAuth Authentication. OAuth Authentication requires
-`twittering-oauth-consumer-key' and `twittering-oauth-consumer-secret'.
-Additionally, it requires an external command `curl' or another command
-included in `tls-program', which may be `openssl' or `gnutls-cli', for SSL.")
+OAuth Authentication. The symbol `xauth' means xAuth Authentication.
+OAuth Authentication requires `twittering-oauth-consumer-key' and
+`twittering-oauth-consumer-secret'. Additionally, it requires an external
+command `curl' or another command included in `tls-program', which may be
+`openssl' or `gnutls-cli', for SSL.")
 
 (defvar twittering-oauth-use-ssl t
   "*Whether to use SSL on authentication via OAuth. Twitter requires SSL
@@ -173,16 +174,16 @@ For the style \"$NAME\", the function is called with nil.
 For the style \"$NAME(ARG)\", the function is called with a string ARG.
 
 For example, if you specify
- '((\"FRIENDS\" . \"(USER1+USER2+USER3)\")
-   (\"to_me\" . \"(:mentions+:retweets_of_me+:direct_messages)\")
+ `((\"FRIENDS\" . \"my-account/friends-list\")
    (\"related-to\" .
             ,(lambda (username)
                (if username
                    (format \":search/to:%s OR from:%s OR @%s/\"
                            username username username)
                  \":home\")))),
-then you can use \"$to_me\" as
-\"(:mentions+:retweets_of_me+:direct_messages)\".")
+then you can use \"$FRIENDS\" and \"$related-to(USER)\" as
+\"my-account/friends-list\" and \":search/to:USER OR from:USER OR @USER/\",
+respectively.")
 
 (defvar twittering-current-timeline-spec-string nil
   "The current timeline spec string. This variable should not be referred

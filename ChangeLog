@@ -8,6 +8,9 @@
 	`twittering-make-clickable-status-datum' adds text properties with
 	self-reference to tweets.
 
+	* twittering-mode.el (twittering-auth-method): fix docstring.
+	(twittering-timeline-spec-alias): likewise.
+
 2010-09-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-push-uri-onto-kill-ring): avoid

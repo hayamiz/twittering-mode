@@ -3710,7 +3710,7 @@ been initialized yet."
 
 (defun twittering-edit-extract-status ()
   (if (eq major-mode 'twittering-edit-mode)
-      (buffer-string)
+      (buffer-substring-no-properties (point-min) (point-max))
     ""))
 
 (defun twittering-edit-setup-help (&optional username spec)

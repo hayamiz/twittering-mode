@@ -1,3 +1,13 @@
+2010-09-12  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Add an edited tweet into the history without
+	text properties.
+	(twittering-edit-extract-status): extract a status without text
+	properties. They may cause `session.el' to fail to save
+	`twittering-edit-history' because
+	`twittering-make-clickable-status-datum' adds text properties with
+	self-reference to tweets.
+
 2010-09-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-push-uri-onto-kill-ring): avoid

@@ -3920,6 +3920,15 @@ The retrieved data can be referred as (gethash url twittering-url-data-hash)."
 		       (file-name-directory cacert-fullpath)))
 	 (cacert-filename (when cacert-fullpath
 			    (file-name-nondirectory cacert-fullpath)))
+	 (headers
+	  `(,@headers
+	    ;; Make `curl' remove the HTTP header field "Expect" for
+	    ;; avoiding '417 Expectation Failed' HTTP response error.
+	    ;; The header field is automatically added for a HTTP request
+	    ;; exceeding 1024 byte. See
+	    ;; http://d.hatena.ne.jp/imait/20091228/1262004813 and
+	    ;; http://www.escafrace.co.jp/blog/09/10/16/1008
+	    ("Expect" . "")))
 	 (curl-args
 	  `("--include" "--silent"
 	    ,@(apply 'append
@@ -4097,8 +4106,6 @@ CLEAN-UP-SENTINEL: sentinel always executed."
 		`(("Host" . ,host)))
 	    ,@(unless (assoc "User-Agent" headers)
 		`(("User-Agent" . ,(twittering-user-agent))))
-	    ,@(unless (assoc "Expect" headers)
-		'(("Expect" . "")))
 	    ,@headers))
 	 (post-body ""))
     (when (and func (functionp func))

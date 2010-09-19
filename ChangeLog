@@ -68,6 +68,11 @@
 	`twittering-start-http-session-generic'.
 	(twittering-start-http-session-generic): removed.
 
+	* twittering-mode.el: The HTTP header field "Expect" will be added
+	only when using `curl'.
+	(twittering-send-http-request-curl): add the field "Expect".
+	(twittering-start-http-session): remove the field "Expect".
+
 2010-09-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Add an edited tweet into the history without

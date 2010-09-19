@@ -105,6 +105,15 @@
 	(twittering-start-http-session): generate a HTTP request alist by
 	`twittering-make-http-request'.
 
+	* twittering-mode.el: Ensure an available connection method before
+	visiting a timeline.
+	(twittering-lookup-http-start-function): do not retry finding
+	connection-method with compromise. It is assumed that an available
+	connection method is already determined here.
+	(twittering-ensure-connection-method): new function.
+	(twittering-visit-timeline): ensure that an available connection
+	method is determined.
+
 2010-09-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Add an edited tweet into the history without

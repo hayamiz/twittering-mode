@@ -4168,22 +4168,27 @@ the function returns
 
 (defun twittering-lookup-http-start-function (&optional order table)
   "Decide a connection method from currently available methods."
-  (let* ((order (or order twittering-connection-type-order))
-	 (table (or table twittering-connection-type-table))
-	 (entry (twittering-lookup-connection-type
-		 twittering-use-ssl order table)))
-    (if entry
-	(cdr (assq 'send-http-request entry))
-      (cond
-       ((and twittering-use-ssl
-	     (yes-or-no-p "HTTPS(SSL) is unavailable. Use HTTP instead? "))
-	;; Fall back on connection without SSL.
-	(setq twittering-use-ssl nil)
-	(twittering-update-mode-line)
-	(twittering-lookup-http-start-function order table))
-       (t
-	(message "No connection methods are available.")
-	nil)))))
+  (let ((entry
+	 (twittering-lookup-connection-type twittering-use-ssl order table)))
+    (cdr (assq 'send-http-request entry))))
+
+(defun twittering-ensure-connection-method (&optional order table)
+  "Ensure a connection method with a compromise.
+Return nil if no connection methods are available with a compromise."
+  (let ((entry
+	 (twittering-lookup-connection-type twittering-use-ssl order table)))
+    (cond
+     (entry
+      t)
+     ((and (null entry) twittering-use-ssl
+	   (yes-or-no-p "HTTPS(SSL) is unavailable. Use HTTP instead? "))
+      ;; Fall back on connection without SSL.
+      (setq twittering-use-ssl nil)
+      (twittering-update-mode-line)
+      (twittering-ensure-connection-method order table)
+      t)
+     (t
+      nil))))
 
 (defun twittering-make-http-request (method header-list host port path query-parameters post-body use-ssl)
   "Returns an alist specifying a HTTP request.
@@ -6299,7 +6304,8 @@ managed by `twittering-mode'."
 
 (defun twittering-visit-timeline (&optional timeline-spec initial)
   (interactive)
-  (when (twittering-lookup-http-start-function)
+  (cond
+   ((twittering-ensure-connection-method)
     (twittering-initialize-global-variables-if-necessary)
     (twittering-verify-credentials)
     (let ((timeline-spec
@@ -6307,7 +6313,10 @@ managed by `twittering-mode'."
 	       (twittering-read-timeline-spec-with-completion
 		"timeline: " initial t))))
       (when timeline-spec
-	(switch-to-buffer (twittering-get-managed-buffer timeline-spec))))))
+	(switch-to-buffer (twittering-get-managed-buffer timeline-spec)))))
+   (t
+    (message "No connection methods are available.")
+    nil)))
 
 (defun twittering-other-user-timeline ()
   (interactive)

@@ -4185,6 +4185,60 @@ the function returns
 	(message "No connection methods are available.")
 	nil)))))
 
+(defun twittering-make-http-request (method header-list host port path query-parameters post-body use-ssl)
+  "Returns an alist specifying a HTTP request.
+The result alist includes the following keys, where a key is a symbol.
+  method: HTTP method such as \"GET\" or \"POST\".
+  scheme: the scheme name. \"http\" or \"https\".
+  host: the host to which the request is sent.
+  port: the port to which the request is sent (integer).
+  path: the absolute path string. Note that it does not include query string.
+  query-string: the query string.
+  uri: the URI. It includes the query string.
+  header-list: an alist specifying pairs of a parameter and its value in HTTP
+    header field.
+  post-body: the entity that will be posted."
+  (let* ((scheme (if use-ssl "https" "http"))
+	 (default-port (if use-ssl 443 80))
+	 (port (if port port default-port))
+	 (query-string
+	  (when query-parameters
+	    (mapconcat (lambda (pair)
+			 (cond
+			  ((stringp pair)
+			   (twittering-percent-encode pair))
+			  ((consp pair)
+			   (format
+			    "%s=%s"
+			    (twittering-percent-encode (car pair))
+			    (twittering-percent-encode (cdr pair))))
+			  (t
+			   nil)))
+		       query-parameters
+		       "&")))
+	 (uri (concat scheme "://"
+		      host
+		      (when (and port (not (= port default-port)))
+			(format ":%d" port))
+		      path
+		      (when query-string
+			(concat "?" query-string))))
+	 (header-list
+	  `(,@(unless (assoc "Host" header-list)
+		`(("Host" . ,host)))
+	    ,@(unless (assoc "User-Agent" header-list)
+		`(("User-Agent" . ,(twittering-user-agent))))
+	    ,@header-list)))
+    `((method . ,method)
+      (scheme . ,scheme)
+      (host . ,host)
+      (port . ,port)
+      (path . ,path)
+      (query-string . ,query-string)
+      (uri . ,uri)
+      (header-list . ,header-list)
+      (post-body . ,post-body))))
+
 (defun twittering-start-http-session (method headers host port path parameters &optional noninteractive sentinel clean-up-sentinel)
   "METHOD    : http method
 HEADERS   : http request headers in assoc list
@@ -4203,9 +4257,11 @@ CLEAN-UP-SENTINEL: sentinel always executed."
 		twittering-connection-type-order
 		twittering-connection-type-table))
 	 (entry (twittering-lookup-connection-type twittering-use-ssl))
+	 (post-body "")
 	 (request (twittering-make-http-request
-		   method headers host port path parameters))
-	 (scheme (funcall request :schema))
+		   method headers host port path parameters post-body
+		   twittering-use-ssl))
+	 (scheme (cdr (assq 'scheme request)))
 	 (connection-info
 	  `((use-ssl . ,twittering-use-ssl)
 	    (allow-insecure-server-cert
@@ -4224,26 +4280,7 @@ CLEAN-UP-SENTINEL: sentinel always executed."
 				       twittering-https-proxy-password))))
 	    (noninteractive . ,noninteractive)
 	    ,@entry))
-	 (temp-buffer (generate-new-buffer "*twmode-http-buffer*"))
-	 (headers
-	  `(,@(unless (assoc "Host" headers)
-		`(("Host" . ,host)))
-	    ,@(unless (assoc "User-Agent" headers)
-		`(("User-Agent" . ,(twittering-user-agent))))
-	    ,@headers))
-	 (post-body "")
-	 (request
-	  `((method . ,method)
-	    (scheme . ,scheme)
-	    (host . ,host)
-	    (port . ,(funcall request :port))
-	    (path . ,path)
-	    (query-string . ,(funcall request :query-string))
-	    (uri . ,(concat (funcall request :uri)
-			    (when parameters
-			      (concat "?" (funcall request :query-string)))))
-	    (header-list . ,headers)
-	    (post-body . ,post-body))))
+	 (temp-buffer (generate-new-buffer "*twmode-http-buffer*")))
     (when (and func (functionp func))
       (lexical-let ((connection-info connection-info)
 		    (clean-up-sentinel clean-up-sentinel)
@@ -4414,65 +4451,6 @@ A4GBAFjOKer89961zgK5F7WF0bnj4JXMJTENAKaSbn+2kmOeUJXRmm/kEd5jhW6Y
 	      (delete-region beg end))))))
      (t
       nil))))
-
-;;; TODO: proxy
-(defun twittering-make-http-request (method headers host port path parameters)
-  "Returns an anonymous function, which holds request data.
-
-A returned function, say REQUEST, is used in this way:
-  (funcall REQUEST :schema) ; => \"http\" or \"https\"
-  (funcall REQUEST :uri) ; => \"http://twitter.com/user_timeline\"
-  (funcall REQUEST :query-string) ; => \"status=hello+twitter&source=twmode\"
-  ...
-
-Available keywords:
-  :method
-  :host
-  :port
-  :headers
-  :headers-string
-  :schema
-  :uri
-  :query-string"
-  (let* ((schema (if twittering-use-ssl "https" "http"))
-	 (default-port (if twittering-use-ssl 443 80))
-	 (port (if port port default-port))
-	 (headers-string
-	  (mapconcat (lambda (pair)
-		       (format "%s: %s" (car pair) (cdr pair)))
-		     headers "\r\n"))
-	 (uri (format "%s://%s%s%s"
-		      schema
-		      host
-		      (if port
-			  (if (equal port default-port)
-			      ""
-			    (format ":%s" port))
-			"")
-		      path))
-	 (query-string
-	  (mapconcat (lambda (pair)
-		       (format
-			"%s=%s"
-			(twittering-percent-encode (car pair))
-			(twittering-percent-encode (cdr pair))))
-		     parameters
-		     "&"))
-	 )
-    (lexical-let ((data `((:method . ,method)
-			  (:host . ,host)
-			  (:port . ,port)
-			  (:headers . ,headers)
-			  (:headers-string . ,headers-string)
-			  (:schema . ,schema)
-			  (:uri . ,uri)
-			  (:query-string . ,query-string)
-			  )))
-      (lambda (key)
-	(let ((pair (assoc key data)))
-	  (if pair (cdr pair)
-	    (error "No such key in HTTP request data: %s" key))))
-      )))
 
 (defun twittering-http-application-headers (&optional method headers)
   "Return an assoc list of HTTP headers for twittering-mode."

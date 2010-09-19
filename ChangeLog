@@ -99,6 +99,12 @@
 	(twittering-send-http-request-wget): likewise.
 	(twittering-send-http-request-native): likewise.
 
+	* twittering-mode.el: Rearrange `twittering-make-http-request'.
+	(twittering-make-http-request): return an alist representing
+	parameters of a HTTP request instead of a function.
+	(twittering-start-http-session): generate a HTTP request alist by
+	`twittering-make-http-request'.
+
 2010-09-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Add an edited tweet into the history without

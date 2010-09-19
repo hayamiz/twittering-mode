@@ -6628,7 +6628,7 @@ this function does nothing."
     (cond
      ((not (stringp uri))
       nil)
-     ((string= uri (current-kill 0 t))
+     ((and kill-ring (string= uri (current-kill 0 t)))
       (message "Already copied %s" uri)
       uri)
      (t

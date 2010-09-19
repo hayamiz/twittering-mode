@@ -1,3 +1,9 @@
+2010-09-19  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix `twittering-push-uri-onto-kill-ring'.
+	(twittering-push-uri-onto-kill-ring): confirm that `kill-ring' is
+	non-nil before calling `current-kill'.
+
 2010-09-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Add an edited tweet into the history without

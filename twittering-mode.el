@@ -321,14 +321,12 @@ If nil, this is initialized with a list of valied entries extracted from
 (defvar twittering-connection-type-table
   '((native (check . t)
 	    (https . twittering-start-http-session-native-tls-p)
-	    (start . twittering-start-http-session-generic)
-	    (start-process . twittering-send-http-request-native)
+	    (send-http-request . twittering-send-http-request-native)
 	    (oauth-get-token . native)
 	    (pre-process-buffer . twittering-pre-process-buffer-native))
     (curl (check . twittering-start-http-session-curl-p)
 	  (https . twittering-start-http-session-curl-https-p)
-	  (start . twittering-start-http-session-generic)
-	  (start-process . twittering-send-http-request-curl)
+	  (send-http-request . twittering-send-http-request-curl)
 	  (oauth-get-token . curl)
 	  (pre-process-buffer . twittering-pre-process-buffer-curl)))
   "A list of alist of connection methods.")
@@ -4039,7 +4037,7 @@ the function returns
 	 (entry (twittering-lookup-connection-type
 		 twittering-use-ssl order table)))
     (if entry
-	(cdr (assq 'start entry))
+	(cdr (assq 'send-http-request entry))
       (cond
        ((and twittering-use-ssl
 	     (yes-or-no-p "HTTPS(SSL) is unavailable. Use HTTP instead? "))
@@ -4065,13 +4063,6 @@ CLEAN-UP-SENTINEL: sentinel always executed."
     (error "Unknown HTTP method: %s" method))
   (unless (string-match "^/" path)
     (error "Invalid HTTP path: %s" path))
-
-  (unless (assoc "Host" headers)
-    (setq headers (cons `("Host" . ,host) headers)))
-  (unless (assoc "User-Agent" headers)
-    (setq headers (cons `("User-Agent" . ,(twittering-user-agent))
-			headers)))
-
   (let* ((func (twittering-lookup-http-start-function
 		twittering-connection-type-order
 		twittering-connection-type-table))
@@ -4096,11 +4087,30 @@ CLEAN-UP-SENTINEL: sentinel always executed."
 					 twittering-http-proxy-password
 				       twittering-https-proxy-password))))
 	    (noninteractive . ,noninteractive)
-	    ,@entry)))
-    (if (and func (fboundp func))
-	(funcall func method headers host port path parameters
-		 connection-info sentinel clean-up-sentinel)
-      nil)))
+	    ,@entry))
+	 (temp-buffer (generate-new-buffer "*twmode-http-buffer*"))
+	 (url (concat (funcall request :uri)
+		      (when parameters
+			(concat "?" (funcall request :query-string)))))
+	 (headers
+	  `(,@(unless (assoc "Host" headers)
+		`(("Host" . ,host)))
+	    ,@(unless (assoc "User-Agent" headers)
+		`(("User-Agent" . ,(twittering-user-agent))))
+	    ,@(unless (assoc "Expect" headers)
+		'(("Expect" . "")))
+	    ,@headers))
+	 (post-body ""))
+    (when (and func (functionp func))
+      (lexical-let ((connection-info connection-info)
+		    (clean-up-sentinel clean-up-sentinel)
+		    (sentinel sentinel))
+	(funcall func "*twmode-generic*" temp-buffer
+		 (lambda (&rest args)
+		   (apply #'twittering-http-default-sentinel
+			  sentinel connection-info clean-up-sentinel args))
+		 method scheme url headers
+		 connection-info post-body)))))
 
 (defvar twittering-cert-file nil)
 
@@ -4142,31 +4152,6 @@ A4GBAFjOKer89961zgK5F7WF0bnj4JXMJTENAKaSbn+2kmOeUJXRmm/kEd5jhW6Y
 "))
       (add-hook 'kill-emacs-hook 'twittering-delete-ca-cert-file)
       (setq twittering-cert-file file-name))))
-
-(defun twittering-start-http-session-generic (method headers host port path parameters &optional connection-info sentinel clean-up-sentinel)
-  ;; TODO: use curl
-  (let* ((request (twittering-make-http-request
-		   method headers host port path parameters))
-	 (temp-buffer (generate-new-buffer "*twmode-http-buffer*"))
-	 (scheme (funcall request :schema))
-	 (url
-	  (concat (funcall request :uri)
-		  (when parameters
-		    (concat "?" (funcall request :query-string)))))
-	 (headers (if (assoc "Expect" headers)
-		      headers
-		    (cons '("Expect" . "") headers)))
-	 (post-body "")
-	 (start-func (cdr (assq 'start-process connection-info))))
-    (lexical-let ((connection-info connection-info)
-		  (clean-up-sentinel clean-up-sentinel)
-		  (sentinel sentinel))
-      (funcall start-func "*twmode-generic*" temp-buffer
-	       (lambda (&rest args)
-		 (apply #'twittering-http-default-sentinel
-			sentinel connection-info clean-up-sentinel args))
-	       method scheme url headers
-	       connection-info post-body))))
 
 (defun twittering-start-http-session-native-tls-p ()
   (when (require 'tls nil t)

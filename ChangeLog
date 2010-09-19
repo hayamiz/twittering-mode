@@ -58,6 +58,16 @@
 	`twittering-start-http-session-generic' and
 	`twittering-send-http-request-native'.
 
+	* twittering-mode.el: Integrate generic function into
+	`twittering-start-http-session'.
+	(twittering-connection-type-table): remove the entry `start' and
+	rename `start-process' `send-http-request'.
+	(twittering-lookup-http-start-function): use `send-http-request'
+	instead of `start-process'.
+	(twittering-start-http-session): unified with
+	`twittering-start-http-session-generic'.
+	(twittering-start-http-session-generic): removed.
+
 2010-09-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Add an edited tweet into the history without

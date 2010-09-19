@@ -17,6 +17,33 @@
 	(twittering-generate-formater-for-first-spec): likewise.
 	(twittering-push-tweet-onto-kill-ring): new function.
 
+	* twittering-mode.el: Introduce a function sending a HTTP requests
+	with `curl'.
+	(twittering-connection-type-table): use new functions
+	`twittering-start-http-session-generic' and
+	`twittering-send-http-request-curl' for connection-type `curl'.
+	(twittering-oauth-get-token-function-table): register the
+	pre-processing function for `curl'.
+	(twittering-oauth-get-token-alist-generic): new function. This
+	works with a function sending HTTP request.
+	(twittering-oauth-get-token-alist-curl): removed. The function is
+	replaced with the combination of
+	`twittering-oauth-get-token-alist-generic' and
+	`twittering-send-http-request-curl'.
+	(twittering-oauth-get-token-alist): use
+	`twittering-oauth-get-token-alist-generic' if the found entry is a
+	cons pair of functions.
+	(twittering-send-http-request-curl): new function. This is
+	abstract interface for sending HTTP request via `curl'.
+	(twittering-start-http-session): add more entries to
+	`connection-info'. `twittering-send-http-request-curl' requires
+	them.
+	(twittering-start-http-session-generic): new function.
+	(twittering-start-http-session-curl): removed. The function is
+	replaced with the combination of
+	`twittering-start-http-session-generic' and
+	`twittering-send-http-request-curl'.
+
 2010-09-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Add an edited tweet into the history without

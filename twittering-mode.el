@@ -326,7 +326,8 @@ If nil, this is initialized with a list of valied entries extracted from
 	    (pre-process-buffer . twittering-pre-process-buffer-native))
     (curl (check . twittering-start-http-session-curl-p)
 	  (https . twittering-start-http-session-curl-https-p)
-	  (start . twittering-start-http-session-curl)
+	  (start . twittering-start-http-session-generic)
+	  (start-process . twittering-send-http-request-curl)
 	  (oauth-get-token . curl)
 	  (pre-process-buffer . twittering-pre-process-buffer-curl)))
   "A list of alist of connection methods.")
@@ -781,7 +782,8 @@ SCHEME must be \"http\" or \"https\"."
 
 (defvar twittering-oauth-get-token-function-table
   '((native . twittering-oauth-get-token-alist-native)
-    (curl . twittering-oauth-get-token-alist-curl)
+    (curl . (twittering-send-http-request-curl
+	     . twittering-pre-process-buffer-curl))
     (url . twittering-oauth-get-token-alist-url))
   "Alist of functions used for getting a token on OAuth.")
 
@@ -1256,119 +1258,96 @@ function."
 	      (sit-for 0.1))
 	    result))))))
 
-(defun twittering-oauth-get-token-alist-curl (url auth-str post-body)
+(defun twittering-oauth-get-token-alist-generic (url auth-str post-body start-func pre-process-func)
   (let* ((parts-alist
 	  (let ((parsed-url (url-generic-parse-url url)))
 	    (cond
 	     ((and (fboundp 'url-p) (url-p parsed-url))
-	      `((scheme . ,(url-type parsed-url))))
+	      `((scheme . ,(url-type parsed-url))
+		(host . ,(url-host parsed-url))))
 	     ((vectorp parsed-url)
-	      `((scheme . ,(aref parsed-url 0))))
+	      `((scheme . ,(aref parsed-url 0))
+		(host . ,(aref parsed-url 3))))
 	     (t
 	      nil))))
 	 (scheme (cdr (assq 'scheme parts-alist)))
+	 (host (cdr (assq 'host parts-alist)))
 	 (headers
 	  `(("Authorization" . ,auth-str)
 	    ("Accept-Charset" . "us-ascii")
 	    ("Content-Type" . "application/x-www-form-urlencoded")
 	    ("Content-Length" . ,(format "%d" (length post-body)))
-	    ))
-	 (cacert-fullpath (when twittering-oauth-use-ssl
-			    (twittering-ensure-ca-cert)))
-	 (cacert-dir (when cacert-fullpath
-		       (file-name-directory cacert-fullpath)))
-	 (cacert-filename (when cacert-fullpath
-			    (file-name-nondirectory cacert-fullpath)))
-	 (curl-args
-	  `("--include" "--silent"
-	    ,@(apply 'append
-		     (mapcar
-		      (lambda (pair)
-			`("-H" ,(format "%s: %s" (car pair) (cdr pair))))
-		      headers))
-	    ,@(when twittering-oauth-use-ssl
-		`("--cacert" ,cacert-filename))
-	    ,@(when (and twittering-oauth-use-ssl
-			 twittering-allow-insecure-server-cert)
-		`("--insecure"))
+	    ("Host" . ,host)))
+	 (connection-info
+	  `((use-ssl . ,twittering-oauth-use-ssl)
+	    (allow-insecure-server-cert
+	     . ,twittering-allow-insecure-server-cert)
+	    (cacert-fullpath
+	     . ,(when twittering-oauth-use-ssl (twittering-ensure-ca-cert)))
+	    (use-proxy . ,twittering-proxy-use)
 	    ,@(when twittering-proxy-use
-		(let* ((host (twittering-proxy-info scheme 'server))
-		       (port (twittering-proxy-info scheme 'port)))
-		  (when (and host port)
-		    `("-x" ,(format "%s:%s" host port)))))
-	    ,@(when twittering-proxy-use
-		(let ((pair
-		       (cond
-			((string= scheme "https")
-			 `(,twittering-https-proxy-user
-			   . ,twittering-https-proxy-password))
-			((string= scheme "http")
-			 `(,twittering-http-proxy-user
-			   . ,twittering-http-proxy-password))
-			(t
-			 nil))))
-		  (when (and pair (car pair) (cdr pair))
-		    `("-U" ,(format "%s:%s" (car pair) (cdr pair))))))
-	    ;; HTTP method must be POST for getting a request token.
-	    "-d" ,(or post-body "")
-	    ,url)))
+		`((proxy-server . ,(twittering-proxy-info scheme 'server))
+		  (proxy-port . ,(twittering-proxy-info scheme 'port))
+		  (proxy-user . ,(if (string= "http" scheme)
+				     twittering-http-proxy-user
+				   twittering-https-proxy-user))
+		  (proxy-password . ,(if (string= "http" scheme)
+					 twittering-http-proxy-password
+				       twittering-https-proxy-password))))
+	    )))
     (with-temp-buffer
-      (let* ((coding-system-for-read 'utf-8-unix)
-	     (default-directory
-	       ;; If `twittering-oauth-use-ssl' is non-nil, the `curl' process
-	       ;; is executed at the same directory as the temporary cert file.
-	       ;; Without changing directory, `curl' misses the cert file if
-	       ;; you use Emacs on Cygwin because the path on Emacs differs
-	       ;; from Windows.
-	       ;; With changing directory, `curl' on Windows can find the cert
-	       ;; file if you use Emacs on Cygwin.
-	       (if twittering-oauth-use-ssl
-		   cacert-dir
-		 default-directory))
-	     (connection-info `((use-ssl . ,twittering-oauth-use-ssl)
-				(use-proxy . ,(member "-U" curl-args))))
-	     (proc (apply 'start-process "*twmode-curl*" (current-buffer)
-			  twittering-curl-program curl-args)))
-	(when proc
-	  (lexical-let ((result 'queried)
-			(connection-info connection-info))
-	    (set-process-sentinel
-	     proc
-	     (lambda (&rest args)
-	       (let* ((proc (car args))
-		      (buffer (process-buffer proc))
-		      (status (process-status proc))
-		      (exit-status (process-exit-status proc)))
-		 (debug-printf "proc=%s stat=%s exit-status=%s"
-			       proc status exit-status)
-		 (cond
-		  ((not (memq status '(nil closed exit failed signal)))
-		   ;; continue
-		   )
-		  ((and (process-command proc)
-			(not (= 0 exit-status)))
-		   (message "%s exited abnormally (exit-status=%s)."
-			    (car (process-command proc)) exit-status)
-		   (setq result nil))
-		  ((buffer-live-p buffer)
-		   (when twittering-debug-mode
-		     (with-current-buffer (twittering-debug-buffer)
-		       (insert-buffer-substring buffer)))
-		   (twittering-pre-process-buffer-curl
-		    proc buffer connection-info)
-		   (setq result
-			 (twittering-oauth-get-response-alist buffer)))
-		  (t
-		   (setq result nil))))))
-	    (while (eq result 'queried)
-	      (sit-for 0.1))
-	    result))))))
+      (lexical-let ((result 'queried)
+		    (connection-info connection-info)
+		    (pre-process-func pre-process-func))
+	(funcall start-func
+		 "*twmode-generic*" (current-buffer)
+		 (lambda (&rest args)
+		   (let* ((proc (car args))
+			  (buffer (process-buffer proc))
+			  (status (process-status proc))
+			  (exit-status (process-exit-status proc)))
+		     (debug-printf "proc=%s stat=%s exit-status=%s"
+				   proc status exit-status)
+		     (cond
+		      ((not (memq status '(nil closed exit failed signal)))
+		       ;; continue
+		       )
+		      ((and (process-command proc)
+			    (not (= 0 exit-status)))
+		       (message "%s exited abnormally (exit-status=%s)."
+				(car (process-command proc)) exit-status)
+		       (setq result nil))
+		      ((buffer-live-p buffer)
+		       (when twittering-debug-mode
+			 (with-current-buffer (twittering-debug-buffer)
+			   (insert-buffer-substring buffer)))
+		       (when (functionp pre-process-func)
+			 (funcall pre-process-func
+				  proc buffer connection-info))
+		       (setq result
+			     (twittering-oauth-get-response-alist buffer)))
+		      (t
+		       (setq result nil)))))
+		 "POST" scheme url headers
+		 connection-info post-body)
+	(while (eq result 'queried)
+	  (sit-for 0.1))
+	result))))
 
 (defun twittering-oauth-get-token-alist (url auth-str &optional post-body)
-  (let ((func (cdr (assq twittering-oauth-get-token-function-type
-			 twittering-oauth-get-token-function-table))))
-    (when (and func (functionp func))
-      (funcall func url auth-str post-body))))
+  (let ((entry (cdr (assq twittering-oauth-get-token-function-type
+			  twittering-oauth-get-token-function-table))))
+    (cond
+     ((null entry)
+      nil)
+     ((functionp entry)
+      (funcall entry url auth-str post-body))
+     ((and (consp entry) (functionp (car entry))
+	   (or (functionp (cdr entry)) (null (cdr entry))))
+      (twittering-oauth-get-token-alist-generic
+       url auth-str post-body (car entry) (cdr entry)))
+     (t
+      nil))))
 
 (defun twittering-oauth-get-request-token (url consumer-key consumer-secret)
   (let ((auth-str
@@ -4018,6 +3997,62 @@ The retrieved data can be referred as (gethash url twittering-url-data-hash)."
 		'incapable))))
     (eq twittering-curl-program-https-capability 'capable)))
 
+(defun twittering-send-http-request-curl (name buffer sentinel method scheme url headers connection-info post-body)
+  (let* ((use-proxy (cdr (assq 'use-proxy connection-info)))
+	 (proxy-server (cdr (assq 'proxy-server connection-info)))
+	 (proxy-port (cdr (assq 'proxy-port connection-info)))
+	 (proxy-user (cdr (assq 'proxy-user connection-info)))
+	 (proxy-password (cdr (assq 'proxy-password connection-info)))
+	 (use-ssl (cdr (assq 'use-ssl connection-info)))
+	 (allow-insecure-server-cert
+	  (cdr (assq 'allow-insecure-server-cert connection-info)))
+	 (cacert-fullpath (cdr (assq 'cacert-fullpath connection-info)))
+	 (cacert-dir (when cacert-fullpath
+		       (file-name-directory cacert-fullpath)))
+	 (cacert-filename (when cacert-fullpath
+			    (file-name-nondirectory cacert-fullpath)))
+	 (curl-args
+	  `("--include" "--silent"
+	    ,@(apply 'append
+		     (mapcar
+		      (lambda (pair)
+			;; Do not overwrite internal headers `curl' would use.
+			;; Thanks to William Xu.
+			;; "cURL - How To Use"
+			;; http://curl.haxx.se/docs/manpage.html
+			(unless (string= (car pair) "Host")
+			  `("-H" ,(format "%s: %s" (car pair) (cdr pair)))))
+		      headers))
+	    ,@(when use-ssl `("--cacert" ,cacert-filename))
+	    ,@(when (and use-ssl allow-insecure-server-cert)
+		`("--insecure"))
+	    ,@(when (and use-proxy proxy-server proxy-port)
+		(append
+		 `("-x" ,(format "%s:%s" proxy-server proxy-port))
+		 (when (and proxy-user proxy-password)
+		   `("-U" ,(format "%s:%s" proxy-user proxy-password)))))
+	    ,@(when (string= "POST" method)
+		`("-d" ,(or post-body "")))
+	    ,url))
+	 (coding-system-for-read 'binary)
+	 (coding-system-for-write 'binary)
+	 (default-directory
+	   ;; If `use-ssl' is non-nil, the `curl' process
+	   ;; is executed at the same directory as the temporary cert file.
+	   ;; Without changing directory, `curl' misses the cert file if
+	   ;; you use Emacs on Cygwin because the path on Emacs differs
+	   ;; from Windows.
+	   ;; With changing directory, `curl' on Windows can find the cert
+	   ;; file if you use Emacs on Cygwin.
+	   (if use-ssl
+	       cacert-dir
+	     default-directory))
+	 (proc (apply 'start-process name buffer
+		      twittering-curl-program curl-args)))
+    (when (and proc (functionp sentinel))
+      (set-process-sentinel proc sentinel))
+    proc))
+
 (defun twittering-pre-process-buffer-curl (proc buffer connection-info)
   (let ((use-ssl (cdr (assq 'use-ssl connection-info)))
 	(use-proxy (cdr (assq 'use-proxy connection-info))))
@@ -4130,10 +4165,27 @@ CLEAN-UP-SENTINEL: sentinel always executed."
 		twittering-connection-type-order
 		twittering-connection-type-table))
 	 (entry (twittering-lookup-connection-type twittering-use-ssl))
-	 (connection-info `((use-ssl . ,twittering-use-ssl)
-			    (use-proxy . ,twittering-proxy-use)
-			    (noninteractive . ,noninteractive)
-			    ,@entry)))
+	 (request (twittering-make-http-request
+		   method headers host port path parameters))
+	 (scheme (funcall request :schema))
+	 (connection-info
+	  `((use-ssl . ,twittering-use-ssl)
+	    (allow-insecure-server-cert
+	     . ,twittering-allow-insecure-server-cert)
+	    (cacert-fullpath
+	     . ,(when twittering-use-ssl (twittering-ensure-ca-cert)))
+	    (use-proxy . ,twittering-proxy-use)
+	    ,@(when twittering-proxy-use
+		`((proxy-server . ,(twittering-proxy-info scheme 'server))
+		  (proxy-port . ,(twittering-proxy-info scheme 'port))
+		  (proxy-user . ,(if (string= "http" scheme)
+				     twittering-http-proxy-user
+				   twittering-https-proxy-user))
+		  (proxy-password . ,(if (string= "http" scheme)
+					 twittering-http-proxy-password
+				       twittering-https-proxy-password))))
+	    (noninteractive . ,noninteractive)
+	    ,@entry)))
     (if (and func (fboundp func))
 	(funcall func method headers host port path parameters
 		 connection-info sentinel clean-up-sentinel)
@@ -4180,101 +4232,30 @@ A4GBAFjOKer89961zgK5F7WF0bnj4JXMJTENAKaSbn+2kmOeUJXRmm/kEd5jhW6Y
       (add-hook 'kill-emacs-hook 'twittering-delete-ca-cert-file)
       (setq twittering-cert-file file-name))))
 
-(defun twittering-start-http-session-curl (method headers host port path parameters &optional connection-info sentinel clean-up-sentinel)
+(defun twittering-start-http-session-generic (method headers host port path parameters &optional connection-info sentinel clean-up-sentinel)
   ;; TODO: use curl
   (let* ((request (twittering-make-http-request
 		   method headers host port path parameters))
 	 (temp-buffer (generate-new-buffer "*twmode-http-buffer*"))
+	 (scheme (funcall request :schema))
+	 (url
+	  (concat (funcall request :uri)
+		  (when parameters
+		    (concat "?" (funcall request :query-string)))))
 	 (headers (if (assoc "Expect" headers)
 		      headers
 		    (cons '("Expect" . "") headers)))
-	 (cacert-fullpath (when twittering-use-ssl
-			    (twittering-ensure-ca-cert)))
-	 (cacert-dir (when cacert-fullpath
-		       (file-name-directory cacert-fullpath)))
-	 (cacert-filename (when cacert-fullpath
-			    (file-name-nondirectory cacert-fullpath)))
-	 (default-directory
-	   ;; If `twittering-use-ssl' is non-nil, the `curl' process
-	   ;; is executed at the same directory as the temporary cert file.
-	   ;; Without changing directory, `curl' misses the cert file if
-	   ;; you use Emacs on Cygwin because the path on Emacs differs
-	   ;; from Windows.
-	   ;; With changing directory, `curl' on Windows can find the cert
-	   ;; file if you use Emacs on Cygwin.
-	   (if twittering-use-ssl
-	       cacert-dir
-	     default-directory))
-	 (curl-args
-	  `("--include" "--silent"
-	    ,@(apply 'append
-		     (mapcar
-		      (lambda (pair)
-			;; Do not overwrite internal headers `curl' would use.
-			;; Thanks to William Xu.
-			;; "cURL - How To Use"
-			;; http://curl.haxx.se/docs/manpage.html
-			(unless (string= (car pair) "Host")
-			  `("-H" ,(format "%s: %s" (car pair) (cdr pair)))))
-		      headers))
-	    ,@(when twittering-use-ssl
-		`("--cacert" ,cacert-filename))
-	    ,@(when (and twittering-use-ssl
-			 twittering-allow-insecure-server-cert)
-		`("--insecure"))
-	    ,@(when twittering-proxy-use
-		(let* ((scheme (funcall request :schema))
-		       (host (twittering-proxy-info scheme 'server))
-		       (port (twittering-proxy-info scheme 'port)))
-		  (when (and host port)
-		    `("-x" ,(format "%s:%s" host port)))))
-	    ,@(when twittering-proxy-use
-		(let ((pair
-		       (cdr (assoc
-			     (funcall request :schema)
-			     `(("http" .
-				(,twittering-http-proxy-user
-				 . ,twittering-http-proxy-password))
-			       ("https" .
-				(,twittering-https-proxy-user
-				 . ,twittering-https-proxy-password)))))))
-		  (when (and pair (car pair) (cdr pair))
-		    `("-U" ,(format "%s:%s" (car pair) (cdr pair))))))
-	    ,@(when (string= "POST" method)
-		(cond
-		 (parameters
-		  (apply 'append
-			 (mapcar
-			  (lambda (pair)
-			    (list
-			     "-d"
-			     (format "%s=%s"
-				     (twittering-percent-encode (car pair))
-				     (twittering-percent-encode (cdr pair)))))
-			  parameters)))
-		 (t '("-d" ""))))
-	    ,(concat (funcall request :uri)
-		     (when parameters
-		       (concat "?" (funcall request :query-string))))))
-	 (coding-system-for-read 'utf-8-unix))
-    (debug-print curl-args)
+	 (post-body "")
+	 (start-func (cdr (assq 'start-process connection-info))))
     (lexical-let ((connection-info connection-info)
 		  (clean-up-sentinel clean-up-sentinel)
 		  (sentinel sentinel))
-      (let ((curl-process
-	     (apply 'start-process
-		    "*twmode-curl*"
-		    temp-buffer
-		    twittering-curl-program
-		    curl-args)))
-	(when curl-process
-	  (set-process-sentinel
-	   curl-process
-	   (lambda (&rest args)
-	     (apply #'twittering-http-default-sentinel
-		    sentinel connection-info clean-up-sentinel args))))
-	curl-process)))
-  )
+      (funcall start-func "*twmode-generic*" temp-buffer
+	       (lambda (&rest args)
+		 (apply #'twittering-http-default-sentinel
+			sentinel connection-info clean-up-sentinel args))
+	       method scheme url headers
+	       connection-info post-body))))
 
 (defun twittering-start-http-session-native-tls-p ()
   (when (require 'tls nil t)

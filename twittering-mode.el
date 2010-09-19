@@ -307,6 +307,10 @@ DO NOT SET VALUE MANUALLY.")
   "Cache a result of `twittering-start-http-session-curl-https-p'.
 DO NOT SET VALUE MANUALLY.")
 
+(defvar twittering-wget-program nil
+  "Cache a result of `twittering-find-wget-program'.
+DO NOT SET VALUE MANUALLY.")
+
 (defvar twittering-tls-program nil
   "*List of strings containing commands to start TLS stream to a host.
 Each entry in the list is tried until a connection is successful.
@@ -315,7 +319,7 @@ Also see `tls-program'.
 If nil, this is initialized with a list of valied entries extracted from
 `tls-program'.")
 
-(defvar twittering-connection-type-order '(curl native))
+(defvar twittering-connection-type-order '(curl wget native))
   "*A list of connection methods in the preferred order."
 
 (defvar twittering-connection-type-table
@@ -328,7 +332,12 @@ If nil, this is initialized with a list of valied entries extracted from
 	  (https . twittering-start-http-session-curl-https-p)
 	  (send-http-request . twittering-send-http-request-curl)
 	  (oauth-get-token . curl)
-	  (pre-process-buffer . twittering-pre-process-buffer-curl)))
+	  (pre-process-buffer . twittering-pre-process-buffer-curl))
+    (wget (check . twittering-start-http-session-wget-p)
+	  (https . t)
+	  (send-http-request . twittering-send-http-request-wget)
+	  (oauth-get-token . wget)
+	  (pre-process-buffer . twittering-pre-process-buffer-wget)))
   "A list of alist of connection methods.")
 
 (defvar twittering-format-status-function-source ""
@@ -784,7 +793,9 @@ SCHEME must be \"http\" or \"https\"."
 	       . twittering-pre-process-buffer-native))
     (curl . (twittering-send-http-request-curl
 	     . twittering-pre-process-buffer-curl))
-    (url . twittering-oauth-get-token-alist-url))
+    (url . twittering-oauth-get-token-alist-url)
+    (wget . (twittering-send-http-request-wget
+	     . twittering-pre-process-buffer-wget)))
   "Alist of functions used for getting a token on OAuth.")
 
 (defvar twittering-oauth-get-token-function-type 'curl
@@ -3858,7 +3869,7 @@ The retrieved data can be referred as (gethash url twittering-url-data-hash)."
   (twittering-resolve-url-request))
 
 ;;;
-;;; Basic HTTP functions
+;;; Basic HTTP functions (for curl)
 ;;;
 
 (defun twittering-find-curl-program ()
@@ -3981,6 +3992,104 @@ The retrieved data can be referred as (gethash url twittering-url-data-hash)."
 	      (let ((beg (point-min))
 		    (end (match-end 1)))
 		(delete-region beg end)))))))))
+
+;;;
+;;; Basic HTTP functions (for wget)
+;;;
+
+(defun twittering-find-wget-program ()
+  "Returns an appropriate `wget' program pathname or nil if not found."
+  (executable-find "wget"))
+
+(defun twittering-start-http-session-wget-p ()
+  "Return t if `wget' was installed, otherwise nil."
+  (unless twittering-wget-program
+    (setq twittering-wget-program (twittering-find-wget-program)))
+  (not (null twittering-wget-program)))
+
+(defun twittering-send-http-request-wget (name buffer sentinel method scheme url headers connection-info post-body)
+  (let* ((use-proxy (cdr (assq 'use-proxy connection-info)))
+	 (proxy-server (cdr (assq 'proxy-server connection-info)))
+	 (proxy-port (cdr (assq 'proxy-port connection-info)))
+	 (proxy-user (cdr (assq 'proxy-user connection-info)))
+	 (proxy-password (cdr (assq 'proxy-password connection-info)))
+	 (use-ssl (cdr (assq 'use-ssl connection-info)))
+	 (allow-insecure-server-cert
+	  (cdr (assq 'allow-insecure-server-cert connection-info)))
+	 (cacert-fullpath (cdr (assq 'cacert-fullpath connection-info)))
+	 (cacert-dir (when cacert-fullpath
+		       (file-name-directory cacert-fullpath)))
+	 (cacert-filename (when cacert-fullpath
+			    (file-name-nondirectory cacert-fullpath)))
+	 (args
+	  `("--save-headers"
+	    "--quiet"
+	    "--output-document=-"
+	    ,@(remove nil
+		      (mapcar
+		       (lambda (pair)
+			 (unless (string= (car pair) "Host")
+			   (format "--header=%s: %s" (car pair) (cdr pair))))
+		       headers))
+	    ,@(when use-ssl
+		`(,(format "--ca-certificate=%s" cacert-filename)))
+	    ,@(when (and use-ssl allow-insecure-server-cert)
+		`("--no-check-certificate"))
+	    ,@(cond
+	       ((not use-proxy)
+		'("--no-proxy"))
+	       ((and use-proxy proxy-server proxy-port
+		     proxy-user proxy-password)
+		`(,(format "--proxy-user=%s" proxy-user)
+		  ,(format "--proxy-password=%s" proxy-password)))
+	       (t
+		nil))
+	    ,@(when (string= "POST" method)
+		`(,(concat "--post-data=" (or post-body ""))))
+	    ,url))
+	 (coding-system-for-read 'binary)
+	 (coding-system-for-write 'binary)
+	 (default-directory
+	   ;; If `use-ssl' is non-nil, the `wget' process
+	   ;; is executed at the same directory as the temporary cert file.
+	   ;; Without changing directory, `wget' misses the cert file if
+	   ;; you use Emacs on Cygwin because the path on Emacs differs
+	   ;; from Windows.
+	   ;; With changing directory, `wget' on Windows can find the cert
+	   ;; file if you use Emacs on Cygwin.
+	   (if use-ssl
+	       cacert-dir
+	     default-directory))
+	 (process-environment
+	  `(,@(when (and use-proxy proxy-server proxy-port)
+		`(,(format "%s_proxy=%s://%s:%s/" scheme
+			   scheme proxy-server proxy-port)))
+	    ,@process-environment))
+	 (proc
+	  (apply 'start-process name buffer twittering-wget-program args)))
+    (when (and proc (functionp sentinel))
+      (set-process-sentinel proc sentinel))
+    proc))
+
+(defun twittering-pre-process-buffer-wget (proc buffer connection-info)
+  (with-current-buffer buffer
+    (save-excursion
+      (goto-char (point-min))
+      (when (search-forward-regexp "\\`[^\n]*?\r\r\n" (point-max) t)
+	;; When `wget.exe' writes HTTP response in text mode,
+	;; CRLF may be converted into CRCRLF.
+	(goto-char (point-min))
+	(while (search-forward "\r\n" nil t)
+	  (replace-match "\n" nil t)))
+      (goto-char (point-max))
+      (when (search-backward-regexp "\nProcess [^\n]* finished\n\\'"
+				    (point-min) t)
+	(replace-match "" nil t))
+      )))
+
+;;;
+;;; Basic HTTP functions (general)
+;;;
 
 (defun twittering-lookup-connection-type (use-ssl &optional order table)
   "Return available entry extracted fron connection type table.

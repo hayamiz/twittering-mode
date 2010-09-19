@@ -65,6 +65,11 @@
   (setq twittering-web-path-prefix "")
 * Copy tweets by "C-<mouse-3>".
   Thanks to Faried Nawaz.
+* Support for `wget'.
+  The external program `wget' can be used for communicating with Twitter
+  as well as `curl'. You can give priority to `wget' by the below
+  configuration.
+  (setq twittering-connection-type-order '(wget curl native))
 * ...
 
 ### Bug fixes

@@ -79,6 +79,17 @@
 	`ftwittering-oauth-get-token-alist-generic'.
 	(twittering-oauth-get-token-alist-generic): removed.
 
+	* twittering-mode.el: Add new connection method `wget'.
+	(twittering-wget-program): new variable.
+	(twittering-connection-type-order): add an entry for `wget'.
+	(twittering-connection-type-table): add entries for
+	new connection-method `wget'.
+	(twittering-oauth-get-token-function-table): likewise.
+	(twittering-find-wget-program): new function.
+	(twittering-start-http-session-wget-p): new function.
+	(twittering-send-http-request-wget): new function.
+	(twittering-pre-process-buffer-wget): new function.
+
 2010-09-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Add an edited tweet into the history without

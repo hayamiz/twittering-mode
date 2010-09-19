@@ -117,6 +117,8 @@ The upper limit is `twittering-max-number-of-tweets-on-retrieval'.")
   "Alist of tinyfy services.")
 
 (defvar twittering-mode-map (make-sparse-keymap))
+(defvar twittering-mode-menu-on-uri-map (make-sparse-keymap "Twittering Mode"))
+(defvar twittering-mode-on-uri-map (make-sparse-keymap))
 
 (defvar twittering-tweet-history nil)
 (defvar twittering-user-history nil)
@@ -3507,6 +3509,8 @@ authorized -- The account has been authorized.")
       (define-key km (kbd "C-m") 'twittering-enter)
       (define-key km (kbd "C-c C-l") 'twittering-update-lambda)
       (define-key km (kbd "<mouse-1>") 'twittering-click)
+      (define-key km (kbd "C-<down-mouse-3>") 'mouse-set-point)
+      (define-key km (kbd "C-<mouse-3>") 'twittering-push-tweet-onto-kill-ring)
       (define-key km (kbd "C-c C-v") 'twittering-view-user-page)
       (define-key km (kbd "C-c D") 'twittering-delete-status)
       (define-key km (kbd "a") 'twittering-toggle-activate-buffer)
@@ -3547,6 +3551,16 @@ authorized -- The account has been authorized.")
       (define-key km (kbd "q") 'twittering-kill-buffer)
       (define-key km (kbd "C-c C-q") 'twittering-search)
       nil))
+
+(let ((km twittering-mode-menu-on-uri-map))
+  (when km
+    (define-key km [ct] '("Copy tweet" . twittering-push-tweet-onto-kill-ring))
+    (define-key km [cl] '("Copy link" . twittering-push-uri-onto-kill-ring))
+    (define-key km [ll] '("Load link" . twittering-click))
+    (let ((km-on-uri twittering-mode-on-uri-map))
+      (when km-on-uri
+	(define-key km-on-uri (kbd "C-<down-mouse-3>") 'mouse-set-point)
+	(define-key km-on-uri (kbd "C-<mouse-3>") km)))))
 
 (defun twittering-keybind-message ()
   (let ((important-commands
@@ -4933,6 +4947,7 @@ BUFFER may be a buffer or the name of an existing buffer."
       (add-text-properties
        0 (length user-name)
        `(mouse-face highlight
+		    keymap ,twittering-mode-on-uri-map
 		    uri ,(twittering-get-status-url user-screen-name)
 		    screen-name-in-text ,user-screen-name
 		    goto-spec ,(twittering-string-to-timeline-spec
@@ -4944,6 +4959,7 @@ BUFFER may be a buffer or the name of an existing buffer."
       (add-text-properties
        0 (length user-screen-name)
        `(mouse-face highlight
+		    keymap ,twittering-mode-on-uri-map
 		    uri ,(twittering-get-status-url user-screen-name)
 		    screen-name-in-text ,user-screen-name
 		    goto-spec ,(twittering-string-to-timeline-spec
@@ -4982,6 +4998,7 @@ BUFFER may be a buffer or the name of an existing buffer."
 			 (setq prop
 			       `(mouse-face
 				 highlight
+				 keymap ,twittering-mode-on-uri-map
 				 uri ,url goto-spec ,spec
 				 face twittering-username-face))))
 		      (listname
@@ -4989,6 +5006,7 @@ BUFFER may be a buffer or the name of an existing buffer."
 			     end (match-end 2)
 			     prop `(mouse-face
 				    highlight
+				    keymap ,twittering-mode-on-uri-map
 				    uri ,(twittering-get-status-url listname)
 				    goto-spec
 				    ,(twittering-string-to-timeline-spec
@@ -4999,6 +5017,7 @@ BUFFER may be a buffer or the name of an existing buffer."
 			     end (match-end 3)
 			     prop `(mouse-face
 				    highlight
+				    keymap ,twittering-mode-on-uri-map
 				    uri ,(twittering-get-status-url
 					  screenname)
 				    screen-name-in-text ,screenname
@@ -5011,6 +5030,7 @@ BUFFER may be a buffer or the name of an existing buffer."
 			     end (match-end 4)
 			     prop `(mouse-face
 				    highlight
+				    keymap ,twittering-mode-on-uri-map
 				    uri ,uri
 				    face twittering-uri-face)))
 		      (t
@@ -5028,6 +5048,7 @@ BUFFER may be a buffer or the name of an existing buffer."
 	  (add-text-properties
 	   0 (length source)
 	   `(mouse-face highlight
+			keymap ,twittering-mode-on-uri-map
 			uri ,uri
 			face twittering-uri-face
 			source ,source)
@@ -5534,6 +5555,7 @@ following symbols;
 	      (url (cdr pair))
 	      (properties
 	       (list 'mouse-face 'highlight 'face 'twittering-uri-face
+		     'keymap twittering-mode-on-uri-map
 		     'uri url)))
 	 (when (and str url)
 	   (concat " " (apply 'propertize str properties))))))
@@ -5574,6 +5596,7 @@ following symbols;
 			 (cdr (assq 'id ,status-sym)))))
 		   (properties
 		    (list 'mouse-face 'highlight 'face 'twittering-uri-face
+			  'keymap twittering-mode-on-uri-map
 			  'uri url)))
 	      (twittering-make-passed-time-string
 	       nil nil created-at ,time-format properties))
@@ -6635,6 +6658,24 @@ this function does nothing."
       (kill-new uri)
       (message "Copied %s" uri)
       uri))))
+
+(defun twittering-push-tweet-onto-kill-ring ()
+  "Copy the tweet (format: \"username: text\") to the kill-ring."
+  (interactive)
+  (let* ((username (get-text-property (point) 'username))
+	 (text (get-text-property (point) 'text))
+	 (copy (if (and username text)
+		   (format "%s: %s" username text)
+		 nil)))
+    (cond
+     ((null copy)
+      nil)
+     ((and kill-ring (string= copy (current-kill 0 t)))
+      (message "Already copied %s" copy))
+     (t
+      (kill-new copy)
+      (message "Copied %s" copy)
+      copy))))
 
 (defun twittering-suspend ()
   "Suspend twittering-mode then switch to another buffer."

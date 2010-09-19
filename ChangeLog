@@ -4,6 +4,19 @@
 	(twittering-push-uri-onto-kill-ring): confirm that `kill-ring' is
 	non-nil before calling `current-kill'.
 
+	* twittering-mode.el: Copy tweets by "C-<mouse-3>".
+	Thanks to Faried Nawaz.
+	(twittering-mode-menu-on-uri-map): new keymap for menu on URI.
+	(twittering-mode-on-uri-map): new keymap used on URI.
+	(twittering-mode-map): bind "C-<down-mouse-3>" to
+	`mouse-set-point' to move the point and bind "C-<mouse-3>" to
+	`twittering-push-tweet-onto-kill-ring'.
+	(twittering-make-clickable-status-datum): embed new keymap
+	`twittering-mode-on-uri-map' in texts that have `uri' property.
+	(twittering-generate-format-table): likewise.
+	(twittering-generate-formater-for-first-spec): likewise.
+	(twittering-push-tweet-onto-kill-ring): new function.
+
 2010-09-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Add an edited tweet into the history without

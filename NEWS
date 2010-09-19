@@ -63,6 +63,8 @@
   (setq twittering-api-prefix "api/")
   (setq twittering-search-api-method "api/search")
   (setq twittering-web-path-prefix "")
+* Copy tweets by "C-<mouse-3>".
+  Thanks to Faried Nawaz.
 * ...
 
 ### Bug fixes

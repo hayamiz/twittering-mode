@@ -73,6 +73,12 @@
 	(twittering-send-http-request-curl): add the field "Expect".
 	(twittering-start-http-session): remove the field "Expect".
 
+	* twittering-mode.el: Integrate generic function into
+	`twittering-oauth-get-token-alist'.
+	(twittering-oauth-get-token-alist): unified with
+	`ftwittering-oauth-get-token-alist-generic'.
+	(twittering-oauth-get-token-alist-generic): removed.
+
 2010-09-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Add an edited tweet into the history without

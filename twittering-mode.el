@@ -1167,8 +1167,12 @@ function."
 	  (kill-buffer buffer))
 	result))))
 
-(defun twittering-oauth-get-token-alist-generic (url auth-str post-body start-func pre-process-func)
-  (let* ((parts-alist
+(defun twittering-oauth-get-token-alist (url auth-str &optional post-body)
+  (let* ((entry (cdr (assq twittering-oauth-get-token-function-type
+			   twittering-oauth-get-token-function-table)))
+	 (start-func (car entry))
+	 (pre-process-func (cdr entry))
+	 (parts-alist
 	  (let ((parsed-url (url-generic-parse-url url)))
 	    (cond
 	     ((and (fboundp 'url-p) (url-p parsed-url))
@@ -1242,21 +1246,6 @@ function."
 	(while (eq result 'queried)
 	  (sit-for 0.1))
 	result))))
-
-(defun twittering-oauth-get-token-alist (url auth-str &optional post-body)
-  (let ((entry (cdr (assq twittering-oauth-get-token-function-type
-			  twittering-oauth-get-token-function-table))))
-    (cond
-     ((null entry)
-      nil)
-     ((functionp entry)
-      (funcall entry url auth-str post-body))
-     ((and (consp entry) (functionp (car entry))
-	   (or (functionp (cdr entry)) (null (cdr entry))))
-      (twittering-oauth-get-token-alist-generic
-       url auth-str post-body (car entry) (cdr entry)))
-     (t
-      nil))))
 
 (defun twittering-oauth-get-request-token (url consumer-key consumer-secret)
   (let ((auth-str

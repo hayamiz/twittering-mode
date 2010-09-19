@@ -114,6 +114,11 @@
 	(twittering-visit-timeline): ensure that an available connection
 	method is determined.
 
+	* twittering-mode.el: Add `twittering-make-connection-info'.
+	(twittering-make-connection-info): new function.
+	(twittering-send-http-request): new function.
+	(twittering-start-http-session): use new functions.
+
 2010-09-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Add an edited tweet into the history without

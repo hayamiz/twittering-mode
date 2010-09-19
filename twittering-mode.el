@@ -321,7 +321,8 @@ If nil, this is initialized with a list of valied entries extracted from
 (defvar twittering-connection-type-table
   '((native (check . t)
 	    (https . twittering-start-http-session-native-tls-p)
-	    (start . twittering-start-http-session-native)
+	    (start . twittering-start-http-session-generic)
+	    (start-process . twittering-send-http-request-native)
 	    (oauth-get-token . native)
 	    (pre-process-buffer . twittering-pre-process-buffer-native))
     (curl (check . twittering-start-http-session-curl-p)
@@ -781,7 +782,8 @@ SCHEME must be \"http\" or \"https\"."
 ;;;
 
 (defvar twittering-oauth-get-token-function-table
-  '((native . twittering-oauth-get-token-alist-native)
+  '((native . (twittering-send-http-request-native
+	       . twittering-pre-process-buffer-native))
     (curl . (twittering-send-http-request-curl
 	     . twittering-pre-process-buffer-curl))
     (url . twittering-oauth-get-token-alist-url))
@@ -1166,97 +1168,6 @@ function."
 	(unless twittering-debug-mode
 	  (kill-buffer buffer))
 	result))))
-
-(defun twittering-oauth-get-token-alist-native (url auth-str post-body)
-  (let* ((method "POST")
-	 (parts-alist
-	  (let ((parsed-url (url-generic-parse-url url)))
-	    (cond
-	     ((and (fboundp 'url-p) (url-p parsed-url))
-	      `((scheme . ,(url-type parsed-url))
-		(host . ,(url-host parsed-url))
-		(port . ,(url-portspec parsed-url))
-		(path . ,(url-filename parsed-url))))
-	     ((vectorp parsed-url)
-	      `((scheme . ,(aref parsed-url 0))
-		(host . ,(aref parsed-url 3))
-		(port . ,(aref parsed-url 4))
-		(path . ,(aref parsed-url 5))))
-	     (t
-	      nil))))
-	 (scheme (cdr (assq 'scheme parts-alist)))
-	 (host (cdr (assq 'host parts-alist)))
-	 (port (cdr (assq 'port parts-alist)))
-	 (path (cdr (assq 'path parts-alist)))
-	 (proxy-info
-	  (when twittering-proxy-use
-	    (twittering-proxy-info scheme)))
-	 (connect-host (if proxy-info
-			   (cdr (assq 'server proxy-info))
-			 host))
-	 (connect-port (if proxy-info
-			   (cdr (assq 'port proxy-info))
-			 port))
-	 (headers
-	  `(("Authorization" . ,auth-str)
-	    ("Accept-Charset" . "us-ascii")
-	    ("Content-Type" . "application/x-www-form-urlencoded")
-	    ("Content-Length" . ,(format "%d" (length post-body)))
-	    ("Host" . ,host)))
-	 (request-str
-	  (format "%s %s HTTP/1.1\r\n%s\r\n\r\n%s\r\n"
-		  method path
-		  (mapconcat (lambda (pair)
-			       (format "%s: %s" (car pair) (cdr pair)))
-			     headers "\r\n")
-		  (or post-body ""))))
-    (with-temp-buffer
-      (let* ((coding-system-for-read 'utf-8-unix)
-	     (connection-info `((use-ssl . ,twittering-oauth-use-ssl)
-				(use-proxy . ,proxy-info)))
-	     (tls-program twittering-tls-program)
-	     (proc
-	      (funcall (if twittering-oauth-use-ssl
-			   'open-tls-stream
-			 'open-network-stream)
-		       "network-connection-process"
-		       nil connect-host connect-port)))
-	(when proc
-	  (set-process-buffer proc (current-buffer))
-	  (lexical-let ((result 'queried)
-			(connection-info connection-info))
-	    (set-process-sentinel
-	     proc
-	     (lambda (&rest args)
-	       (let* ((proc (car args))
-		      (buffer (process-buffer proc))
-		      (status (process-status proc))
-		      (exit-status (process-exit-status proc)))
-		 (debug-printf "proc=%s stat=%s exit-status=%s"
-			       proc status exit-status)
-		 (cond
-		  ((not (memq status '(nil closed exit failed signal)))
-		   ;; continue
-		   )
-		  ((and (process-command proc)
-			(not (= 0 exit-status)))
-		   (message "%s exited abnormally (exit-status=%s)."
-			    (car (process-command proc)) exit-status)
-		   (setq result nil))
-		  ((buffer-live-p buffer)
-		   (when twittering-debug-mode
-		     (with-current-buffer (twittering-debug-buffer)
-		       (insert-buffer-substring buffer)))
-		   (twittering-pre-process-buffer-native proc buffer
-							 connection-info)
-		   (setq result
-			 (twittering-oauth-get-response-alist buffer)))
-		  (t
-		   (setq result nil))))))
-	    (process-send-string proc request-str)
-	    (while (eq result 'queried)
-	      (sit-for 0.1))
-	    result))))))
 
 (defun twittering-oauth-get-token-alist-generic (url auth-str post-body start-func pre-process-func)
   (let* ((parts-alist
@@ -4285,57 +4196,69 @@ A4GBAFjOKer89961zgK5F7WF0bnj4JXMJTENAKaSbn+2kmOeUJXRmm/kEd5jhW6Y
     (not (null twittering-tls-program))))
 
 ;; TODO: proxy
-(defun twittering-start-http-session-native (method headers host port path parameters &optional connection-info sentinel clean-up-sentinel)
-  (let ((request (twittering-make-http-request
-		  method headers host port path parameters))
-	(temp-buffer (generate-new-buffer "*twmode-http-buffer*")))
-    (flet ((request (key)
-		    (funcall request key)))
-      (let* ((request-str
-	      (format "%s %s%s HTTP/1.1\r\n%s\r\n\r\n"
-		      (request :method)
-		      (request :uri)
-		      (if parameters
-			  (concat "?" (request :query-string))
-			"")
-		      (request :headers-string)))
-	     (proxy-info
-	      (when twittering-proxy-use
-		(twittering-proxy-info (request :schema))))
-	     (server (if proxy-info
-			 (cdr (assq 'server proxy-info))
-		       (request :host)))
-	     (port (if proxy-info
-		       (cdr (assq 'port proxy-info))
-		     (request :port)))
-	     (coding-system-for-read 'utf-8-unix)
-	     (proc
-	      (cond
-	       (twittering-use-ssl
-		(let* ((tls-program twittering-tls-program)
-		       (proc
-			(open-tls-stream
-			 "network-connection-process" nil server port)))
-		  (when proc
-		    (set-process-buffer proc temp-buffer))
-		  proc))
-	       (t
-		(open-network-stream
-		 "network-connection-process" temp-buffer server port))))
-	     )
-	(when proc
-	  (lexical-let ((sentinel sentinel)
-			(clean-up-sentinel clean-up-sentinel)
-			(connection-info connection-info))
-	    (set-process-sentinel
-	     proc
-	     (lambda (&rest args)
-	       (apply #'twittering-http-default-sentinel
-		      sentinel connection-info clean-up-sentinel args))))
-	  (debug-print request-str)
-	  (process-send-string proc request-str))
-	proc)))
-  )
+(defun twittering-send-http-request-native (name buffer sentinel method scheme url headers connection-info post-body)
+  (let* ((use-proxy (cdr (assq 'use-proxy connection-info)))
+	 (proxy-server (cdr (assq 'proxy-server connection-info)))
+	 (proxy-port (cdr (assq 'proxy-port connection-info)))
+	 (proxy-user (cdr (assq 'proxy-user connection-info)))
+	 (proxy-password (cdr (assq 'proxy-password connection-info)))
+	 (use-ssl (cdr (assq 'use-ssl connection-info)))
+	 (allow-insecure-server-cert
+	  (cdr (assq 'allow-insecure-server-cert connection-info)))
+	 (cacert-fullpath (cdr (assq 'cacert-fullpath connection-info)))
+	 (cacert-dir (when cacert-fullpath
+		       (file-name-directory cacert-fullpath)))
+	 (cacert-filename (when cacert-fullpath
+			    (file-name-nondirectory cacert-fullpath)))
+	 (parts-alist
+	  (let ((parsed-url (url-generic-parse-url url)))
+	    (cond
+	     ((and (fboundp 'url-p) (url-p parsed-url))
+	      `((scheme . ,(url-type parsed-url))
+		(host . ,(url-host parsed-url))
+		(port . ,(url-portspec parsed-url))
+		(path . ,(url-filename parsed-url))))
+	     ((vectorp parsed-url)
+	      `((scheme . ,(aref parsed-url 0))
+		(host . ,(aref parsed-url 3))
+		(port . ,(aref parsed-url 4))
+		(path . ,(aref parsed-url 5))))
+	     (t
+	      nil))))
+	 (scheme (cdr (assq 'scheme parts-alist)))
+	 (host (cdr (assq 'host parts-alist)))
+	 (port (cdr (assq 'port parts-alist)))
+	 (path (cdr (assq 'path parts-alist)))
+	 (proxy-info
+	  (when twittering-proxy-use
+	    (twittering-proxy-info scheme)))
+	 (connect-host (if proxy-info
+			   (cdr (assq 'server proxy-info))
+			 host))
+	 (connect-port (if proxy-info
+			   (cdr (assq 'port proxy-info))
+			 port))
+	 (request-str
+	  (format "%s %s HTTP/1.1\r\n%s\r\n\r\n%s\r\n"
+		  method path
+		  (mapconcat (lambda (pair)
+			       (format "%s: %s" (car pair) (cdr pair)))
+			     headers "\r\n")
+		  (or post-body "")))
+	 (coding-system-for-read 'binary)
+	 (coding-system-for-write 'binary)
+	 (tls-program twittering-tls-program)
+	 (proc
+	  (funcall (if use-ssl
+		       'open-tls-stream
+		     'open-network-stream)
+		   "network-connection-process"
+		   nil connect-host connect-port)))
+    (when proc
+      (set-process-buffer proc buffer)
+      (set-process-sentinel proc sentinel)
+      (process-send-string proc request-str)
+      proc)))
 
 (defun twittering-pre-process-buffer-native (proc buffer connection-info)
   (let ((use-ssl (cdr (assq 'use-ssl connection-info)))

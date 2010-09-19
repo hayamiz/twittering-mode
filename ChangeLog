@@ -44,6 +44,20 @@
 	`twittering-start-http-session-generic' and
 	`twittering-send-http-request-curl'.
 
+	* twittering-mode.el: Introduce a function sending a HTTP request
+	with native functions.
+	(twittering-connection-type-table): use generic function for
+	connection-type `native'.
+	(twittering-oauth-get-token-function-table): likewise.
+	(twittering-oauth-get-token-alist-native): removed. The function
+	is replaced with the combination of
+	`twittering-oauth-get-token-alist-generic' and
+	`twittering-send-http-request-native'.
+	(twittering-start-http-session-native): removed. The function is
+	replaced with the combination of
+	`twittering-start-http-session-generic' and
+	`twittering-send-http-request-native'.
+
 2010-09-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Add an edited tweet into the history without

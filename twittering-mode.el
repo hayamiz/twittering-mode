@@ -1188,20 +1188,41 @@ function."
 	    (cond
 	     ((and (fboundp 'url-p) (url-p parsed-url))
 	      `((scheme . ,(url-type parsed-url))
-		(host . ,(url-host parsed-url))))
+		(host . ,(url-host parsed-url))
+		(port . ,(url-portspec parsed-url))
+		(path . ,(url-filename parsed-url))))
 	     ((vectorp parsed-url)
 	      `((scheme . ,(aref parsed-url 0))
-		(host . ,(aref parsed-url 3))))
+		(host . ,(aref parsed-url 3))
+		(port . ,(aref parsed-url 4))
+		(path . ,(aref parsed-url 5))))
 	     (t
 	      nil))))
 	 (scheme (cdr (assq 'scheme parts-alist)))
 	 (host (cdr (assq 'host parts-alist)))
-	 (headers
-	  `(("Authorization" . ,auth-str)
-	    ("Accept-Charset" . "us-ascii")
-	    ("Content-Type" . "application/x-www-form-urlencoded")
-	    ("Content-Length" . ,(format "%d" (length post-body)))
-	    ("Host" . ,host)))
+	 (path (let ((path (cdr (assq 'path parts-alist))))
+		 (if (string-match "\\`\\(.*\\)\\?" path)
+		     (match-string 1 path)
+		   path)))
+	 (query-string (let ((path (cdr (assq 'path parts-alist))))
+			 (if (string-match "\\?\\(.*\\)\\'" path)
+			     (match-string 1 path)
+			   nil)))
+	 (request
+	  `((method . "POST")
+	    (scheme . ,scheme)
+	    (host . ,host)
+	    (port . ,(cdr (assq 'port parts-alist)))
+	    (path . ,path)
+	    (query-string . ,query-string)
+	    (uri . ,url)
+	    (header-list
+	     . (("Authorization" . ,auth-str)
+		("Accept-Charset" . "us-ascii")
+		("Content-Type" . "application/x-www-form-urlencoded")
+		("Content-Length" . ,(format "%d" (length post-body)))
+		("Host" . ,host)))
+	    (post-body . ,post-body)))
 	 (connection-info
 	  `((use-ssl . ,twittering-oauth-use-ssl)
 	    (allow-insecure-server-cert
@@ -1225,6 +1246,7 @@ function."
 		    (pre-process-func pre-process-func))
 	(funcall start-func
 		 "*twmode-generic*" (current-buffer)
+		 request connection-info
 		 (lambda (&rest args)
 		   (let* ((proc (car args))
 			  (buffer (process-buffer proc))
@@ -1251,9 +1273,7 @@ function."
 		       (setq result
 			     (twittering-oauth-get-response-alist buffer)))
 		      (t
-		       (setq result nil)))))
-		 "POST" scheme url headers
-		 connection-info post-body)
+		       (setq result nil))))))
 	(while (eq result 'queried)
 	  (sit-for 0.1))
 	result))))
@@ -3906,8 +3926,12 @@ The retrieved data can be referred as (gethash url twittering-url-data-hash)."
 		'incapable))))
     (eq twittering-curl-program-https-capability 'capable)))
 
-(defun twittering-send-http-request-curl (name buffer sentinel method scheme url headers connection-info post-body)
-  (let* ((use-proxy (cdr (assq 'use-proxy connection-info)))
+(defun twittering-send-http-request-curl (name buffer request connection-info sentinel)
+  (let* ((method (cdr (assq 'method request)))
+	 (uri (cdr (assq 'uri request)))
+	 (header-list (cdr (assq 'header-list request)))
+	 (post-body (cdr (assq 'post-body request)))
+	 (use-proxy (cdr (assq 'use-proxy connection-info)))
 	 (proxy-server (cdr (assq 'proxy-server connection-info)))
 	 (proxy-port (cdr (assq 'proxy-port connection-info)))
 	 (proxy-user (cdr (assq 'proxy-user connection-info)))
@@ -3920,8 +3944,8 @@ The retrieved data can be referred as (gethash url twittering-url-data-hash)."
 		       (file-name-directory cacert-fullpath)))
 	 (cacert-filename (when cacert-fullpath
 			    (file-name-nondirectory cacert-fullpath)))
-	 (headers
-	  `(,@headers
+	 (header-list
+	  `(,@header-list
 	    ;; Make `curl' remove the HTTP header field "Expect" for
 	    ;; avoiding '417 Expectation Failed' HTTP response error.
 	    ;; The header field is automatically added for a HTTP request
@@ -3940,7 +3964,7 @@ The retrieved data can be referred as (gethash url twittering-url-data-hash)."
 			;; http://curl.haxx.se/docs/manpage.html
 			(unless (string= (car pair) "Host")
 			  `("-H" ,(format "%s: %s" (car pair) (cdr pair)))))
-		      headers))
+		      header-list))
 	    ,@(when use-ssl `("--cacert" ,cacert-filename))
 	    ,@(when (and use-ssl allow-insecure-server-cert)
 		`("--insecure"))
@@ -3951,7 +3975,7 @@ The retrieved data can be referred as (gethash url twittering-url-data-hash)."
 		   `("-U" ,(format "%s:%s" proxy-user proxy-password)))))
 	    ,@(when (string= "POST" method)
 		`("-d" ,(or post-body "")))
-	    ,url))
+	    ,uri))
 	 (coding-system-for-read 'binary)
 	 (coding-system-for-write 'binary)
 	 (default-directory
@@ -4007,8 +4031,13 @@ The retrieved data can be referred as (gethash url twittering-url-data-hash)."
     (setq twittering-wget-program (twittering-find-wget-program)))
   (not (null twittering-wget-program)))
 
-(defun twittering-send-http-request-wget (name buffer sentinel method scheme url headers connection-info post-body)
-  (let* ((use-proxy (cdr (assq 'use-proxy connection-info)))
+(defun twittering-send-http-request-wget (name buffer request connection-info sentinel)
+  (let* ((method (cdr (assq 'method request)))
+	 (scheme (cdr (assq 'scheme request)))
+	 (uri (cdr (assq 'uri request)))
+	 (header-list (cdr (assq 'header-list request)))
+	 (post-body (cdr (assq 'post-body request)))
+	 (use-proxy (cdr (assq 'use-proxy connection-info)))
 	 (proxy-server (cdr (assq 'proxy-server connection-info)))
 	 (proxy-port (cdr (assq 'proxy-port connection-info)))
 	 (proxy-user (cdr (assq 'proxy-user connection-info)))
@@ -4030,7 +4059,7 @@ The retrieved data can be referred as (gethash url twittering-url-data-hash)."
 		       (lambda (pair)
 			 (unless (string= (car pair) "Host")
 			   (format "--header=%s: %s" (car pair) (cdr pair))))
-		       headers))
+		       header-list))
 	    ,@(when use-ssl
 		`(,(format "--ca-certificate=%s" cacert-filename)))
 	    ,@(when (and use-ssl allow-insecure-server-cert)
@@ -4046,7 +4075,7 @@ The retrieved data can be referred as (gethash url twittering-url-data-hash)."
 		nil))
 	    ,@(when (string= "POST" method)
 		`(,(concat "--post-data=" (or post-body ""))))
-	    ,url))
+	    ,uri))
 	 (coding-system-for-read 'binary)
 	 (coding-system-for-write 'binary)
 	 (default-directory
@@ -4196,26 +4225,35 @@ CLEAN-UP-SENTINEL: sentinel always executed."
 	    (noninteractive . ,noninteractive)
 	    ,@entry))
 	 (temp-buffer (generate-new-buffer "*twmode-http-buffer*"))
-	 (url (concat (funcall request :uri)
-		      (when parameters
-			(concat "?" (funcall request :query-string)))))
 	 (headers
 	  `(,@(unless (assoc "Host" headers)
 		`(("Host" . ,host)))
 	    ,@(unless (assoc "User-Agent" headers)
 		`(("User-Agent" . ,(twittering-user-agent))))
 	    ,@headers))
-	 (post-body ""))
+	 (post-body "")
+	 (request
+	  `((method . ,method)
+	    (scheme . ,scheme)
+	    (host . ,host)
+	    (port . ,(funcall request :port))
+	    (path . ,path)
+	    (query-string . ,(funcall request :query-string))
+	    (uri . ,(concat (funcall request :uri)
+			    (when parameters
+			      (concat "?" (funcall request :query-string)))))
+	    (header-list . ,headers)
+	    (post-body . ,post-body))))
     (when (and func (functionp func))
       (lexical-let ((connection-info connection-info)
 		    (clean-up-sentinel clean-up-sentinel)
 		    (sentinel sentinel))
 	(funcall func "*twmode-generic*" temp-buffer
+		 request connection-info
 		 (lambda (&rest args)
 		   (apply #'twittering-http-default-sentinel
 			  sentinel connection-info clean-up-sentinel args))
-		 method scheme url headers
-		 connection-info post-body)))))
+		 )))))
 
 (defvar twittering-cert-file nil)
 
@@ -4286,8 +4324,16 @@ A4GBAFjOKer89961zgK5F7WF0bnj4JXMJTENAKaSbn+2kmOeUJXRmm/kEd5jhW6Y
     (not (null twittering-tls-program))))
 
 ;; TODO: proxy
-(defun twittering-send-http-request-native (name buffer sentinel method scheme url headers connection-info post-body)
-  (let* ((use-proxy (cdr (assq 'use-proxy connection-info)))
+(defun twittering-send-http-request-native (name buffer request connection-info sentinel)
+  (let* ((method (cdr (assq 'method request)))
+	 (scheme (cdr (assq 'scheme request)))
+	 (host (cdr (assq 'host request)))
+	 (port (cdr (assq 'port request)))
+	 (path (cdr (assq 'path request)))
+	 (query-string (cdr (assq 'query-string request)))
+	 (header-list (cdr (assq 'header-list request)))
+	 (post-body (cdr (assq 'post-body request)))
+	 (use-proxy (cdr (assq 'use-proxy connection-info)))
 	 (proxy-server (cdr (assq 'proxy-server connection-info)))
 	 (proxy-port (cdr (assq 'proxy-port connection-info)))
 	 (proxy-user (cdr (assq 'proxy-user connection-info)))
@@ -4300,25 +4346,6 @@ A4GBAFjOKer89961zgK5F7WF0bnj4JXMJTENAKaSbn+2kmOeUJXRmm/kEd5jhW6Y
 		       (file-name-directory cacert-fullpath)))
 	 (cacert-filename (when cacert-fullpath
 			    (file-name-nondirectory cacert-fullpath)))
-	 (parts-alist
-	  (let ((parsed-url (url-generic-parse-url url)))
-	    (cond
-	     ((and (fboundp 'url-p) (url-p parsed-url))
-	      `((scheme . ,(url-type parsed-url))
-		(host . ,(url-host parsed-url))
-		(port . ,(url-portspec parsed-url))
-		(path . ,(url-filename parsed-url))))
-	     ((vectorp parsed-url)
-	      `((scheme . ,(aref parsed-url 0))
-		(host . ,(aref parsed-url 3))
-		(port . ,(aref parsed-url 4))
-		(path . ,(aref parsed-url 5))))
-	     (t
-	      nil))))
-	 (scheme (cdr (assq 'scheme parts-alist)))
-	 (host (cdr (assq 'host parts-alist)))
-	 (port (cdr (assq 'port parts-alist)))
-	 (path (cdr (assq 'path parts-alist)))
 	 (proxy-info
 	  (when twittering-proxy-use
 	    (twittering-proxy-info scheme)))
@@ -4329,11 +4356,14 @@ A4GBAFjOKer89961zgK5F7WF0bnj4JXMJTENAKaSbn+2kmOeUJXRmm/kEd5jhW6Y
 			   (cdr (assq 'port proxy-info))
 			 port))
 	 (request-str
-	  (format "%s %s HTTP/1.1\r\n%s\r\n\r\n%s\r\n"
+	  (format "%s %s%s HTTP/1.1\r\n%s\r\n\r\n%s\r\n"
 		  method path
+		  (if query-string
+		      (concat "?" query-string)
+		    "")
 		  (mapconcat (lambda (pair)
 			       (format "%s: %s" (car pair) (cdr pair)))
-			     headers "\r\n")
+			     header-list "\r\n")
 		  (or post-body "")))
 	 (coding-system-for-read 'binary)
 	 (coding-system-for-write 'binary)

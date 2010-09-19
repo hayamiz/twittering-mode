@@ -90,6 +90,15 @@
 	(twittering-send-http-request-wget): new function.
 	(twittering-pre-process-buffer-wget): new function.
 
+	* twittering-mode.el: Use an alist for representing parameters of
+	a HTTP request.
+	(twittering-oauth-get-token-alist): use an alist for representing
+	a HTTP request.
+	(twittering-send-http-request-curl): receive a HTTP request as an
+	alist.
+	(twittering-send-http-request-wget): likewise.
+	(twittering-send-http-request-native): likewise.
+
 2010-09-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Add an edited tweet into the history without

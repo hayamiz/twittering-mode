@@ -60,6 +60,18 @@
 	(twittering-make-http-request-from-uri): new function, which
 	generates a HTTP request alist from URI.
 
+	* twittering-mode.el: Rearrange `twittering-oauth-get-token-alist'.
+	(twittering-oauth-get-token-function-table): removed. Instead of
+	the variable, `twittering-connection-type-table' is used.
+	(twittering-oauth-get-token-function-type): removed. Instead of
+	the variable, `twittering-connection-type-order' is used.
+	(twittering-oauth-get-token-alist): use
+	`twittering-make-http-request-from-uri' and
+	`twittering-send-http-request'.
+	(twittering-verify-credentials): remove unnecessary statements.
+	(twittering-ensure-connection-method): take account of
+	`twittering-oauth-use-ssl'.
+
 2010-09-19  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix `twittering-push-uri-onto-kill-ring'.

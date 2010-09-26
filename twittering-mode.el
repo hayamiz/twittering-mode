@@ -788,21 +788,6 @@ SCHEME must be \"http\" or \"https\"."
 ;;; OAuth
 ;;;
 
-(defvar twittering-oauth-get-token-function-table
-  '((native . (twittering-send-http-request-native
-	       . twittering-pre-process-buffer-native))
-    (curl . (twittering-send-http-request-curl
-	     . twittering-pre-process-buffer-curl))
-    (url . twittering-oauth-get-token-alist-url)
-    (wget . (twittering-send-http-request-wget
-	     . twittering-pre-process-buffer-wget)))
-  "Alist of functions used for getting a token on OAuth.")
-
-(defvar twittering-oauth-get-token-function-type 'curl
-  "*Symbol specifying function type used for getting a token on OAuth.
-The function corresponding to the symbol is determined by
-`twittering-oauth-get-token-function-table'.")
-
 (defvar twittering-oauth-invoke-browser nil
   "*Whether to invoke a browser on authorization of access key automatically.")
 
@@ -1162,105 +1147,46 @@ function."
 	result))))
 
 (defun twittering-oauth-get-token-alist (url auth-str &optional post-body)
-  (let* ((entry (cdr (assq twittering-oauth-get-token-function-type
-			   twittering-oauth-get-token-function-table)))
-	 (start-func (car entry))
-	 (pre-process-func (cdr entry))
-	 (parts-alist
-	  (let ((parsed-url (url-generic-parse-url url)))
-	    (cond
-	     ((and (fboundp 'url-p) (url-p parsed-url))
-	      `((scheme . ,(url-type parsed-url))
-		(host . ,(url-host parsed-url))
-		(port . ,(url-portspec parsed-url))
-		(path . ,(url-filename parsed-url))))
-	     ((vectorp parsed-url)
-	      `((scheme . ,(aref parsed-url 0))
-		(host . ,(aref parsed-url 3))
-		(port . ,(aref parsed-url 4))
-		(path . ,(aref parsed-url 5))))
-	     (t
-	      nil))))
-	 (scheme (cdr (assq 'scheme parts-alist)))
-	 (host (cdr (assq 'host parts-alist)))
-	 (path (let ((path (cdr (assq 'path parts-alist))))
-		 (if (string-match "\\`\\(.*\\)\\?" path)
-		     (match-string 1 path)
-		   path)))
-	 (query-string (let ((path (cdr (assq 'path parts-alist))))
-			 (if (string-match "\\?\\(.*\\)\\'" path)
-			     (match-string 1 path)
-			   nil)))
-	 (request
-	  `((method . "POST")
-	    (scheme . ,scheme)
-	    (host . ,host)
-	    (port . ,(cdr (assq 'port parts-alist)))
-	    (path . ,path)
-	    (query-string . ,query-string)
-	    (uri . ,url)
-	    (header-list
-	     . (("Authorization" . ,auth-str)
-		("Accept-Charset" . "us-ascii")
-		("Content-Type" . "application/x-www-form-urlencoded")
-		("Content-Length" . ,(format "%d" (length post-body)))
-		("Host" . ,host)))
-	    (post-body . ,post-body)))
-	 (use-ssl (string= "https" scheme))
-	 (connection-info
-	  `((use-ssl . ,use-ssl)
-	    (allow-insecure-server-cert
-	     . ,twittering-allow-insecure-server-cert)
-	    (cacert-fullpath
-	     . ,(when use-ssl (twittering-ensure-ca-cert)))
-	    (use-proxy . ,twittering-proxy-use)
-	    ,@(when twittering-proxy-use
-		`((proxy-server . ,(twittering-proxy-info scheme 'server))
-		  (proxy-port . ,(twittering-proxy-info scheme 'port))
-		  (proxy-user . ,(if (string= "http" scheme)
-				     twittering-http-proxy-user
-				   twittering-https-proxy-user))
-		  (proxy-password . ,(if (string= "http" scheme)
-					 twittering-http-proxy-password
-				       twittering-https-proxy-password))))
-	    (request . ,request))))
-    (with-temp-buffer
-      (lexical-let ((result 'queried)
-		    (connection-info connection-info)
-		    (pre-process-func pre-process-func))
-	(funcall start-func
-		 "*twmode-generic*" (current-buffer)
-		 connection-info
-		 (lambda (&rest args)
-		   (let* ((proc (car args))
-			  (buffer (process-buffer proc))
-			  (status (process-status proc))
-			  (exit-status (process-exit-status proc)))
-		     (debug-printf "proc=%s stat=%s exit-status=%s"
-				   proc status exit-status)
-		     (cond
-		      ((not (memq status '(nil closed exit failed signal)))
-		       ;; continue
-		       )
-		      ((and (process-command proc)
-			    (not (= 0 exit-status)))
-		       (message "%s exited abnormally (exit-status=%s)."
-				(car (process-command proc)) exit-status)
-		       (setq result nil))
-		      ((buffer-live-p buffer)
-		       (when twittering-debug-mode
-			 (with-current-buffer (twittering-debug-buffer)
-			   (insert-buffer-substring buffer)))
-		       (when (functionp pre-process-func)
-			 (funcall pre-process-func
-				  proc buffer connection-info))
-		       (setq result
-			     (twittering-oauth-get-response-alist buffer)))
-		      (t
-		       (setq result nil))))))
-	(while (eq result 'queried)
-	  (sit-for 0.1))
-	result))))
+  (let ((request
+	 (twittering-make-http-request-from-uri
+	  "POST"
+	  `(("Authorization" . ,auth-str)
+	    ("Accept-Charset" . "us-ascii")
+	    ("Content-Type" . "application/x-www-form-urlencoded")
+	    ("Content-Length" . ,(format "%d" (length post-body))))
+	  url post-body)))
+    (lexical-let ((result 'queried))
+      (twittering-send-http-request
+       request nil
+       (lambda (proc status-str connection-info)
+	 (let ((buffer (process-buffer proc))
+	       (status (process-status proc))
+	       (exit-status (process-exit-status proc)))
+	   (debug-printf "proc=%s stat=%s exit-status=%s"
+			 proc status exit-status)
+	   (cond
+	    ((not (memq status '(nil closed exit failed signal)))
+	     ;; continue
+	     )
+	    ((and (process-command proc)
+		  (not (= 0 exit-status)))
+	     (message "%s exited abnormally (exit-status=%s)."
+		      (car (process-command proc)) exit-status)
+	     (setq result nil))
+	    ((buffer-live-p buffer)
+	     (when twittering-debug-mode
+	       (with-current-buffer (twittering-debug-buffer)
+		 (insert-buffer-substring buffer)))
+	     (let ((func (cdr (assq 'pre-process-buffer connection-info))))
+	       (when (functionp func)
+		 ;; Pre-process buffer.
+		 (funcall func proc buffer connection-info)))
+	     (setq result (twittering-oauth-get-response-alist buffer)))
+	    (t
+	     (setq result nil))))))
+      (while (eq result 'queried)
+	(sit-for 0.1))
+      result)))
 
 (defun twittering-oauth-get-request-token (url consumer-key consumer-secret)
   (let ((auth-str
@@ -3191,12 +3117,6 @@ authorized -- The account has been authorized.")
     (null (remove t (mapcar 'stringp value-list)))))
 
 (defun twittering-verify-credentials ()
-  (when (and (not (twittering-account-authorized-p))
-	     (not (twittering-account-authorization-queried-p))
-	     (memq twittering-auth-method '(oauth xauth)))
-    (let* ((entry (twittering-lookup-connection-type twittering-oauth-use-ssl))
-	   (oauth-get-token-type (cdr (assq 'oauth-get-token entry))))
-      (setq twittering-oauth-get-token-function-type oauth-get-token-type)))
   (cond
    ((or (twittering-account-authorized-p)
 	(twittering-account-authorization-queried-p))
@@ -4175,15 +4095,16 @@ the function returns
 (defun twittering-ensure-connection-method (&optional order table)
   "Ensure a connection method with a compromise.
 Return nil if no connection methods are available with a compromise."
-  (let ((entry
-	 (twittering-lookup-connection-type twittering-use-ssl order table)))
+  (let* ((use-ssl (or twittering-use-ssl twittering-oauth-use-ssl))
+	 (entry (twittering-lookup-connection-type use-ssl order table)))
     (cond
      (entry
       t)
-     ((and (null entry) twittering-use-ssl
+     ((and (null entry) use-ssl
 	   (yes-or-no-p "HTTPS(SSL) is unavailable. Use HTTP instead? "))
       ;; Fall back on connection without SSL.
       (setq twittering-use-ssl nil)
+      (setq twittering-oauth-use-ssl nil)
       (twittering-update-mode-line)
       (twittering-ensure-connection-method order table)
       t)

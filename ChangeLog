@@ -72,6 +72,14 @@
 	(twittering-ensure-connection-method): take account of
 	`twittering-oauth-use-ssl'.
 
+	* twittering-mode.el: Transfer sentinel functions to
+	`twittering-default-sentinel' via `connection-info'.
+	(twittering-start-http-session): transfer the variable `sentinel'
+	to `twittering-http-default-sentinel' via `connection-info'.
+	(twittering-http-default-sentinel): remove the arguments `func'
+	and `clean-up-sentinel'. The sentinel functions are retrieved from
+	`connection-info'.
+
 2010-09-19  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix `twittering-push-uri-onto-kill-ring'.

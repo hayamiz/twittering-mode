@@ -4334,14 +4334,11 @@ CLEAN-UP-SENTINEL: sentinel always executed."
 	  (twittering-make-http-request method headers host port path
 					parameters post-body
 					twittering-use-ssl))
-	 (additional-info `((noninteractive . ,noninteractive))))
-    (lexical-let ((clean-up-sentinel clean-up-sentinel)
-		  (sentinel sentinel))
-      (twittering-send-http-request
-       request additional-info
-       (lambda (&rest args)
-	 (apply #'twittering-http-default-sentinel
-		sentinel clean-up-sentinel args))))))
+	 (additional-info `((noninteractive . ,noninteractive)
+			    (clean-up-sentinel . ,clean-up-sentinel)
+			    (sentinel . ,sentinel))))
+    (twittering-send-http-request request additional-info
+				  #'twittering-http-default-sentinel)))
 
 (defvar twittering-cert-file nil)
 
@@ -4609,12 +4606,14 @@ QUERY-PARAMETERS is a list of cons pair of name and value such as
     (+ (* (car encoded-time) 65536)
        (cadr encoded-time))))
 
-(defun twittering-http-default-sentinel (func clean-up-sentinel proc stat connection-info &optional suc-msg)
+(defun twittering-http-default-sentinel (proc stat connection-info &optional suc-msg)
   (debug-printf "http-default-sentinel: proc=%s stat=%s exit-status=%s" proc stat (process-exit-status proc))
   (let ((temp-buffer (process-buffer proc))
 	(status (process-status proc))
 	(exit-status (process-exit-status proc))
 	(authorization-queried (twittering-account-authorization-queried-p))
+	(func (cdr (assq 'sentinel connection-info)))
+	(clean-up-sentinel (cdr (assq 'clean-up-sentinel connection-info)))
 	(noninteractive (cdr (assq 'noninteractive connection-info)))
 	(mes nil))
     (cond

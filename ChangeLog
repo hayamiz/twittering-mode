@@ -54,6 +54,12 @@
 	(twittering-http-application-headers): do not add the header field
 	"Content-Length".
 
+	* twittering-mode.el: Add `twittering-make-http-request-from-uri'.
+	(twittering-make-http-request): accept a string as the argument
+	`query-parameters', which is treated as an encoded query string.
+	(twittering-make-http-request-from-uri): new function, which
+	generates a HTTP request alist from URI.
+
 2010-09-19  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix `twittering-push-uri-onto-kill-ring'.

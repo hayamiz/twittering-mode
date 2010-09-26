@@ -4194,8 +4194,8 @@ Return nil if no connection methods are available with a compromise."
   "Returns an alist specifying a HTTP request.
 METHOD specifies HTTP method. It must be \"GET\" or \"POST\".
 HEADER-LIST is a list of (field-name . field-value) specifying HTTP header
-fields. The fields \"Host\" and \"User-Agent\" are automatically filled
-if necessary.
+fields. The fields \"Host\", \"User-Agent\" and \"Content-Length\" are
+automatically filled if necessary.
 HOST specifies the host.
 PORT specifies the port. This must be an integer.
 PATH specifies the absolute path in URI (without query string).
@@ -4241,7 +4241,10 @@ The result alist includes the following keys, where a key is a symbol.
 		      (when query-string
 			(concat "?" query-string))))
 	 (header-list
-	  `(,@(unless (assoc "Host" header-list)
+	  `(,@(when (and (string= method "POST")
+			 (not (assoc "Content-Length" header-list)))
+		`(("Content-Length" . ,(format "%d" (length post-body)))))
+	    ,@(unless (assoc "Host" header-list)
 		`(("Host" . ,host)))
 	    ,@(unless (assoc "User-Agent" header-list)
 		`(("User-Agent" . ,(twittering-user-agent))))
@@ -4544,7 +4547,6 @@ A4GBAFjOKer89961zgK5F7WF0bnj4JXMJTENAKaSbn+2kmOeUJXRmm/kEd5jhW6Y
       (push (cons "Accept-Charset" "utf-8;q=0.7,*;q=0.7")
 	    headers))
     (when (string= "POST" method)
-      (push (cons "Content-Length" "0") headers)
       (push (cons "Content-Type" "text/plain") headers))
     (when twittering-proxy-use
       (let* ((scheme (if twittering-use-ssl "https" "http"))

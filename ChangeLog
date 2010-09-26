@@ -47,6 +47,13 @@
 	`twittering-make-http-request'.
 	(twittering-make-http-request): fix docstring.
 
+	* twittering-mode.el: `twittering-make-http-request' automatically
+	adds the header field "Content-Length" if necessary.
+	(twittering-make-http-request): add the header field
+	"Content-Length" if it is missing on "POST" method.
+	(twittering-http-application-headers): do not add the header field
+	"Content-Length".
+
 2010-09-19  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix `twittering-push-uri-onto-kill-ring'.

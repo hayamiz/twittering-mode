@@ -4192,6 +4192,18 @@ Return nil if no connection methods are available with a compromise."
 
 (defun twittering-make-http-request (method header-list host port path query-parameters post-body use-ssl)
   "Returns an alist specifying a HTTP request.
+METHOD specifies HTTP method. It must be \"GET\" or \"POST\".
+HEADER-LIST is a list of (field-name . field-value) specifying HTTP header
+fields. The fields \"Host\" and \"User-Agent\" are automatically filled
+if necessary.
+HOST specifies the host.
+PORT specifies the port. This must be an integer.
+PATH specifies the absolute path in URI (without query string).
+QUERY-PARAMTERS is a list of pairs (key . value).
+POST-BODY specifies the post body sent when METHOD equals to \"POST\".
+If POST-BODY is nil, no body is posted.
+If USE-SSL is non-nil, the request is performed with SSL.
+
 The result alist includes the following keys, where a key is a symbol.
   method: HTTP method such as \"GET\" or \"POST\".
   scheme: the scheme name. \"http\" or \"https\".

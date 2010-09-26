@@ -43,6 +43,10 @@
 	(twittering-send-http-request): add two optional arguments for
 	customizing connection method.
 
+	* twittering-mode.el: Fix docstring of
+	`twittering-make-http-request'.
+	(twittering-make-http-request): fix docstring.
+
 2010-09-19  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix `twittering-push-uri-onto-kill-ring'.

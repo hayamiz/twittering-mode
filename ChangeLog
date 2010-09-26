@@ -22,6 +22,22 @@
 	for OAuth or xAuth procedure. The scheme is determined by
 	`twittering-oauth-use-ssl'.
 
+	* twittering-mode.el: A HTTP request alist is included in the
+	connection info for the request.
+	(twittering-oauth-get-token-alist): add an HTTP request alist into
+	`connection-info'.
+	(twittering-send-http-request-curl): extract the HTTP request
+	alist from `connection-info' instead of an argument.
+	(twittering-send-http-request-wget): likewise.
+	(twittering-send-http-request-native): likewise.
+	(twittering-make-connection-info): generate connection info
+	according to an arugment `request'.
+	(twittering-send-http-request): register the sentinel so that it
+	will be invoked with three arguments, process, status-string and
+	connection-info. The connection-info is automatically generated
+	from the given HTTP request alist.
+	(twittering-start-http-session): do not bind `connection-info'.
+
 2010-09-19  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix `twittering-push-uri-onto-kill-ring'.

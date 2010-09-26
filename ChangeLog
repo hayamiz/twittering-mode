@@ -38,6 +38,11 @@
 	from the given HTTP request alist.
 	(twittering-start-http-session): do not bind `connection-info'.
 
+	* twittering-mode.el: `twittering-send-http-request' receives
+	optional arguments for connection method.
+	(twittering-send-http-request): add two optional arguments for
+	customizing connection method.
+
 2010-09-19  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix `twittering-push-uri-onto-kill-ring'.

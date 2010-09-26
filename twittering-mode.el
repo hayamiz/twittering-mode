@@ -69,12 +69,12 @@
 (defvar twittering-api-host "api.twitter.com")
 (defvar twittering-api-search-host "search.twitter.com")
 (defvar twittering-web-host "twitter.com")
-(defvar twittering-oauth-request-token-url
-  "https://api.twitter.com/oauth/request_token")
-(defvar twittering-oauth-authorization-url-base
-  "https://api.twitter.com/oauth/authorize?oauth_token=")
-(defvar twittering-oauth-access-token-url
-  "https://api.twitter.com/oauth/access_token")
+(defvar twittering-oauth-request-token-url-without-scheme
+  "://api.twitter.com/oauth/request_token")
+(defvar twittering-oauth-authorization-url-base-without-scheme
+  "://api.twitter.com/oauth/authorize?oauth_token=")
+(defvar twittering-oauth-access-token-url-without-scheme
+  "://api.twitter.com/oauth/access_token")
 
 (defun twittering-mode-version ()
   "Display a message for twittering-mode version."
@@ -1206,12 +1206,13 @@ function."
 		("Content-Length" . ,(format "%d" (length post-body)))
 		("Host" . ,host)))
 	    (post-body . ,post-body)))
+	 (use-ssl (string= "https" scheme))
 	 (connection-info
-	  `((use-ssl . ,twittering-oauth-use-ssl)
+	  `((use-ssl . ,use-ssl)
 	    (allow-insecure-server-cert
 	     . ,twittering-allow-insecure-server-cert)
 	    (cacert-fullpath
-	     . ,(when twittering-oauth-use-ssl (twittering-ensure-ca-cert)))
+	     . ,(when use-ssl (twittering-ensure-ca-cert)))
 	    (use-proxy . ,twittering-proxy-use)
 	    ,@(when twittering-proxy-use
 		`((proxy-server . ,(twittering-proxy-info scheme 'server))
@@ -3242,14 +3243,23 @@ authorized -- The account has been authorized.")
 	       twittering-private-info-file)
       nil)))
    ((eq twittering-auth-method 'oauth)
-    (let ((token-alist
-	   (twittering-oauth-get-access-token
-	    twittering-oauth-request-token-url
-	    (lambda (token)
-	      (concat twittering-oauth-authorization-url-base token))
-	    twittering-oauth-access-token-url
-	    twittering-oauth-consumer-key twittering-oauth-consumer-secret
-	    "twittering-mode")))
+    (let* ((scheme (if twittering-oauth-use-ssl
+		       "https"
+		     "http"))
+	   (request-token-url
+	    (concat scheme twittering-oauth-request-token-url-without-scheme))
+	   (access-token-url
+	    (concat scheme twittering-oauth-access-token-url-without-scheme))
+	   (token-alist
+	    (twittering-oauth-get-access-token
+	     request-token-url
+	     (lambda (token)
+	       (concat scheme
+		       twittering-oauth-authorization-url-base-without-scheme
+		       token))
+	     access-token-url
+	     twittering-oauth-consumer-key twittering-oauth-consumer-secret
+	     "twittering-mode")))
       (cond
        ((and (assoc "oauth_token" token-alist)
 	     (assoc "oauth_token_secret" token-alist)
@@ -3269,12 +3279,17 @@ authorized -- The account has been authorized.")
 	(message "Authorization via OAuth failed. Type M-x twit to retry.")))))
    ((eq twittering-auth-method 'xauth)
     (twittering-prepare-account-info)
-    (let ((token-alist
-	   (twittering-xauth-get-access-token
-	    twittering-oauth-access-token-url
-	    twittering-oauth-consumer-key twittering-oauth-consumer-secret
-	    (twittering-get-username)
-	    (twittering-get-password))))
+    (let* ((scheme (if twittering-oauth-use-ssl
+		       "https"
+		     "http"))
+	   (access-token-url
+	    (concat scheme twittering-oauth-access-token-url-without-scheme))
+	   (token-alist
+	    (twittering-xauth-get-access-token
+	     access-token-url
+	     twittering-oauth-consumer-key twittering-oauth-consumer-secret
+	     (twittering-get-username)
+	     (twittering-get-password))))
       ;; Dispose of password as recommended by Twitter.
       ;; http://dev.twitter.com/pages/xauth
       (setq twittering-password nil)

@@ -7,6 +7,21 @@
 	of it, `twittering-oauth-get-token-alist' invokes an appropriate
 	function for pre-processing.
 
+	* twittering-mode.el: Correct schemes of URIs used in OAuth/xAuth
+	procedures.
+	(twittering-oauth-request-token-url): removed.
+	(twittering-oauth-authorization-url-base): removed.
+	(twittering-oauth-access-token-url): removed.
+	(twittering-oauth-request-token-url-without-scheme): new variable.
+	(twittering-oauth-authorization-url-base-without-scheme): new
+	variable.
+	(twittering-oauth-access-token-url-without-scheme): new variable.
+	(twittering-oauth-get-token-alist): refer to the scheme of the
+	given URI instead of `twittering-oauth-use-ssl'.
+	(twittering-verify-credentials): make a URI with correct scheme
+	for OAuth or xAuth procedure. The scheme is determined by
+	`twittering-oauth-use-ssl'.
+
 2010-09-19  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix `twittering-push-uri-onto-kill-ring'.

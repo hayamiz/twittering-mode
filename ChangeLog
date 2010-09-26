@@ -1,3 +1,12 @@
+2010-09-26  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Remove redundant pre-processing of HTTP
+	response buffer for SSL via a proxy.
+	(twittering-oauth-get-response-alist): remove redundant
+	pre-processing of HTTP response buffer for SSL via proxy. Instead
+	of it, `twittering-oauth-get-token-alist' invokes an appropriate
+	function for pre-processing.
+
 2010-09-19  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix `twittering-push-uri-onto-kill-ring'.

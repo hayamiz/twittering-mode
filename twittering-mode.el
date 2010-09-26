@@ -1112,23 +1112,6 @@ function."
 (defun twittering-oauth-get-response-alist (buffer)
   (with-current-buffer buffer
     (goto-char (point-min))
-    (when (and twittering-proxy-use twittering-oauth-use-ssl)
-      ;; When using SSL via a proxy with CONNECT method,
-      ;; omit a successful HTTP response and headers if they seem to be
-      ;; sent from the proxy.
-      (save-excursion
-	(goto-char (point-min))
-	(let ((first-regexp
-	       ;; successful HTTP response
-	       "\\`HTTP/1\.[01] 2[0-9][0-9] .*?\r?\n")
-	      (next-regexp
-	       ;; following HTTP response
-	       "^\\(\r?\n\\)HTTP/1\.[01] [0-9][0-9][0-9] .*?\r?\n"))
-	  (when (and (search-forward-regexp first-regexp nil t)
-		     (search-forward-regexp next-regexp nil t))
-	    (let ((beg (point-min))
-		  (end (match-end 1)))
-	      (delete-region beg end))))))
     (when (search-forward-regexp
 	   "\\`\\(\\(HTTP/1\.[01]\\) \\([0-9][0-9][0-9]\\) \\(.*?\\)\\)\r?\n"
 	   nil t)

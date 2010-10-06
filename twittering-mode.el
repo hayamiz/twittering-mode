@@ -5583,7 +5583,7 @@ following symbols;
     ("L" .
      (let ((location (or (cdr (assq 'user-location ,status-sym)) "")))
        (unless (string= "" location)
-	 (concat "[" location "]"))))
+	 (concat " [" location "]"))))
     ("l" . (cdr (assq 'user-location ,status-sym)))
     ("p" . (when (string= "true" (cdr (assq 'user-protected ,status-sym)))
 	     "[x]"))
@@ -5596,11 +5596,11 @@ following symbols;
        (let* ((pair
 	       (cond
 		(recipient-screen-name
-		 (cons (format "sent to %s" recipient-screen-name)
+		 (cons (format " sent to %s" recipient-screen-name)
 		       (twittering-get-status-url recipient-screen-name)))
 		((and (not (string= "" reply-id))
 		      (not (string= "" reply-name)))
-		 (cons (format "in reply to %s" reply-name)
+		 (cons (format " in reply to %s" reply-name)
 		       (twittering-get-status-url reply-name reply-id)))
 		(t nil)))
 	      (str (car pair))

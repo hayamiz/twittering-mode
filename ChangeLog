@@ -22,6 +22,8 @@
 	(twittering-get-and-render-timeline): explicitly register
 	`twittering-release-process' as a clean-up sentinel.
 
+	* twittering-mode.el: Classify functions into some groups.
+
 2010-09-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Remove redundant pre-processing of HTTP

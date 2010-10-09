@@ -5583,7 +5583,7 @@ following symbols;
     ("L" .
      (let ((location (or (cdr (assq 'user-location ,status-sym)) "")))
        (unless (string= "" location)
-	 (concat "[" location "]"))))
+	 (concat " [" location "]"))))
     ("l" . (cdr (assq 'user-location ,status-sym)))
     ("p" . (when (string= "true" (cdr (assq 'user-protected ,status-sym)))
 	     "[x]"))

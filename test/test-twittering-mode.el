@@ -257,7 +257,7 @@
 
     (test-assert-string-equal "GNU project"
       (format-status status "%l"))
-    (test-assert-string-equal "[GNU project]"
+    (test-assert-string-equal " [GNU project]"
       (format-status status "%L"))
     (setcdr (assoc 'user-location status) "")
     (test-assert-string-equal ""

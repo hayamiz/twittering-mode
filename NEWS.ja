@@ -87,6 +87,10 @@
   対して`twittering-enter'で返信したときに、カーソル下のtweetに対する
   返信となるよう修正しました。
   Thanks to Naohiro Aota.
+* 書式指定子"%L"の振舞いを修正
+  `twittering-status-format'のdocstringの通りに空白が挿入されるように
+  なりました。
+  Thanks to Tom X. Tobin.
 * ...
 
  1.0.0: 2010-06-05

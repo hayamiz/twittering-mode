@@ -80,6 +80,9 @@
 * Fix of a race condition on abnormal exit of a process for verification.
 * Fix of replying to tweets displayed as replied tweets.
   Thanks to Naohiro Aota.
+* Fix of rendering the format specifier "%L".
+  The specifier "%L" is correctly rendered with a preceding whitespace.
+  Thanks to Tom X. Tobin.
 * ...
 
  1.0.0: 2010-06-05

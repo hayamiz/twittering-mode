@@ -1,3 +1,13 @@
+2010-10-09  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Correctly render the format specifier "%L"
+	with a preceding whitespace. Thanks to Tom X. Tobin.
+	(twittering-generate-format-table): add a preceding whitespace to
+	the format specifier "%L". The previous routine contradicts the
+	docstring of `twittering-status-format'.
+	* test/test-twittering-mode.el: Correct the test for the format
+	specifier "%L".
+
 2010-09-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Remove redundant pre-processing of HTTP

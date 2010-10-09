@@ -74,6 +74,12 @@
 	of `twittering-start-http-session'.
 	(twittering-http-post): likewise.
 
+	* twittering-mode.el: "Content-Length" for OAuth is calculated by
+	`twittering-make-http-request'.
+	(twittering-oauth-get-token-alist): remove explicit specification
+	of "Content-Length". The header value is determined by
+	`twittering-make-http-request'.
+
 2010-09-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Remove redundant pre-processing of HTTP

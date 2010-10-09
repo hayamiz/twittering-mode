@@ -2195,8 +2195,7 @@ function."
 	  "POST"
 	  `(("Authorization" . ,auth-str)
 	    ("Accept-Charset" . "us-ascii")
-	    ("Content-Type" . "application/x-www-form-urlencoded")
-	    ("Content-Length" . ,(format "%d" (length post-body))))
+	    ("Content-Type" . "application/x-www-form-urlencoded"))
 	  url post-body)))
     (lexical-let ((result 'queried))
       (twittering-send-http-request

@@ -944,6 +944,7 @@ The result alist includes the following keys, where a key is a symbol.
   encoded-query-alist: the alist consisting of pairs of encoded query-name and
     encoded query-value.
   uri: the URI. It includes the query string.
+  uri-without-query: the URI without the query string.
   header-list: an alist specifying pairs of a parameter and its value in HTTP
     header field.
   post-body: the entity that will be posted."
@@ -994,13 +995,16 @@ The result alist includes the following keys, where a key is a symbol.
 		    query-parameters))
 	   (t
 	    nil)))
-	 (uri (concat scheme "://"
-		      host
-		      (when (and port (not (= port default-port)))
-			(format ":%d" port))
-		      path
-		      (when query-string
-			(concat "?" query-string))))
+	 (uri-without-query
+	  (concat scheme "://"
+		  host
+		  (when (and port (not (= port default-port)))
+		    (format ":%d" port))
+		  path))
+	 (uri
+	  (if query-string
+	      (concat uri-without-query "?" query-string)
+	    uri-without-query))
 	 (header-list
 	  `(,@(when (and (string= method "POST")
 			 (not (assoc "Content-Length" header-list)))
@@ -1026,6 +1030,7 @@ The result alist includes the following keys, where a key is a symbol.
 	(query-string . ,query-string)
 	(encoded-query-alist . ,encoded-query-alist)
 	(uri . ,uri)
+	(uri-without-query . ,uri-without-query)
 	(header-list . ,header-list)
 	(post-body . ,post-body))))))
 

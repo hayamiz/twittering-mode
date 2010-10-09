@@ -86,6 +86,12 @@
 	(twittering-make-http-request): add `encoded-query-alist' entry to
 	an alist corresponding to a HTTP request.
 
+	* twittering-mode.el: Add `uri-without-query' entry to an alist of
+	a HTTP request. This is required for generating "Authorization"
+	header of OAuth.
+	(twittering-make-http-request): add `uri-without-query' entry to
+	an alist corresponding to a HTTP request.
+
 2010-09-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Remove redundant pre-processing of HTTP

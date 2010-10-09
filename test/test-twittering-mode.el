@@ -373,7 +373,7 @@
 (defcase test-hmac-sha1 nil nil
   ;; The following tests are copied from RFC 2022.
   (test-assert-string-equal
-   (let* ((v (make-vector 20 ?\x0b))
+   (let* ((v (make-list 20 ?\x0b))
 	  (key (cond
 		((fboundp 'unibyte-string) (apply 'unibyte-string v))
 		(t (concat v))))
@@ -392,11 +392,11 @@
    "effcdf6ae5eb2fa2d27416d5f184df9c259a7c79")
 
   (test-assert-string-equal
-   (let* ((key-v (make-vector 20 ?\xaa))
+   (let* ((key-v (make-list 20 ?\xaa))
 	  (key (cond
 		((fboundp 'unibyte-string) (apply 'unibyte-string key-v))
 		(t (concat key-v))))
-	  (data-v (make-vector 50 ?\xdd))
+	  (data-v (make-list 50 ?\xdd))
 	  (data (cond
 		 ((fboundp 'unibyte-string) (apply 'unibyte-string data-v))
 		 (t (concat data-v)))))

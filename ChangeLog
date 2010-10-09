@@ -28,6 +28,29 @@
 	`twittering-send-http-request-with-default-sentinel'.
 	(twittering-send-http-request-with-default-sentinel): new function.
 
+	* twittering-mode.el: Adapt some functions to
+	`twittering-send-http-request-with-default-sentinel'.
+	(twittering-get-response-body): removed.
+	(twittering-start-http-session): use
+	`twittering-send-http-request-with-default-sentinel' instead of
+	`twittering-send-http-request' and
+	`twittering-http-default-sentinel'.
+	(twittering-get-error-message): assume that the given buffer
+	consists of HTTP response body without headers.
+	(twittering-http-default-sentinel): removed.
+	(twittering-http-get-default-sentinel): modified so that it can be
+	invoked via `twittering-send-http-request-with-default-sentinel'.
+	(twittering-http-get-list-index-sentinel): likewise.
+	(twittering-http-post-default-sentinel): likewise.
+	(twittering-oauth-get-token-alist): likewise.
+	(twittering-http-get-verify-credentials-sentinel): likewise.
+	(twittering-http-get-verify-credentials-clean-up-sentinel):
+	likewise.
+	(twittering-get-status-from-http-response): removed.
+	(twittering-get-and-render-timeline): modify arguments of
+	`clean-up-sentinel' to adapt it to
+	`twittering-send-http-request-with-default-sentinel'.
+
 2010-09-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Remove redundant pre-processing of HTTP

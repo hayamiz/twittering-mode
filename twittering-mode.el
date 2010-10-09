@@ -1100,27 +1100,6 @@ BUFFER may be a buffer or the name of an existing buffer which contains the HTTP
 	  (buffer-substring (point-min) (match-end 0))
 	nil))))
 
-(defun twittering-get-response-body (buffer &optional func)
-  "Extract HTTP response body from HTTP response.
-If FUNC is non-nil, parse a response body by FUNC and return it.
-Return nil when parse failed.
-BUFFER may be a buffer or the name of an existing buffer."
-  (if (null func)
-      (setq func 'buffer-substring))
-
-  (with-current-buffer buffer
-    (save-excursion
-      (goto-char (point-min))
-      (if (search-forward-regexp "\r?\n\r?\n" nil t)
-	  (condition-case error-str
-	      (funcall func (match-end 0) (point-max))
-	    (error
-	     (when (twittering-buffer-related-p)
-	       (message "Failure: %s" error-str))
-	     nil))
-	(error "Failure: invalid HTTP response"))
-      )))
-
 (defun twittering-make-header-info-alist (header-str)
   "Make HTTP header alist from HEADER-STR.
 The alist consists of pairs of field-name and field-value, such as
@@ -1280,8 +1259,8 @@ CLEAN-UP-SENTINEL: sentinel always executed."
 	 (additional-info `((noninteractive . ,noninteractive)
 			    (clean-up-sentinel . ,clean-up-sentinel)
 			    (sentinel . ,sentinel))))
-    (twittering-send-http-request request additional-info
-				  #'twittering-http-default-sentinel)))
+    (twittering-send-http-request-with-default-sentinel
+     request additional-info sentinel clean-up-sentinel)))
 
 ;;;;
 ;;;; Basic HTTP functions with tls and Emacs builtins.
@@ -1720,63 +1699,12 @@ QUERY-PARAMETERS is a list of cons pair of name and value such as
 
 (defun twittering-get-error-message (buffer)
   (if buffer
-      (let ((xmltree (twittering-get-response-body
-		      buffer 'twittering-xml-parse-region)))
+      (let ((xmltree
+	     (with-current-buffer buffer
+	       (twittering-xml-parse-region (point-min) (point-max)))))
 	(car (cddr (assq 'error (or (assq 'errors xmltree)
 				    (assq 'hash xmltree))))))
     nil))
-
-(defun twittering-http-default-sentinel (proc stat connection-info &optional suc-msg)
-  (debug-printf "http-default-sentinel: proc=%s stat=%s exit-status=%s" proc stat (process-exit-status proc))
-  (let ((temp-buffer (process-buffer proc))
-	(status (process-status proc))
-	(exit-status (process-exit-status proc))
-	(authorization-queried (twittering-account-authorization-queried-p))
-	(func (cdr (assq 'sentinel connection-info)))
-	(clean-up-sentinel (cdr (assq 'clean-up-sentinel connection-info)))
-	(noninteractive (cdr (assq 'noninteractive connection-info)))
-	(mes nil))
-    (cond
-     ((null status)
-      (setq mes "Failure: no such process exists."))
-     ;; If a process is running, the processing sentinel has been postponed.
-     ((memq status '(run stop open listen connect))
-      (debug-printf "http-default-sentinel: postponed by status `%s'" status)
-      t)
-     ((memq status '(exit signal closed failed))
-      (let ((func (cdr (assq 'pre-process-buffer connection-info))))
-	(when (and (buffer-live-p temp-buffer) (functionp func))
-	  ;; Pre-process buffer.
-	  (funcall func proc temp-buffer connection-info)))
-      (unwind-protect
-	  (setq mes
-		(if (and (process-command proc)
-			 (not (= 0 exit-status)))
-		    ;; The process exited abnormally.
-		    (format "%s exited abnormally (exit-status=%s)."
-			    (car (process-command proc)) exit-status)
-		  (let* ((header (twittering-get-response-header temp-buffer))
-			 (header-info
-			  (and header (twittering-update-server-info header))))
-		    (cond
-		     ((null header-info)
-		      "Failure: Bad http response.")
-		     ((and func (fboundp func))
-		      (with-current-buffer temp-buffer
-			(funcall func header-info proc noninteractive
-				 suc-msg)))
-		     (t
-		      nil)))))
-	;; unwindforms
-	(when (and (not twittering-debug-mode) (buffer-live-p temp-buffer))
-	  (kill-buffer temp-buffer))))
-     (t
-      (setq mes (format "Failure: unknown condition: %s" status))))
-    (when (and mes (or (twittering-buffer-related-p)
-		       authorization-queried))
-      (message "%s" mes))
-    (when (and clean-up-sentinel (functionp clean-up-sentinel))
-      (funcall clean-up-sentinel proc noninteractive mes))))
 
 (defun twittering-http-get (host method &optional noninteractive parameters format sentinel clean-up-sentinel)
   (let* ((format (or format "xml"))
@@ -1793,7 +1721,7 @@ QUERY-PARAMETERS is a list of cons pair of name and value such as
      "GET" headers host nil path parameters noninteractive sentinel
      clean-up-sentinel)))
 
-(defun twittering-http-get-default-sentinel (header-info proc noninteractive &optional suc-msg)
+(defun twittering-http-get-default-sentinel (proc status-str connection-info header-info)
   (let ((status-line (cdr (assq 'status-line header-info)))
 	(status-code (cdr (assq 'status-code header-info))))
     (case-string
@@ -1802,8 +1730,16 @@ QUERY-PARAMETERS is a list of cons pair of name and value such as
       (let* ((spec (twittering-get-timeline-spec-from-process proc))
 	     (spec-string
 	      (twittering-get-timeline-spec-string-from-process proc))
-	     (statuses (twittering-get-status-from-http-response
-			spec (process-buffer proc))))
+	     (statuses
+	      (let ((xmltree
+		     (twittering-xml-parse-region (point-min) (point-max))))
+		(cond
+		 ((null xmltree)
+		  nil)
+		 ((eq 'search (car spec))
+		  (twittering-atom-xmltree-to-status xmltree))
+		 (t
+		  (twittering-xmltree-to-status xmltree))))))
 	(when statuses
 	  (let ((new-statuses
 		 (twittering-add-statuses-to-timeline-data statuses spec))
@@ -1816,15 +1752,15 @@ QUERY-PARAMETERS is a list of cons pair of name and value such as
 	      (twittering-render-timeline buffer t new-statuses))
 	    (twittering-add-timeline-history spec-string)))
 	(if twittering-notify-successful-http-get
-	    (if suc-msg suc-msg (format "Success: Get %s." spec-string))
+	    (format "Success: Get %s." spec-string)
 	  nil)))
      (t
-      (let ((error-mes (twittering-get-error-message (process-buffer proc))))
+      (let ((error-mes (twittering-get-error-message (current-buffer))))
 	(if error-mes
 	    (format "Response: %s (%s)" status-line error-mes)
 	  (format "Response: %s" status-line)))))))
 
-(defun twittering-http-get-list-index-sentinel (header-info proc noninteractive &optional suc-msg)
+(defun twittering-http-get-list-index-sentinel (proc status-str connection-info header-info)
   (let ((status-line (cdr (assq 'status-line header-info)))
 	(status-code (cdr (assq 'status-code header-info)))
 	(indexes nil)
@@ -1832,9 +1768,7 @@ QUERY-PARAMETERS is a list of cons pair of name and value such as
     (case-string
      status-code
      (("200")
-      (let ((xmltree
-	     (twittering-get-response-body
-	      (process-buffer proc) 'twittering-xml-parse-region)))
+      (let ((xmltree (twittering-xml-parse-region (point-min) (point-max))))
 	(when xmltree
 	  (setq indexes
 		(mapcar
@@ -1850,7 +1784,7 @@ QUERY-PARAMETERS is a list of cons pair of name and value such as
 			 ))
 		))))
      (t
-      (let ((error-mes (twittering-get-error-message (process-buffer proc))))
+      (let ((error-mes (twittering-get-error-message (current-buffer))))
 	(if error-mes
 	    (setq mes (format "Response: %s (%s)" status-line error-mes))
 	  (setq mes (format "Response: %s" status-line))))))
@@ -1858,7 +1792,7 @@ QUERY-PARAMETERS is a list of cons pair of name and value such as
 	  (or indexes
 	      mes
 	      "")) ;; set "" explicitly if user does not have a list.
-    nil))
+    mes))
 
 (defun twittering-http-post (host method &optional parameters format sentinel clean-up-sentinel)
   "Send HTTP POST request to api.twitter.com (or search.twitter.com)
@@ -1883,15 +1817,15 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
      "POST" headers host nil path parameters nil sentinel
      clean-up-sentinel)))
 
-(defun twittering-http-post-default-sentinel (header-info proc noninteractive &optional suc-msg)
+(defun twittering-http-post-default-sentinel (proc status-str connection-info header-info)
   (let ((status-line (cdr (assq 'status-line header-info)))
 	(status-code (cdr (assq 'status-code header-info))))
     (case-string
      status-code
      (("200")
-      (if suc-msg suc-msg "Success: Post."))
+      "Success: Post.")
      (t
-      (let ((error-mes (twittering-get-error-message (process-buffer proc))))
+      (let ((error-mes (twittering-get-error-message (current-buffer))))
 	(if error-mes
 	    (format "Response: %s (%s)" status-line error-mes)
 	  (format "Response: %s" status-line)))))))
@@ -2265,34 +2199,29 @@ function."
 	    ("Content-Length" . ,(format "%d" (length post-body))))
 	  url post-body)))
     (lexical-let ((result 'queried))
-      (twittering-send-http-request
+      (twittering-send-http-request-with-default-sentinel
        request nil
-       (lambda (proc status-str connection-info)
-	 (let ((buffer (process-buffer proc))
-	       (status (process-status proc))
-	       (exit-status (process-exit-status proc)))
-	   (debug-printf "proc=%s stat=%s exit-status=%s"
-			 proc status exit-status)
-	   (cond
-	    ((not (memq status '(nil closed exit failed signal)))
-	     ;; continue
-	     )
-	    ((and (process-command proc)
-		  (not (= 0 exit-status)))
-	     (message "%s exited abnormally (exit-status=%s)."
-		      (car (process-command proc)) exit-status)
-	     (setq result nil))
-	    ((buffer-live-p buffer)
+       (lambda (proc status-str connection-info header-info)
+	 (let ((status-line (cdr (assq 'status-line header-info)))
+	       (status-code (cdr (assq 'status-code header-info))))
+	   (case-string
+	    status-code
+	    (("200")
 	     (when twittering-debug-mode
-	       (with-current-buffer (twittering-debug-buffer)
-		 (insert-buffer-substring buffer)))
-	     (let ((func (cdr (assq 'pre-process-buffer connection-info))))
-	       (when (functionp func)
-		 ;; Pre-process buffer.
-		 (funcall func proc buffer connection-info)))
-	     (setq result (twittering-oauth-get-response-alist buffer)))
+	       (let ((buffer (current-buffer)))
+		 (with-current-buffer (twittering-debug-buffer)
+		   (insert-buffer-substring buffer))))
+	     (setq result
+		   (twittering-oauth-make-response-alist (buffer-string)))
+	     nil)
 	    (t
-	     (setq result nil))))))
+	     (setq result nil)
+	     (format "Response: %s" status-line)))))
+       (lambda (proc status-str connection-info)
+	 (when (and (memq (process-status proc)
+			  '(nil closed exit failed signal))
+		    (eq result 'queried))
+	   (setq result nil))))
       (while (eq result 'queried)
 	(sit-for 0.1))
       result)))
@@ -3682,7 +3611,7 @@ Statuses are stored in ascending-order with respect to their IDs."
 	     twittering-auth-method)))
   (twittering-account-authorized-p))
 
-(defun twittering-http-get-verify-credentials-sentinel (header-info proc noninteractive &optional suc-msg)
+(defun twittering-http-get-verify-credentials-sentinel (proc status-str connection-info header-info)
   (let ((status-line (cdr (assq 'status-line header-info)))
 	(status-code (cdr (assq 'status-code header-info))))
     (case-string
@@ -3705,7 +3634,7 @@ Statuses are stored in ascending-order with respect to their IDs."
 	  (setq twittering-password nil)))
 	error-mes)))))
 
-(defun twittering-http-get-verify-credentials-clean-up-sentinel (proc noninteractive mes)
+(defun twittering-http-get-verify-credentials-clean-up-sentinel (proc status-str connection-info)
   (let ((status (process-status proc)))
     (when (and (memq status '(exit signal closed failed))
 	       (eq twittering-account-authorization 'queried))
@@ -3725,19 +3654,6 @@ Statuses are stored in ascending-order with respect to their IDs."
 	(add-to-history 'twittering-timeline-history spec-string)
       (setq twittering-timeline-history
 	    (cons spec-string twittering-timeline-history)))))
-
-(defun twittering-get-status-from-http-response (spec buffer)
-  "Extract statuses from HTTP response, and return a list.
-Return nil when parse failed.
-
-SPEC is timeline-spec which was used to retrieve BUFFER.
-BUFFER may be a buffer or the name of an existing buffer."
-  (let ((body
-	 (twittering-get-response-body buffer 'twittering-xml-parse-region)))
-    (when body
-      (if (eq 'search (car spec))
-	  (twittering-atom-xmltree-to-status body)
-	(twittering-xmltree-to-status body)))))
 
 (defun twittering-atom-xmltree-to-status-datum (atom-xml-entry)
   (let ((id-str (car (cddr (assq 'id atom-xml-entry))))
@@ -5380,7 +5296,7 @@ variable `twittering-status-format'."
 		   ((and since_id (null id)) `((since_id . ,since_id)))
 		   (t nil))
 		(clean-up-sentinel
-		 . ,(lambda (proc noninteractive mes)
+		 . ,(lambda (proc status-str connection-info)
 		      (when (memq (process-status proc)
 				  '(exit signal closed failed))
 			(twittering-release-process proc))))))

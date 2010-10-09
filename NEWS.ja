@@ -67,6 +67,12 @@
   (setq twittering-api-prefix "api/")
   (setq twittering-search-api-method "api/search")
   (setq twittering-web-path-prefix "")
+* "C-<mouse-3>"でtweetをコピー
+  Thanks to Faried Nawaz.
+* wgetによるtweet取得に対応
+  Twitterサーバとの通信に外部プログラムwgetを使えるようになりました。
+  下記の設定でwgetが優先して使われるようになります。
+  (setq twittering-connection-type-order '(wget curl native))
 * ...
 
 ### バグ修正
@@ -76,6 +82,11 @@
 * Native retweetをさらにretweetできるよう修正
   オリジナルのtweetへのretweet扱いになります。
 * アカウント認証時に発生する可能性のあった競合状態が起こらないよう修正
+* 返信先として表示されているtweetへの返信を正しく扱うよう修正
+  `twittering-show-replied-statuses'で返信先として表示されているtweetに
+  対して`twittering-enter'で返信したときに、カーソル下のtweetに対する
+  返信となるよう修正しました。
+  Thanks to Naohiro Aota.
 * ...
 
  1.0.0: 2010-06-05

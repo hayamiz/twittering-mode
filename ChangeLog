@@ -10,6 +10,9 @@
 
 	* test/test-twittering-mode.el: Fix the test for HMAC.
 
+	* twittering-mode.el (twittering-connection-type-table): remove
+	obsolete entries.
+
 2010-09-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Remove redundant pre-processing of HTTP

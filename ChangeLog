@@ -68,6 +68,12 @@
 	(twittering-make-http-request): check the validity of arguments.
 	(twittering-start-http-session): remove validity check.
 
+	* twittering-mode.el: Remove `twittering-start-http-session'.
+	(twittering-start-http-session): removed.
+	(twittering-http-get): use `twittering-send-http-request' instead
+	of `twittering-start-http-session'.
+	(twittering-http-post): likewise.
+
 2010-09-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Remove redundant pre-processing of HTTP

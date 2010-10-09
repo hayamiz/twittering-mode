@@ -1246,27 +1246,6 @@ The method to perform the request is determined from
 		      (not twittering-debug-mode))
 	     (kill-buffer buffer))))))))
 
-(defun twittering-start-http-session (method headers host port path parameters &optional noninteractive sentinel clean-up-sentinel)
-  "METHOD    : http method
-HEADERS   : http request headers in assoc list
-HOST      : remote host name
-PORT      : destination port number. nil means default port (http: 80, https: 443)
-PATH      : http request path
-PARAMETERS: http request parameters (query string)
-NONINTERACTIVE: non-nil if this is called in noninteractive way.
-SENTINEL  : sentinel executed if HTTP response is valid.
-CLEAN-UP-SENTINEL: sentinel always executed."
-  (let* ((post-body "")
-	 (request
-	  (twittering-make-http-request method headers host port path
-					parameters post-body
-					twittering-use-ssl))
-	 (additional-info `((noninteractive . ,noninteractive)
-			    (clean-up-sentinel . ,clean-up-sentinel)
-			    (sentinel . ,sentinel))))
-    (twittering-send-http-request request additional-info
-				  sentinel clean-up-sentinel)))
-
 ;;;;
 ;;;; Basic HTTP functions with tls and Emacs builtins.
 ;;;;
@@ -1721,10 +1700,18 @@ QUERY-PARAMETERS is a list of cons pair of name and value such as
 	 (url (format "%s://%s%s" scheme host path))
 	 (headers
 	  (twittering-http-application-headers-with-auth
-	   "GET" url parameters)))
-    (twittering-start-http-session
-     "GET" headers host nil path parameters noninteractive sentinel
-     clean-up-sentinel)))
+	   "GET" url parameters))
+	 (port nil)
+	 (post-body "")
+	 (request
+	  (twittering-make-http-request "GET" headers host port path
+					parameters post-body
+					twittering-use-ssl))
+	 (additional-info `((noninteractive . ,noninteractive)
+			    (clean-up-sentinel . ,clean-up-sentinel)
+			    (sentinel . ,sentinel))))
+    (twittering-send-http-request request additional-info
+				  sentinel clean-up-sentinel)))
 
 (defun twittering-http-get-default-sentinel (proc status-str connection-info header-info)
   (let ((status-line (cdr (assq 'status-line header-info)))
@@ -1817,10 +1804,18 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
 	 (url (format "%s://%s%s" scheme host path))
 	 (headers
 	  (twittering-http-application-headers-with-auth
-	   "POST" url parameters)))
-    (twittering-start-http-session
-     "POST" headers host nil path parameters nil sentinel
-     clean-up-sentinel)))
+	   "POST" url parameters))
+	 (port nil)
+	 (post-body "")
+	 (request
+	  (twittering-make-http-request "POST" headers host port path
+					parameters post-body
+					twittering-use-ssl))
+	 (additional-info `((noninteractive . nil)
+			    (clean-up-sentinel . ,clean-up-sentinel)
+			    (sentinel . ,sentinel))))
+    (twittering-send-http-request request additional-info
+				  sentinel clean-up-sentinel)))
 
 (defun twittering-http-post-default-sentinel (proc status-str connection-info header-info)
   (let ((status-line (cdr (assq 'status-line header-info)))

@@ -454,9 +454,11 @@ StatusNet Service.")
 	      twittering-search-api-method)
 	     ((assq spec-type simple-spec-list)
 	      (twittering-api-path (cdr (assq spec-type simple-spec-list))))
-	     (t nil))))
+	     (t nil)))
+	   (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
       (if (and host method)
-	  (twittering-http-get host method noninteractive parameters format)
+	  (twittering-http-get host method noninteractive parameters format
+			       nil clean-up-sentinel)
 	(error "Invalid timeline spec"))))
    ((eq command 'get-list-index)
     ;; Get list names.
@@ -4645,7 +4647,6 @@ QUERY-PARAMETERS is a list of cons pair of name and value such as
 		     (t
 		      nil)))))
 	;; unwindforms
-	(twittering-release-process proc)
 	(when (and (not twittering-debug-mode) (buffer-live-p temp-buffer))
 	  (kill-buffer temp-buffer))))
      (t
@@ -5951,7 +5952,12 @@ variable `twittering-status-format'."
 		,@(cond
 		   (is-search-spec `((word . ,word)))
 		   ((and since_id (null id)) `((since_id . ,since_id)))
-		   (t nil))))
+		   (t nil))
+		(clean-up-sentinel
+		 . ,(lambda (proc noninteractive mes)
+		      (when (memq (process-status proc)
+				  '(exit signal closed failed))
+			(twittering-release-process proc))))))
 	     (proc
 	      (twittering-call-api 'retrieve-timeline args noninteractive)))
 	(when proc

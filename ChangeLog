@@ -13,6 +13,15 @@
 	* twittering-mode.el (twittering-connection-type-table): remove
 	obsolete entries.
 
+	* twittering-mode.el: `twittering-release-process' is called as a
+	clean-up sentinel.
+	(twittering-call-api): accept new option `clean-up-sentinel' for
+	`retrieve-timeline'.
+	(twittering-http-default-sentinel): do not call
+	`twittering-release-process'.
+	(twittering-get-and-render-timeline): explicitly register
+	`twittering-release-process' as a clean-up sentinel.
+
 2010-09-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Remove redundant pre-processing of HTTP

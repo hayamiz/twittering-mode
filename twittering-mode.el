@@ -984,15 +984,23 @@ The result alist includes the following keys, where a key is a symbol.
 	    ,@(unless (assoc "User-Agent" header-list)
 		`(("User-Agent" . ,(twittering-user-agent))))
 	    ,@header-list)))
-    `((method . ,method)
-      (scheme . ,scheme)
-      (host . ,host)
-      (port . ,port)
-      (path . ,path)
-      (query-string . ,query-string)
-      (uri . ,uri)
-      (header-list . ,header-list)
-      (post-body . ,post-body))))
+    (cond
+     ((not (member method '("POST" "GET")))
+      (error "Unknown HTTP method: %s" method)
+      nil)
+     ((not (string-match "^/" path))
+      (error "Invalid HTTP path: %s" path)
+      nil)
+     (t
+      `((method . ,method)
+	(scheme . ,scheme)
+	(host . ,host)
+	(port . ,port)
+	(path . ,path)
+	(query-string . ,query-string)
+	(uri . ,uri)
+	(header-list . ,header-list)
+	(post-body . ,post-body))))))
 
 (defun twittering-make-http-request-from-uri (method header-list uri &optional post-body)
   "Returns an alist specifying a HTTP request.
@@ -1248,10 +1256,6 @@ PARAMETERS: http request parameters (query string)
 NONINTERACTIVE: non-nil if this is called in noninteractive way.
 SENTINEL  : sentinel executed if HTTP response is valid.
 CLEAN-UP-SENTINEL: sentinel always executed."
-  (unless (member method '("POST" "GET"))
-    (error "Unknown HTTP method: %s" method))
-  (unless (string-match "^/" path)
-    (error "Invalid HTTP path: %s" path))
   (let* ((post-body "")
 	 (request
 	  (twittering-make-http-request method headers host port path

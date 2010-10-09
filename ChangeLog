@@ -63,6 +63,11 @@
 	`twittering-send-http-request-with-default-sentinel'.
 	(twittering-oauth-get-token-alist): likewise.
 
+	* twittering-mode.el: Validity of a HTTP request is confirmed by
+	`twittering-make-http-request'.
+	(twittering-make-http-request): check the validity of arguments.
+	(twittering-start-http-session): remove validity check.
+
 2010-09-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Remove redundant pre-processing of HTTP

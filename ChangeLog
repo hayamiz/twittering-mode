@@ -116,6 +116,18 @@
 	`twittering-unicode-replacement-char' and
 	`twittering-ucs-to-char-internal'.
 
+	* twittering-mode.el: Modify some codes to avoid warnings on
+	byte-compile.
+	(twittering-start-http-session-native-tls-p): load the tls library
+	before byte-compiling this function. This avoids a warning of the
+	reference to `tls-program' on byte-compile.
+	(twittering-read-from-encrypted-file): likewise. The epa library
+	and "alpaca.el" are loaded before byte-compiling this function.
+	(twittering-modeline-properties): new constant.
+	(twittering-modeline-active): defined with
+	`twittering-modeline-properties'.
+	(twittering-modeline-inactive): likewise.
+
 2010-09-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Remove redundant pre-processing of HTTP

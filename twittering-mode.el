@@ -1282,6 +1282,7 @@ The method to perform the request is determined from
 ;;;; Basic HTTP functions with tls and Emacs builtins.
 ;;;;
 
+(eval-when-compile (require 'tls nil t))
 (defun twittering-start-http-session-native-tls-p ()
   (when (require 'tls nil t)
     (unless twittering-tls-program
@@ -2421,6 +2422,9 @@ like following:
   (and (or (require 'epa nil t) (require 'alpaca nil t))
        (executable-find "gpg")))
 
+(eval-when-compile
+  (require 'epa nil t)
+  (require 'alpaca nil t))
 (defun twittering-read-from-encrypted-file (file)
   (cond
    ((require 'epa nil t)
@@ -4677,22 +4681,26 @@ static char * unplugged_xpm[] = {
 ;;    Boston, MA 02111-1307, USA.
 )
 
-(let ((props
-       (when (display-mouse-p)
-	 `(local-map
-	   ,(purecopy (make-mode-line-mouse-map
-		       'mouse-2 #'twittering-toggle-activate-buffer))
-	   help-echo "mouse-2 toggles activate buffer"))))
-  (defconst twittering-modeline-active
-    (if twittering-active-indicator-image
-	(apply 'propertize " "
-	       `(display ,twittering-active-indicator-image ,@props))
-      " "))
-  (defconst twittering-modeline-inactive
-    (if twittering-inactive-indicator-image
-	(apply 'propertize "INACTIVE"
-	       `(display ,twittering-inactive-indicator-image ,@props))
-      "INACTIVE")))
+(defconst twittering-modeline-properties
+  (when (display-mouse-p)
+    `(local-map
+      ,(purecopy (make-mode-line-mouse-map
+		  'mouse-2 #'twittering-toggle-activate-buffer))
+      help-echo "mouse-2 toggles activate buffer")))
+
+(defconst twittering-modeline-active
+  (if twittering-active-indicator-image
+      (apply 'propertize " "
+	     `(display ,twittering-active-indicator-image
+		       ,@twittering-modeline-properties))
+    " "))
+
+(defconst twittering-modeline-inactive
+  (if twittering-inactive-indicator-image
+      (apply 'propertize "INACTIVE"
+	     `(display ,twittering-inactive-indicator-image
+		       ,@twittering-modeline-properties))
+    "INACTIVE"))
 
 (defun twittering-mode-line-buffer-identification ()
   (let ((active-mode-indicator

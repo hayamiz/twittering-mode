@@ -107,6 +107,15 @@
 	(twittering-buffer-related-p): fix a condition so that it works
 	well even when multiple edit buffer exists.
 
+	* twittering-mode.el: Solve cyclic reference on definition of
+	`twittering-unicode-replacement-char'.
+	(twittering-ucs-to-char-internal): new function.
+	(twittering-unicode-replacement-char): initialized by
+	`twittering-ucs-to-char-internal'.
+	(twittering-ucs-to-char): redefined with
+	`twittering-unicode-replacement-char' and
+	`twittering-ucs-to-char-internal'.
+
 2010-09-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Remove redundant pre-processing of HTTP

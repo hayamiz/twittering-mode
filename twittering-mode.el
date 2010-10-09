@@ -2604,7 +2604,7 @@ The retrieved data can be referred as (gethash url twittering-url-data-hash)."
 ;;;; XML parser
 ;;;;
 
-(defun twittering-ucs-to-char (num)
+(defun twittering-ucs-to-char-internal (code-point)
   ;; Check (featurep 'unicode) is a workaround with navi2ch to avoid
   ;; error "error in process sentinel: Cannot open load file:
   ;; unicode".
@@ -2614,20 +2614,24 @@ The retrieved data can be referred as (gethash url twittering-url-data-hash)."
   ;; file "unicode(.el)" (which came from Mule-UCS), hence it breaks
   ;; `ucs-to-char' under non Mule-UCS environment. The problem is
   ;; fixed in navi2ch dated 2010-01-16 or later, but not released yet.
-  (or (if (and (featurep 'unicode) (functionp 'ucs-to-char))
-	  (ucs-to-char num)
-	;; Emacs21 have a partial support for UTF-8 text, so it can decode
-	;; only parts of a text with Japanese.
-	(decode-char 'ucs num))
-      twittering-unicode-replacement-char))
+  (if (and (featurep 'unicode) (functionp 'ucs-to-char))
+      (ucs-to-char code-point)
+    ;; Emacs21 have a partial support for UTF-8 text, so it can decode
+    ;; only parts of a text with Japanese.
+    (decode-char 'ucs code-point)))
 
 (defvar twittering-unicode-replacement-char
-  (let ((twittering-unicode-replacement-char ??)
-	(code-point #xFFFD))
-    ;; "Unicode Character 'REPLACEMENT CHARACTER' (U+FFFD)"
-    (twittering-ucs-to-char code-point))
-  "*Replacement character used when `ucs-to-char' or `decode-char' return
-nil.")
+  ;; "Unicode Character 'REPLACEMENT CHARACTER' (U+FFFD)"
+  (or (twittering-ucs-to-char-internal #xFFFD)
+      ??)
+  "*Replacement character returned by `twittering-ucs-to-char' when it fails
+to decode a code.")
+
+(defun twittering-ucs-to-char (code-point)
+  "Return a character specified by CODE-POINT in Unicode.
+If it fails to decode the code, return `twittering-unicode-replacement-char'."
+  (or (twittering-ucs-to-char-internal code-point)
+      twittering-unicode-replacement-char))
 
 (defadvice decode-char (after twittering-add-fail-over-to-decode-char)
   (when (null ad-return-value)

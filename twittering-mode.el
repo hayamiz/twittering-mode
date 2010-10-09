@@ -941,6 +941,8 @@ The result alist includes the following keys, where a key is a symbol.
   port: the port to which the request is sent (integer).
   path: the absolute path string. Note that it does not include query string.
   query-string: the query string.
+  encoded-query-alist: the alist consisting of pairs of encoded query-name and
+    encoded query-value.
   uri: the URI. It includes the query string.
   header-list: an alist specifying pairs of a parameter and its value in HTTP
     header field.
@@ -966,6 +968,30 @@ The result alist includes the following keys, where a key is a symbol.
 			   nil)))
 		       query-parameters
 		       "&"))
+	   (t
+	    nil)))
+	 (encoded-query-alist
+	  (cond
+	   ((stringp query-parameters)
+	    ;; Query name and its value must be already encoded.
+	    (mapcar (lambda (str)
+		      (if (string-match "=" str)
+			  (let ((key (substring str 0 (match-beginning 0)))
+				(value (substring str (match-end 0))))
+			    `(,key . ,value))
+			`(,str . nil)))
+		    (split-string query-parameters "&")))
+	   ((consp query-parameters)
+	    (mapcar (lambda (pair)
+		      (cond
+		       ((stringp pair)
+			(cons (twittering-percent-encode pair) nil))
+		       ((consp pair)
+			(cons (twittering-percent-encode (car pair))
+			      (twittering-percent-encode (cdr pair))))
+		       (t
+			nil)))
+		    query-parameters))
 	   (t
 	    nil)))
 	 (uri (concat scheme "://"
@@ -998,6 +1024,7 @@ The result alist includes the following keys, where a key is a symbol.
 	(port . ,port)
 	(path . ,path)
 	(query-string . ,query-string)
+	(encoded-query-alist . ,encoded-query-alist)
 	(uri . ,uri)
 	(header-list . ,header-list)
 	(post-body . ,post-body))))))

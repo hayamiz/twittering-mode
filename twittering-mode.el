@@ -4102,9 +4102,9 @@ BUFFER defaults to the the current buffer."
 (defun twittering-buffer-related-p ()
   "Return t if current buffer relates to `twittering-mode'."
   (or (twittering-buffer-p)
-      (member (buffer-name (current-buffer))
-	      (list twittering-debug-buffer
-		    twittering-edit-buffer))))
+      (eq major-mode 'twittering-edit-mode)
+      (string= (buffer-name (current-buffer))
+	       twittering-debug-buffer)))
 
 (defun twittering-buffer-active-p (&optional buffer)
   "Return t if BUFFER is an active buffer managed by `twittering-mode'.

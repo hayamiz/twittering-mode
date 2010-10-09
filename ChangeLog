@@ -102,6 +102,11 @@
 	`twittering-http-application-headers-with-auth'.
 	(twittering-http-post): likewise.
 
+	* twittering-mode.el: Fix `twittering-buffer-related-p' in order
+	to support multiple edit buffers.
+	(twittering-buffer-related-p): fix a condition so that it works
+	well even when multiple edit buffer exists.
+
 2010-09-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Remove redundant pre-processing of HTTP

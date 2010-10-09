@@ -24,6 +24,10 @@
 
 	* twittering-mode.el: Classify functions into some groups.
 
+	* twittering-mode.el: Add a new function
+	`twittering-send-http-request-with-default-sentinel'.
+	(twittering-send-http-request-with-default-sentinel): new function.
+
 2010-09-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Remove redundant pre-processing of HTTP

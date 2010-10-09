@@ -51,6 +51,18 @@
 	`clean-up-sentinel' to adapt it to
 	`twittering-send-http-request-with-default-sentinel'.
 
+	* twittering-mode.el: Rename
+	`twittering-send-http-request-with-default-sentinel'
+	`twittering-send-http-request'.
+	(twittering-send-http-request-internal): renamed from
+	`twittering-send-http-request'.
+	(twittering-send-http-request): renamed from
+	`twittering-send-http-request-with-default-sentinel'.
+	(twittering-start-http-session): use
+	`twittering-send-http-requeset' instead of
+	`twittering-send-http-request-with-default-sentinel'.
+	(twittering-oauth-get-token-alist): likewise.
+
 2010-09-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Remove redundant pre-processing of HTTP

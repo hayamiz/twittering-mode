@@ -92,6 +92,16 @@
 	(twittering-make-http-request): add `uri-without-query' entry to
 	an alist corresponding to a HTTP request.
 
+	* twittering-mode.el: Introduce
+	`twittering-add-application-header-to-http-request'.
+	(twittering-http-application-headers-with-auth): removed.
+	(twittering-add-application-header-to-http-request): new
+	function.
+	(twittering-http-get): use
+	`twittering-add-application-header-to-http-request' instead of
+	`twittering-http-application-headers-with-auth'.
+	(twittering-http-post): likewise.
+
 2010-09-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Remove redundant pre-processing of HTTP

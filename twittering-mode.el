@@ -1674,44 +1674,39 @@ The method to perform the request is determined from
     headers
     ))
 
-(defun twittering-http-application-headers-with-auth (method url query-parameters)
-  "Return an alist of HTTP headers with Authorization for `twittering-mode'.
-METHOD is HTTP method (\"GET\", \"POST\", etc.).
-QUERY-PARAMETERS is a list of cons pair of name and value such as
-'((\"status\" . \"test tweet\")
-  (\"in_reply_to_status_id\" . \"12345678\"))."
-  (let ((auth-str
-	 (cond
-	  ((eq twittering-auth-method 'basic)
-	   (concat "Basic "
-		   (base64-encode-string
-		    (concat (twittering-get-username)
-			    ":" (twittering-get-password)))))
-	  ((memq twittering-auth-method '(oauth xauth))
-	   (let ((access-token
-		  (cdr (assoc "oauth_token"
-			      twittering-oauth-access-token-alist)))
-		 (access-token-secret
-		  (cdr (assoc "oauth_token_secret"
-			      twittering-oauth-access-token-alist)))
-		 (encoded-query-parameters
-		  (mapcar
-		   (lambda (entry)
-		     (let ((name (twittering-percent-encode (car entry)))
-			   (value (twittering-percent-encode (cdr entry))))
-		       `(,name . ,value)))
-		   query-parameters)))
-	     (twittering-oauth-auth-str-access
-	      method url encoded-query-parameters
-	      twittering-oauth-consumer-key twittering-oauth-consumer-secret
-	      access-token access-token-secret)))
-	  (t
-	   nil)))
-	(base-headers (twittering-http-application-headers method)))
-    (if auth-str
-	`(,@base-headers
-	  ("Authorization" . ,auth-str))
-      base-headers)))
+(defun twittering-add-application-header-to-http-request (request)
+  (let* ((method (cdr (assq 'method request)))
+	 (auth-str
+	  (cond
+	   ((eq twittering-auth-method 'basic)
+	    (concat "Basic "
+		    (base64-encode-string
+		     (concat (twittering-get-username)
+			     ":" (twittering-get-password)))))
+	   ((memq twittering-auth-method '(oauth xauth))
+	    (let ((access-token
+		   (cdr (assoc "oauth_token"
+			       twittering-oauth-access-token-alist)))
+		  (access-token-secret
+		   (cdr (assoc "oauth_token_secret"
+			       twittering-oauth-access-token-alist))))
+	      (twittering-oauth-auth-str-access
+	       method
+	       (cdr (assq 'uri-without-query request))
+	       (cdr (assq 'encoded-query-alist request))
+	       twittering-oauth-consumer-key twittering-oauth-consumer-secret
+	       access-token access-token-secret)))
+	   (t
+	    nil)))
+	 (application-headers
+	  `(,@(twittering-http-application-headers method)
+	    ("Authorization" . ,auth-str))))
+    (mapcar (lambda (entry)
+	      (if (eq (car entry) 'header-list)
+		  `(header-list
+		    . ,(append (cdr entry) application-headers))
+		entry))
+	    request)))
 
 (defun twittering-get-error-message (buffer)
   (if buffer
@@ -1725,20 +1720,15 @@ QUERY-PARAMETERS is a list of cons pair of name and value such as
 (defun twittering-http-get (host method &optional noninteractive parameters format sentinel clean-up-sentinel)
   (let* ((format (or format "xml"))
 	 (sentinel (or sentinel 'twittering-http-get-default-sentinel))
-	 (scheme (if twittering-use-ssl
-		     "https"
-		   "http"))
 	 (path (concat "/" method "." format))
-	 (url (format "%s://%s%s" scheme host path))
-	 (headers
-	  (twittering-http-application-headers-with-auth
-	   "GET" url parameters))
+	 (headers nil)
 	 (port nil)
 	 (post-body "")
 	 (request
-	  (twittering-make-http-request "GET" headers host port path
-					parameters post-body
-					twittering-use-ssl))
+	  (twittering-add-application-header-to-http-request
+	   (twittering-make-http-request "GET" headers host port path
+					 parameters post-body
+					 twittering-use-ssl)))
 	 (additional-info `((noninteractive . ,noninteractive)
 			    (clean-up-sentinel . ,clean-up-sentinel)
 			    (sentinel . ,sentinel))))
@@ -1829,20 +1819,15 @@ PARAMETERS is alist of URI parameters.
 FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
   (let* ((format (or format "xml"))
 	 (sentinel (or sentinel 'twittering-http-post-default-sentinel))
-	 (scheme (if twittering-use-ssl
-		     "https"
-		   "http"))
 	 (path (concat "/" method "." format))
-	 (url (format "%s://%s%s" scheme host path))
-	 (headers
-	  (twittering-http-application-headers-with-auth
-	   "POST" url parameters))
+	 (headers nil)
 	 (port nil)
 	 (post-body "")
 	 (request
-	  (twittering-make-http-request "POST" headers host port path
-					parameters post-body
-					twittering-use-ssl))
+	  (twittering-add-application-header-to-http-request
+	   (twittering-make-http-request "POST" headers host port path
+					 parameters post-body
+					 twittering-use-ssl)))
 	 (additional-info `((noninteractive . nil)
 			    (clean-up-sentinel . ,clean-up-sentinel)
 			    (sentinel . ,sentinel))))

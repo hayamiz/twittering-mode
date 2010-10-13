@@ -1,3 +1,17 @@
+2010-10-14  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: `twittering-get-error-message' generates an
+	error message with explanation if possible.
+	(twittering-get-error-message): generate an error message with
+	explanation if possible. `twittering-xml-parse-region' is called
+	only when it is required. It is determined by the new argument
+	`header-info'.
+	(twittering-http-get-default-sentinel): use
+	`twittering-get-error-message' for generating a total error
+	message, not only explanation.
+	(twittering-http-get-list-index-sentinel): likewise.
+	(twittering-http-post-default-sentinel): likewise.
+
 2010-10-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Correctly render the format specifier "%L"

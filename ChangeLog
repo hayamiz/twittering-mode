@@ -78,6 +78,19 @@
 	variables `twittering-username' and `twittering-password' if
 	necessary.
 
+	* twittering-mode.el: Add new connection method `urllib-http' and
+	`urllib-https'.
+	(twittering-connection-type-order): add `urllib-http' and
+	`urllib-https'.
+	(twittering-connection-type-table): add new entries for
+	`urllib-http' and `urllib-https'.
+	(twittering-send-http-request): add special treatment for the
+	connection method using the url library.
+	(twittering-start-http-session-urllib-p): new function.
+	(twittering-start-http-session-urllib-https-p): new function.
+	(twittering-send-http-request-urllib): new function.
+	(twittering-pre-process-buffer-urllib): new function.
+
 2010-10-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: `twittering-get-error-message' generates an

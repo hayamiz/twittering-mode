@@ -76,6 +76,16 @@
 * Silent retrieval of icons.
   The default value of `twittering-url-show-status' is changed to nil.
   So, icons are retrieved silently by default.
+* New connection methods, `urllib-http' and `urllib-https'.
+  New connection methods are added, which are implemented by using `url'
+  library. The library supports HTTP redirection, but it may be slow and
+  unstable. This method is not recommended if you can use other methods.
+  If you give incorrect account information on BASIC authentication or
+  xAuth with this new methods, you will be asked to input account
+  information again. This behavior is a function of the url library, but
+  twittering-mode cannot use account information given on the second try.
+  When you are asked to input it again, cancel it by 'C-g' and do
+  'M-x twit'.
 * ...
 
 ### Bug fixes

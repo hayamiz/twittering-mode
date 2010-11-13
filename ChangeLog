@@ -48,6 +48,11 @@
 	sentinel via `additional-info', which is an argument of
 	`twittering-call-api'.
 
+	* twittering-mode.el: Confirm that `twittering-proxy-use' is nil
+	when trying the connection method `native'.
+	(twittering-start-http-session-native-tls-p): return nil if
+	`twittering-proxy-use' is non-nil.
+
 2010-10-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: `twittering-get-error-message' generates an

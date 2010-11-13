@@ -1284,7 +1284,8 @@ The method to perform the request is determined from
 
 (eval-when-compile (require 'tls nil t))
 (defun twittering-start-http-session-native-tls-p ()
-  (when (require 'tls nil t)
+  (when (and (not twittering-proxy-use)
+	     (require 'tls nil t))
     (unless twittering-tls-program
       (let ((programs
 	     (remove nil

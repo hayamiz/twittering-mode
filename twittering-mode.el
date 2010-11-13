@@ -1735,7 +1735,7 @@ the server when the HTTP status code equals to 400 or 403."
      (t
       status-line))))
 
-(defun twittering-http-get (host method &optional noninteractive parameters format sentinel clean-up-sentinel)
+(defun twittering-http-get (host method &optional parameters format additional-info sentinel clean-up-sentinel)
   (let* ((format (or format "xml"))
 	 (sentinel (or sentinel 'twittering-http-get-default-sentinel))
 	 (path (concat "/" method "." format))
@@ -1746,8 +1746,7 @@ the server when the HTTP status code equals to 400 or 403."
 	  (twittering-add-application-header-to-http-request
 	   (twittering-make-http-request "GET" headers host port path
 					 parameters post-body
-					 twittering-use-ssl)))
-	 (additional-info `((noninteractive . ,noninteractive))))
+					 twittering-use-ssl))))
     (twittering-send-http-request request additional-info
 				  sentinel clean-up-sentinel)))
 
@@ -1821,7 +1820,7 @@ the server when the HTTP status code equals to 400 or 403."
 	      "")) ;; set "" explicitly if user does not have a list.
     mes))
 
-(defun twittering-http-post (host method &optional parameters format sentinel clean-up-sentinel)
+(defun twittering-http-post (host method &optional parameters format additional-info sentinel clean-up-sentinel)
   "Send HTTP POST request to api.twitter.com (or search.twitter.com)
 
 HOST is hostname of remote side, api.twitter.com (or search.twitter.com).
@@ -1840,8 +1839,7 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
 	  (twittering-add-application-header-to-http-request
 	   (twittering-make-http-request "POST" headers host port path
 					 parameters post-body
-					 twittering-use-ssl)))
-	 (additional-info `((noninteractive . nil))))
+					 twittering-use-ssl))))
     (twittering-send-http-request request additional-info
 				  sentinel clean-up-sentinel)))
 
@@ -3474,7 +3472,8 @@ send-direct-message -- Send a direct message.
 	     (t nil)))
 	   (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
       (if (and host method)
-	  (twittering-http-get host method noninteractive parameters format
+	  (twittering-http-get host method parameters format
+			       `((noninteractive . ,noninteractive))
 			       nil clean-up-sentinel)
 	(error "Invalid timeline spec"))))
    ((eq command 'get-list-index)
@@ -3484,7 +3483,9 @@ send-direct-message -- Send a direct message.
 	  (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
       (twittering-http-get twittering-api-host
 			   (twittering-api-path username "/lists")
-			   noninteractive nil nil sentinel clean-up-sentinel)))
+			   nil nil
+			   `((noninteractive . ,noninteractive))
+			   sentinel clean-up-sentinel)))
    ((eq command 'create-friendships)
     ;; Create a friendship.
     (let ((username (cdr (assq 'username args-alist))))
@@ -3535,7 +3536,8 @@ send-direct-message -- Send a direct message.
 	  (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
       (twittering-http-get twittering-api-host
 			   (twittering-api-path "account/verify_credentials")
-			   noninteractive nil nil
+			   nil nil
+			   `((noninteractive . ,noninteractive))
 			   sentinel clean-up-sentinel)))
    ((eq command 'send-direct-message)
     ;; Send a direct message.

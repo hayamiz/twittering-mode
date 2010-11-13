@@ -28,6 +28,17 @@
 	(twittering-get-and-render-timeline): remove explicit calculation
 	of number of tweets which will be retrieved.
 
+	* twittering-mode.el: Add a new argument `additional-info' to
+	`twittering-http-{get,put}'. It can be used to send information to
+	generated processes.
+	(twittering-http-get): replace the argument `noninteractive' with
+	a new argument `additional-info', which will be sent to
+	`twittering-send-http-request'.
+	(twittering-http-post): add a new argument `additional-info',
+	which will be sent to `twittering-send-http-request'.
+	(twittering-call-api): send the information of `noninteractive' as
+	a member of `additional-info' to `twittering-http-get'.
+
 2010-10-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: `twittering-get-error-message' generates an

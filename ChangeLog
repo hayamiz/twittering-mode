@@ -1,3 +1,10 @@
+2010-11-13  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: `twittering-send-http-request' correctly
+	transfer `additional-info'.
+	(twittering-send-http-request): call
+	`twittering-send-http-request-internal' with correct arguments.
+
 2010-10-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: `twittering-get-error-message' generates an

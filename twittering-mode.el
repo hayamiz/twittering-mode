@@ -1225,7 +1225,7 @@ The method to perform the request is determined from
   (lexical-let ((func func)
 		(clean-up-func clean-up-func))
     (twittering-send-http-request-internal
-     request nil
+     request additional-info
      (lambda (proc status-str connection-info)
        (let ((status (process-status proc))
 	     (buffer (process-buffer proc))

@@ -3351,7 +3351,6 @@ retrieve-timeline -- Retrieve a timeline.
     number -- how many tweets are retrieved.
     max_id -- (optional) the maximum ID of retrieved tweets.
     since_id -- (optional) the minimum ID of retrieved tweets.
-    word -- (optional) the searched string used for search timeline.
     clean-up-sentinel -- (optional) the clean-up sentinel that post-processes
       the buffer associated to the process. This is used as an argument
       CLEAN-UP-SENTINEL of `twittering-send-http-request' via
@@ -3411,7 +3410,8 @@ send-direct-message -- Send a direct message.
 	   (number-str (number-to-string number))
 	   (max_id (cdr (assq 'max_id args-alist)))
 	   (since_id (cdr (assq 'since_id args-alist)))
-	   (word (cdr (assq 'word args-alist)))
+	   (word (when (eq 'search spec-type)
+		   (cadr spec)))
 	   (parameters
 	    `(,@(when max_id `(("max_id" . ,max_id)))
 	      ,@(when since_id `(("since_id" . ,since_id)))
@@ -5367,11 +5367,10 @@ variable `twittering-status-format'."
       ;; ignore non-interactive request if a process is waiting for responses.
       t)
      ((twittering-timeline-spec-primary-p spec)
-      (let* ((is-search-spec (eq 'search (car spec)))
-	     (default-number 20)
-	     (max-number (if is-search-spec
-			    100 ;; FIXME: refer to defconst.
-			  twittering-max-number-of-tweets-on-retrieval))
+      (let* ((default-number 20)
+	     (max-number (if (eq 'search (car spec))
+			     100 ;; FIXME: refer to defconst.
+			   twittering-max-number-of-tweets-on-retrieval))
 	     (number twittering-number-of-tweets-on-retrieval)
 	     (number (cond
 		     ((integerp number) number)
@@ -5384,15 +5383,13 @@ variable `twittering-status-format'."
 	      ;; `twittering-current-timeline-data' is sorted.
 	      (car (twittering-current-timeline-data spec)))
 	     (since_id (cdr-safe (assq 'id latest-status)))
-	     (word (when is-search-spec (cadr spec)))
 	     (args
 	      `((timeline-spec . ,spec)
 		(timeline-spec-string . ,spec-string)
 		(number . ,number)
-		,@(when id `((max_id . ,id)))
 		,@(cond
-		   (is-search-spec `((word . ,word)))
-		   ((and since_id (null id)) `((since_id . ,since_id)))
+		   (id `((max_id . ,id)))
+		   (since_id `((since_id . ,since_id)))
 		   (t nil))
 		(clean-up-sentinel
 		 . ,(lambda (proc status-str connection-info)

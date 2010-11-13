@@ -14,6 +14,13 @@
 	* twittering-mode.el: Fix docstring of `twittering-call-api'.
 	(twittering-call-api): fix docstring.
 
+	* twittering-mode.el: `twittering-call-api' extracts a query
+	string from the given timeline spec.
+	(twittering-call-api): extract a query string of search timeline
+	from the given timeline spec.
+	(twittering-get-and-render-timeline): remove a query string
+	from the second argument of `twittering-call-api'.
+
 2010-10-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: `twittering-get-error-message' generates an

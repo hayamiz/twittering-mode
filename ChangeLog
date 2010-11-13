@@ -5,6 +5,12 @@
 	(twittering-send-http-request): call
 	`twittering-send-http-request-internal' with correct arguments.
 
+	* twittering-mode.el: Remove redundant entries from an argument of
+	`twittering-send-http-request'.
+	(twittering-http-get): remove redundant entries from
+	`additional-info', an argument of `twittering-send-http-request'.
+	(twittering-http-post): likewise.
+
 2010-10-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: `twittering-get-error-message' generates an

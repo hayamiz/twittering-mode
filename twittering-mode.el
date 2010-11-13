@@ -1747,9 +1747,7 @@ the server when the HTTP status code equals to 400 or 403."
 	   (twittering-make-http-request "GET" headers host port path
 					 parameters post-body
 					 twittering-use-ssl)))
-	 (additional-info `((noninteractive . ,noninteractive)
-			    (clean-up-sentinel . ,clean-up-sentinel)
-			    (sentinel . ,sentinel))))
+	 (additional-info `((noninteractive . ,noninteractive))))
     (twittering-send-http-request request additional-info
 				  sentinel clean-up-sentinel)))
 
@@ -1843,9 +1841,7 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
 	   (twittering-make-http-request "POST" headers host port path
 					 parameters post-body
 					 twittering-use-ssl)))
-	 (additional-info `((noninteractive . nil)
-			    (clean-up-sentinel . ,clean-up-sentinel)
-			    (sentinel . ,sentinel))))
+	 (additional-info `((noninteractive . nil))))
     (twittering-send-http-request request additional-info
 				  sentinel clean-up-sentinel)))
 

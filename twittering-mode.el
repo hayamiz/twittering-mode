@@ -3334,12 +3334,15 @@ Statuses are stored in ascending-order with respect to their IDs."
 (defun twittering-api-path (&rest params)
   (mapconcat 'identity `(,twittering-api-prefix ,@params) ""))
 
-(defun twittering-call-api (command args-alist &optional noninteractive)
+(defun twittering-call-api (command args-alist &optional additional-info)
   "Call Twitter API and return the process object for the request.
 COMMAND is a symbol specifying API. ARGS-ALIST is an alist specifying
 arguments for the API corresponding to COMMAND. Each key of ARGS-ALIST is a
 symbol.
-NONINTERACTIVE specifies whether this function is called interactively or not.
+ADDITIONAL-INFO is used as an argument ADDITIONAL-INFO of
+`twittering-send-http-request'. Sentinels associated to the returned process
+receives it as the fourth argument. See also the function
+`twittering-send-http-request'.
 
 The valid symbols as COMMAND follows:
 retrieve-timeline -- Retrieve a timeline.
@@ -3473,8 +3476,7 @@ send-direct-message -- Send a direct message.
 	   (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
       (if (and host method)
 	  (twittering-http-get host method parameters format
-			       `((noninteractive . ,noninteractive))
-			       nil clean-up-sentinel)
+			       additional-info nil clean-up-sentinel)
 	(error "Invalid timeline spec"))))
    ((eq command 'get-list-index)
     ;; Get list names.
@@ -3483,31 +3485,34 @@ send-direct-message -- Send a direct message.
 	  (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
       (twittering-http-get twittering-api-host
 			   (twittering-api-path username "/lists")
-			   nil nil
-			   `((noninteractive . ,noninteractive))
+			   nil nil additional-info
 			   sentinel clean-up-sentinel)))
    ((eq command 'create-friendships)
     ;; Create a friendship.
     (let ((username (cdr (assq 'username args-alist))))
       (twittering-http-post twittering-api-host
 			    (twittering-api-path "friendships/create")
-			    `(("screen_name" . ,username)))))
+			    `(("screen_name" . ,username))
+			    nil additional-info)))
    ((eq command 'destroy-friendships)
     ;; Destroy a friendship
     (let ((username (cdr (assq 'username args-alist))))
       (twittering-http-post twittering-api-host
 			    (twittering-api-path "friendships/destroy")
-			    `(("screen_name" . ,username)))))
+			    `(("screen_name" . ,username))
+			    nil additional-info)))
    ((eq command 'create-favorites)
     ;; Create a favorite.
     (let ((id (cdr (assq 'id args-alist))))
       (twittering-http-post twittering-api-host
-			    (twittering-api-path "favorites/create/" id))))
+			    (twittering-api-path "favorites/create/" id)
+			    nil nil additional-info)))
    ((eq command 'destroy-favorites)
     ;; Destroy a favorite.
     (let ((id (cdr (assq 'id args-alist))))
       (twittering-http-post twittering-api-host
-			    (twittering-api-path "favorites/destroy/" id))))
+			    (twittering-api-path "favorites/destroy/" id)
+			    nil nil additional-info)))
    ((eq command 'update-status)
     ;; Post a tweet.
     (let* ((status (cdr (assq 'status args-alist)))
@@ -3519,25 +3524,26 @@ send-direct-message -- Send a direct message.
 	      ,@(when id `(("in_reply_to_status_id" . ,id))))))
       (twittering-http-post twittering-api-host
 			    (twittering-api-path "statuses/update")
-			    parameters)))
+			    parameters nil additional-info)))
    ((eq command 'destroy-status)
     ;; Destroy a status.
     (let ((id (cdr (assq 'id args-alist))))
       (twittering-http-post twittering-api-host
-			    (twittering-api-path "statuses/destroy/" id))))
+			    (twittering-api-path "statuses/destroy/" id)
+			    nil nil additional-info)))
    ((eq command 'retweet)
     ;; Post a retweet.
     (let ((id (cdr (assq 'id args-alist))))
       (twittering-http-post twittering-api-host
-			    (twittering-api-path "statuses/retweet/" id))))
+			    (twittering-api-path "statuses/retweet/" id)
+			    nil nil additional-info)))
    ((eq command 'verify-credentials)
     ;; Verify the account.
     (let ((sentinel (cdr (assq 'sentinel args-alist)))
 	  (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
       (twittering-http-get twittering-api-host
 			   (twittering-api-path "account/verify_credentials")
-			   nil nil
-			   `((noninteractive . ,noninteractive))
+			   nil nil additional-info
 			   sentinel clean-up-sentinel)))
    ((eq command 'send-direct-message)
     ;; Send a direct message.
@@ -3546,7 +3552,7 @@ send-direct-message -- Send a direct message.
 	     ("text" . ,(cdr (assq 'status args-alist))))))
       (twittering-http-post twittering-api-host
 			    (twittering-api-path "direct_messages/new")
-			    parameters)))
+			    parameters nil additional-info)))
    (t
     nil)))
 
@@ -5402,8 +5408,10 @@ variable `twittering-status-format'."
 		      (when (memq (process-status proc)
 				  '(exit signal closed failed))
 			(twittering-release-process proc))))))
+	     (additional-info
+	      `((noninteractive . ,noninteractive)))
 	     (proc
-	      (twittering-call-api 'retrieve-timeline args noninteractive)))
+	      (twittering-call-api 'retrieve-timeline args additional-info)))
 	(when proc
 	  (twittering-register-process proc spec spec-string))))
      (t

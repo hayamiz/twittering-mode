@@ -53,6 +53,16 @@
 	(twittering-http-get-list-index-sentinel): likewise.
 	(twittering-http-post-default-sentinel): likewise.
 
+	* twittering-mode.el: The second argument of `twittering-call-api'
+	is replaced with `additional-info', which is sent to
+	`twittering-send-http-request' via `twittering-http-get' or
+	`twittering-http-put'.
+	(twittering-call-api): replace the argument `noninteractive' with
+	`additional-info', which is sent to `twittering-send-http-request'
+	via `twittering-http-get' or `twittering-http-put'.
+	(twittering-get-and-render-timeline): send `noninteractive' via
+	the new argument `additional-info' of `twittering-call-api'.
+
 2010-10-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Correctly render the format specifier "%L"

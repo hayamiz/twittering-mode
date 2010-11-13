@@ -70,6 +70,9 @@
   as well as `curl'. You can give priority to `wget' by the below
   configuration.
   (setq twittering-connection-type-order '(wget curl native))
+* Display of the current connection method on the mode-line.
+  By default, the current connection method is displayed on the mode-line.
+  You can disable it by "(setq twittering-display-connection-method nil)".
 * ...
 
 ### Bug fixes

@@ -73,6 +73,10 @@
   Twitterサーバとの通信に外部プログラムwgetを使えるようになりました。
   下記の設定でwgetが優先して使われるようになります。
   (setq twittering-connection-type-order '(wget curl native))
+* 現在の通信方法(connection method)をモードライン上に表示
+  デフォルトで現在の通信方法(connection method)がモードライン上に表示
+  されます。下記の設定で表示しないようにもできます。
+  (setq twittering-display-connection-method nil)
 * ...
 
 ### バグ修正

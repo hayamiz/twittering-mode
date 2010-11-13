@@ -53,6 +53,15 @@
 	(twittering-start-http-session-native-tls-p): return nil if
 	`twittering-proxy-use' is non-nil.
 
+	* twittering-mode.el: Display the current connection method on the
+	mode-line.
+	(twittering-display-connection-method): new variable.
+	(twittering-lookup-connection-type): add the entry `display-name'
+	if necessary.
+	(twittering-get-connection-method-name): new function.
+	(twittering-mode-line-buffer-identification): display the current
+	connection method on the mode-line.
+
 2010-10-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: `twittering-get-error-message' generates an

@@ -235,7 +235,9 @@ Do not modify this variable directly. Use `twittering-activate-buffer',
 (defvar twittering-reverse-mode nil
   "*Non-nil means tweets are aligned in reverse order of `http://twitter.com/'.")
 (defvar twittering-display-remaining nil
-  "*If non-nil, display remaining of rate limit on the mode line.")
+  "*If non-nil, display remaining of rate limit on the mode-line.")
+(defvar twittering-display-connection-method t
+  "*If non-nil, display the current connection method on the mode-line.")
 (defvar twittering-status-format "%i %s,  %@:\n%FILL[  ]{%T // from %f%L%r%R}\n "
   "Format string for rendering statuses.
 Ex. \"%i %s,  %@:\\n%FILL{  %T // from %f%L%r%R}\n \"
@@ -868,7 +870,12 @@ the function returns
 	(result nil))
     (while (and rest (null result))
       (let* ((candidate (car rest))
-	     (entry (cdr (assq candidate table)))
+	     (entry (cons `(symbol . ,candidate)
+			  (cdr (assq candidate table))))
+	     (entry (if (assq 'display-name entry)
+			entry
+		      (cons `(display-name . ,(symbol-name candidate))
+			    entry)))
 	     (validate (lambda (item)
 			 (let ((v (cdr (assq item entry))))
 			   (or (null v) (eq t v) (functionp v)))))
@@ -891,6 +898,12 @@ the function returns
 		   candidate)
 	  (setq rest nil))))
     result))
+
+(defun twittering-get-connection-method-name (use-ssl)
+  "Return a name of the preferred connection method.
+If USE-SSL is non-nil, return a connection method for HTTPS.
+If USE-SSL is nil, return a connection method for HTTP."
+  (cdr (assq 'display-name (twittering-lookup-connection-type use-ssl))))
 
 (defun twittering-lookup-http-start-function (&optional order table)
   "Decide a connection method from currently available methods."
@@ -4804,7 +4817,11 @@ static char * unplugged_xpm[] = {
 	     twittering-modeline-active
 	   twittering-modeline-inactive))
 	(enabled-options
-	 `(,@(when twittering-use-ssl `(,twittering-modeline-ssl))
+	 `(,(if twittering-display-connection-method
+		(concat
+		 (when twittering-use-ssl (concat twittering-modeline-ssl ":"))
+		 (twittering-get-connection-method-name twittering-use-ssl))
+	      (when twittering-use-ssl twittering-modeline-ssl))
 	   ,@(when twittering-jojo-mode '("jojo"))
 	   ,@(when twittering-icon-mode '("icon"))
 	   ,@(when twittering-reverse-mode '("reverse"))

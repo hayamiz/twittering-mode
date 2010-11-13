@@ -3337,7 +3337,70 @@ Statuses are stored in ascending-order with respect to their IDs."
   (mapconcat 'identity `(,twittering-api-prefix ,@params) ""))
 
 (defun twittering-call-api (command args-alist &optional noninteractive)
-  "Call Twitter API and return the process object for the request."
+  "Call Twitter API and return the process object for the request.
+COMMAND is a symbol specifying API. ARGS-ALIST is an alist specifying
+arguments for the API corresponding to COMMAND. Each key of ARGS-ALIST is a
+symbol.
+NONINTERACTIVE specifies whether this function is called interactively or not.
+
+The valid symbols as COMMAND follows:
+retrieve-timeline -- Retrieve a timeline.
+  Valid key symbols in ARGS-ALIST:
+    timeline-spec -- the timeline spec to be retrieved.
+    timeline-spec-string -- the string representation of the timeline spec.
+    number -- how many tweets are retrieved.
+    max_id -- (optional) the maximum ID of retrieved tweets.
+    since_id -- (optional) the minimum ID of retrieved tweets.
+    word -- (optional) the searched string used for search timeline.
+    clean-up-sentinel -- (optional) the clean-up sentinel that post-processes
+      the buffer associated to the process. This is used as an argument
+      CLEAN-UP-SENTINEL of `twittering-send-http-request' via
+      `twittering-http-get'.
+get-list-index -- Retrieve list names owned by a user.
+  Valid key symbols in ARGS-ALIST:
+    username -- the username.
+    sentinel -- the sentinel that processes retrieved strings. This is used
+      as an argument SENTINEL of `twittering-send-http-request'
+      via `twittering-http-get'.
+    clean-up-sentinel -- (optional) the clean-up sentinel that post-processes
+      the buffer associated to the process. This is used as an argument
+      CLEAN-UP-SENTINEL of `twittering-send-http-request' via
+      `twittering-http-get'.
+create-friendships -- Follow a user.
+  Valid key symbols in ARGS-ALIST:
+    username -- the username which will be followed.
+destroy-friendships -- Unfollow a user.
+  Valid key symbols in ARGS-ALIST:
+    username -- the username which will be unfollowed.
+create-favorites -- Mark a tweet as a favorite.
+  Valid key symbols in ARGS-ALIST:
+    id -- the ID of the target tweet.
+destroy-favorites -- Remove a mark of a tweet as a favorite.
+  Valid key symbols in ARGS-ALIST:
+    id -- the ID of the target tweet.
+update-status -- Post a tweet.
+  Valid key symbols in ARGS-ALIST:
+    status -- the string to be posted.
+    in-reply-to-status-id -- (optional) the ID of a status that this post is
+      in reply to.
+destroy-status -- Destroy a tweet posted by the authenticated user itself.
+  Valid key symbols in ARGS-ALIST:
+    id -- the ID of the target tweet.
+retweet -- Retweet a tweet.
+  Valid key symbols in ARGS-ALIST:
+    id -- the ID of the target tweet.
+verify-credentials -- Verify the current credentials.
+  Valid key symbols in ARGS-ALIST:
+    sentinel -- the sentinel that processes returned information. This is used
+      as an argument SENTINEL of `twittering-send-http-request'
+      via `twittering-http-get'.
+    clean-up-sentinel -- the clean-up sentinel that post-processes the buffer
+      associated to the process. This is used as an argument CLEAN-UP-SENTINEL
+      of `twittering-send-http-request' via `twittering-http-get'.
+send-direct-message -- Send a direct message.
+  Valid key symbols in ARGS-ALIST:
+    username -- the username who the message is sent to.
+    status -- the sent message."
   (cond
    ((eq command 'retrieve-timeline)
     ;; Retrieve a timeline.

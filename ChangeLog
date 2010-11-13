@@ -11,6 +11,9 @@
 	`additional-info', an argument of `twittering-send-http-request'.
 	(twittering-http-post): likewise.
 
+	* twittering-mode.el: Fix docstring of `twittering-call-api'.
+	(twittering-call-api): fix docstring.
+
 2010-10-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: `twittering-get-error-message' generates an

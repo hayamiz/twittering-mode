@@ -21,6 +21,13 @@
 	(twittering-get-and-render-timeline): remove a query string
 	from the second argument of `twittering-call-api'.
 
+	* twittering-mode.el: `twittering-call-api' can calculate how many
+	tweets should be retrieved.
+	(twittering-call-api): let the argument `number' of the command
+	`retrieve-timeline' be optional.
+	(twittering-get-and-render-timeline): remove explicit calculation
+	of number of tweets which will be retrieved.
+
 2010-10-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: `twittering-get-error-message' generates an

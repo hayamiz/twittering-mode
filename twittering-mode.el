@@ -3348,7 +3348,11 @@ retrieve-timeline -- Retrieve a timeline.
   Valid key symbols in ARGS-ALIST:
     timeline-spec -- the timeline spec to be retrieved.
     timeline-spec-string -- the string representation of the timeline spec.
-    number -- how many tweets are retrieved.
+    number -- (optional) how many tweets are retrieved. It must be an integer.
+      If nil, `twittering-number-of-tweets-on-retrieval' is used instead.
+      The maximum for search timeline is 100, and that for other timelines is
+      `twittering-max-number-of-tweets-on-retrieval'.
+      If the given number exceeds the maximum, the maximum is used instead.
     max_id -- (optional) the maximum ID of retrieved tweets.
     since_id -- (optional) the minimum ID of retrieved tweets.
     clean-up-sentinel -- (optional) the clean-up sentinel that post-processes
@@ -3406,7 +3410,19 @@ send-direct-message -- Send a direct message.
     (let* ((spec (cdr (assq 'timeline-spec args-alist)))
 	   (spec-string (cdr (assq 'timeline-spec-string args-alist)))
 	   (spec-type (car-safe spec))
-	   (number (cdr (assq 'number args-alist)))
+	   (max-number (if (eq 'search spec-type)
+			   100 ;; FIXME: refer to defconst.
+			 twittering-max-number-of-tweets-on-retrieval))
+	   (number
+	    (let ((number
+		   (or (cdr (assq 'number args-alist))
+		       (let* ((default-number 20)
+			      (n twittering-number-of-tweets-on-retrieval))
+			 (cond
+			  ((integerp n) n)
+			  ((string-match "^[0-9]+$" n) (string-to-number n 10))
+			  (t default-number))))))
+	      (min (max 1 number) max-number)))
 	   (number-str (number-to-string number))
 	   (max_id (cdr (assq 'max_id args-alist)))
 	   (since_id (cdr (assq 'since_id args-alist)))
@@ -5367,18 +5383,7 @@ variable `twittering-status-format'."
       ;; ignore non-interactive request if a process is waiting for responses.
       t)
      ((twittering-timeline-spec-primary-p spec)
-      (let* ((default-number 20)
-	     (max-number (if (eq 'search (car spec))
-			     100 ;; FIXME: refer to defconst.
-			   twittering-max-number-of-tweets-on-retrieval))
-	     (number twittering-number-of-tweets-on-retrieval)
-	     (number (cond
-		     ((integerp number) number)
-		     ((string-match "^[0-9]+$" number)
-		      (string-to-number number 10))
-		     (t default-number)))
-	     (number (min (max 1 number) max-number))
-	     (latest-status
+      (let* ((latest-status
 	      ;; Assume that a list which was returned by
 	      ;; `twittering-current-timeline-data' is sorted.
 	      (car (twittering-current-timeline-data spec)))
@@ -5386,7 +5391,6 @@ variable `twittering-status-format'."
 	     (args
 	      `((timeline-spec . ,spec)
 		(timeline-spec-string . ,spec-string)
-		(number . ,number)
 		,@(cond
 		   (id `((max_id . ,id)))
 		   (since_id `((since_id . ,since_id)))

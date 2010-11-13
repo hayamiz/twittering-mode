@@ -39,6 +39,15 @@
 	(twittering-call-api): send the information of `noninteractive' as
 	a member of `additional-info' to `twittering-http-get'.
 
+	* twittering-mode.el: Timeline spec is sent to a sentinel via
+	`connection-info' instead of `twittering-process-info-alist'.
+	(twittering-http-get-default-sentinel): receive the timeline spec
+	from `connection-info' instead of `twittering-process-info-alist'
+	via `twittering-get-timeline-spec-from-process'.
+	(twittering-get-and-render-timeline): send timeline spec to the
+	sentinel via `additional-info', which is an argument of
+	`twittering-call-api'.
+
 2010-10-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: `twittering-get-error-message' generates an

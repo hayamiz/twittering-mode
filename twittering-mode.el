@@ -1756,9 +1756,9 @@ the server when the HTTP status code equals to 400 or 403."
     (case-string
      status-code
      (("200")
-      (let* ((spec (twittering-get-timeline-spec-from-process proc))
-	     (spec-string
-	      (twittering-get-timeline-spec-string-from-process proc))
+      (debug-printf "connection-info=%s" connection-info)
+      (let* ((spec (cdr (assq 'timeline-spec connection-info)))
+	     (spec-string (cdr (assq 'timeline-spec-string connection-info)))
 	     (statuses
 	      (let ((xmltree
 		     (twittering-xml-parse-region (point-min) (point-max))))
@@ -5409,7 +5409,9 @@ variable `twittering-status-format'."
 				  '(exit signal closed failed))
 			(twittering-release-process proc))))))
 	     (additional-info
-	      `((noninteractive . ,noninteractive)))
+	      `((noninteractive . ,noninteractive)
+		(timeline-spec . ,spec)
+		(timeline-spec-string . ,spec-string)))
 	     (proc
 	      (twittering-call-api 'retrieve-timeline args additional-info)))
 	(when proc

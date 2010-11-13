@@ -73,6 +73,9 @@
 * Display of the current connection method on the mode-line.
   By default, the current connection method is displayed on the mode-line.
   You can disable it by "(setq twittering-display-connection-method nil)".
+* Silent retrieval of icons.
+  The default value of `twittering-url-show-status' is changed to nil.
+  So, icons are retrieved silently by default.
 * ...
 
 ### Bug fixes

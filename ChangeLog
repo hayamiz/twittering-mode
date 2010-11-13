@@ -62,6 +62,10 @@
 	(twittering-mode-line-buffer-identification): display the current
 	connection method on the mode-line.
 
+	* twittering-mode.el: The default value of
+	`twittering-url-show-status' is changed to nil.
+	(twittering-url-show-status): initialized as nil.
+
 2010-10-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: `twittering-get-error-message' generates an

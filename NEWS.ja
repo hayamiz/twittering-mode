@@ -77,6 +77,9 @@
   デフォルトで現在の通信方法(connection method)がモードライン上に表示
   されます。下記の設定で表示しないようにもできます。
   (setq twittering-display-connection-method nil)
+* アイコン取得時の情報表示をデフォルトで抑制
+  `twittering-url-show-status'のデフォルト値がnilに変更されました。
+  デフォルトではアイコン取得時の情報は表示されなくなります。
 * ...
 
 ### バグ修正

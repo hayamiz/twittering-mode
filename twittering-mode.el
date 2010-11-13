@@ -757,7 +757,7 @@ SCHEME must be \"http\" or \"https\"."
 ;;;; Functions for URL library
 ;;;;
 
-(defvar twittering-url-show-status t
+(defvar twittering-url-show-status nil
   "*Whether to show a running total of bytes transferred.")
 (defun twittering-url-wrapper (func &rest args)
   (let ((url-proxy-services

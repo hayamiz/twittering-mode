@@ -3586,13 +3586,15 @@ send-direct-message -- Send a direct message.
   (eq twittering-account-authorization 'queried))
 
 (defun twittering-prepare-account-info ()
-  (when (memq twittering-auth-method '(basic xauth))
-    (unless (twittering-get-username)
-      (setq twittering-username (read-string "your twitter username: ")))
-    (unless (twittering-get-password)
-      (setq twittering-password
-	    (read-passwd (format "%s's twitter password: "
-				 twittering-username))))))
+  "Return a pair of username and password.
+If `twittering-username' is nil, read it from the minibuffer.
+If `twittering-password' is nil, read it from the minibuffer."
+  (let* ((username (or twittering-username
+		       (read-string "your twitter username: ")))
+	 (password (or twittering-password
+		       (read-passwd (format "%s's twitter password: "
+					    username)))))
+    `(,username . ,password)))
 
 (defun twittering-has-oauth-access-token-p ()
   (let* ((required-entries '("oauth_token"
@@ -3629,8 +3631,6 @@ send-direct-message -- Send a direct message.
 	   (twittering-has-oauth-access-token-p))
       (message "The authorized token is loaded.")
       (setq twittering-account-authorization 'queried)
-      (setq twittering-username
-	    (cdr (assoc "screen_name" twittering-oauth-access-token-alist)))
       (let ((proc
 	     (twittering-call-api
 	      'verify-credentials
@@ -3638,7 +3638,9 @@ send-direct-message -- Send a direct message.
 		 . twittering-http-get-verify-credentials-sentinel)
 		(clean-up-sentinel
 		 . twittering-http-get-verify-credentials-clean-up-sentinel))
-	      )))
+	      `((username . ,(cdr (assoc "screen_name"
+					 twittering-oauth-access-token-alist)))
+		(password . nil)))))
 	(cond
 	 ((null proc)
 	  (setq twittering-account-authorization nil)
@@ -3688,8 +3690,8 @@ send-direct-message -- Send a direct message.
        (t
 	(message "Authorization via OAuth failed. Type M-x twit to retry.")))))
    ((eq twittering-auth-method 'xauth)
-    (twittering-prepare-account-info)
-    (let* ((scheme (if twittering-oauth-use-ssl
+    (let* ((account-info (twittering-prepare-account-info))
+	   (scheme (if twittering-oauth-use-ssl
 		       "https"
 		     "http"))
 	   (access-token-url
@@ -3698,15 +3700,17 @@ send-direct-message -- Send a direct message.
 	    (twittering-xauth-get-access-token
 	     access-token-url
 	     twittering-oauth-consumer-key twittering-oauth-consumer-secret
-	     (twittering-get-username)
-	     (twittering-get-password))))
+	     (car account-info)
+	     (cdr account-info))))
       ;; Dispose of password as recommended by Twitter.
       ;; http://dev.twitter.com/pages/xauth
-      (setq twittering-password nil)
+      (setcdr account-info nil)
       (cond
        ((and token-alist
 	     (assoc "oauth_token" token-alist)
 	     (assoc "oauth_token_secret" token-alist))
+	;; set `twittering-username' only if the account is valid.
+	(setq twittering-username (car account-info))
 	(setq twittering-oauth-access-token-alist token-alist)
 	(setq twittering-account-authorization 'authorized)
 	(message "Authorization for the account \"%s\" succeeded."
@@ -3717,22 +3721,27 @@ send-direct-message -- Send a direct message.
 	  (twittering-save-private-info-with-guide))
 	(twittering-start))
        (t
-	(setq twittering-username nil)
 	(message "Authorization via xAuth failed. Type M-x twit to retry.")))))
    ((eq twittering-auth-method 'basic)
-    (twittering-prepare-account-info)
     (setq twittering-account-authorization 'queried)
-    (let ((proc
-	   (twittering-call-api
-	    'verify-credentials
-	    `((sentinel . twittering-http-get-verify-credentials-sentinel)
-	      (clean-up-sentinel
-	       . twittering-http-get-verify-credentials-clean-up-sentinel)))))
+    (let* ((account-info (twittering-prepare-account-info))
+	   ;; Bind account information locally to ensure that
+	   ;; the variables are reset when the verification fails.
+	   (twittering-username (car account-info))
+	   (twittering-password (cdr account-info))
+	   (proc
+	    (twittering-call-api
+	     'verify-credentials
+	     `((sentinel . twittering-http-get-verify-credentials-sentinel)
+	       (clean-up-sentinel
+		. twittering-http-get-verify-credentials-clean-up-sentinel))
+	     `((username . ,(car account-info))
+	       (password . ,(car account-info))))))
       (cond
        ((null proc)
 	(setq twittering-account-authorization nil)
 	(message "Authorization for the account \"%s\" failed. Type M-x twit to retry."
-		 (twittering-get-username))
+		 (car account-info))
 	(setq twittering-username nil)
 	(setq twittering-password nil))
        (t
@@ -3750,6 +3759,12 @@ send-direct-message -- Send a direct message.
     (case-string
      status-code
      (("200")
+      (cond
+       ((eq twittering-auth-method 'xauth)
+	(setq twittering-username (cdr (assq 'username connection-info))))
+       ((eq twittering-auth-method 'basic)
+	(setq twittering-username (cdr (assq 'username connection-info)))
+	(setq twittering-password (cdr (assq 'password connection-info)))))
       (setq twittering-account-authorization 'authorized)
       (twittering-start)
       (format "Authorization for the account \"%s\" succeeded."

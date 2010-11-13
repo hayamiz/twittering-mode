@@ -66,6 +66,18 @@
 	`twittering-url-show-status' is changed to nil.
 	(twittering-url-show-status): initialized as nil.
 
+	* twittering-mode.el: Postpone configuring the global variables
+	`twittering-username' and `twittering-password' until the account
+	is authenticated.
+	(twittering-prepare-account-info): return a pair of username and
+	password instead of setting them as global variables.
+	(twittering-verify-credentials): do not set the global variables
+	`twittering-username' and `twittering-password' until the account
+	is authenticated.
+	(twittering-http-get-verify-credentials-sentinel): set the global
+	variables `twittering-username' and `twittering-password' if
+	necessary.
+
 2010-10-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: `twittering-get-error-message' generates an

@@ -92,6 +92,10 @@
   remains idle for a certain time specified by the variable
   `twittering-timer-interval-for-redisplaying', which is 1 second by
   default.
+* Retrieval of icon images by `curl' and `wget'.
+  Icon images can be retrieved by the same connection method as that used
+  for retrieving tweets. The priority of methods is similarly determined
+  by `twittering-connection-type-order'.
 * ...
 
 ### Bug fixes

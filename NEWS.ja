@@ -94,6 +94,10 @@
   入力待ち状態(idle状態)に入り、その状態が一定時間継続してから行うように
   しました。待ち時間は変数`twittering-timer-interval-for-redisplaying'で
   指定できます。デフォルトの待ち時間は1秒です。
+* curlやwgetでのアイコン画像取得に対応
+  アイコン画像の取得にtweet取得と同じ通信方法(connection method)が使える
+  ようになりました。各methodの優先順位はtweet取得と同じく変数
+  `twittering-connection-type-order'で決定されます。
 * ...
 
 ### バグ修正

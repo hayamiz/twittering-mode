@@ -34,6 +34,13 @@
 	(twittering-start): `twittering-redisplay-status-on-buffer' is
 	called by `run-with-idle-timer'.
 
+	* twittering-mode.el: `twittering-resolve-url-request' uses
+	`twittering-send-http-request' instead of `url-retrieve'.
+	(twittering-resolve-url-request): use
+	`twittering-send-http-request' instead of `url-retrieve'.
+	(twittering-url-retrieve-async-sentinel): new function.
+	(twittering-url-retrieve-async-clean-up-sentinel): new function.
+
 2010-11-13  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: `twittering-send-http-request' correctly

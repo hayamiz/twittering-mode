@@ -2685,8 +2685,6 @@ like following:
 (defvar twittering-internal-url-queue nil)
 (defvar twittering-url-request-resolving-p nil)
 (defvar twittering-url-request-retry-limit 3)
-(defconst twittering-url-request-dummy-buffer-name
-  " *twittering-dummy-for-url-retrieve-async*")
 
 (defun twittering-remove-redundant-queries (queue)
   (remove nil
@@ -2712,49 +2710,42 @@ like following:
 	  (twittering-remove-redundant-queries twittering-internal-url-queue))
     (if (null twittering-internal-url-queue)
 	(setq twittering-url-request-resolving-p nil)
-      (let ((url (car twittering-internal-url-queue))
-	    (coding-system-for-read 'binary)
-	    (require-final-newline nil))
-	(twittering-url-wrapper
-	 'url-retrieve
-	 url
-	 (lambda (&rest args)
-	   (let* ((status (if (< 21 emacs-major-version)
-			      (car args)
-			    nil))
-		  (callback-args (if (< 21 emacs-major-version)
-				     (cdr args)
-				   args))
-		  (url (elt callback-args 0)))
-	     (goto-char (point-min))
-	     (if (and (or (null status) (not (member :error status)))
-		      (search-forward-regexp "\r?\n\r?\n" nil t))
-		 (let ((body (buffer-substring (match-end 0) (point-max))))
-		   (puthash url body twittering-url-data-hash)
-		   (setq twittering-internal-url-queue
-			 (remove url twittering-internal-url-queue))
-		   (let ((sentinels
-			  (gethash url twittering-url-request-sentinel-hash)))
-		     (when sentinels
-		       (remhash url twittering-url-request-sentinel-hash)
-		       (mapc (lambda (func)
-			       (funcall func url body))
-			     sentinels))))
-	       (let ((current (gethash url twittering-url-data-hash)))
-		 (cond
-		  ((null current)
-		   (puthash url 1 twittering-url-data-hash))
-		  ((integerp current)
-		   (puthash url (1+ current) twittering-url-data-hash))
-		  (t
-		   nil))))
-	     (let ((current (current-buffer)))
-	       (set-buffer (get-buffer-create
-			    twittering-url-request-dummy-buffer-name))
-	       (kill-buffer current))
-	     (setq twittering-url-request-resolving-p nil)
-	     (twittering-resolve-url-request)))
-	 `(,url))))))
+      (let* ((url (car twittering-internal-url-queue))
+	     (request (twittering-make-http-request-from-uri "GET" nil url))
+	     (additional-info nil))
+	(twittering-send-http-request
+	 request additional-info
+	 'twittering-url-retrieve-async-sentinel
+	 'twittering-url-retrieve-async-clean-up-sentinel)))))
+
+(defun twittering-url-retrieve-async-sentinel (proc status connection-info header-info)
+  (let ((status-line (cdr (assq 'status-line header-info)))
+	(status-code (cdr (assq 'status-code header-info)))
+	(uri (cdr (assq 'uri (assq 'request connection-info)))))
+    (when (string= status-code "200")
+      (let ((body (string-as-unibyte (buffer-string))))
+	(puthash uri body twittering-url-data-hash)
+	(setq twittering-internal-url-queue
+	      (remove uri twittering-internal-url-queue))
+	(let ((sentinels (gethash uri twittering-url-request-sentinel-hash)))
+	  (when sentinels
+	    (remhash uri twittering-url-request-sentinel-hash)
+	    (mapc (lambda (func)
+		    (funcall func uri body))
+		  sentinels)
+	    ;;  Without the following nil, it seems that the value of
+	    ;; `sentinels' is displayed.
+	    nil))))))
+
+(defun twittering-url-retrieve-async-clean-up-sentinel (proc status connection-info)
+  (when (memq status '(exit signal closed failed))
+    (let* ((uri (cdr (assq 'uri connection-info)))
+	   (current (gethash uri twittering-url-data-hash)))
+      (when (or (null current) (integerp current))
+	;; Increment the counter on failure.
+	(puthash uri (1+ (or current 0)) twittering-url-data-hash)))
+    (setq twittering-url-request-resolving-p nil)
+    (twittering-resolve-url-request)))
 
 (defun twittering-url-retrieve-async (url &optional sentinel)
   "Retrieve URL asynchronously and call SENTINEL with the retrieved data.

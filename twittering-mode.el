@@ -1746,6 +1746,7 @@ The method to perform the request is determined from
 		    (set (make-local-variable 'twittering-retrieved)
 			 'not-completed)
 		    (with-current-buffer buffer
+		      (set-buffer-multibyte nil)
 		      (insert-buffer-substring url-buffer))
 		    (set-process-buffer proc buffer)
 		    (unwind-protect

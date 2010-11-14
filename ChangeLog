@@ -5,6 +5,13 @@
 	(twittering-url-retrieve-async): fix registration of sentinels to
 	avoid registering a sentinel repeatedly.
 
+	* twittering-mode.el: Contents retrieved by url library are copied
+	as unibyte string. Without this modification, binary data may be
+	retrieved incorrectly.
+	(twittering-send-http-request-urllib): copy contents retrieved by
+	url library as unibyte string. Without this modification, binary
+	data may be retrieved incorrectly.
+
 2010-11-13  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: `twittering-send-http-request' correctly

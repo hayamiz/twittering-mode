@@ -41,6 +41,13 @@
 	(twittering-url-retrieve-async-sentinel): new function.
 	(twittering-url-retrieve-async-clean-up-sentinel): new function.
 
+	* twittering-mode.el: Sentinels for asynchronous retrieval are
+	invoked with `run-with-idle-timer'. The delay will prevent Emacs
+	from stucking on inputting characters on other buffer.
+	(twittering-url-request-sentinel-delay): new variable.
+	(twittering-url-retrieve-async-sentinel): invoke sentinels with
+	`run-with-idle-timer'.
+
 2010-11-13  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: `twittering-send-http-request' correctly

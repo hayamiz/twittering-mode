@@ -98,6 +98,12 @@
   アイコン画像の取得にtweet取得と同じ通信方法(connection method)が使える
   ようになりました。各methodの優先順位はtweet取得と同じく変数
   `twittering-connection-type-order'で決定されます。
+* アイコン画像変更プログラムの遅延呼び出し
+  アイコン画像を指定されたサイズに変更するためのプログラム(convert)実行
+  をEmacsがユーザからの入力待ち状態(idle状態)になって一定時間が経過して
+  から行うようにしました。待ち時間は変数
+  `twittering-url-request-sentinel-delay'で指定できます。デフォルトの
+  待ち時間は1秒です。
 * ...
 
 ### バグ修正

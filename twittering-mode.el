@@ -2685,6 +2685,11 @@ like following:
 (defvar twittering-internal-url-queue nil)
 (defvar twittering-url-request-resolving-p nil)
 (defvar twittering-url-request-retry-limit 3)
+(defvar twittering-url-request-sentinel-delay 1.0
+  "*Delay from completing retrieval to invoking associated sentinels.
+Sentinels registered by `twittering-url-retrieve-async' will be invoked
+after retrieval is completed and Emacs remains idle a certain time, which
+this variable specifies. The unit is second.")
 
 (defun twittering-remove-redundant-queries (queue)
   (remove nil
@@ -2730,9 +2735,12 @@ like following:
 	(let ((sentinels (gethash uri twittering-url-request-sentinel-hash)))
 	  (when sentinels
 	    (remhash uri twittering-url-request-sentinel-hash)
-	    (mapc (lambda (func)
-		    (funcall func uri body))
-		  sentinels)
+	    (run-with-idle-timer twittering-url-request-sentinel-delay nil
+				 (lambda (sentinels uri body)
+				   (mapc (lambda (func)
+					   (funcall func uri body))
+					 sentinels))
+				 sentinels uri body)
 	    ;;  Without the following nil, it seems that the value of
 	    ;; `sentinels' is displayed.
 	    nil))))))
@@ -2750,8 +2758,10 @@ like following:
 (defun twittering-url-retrieve-async (url &optional sentinel)
   "Retrieve URL asynchronously and call SENTINEL with the retrieved data.
 The request is placed at the last of queries queue. When the data has been
-retrieved, SENTINEL will be called as (funcall SENTINEL URL url-data).
-The retrieved data can be referred as (gethash url twittering-url-data-hash)."
+retrieved and Emacs remains idle a certain time specified by
+`twittering-url-request-sentinel-delay', SENTINEL will be called as
+ (funcall SENTINEL URL url-data).
+The retrieved data can be referred as (gethash URL twittering-url-data-hash)."
   (add-to-list 'twittering-url-request-list url t)
   (when sentinel
     (let ((current (gethash url twittering-url-request-sentinel-hash)))

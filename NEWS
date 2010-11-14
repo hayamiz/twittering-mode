@@ -96,6 +96,12 @@
   Icon images can be retrieved by the same connection method as that used
   for retrieving tweets. The priority of methods is similarly determined
   by `twittering-connection-type-order'.
+* Lazy invocation of `convert'.
+  The program `convert' for converting the size of icon images is invoked
+  after Emacs remains idle a certain time. The delay will prevent Emacs
+  from stucking on inputting characters on other buffer. The delay time is
+  specified by the new variable `twittering-url-request-sentinel-delay',
+  which is 1 second by default.
 * ...
 
 ### Bug fixes

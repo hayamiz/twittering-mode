@@ -99,6 +99,7 @@
 * Fix of rendering the format specifier "%L".
   The specifier "%L" is correctly rendered with a preceding whitespace.
   Thanks to Tom X. Tobin.
+* Fix of repeatedly registering a sentinel for retrieving an image.
 * ...
 
  1.0.0: 2010-06-05

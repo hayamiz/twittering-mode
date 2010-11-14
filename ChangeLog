@@ -1,3 +1,10 @@
+2010-11-14  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix a bug in registration of a sentinel for
+	asynchronous retrieval.
+	(twittering-url-retrieve-async): fix registration of sentinels to
+	avoid registering a sentinel repeatedly.
+
 2010-11-13  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: `twittering-send-http-request' correctly

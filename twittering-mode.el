@@ -2761,7 +2761,7 @@ The retrieved data can be referred as (gethash url twittering-url-data-hash)."
   (add-to-list 'twittering-url-request-list url t)
   (when sentinel
     (let ((current (gethash url twittering-url-request-sentinel-hash)))
-      (unless (member url current)
+      (unless (member sentinel current)
 	(puthash url (cons sentinel current)
 		 twittering-url-request-sentinel-hash))))
   (twittering-resolve-url-request))

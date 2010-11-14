@@ -29,6 +29,11 @@
 	receive `status' instead of `status-str'.
 	(twittering-get-and-render-timeline): likewise.
 
+	* twittering-mode.el: Redisplay tweets with idle timer.
+	(twittering-timer-interval-for-redisplaying): change the meaning.
+	(twittering-start): `twittering-redisplay-status-on-buffer' is
+	called by `run-with-idle-timer'.
+
 2010-11-13  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: `twittering-send-http-request' correctly

@@ -153,8 +153,10 @@ limited by the hour.")
   "Timer object for timeline redisplay statuses will be stored here.
 DO NOT SET VALUE MANUALLY.")
 
-(defvar twittering-timer-interval-for-redisplaying 17
-  "The interval of auto redisplaying statuses.")
+(defvar twittering-timer-interval-for-redisplaying 1.0
+  "The interval of auto redisplaying statuses.
+Each time Emacs remains idle for the interval, twittering-mode updates parts
+requiring to be redrawn.")
 
 (defvar twittering-username nil
   "*An username of your Twitter account.")
@@ -5862,9 +5864,9 @@ means the number of statuses retrieved after the last visiting of the buffer.")
 		       #'twittering-timer-action action)))
   (unless twittering-timer-for-redisplaying
     (setq twittering-timer-for-redisplaying
-	  (run-at-time "0 sec"
-		       twittering-timer-interval-for-redisplaying
-		       #'twittering-redisplay-status-on-buffer))))
+	  (run-with-idle-timer twittering-timer-interval-for-redisplaying
+			       t
+			       #'twittering-redisplay-status-on-buffer))))
 
 (defun twittering-stop ()
   (interactive)

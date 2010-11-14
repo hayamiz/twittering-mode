@@ -86,6 +86,12 @@
   twittering-mode cannot use account information given on the second try.
   When you are asked to input it again, cancel it by 'C-g' and do
   'M-x twit'.
+* Redisplaying tweets with idle timer.
+  Twittering-mode waits for Emacs to become idle before it redisplays
+  tweets for time and icon image. Tweets are redisplayed each time Emacs
+  remains idle for a certain time specified by the variable
+  `twittering-timer-interval-for-redisplaying', which is 1 second by
+  default.
 * ...
 
 ### Bug fixes

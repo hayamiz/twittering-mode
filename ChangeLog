@@ -82,6 +82,12 @@
 	autoload declaration of `open-ssl-stream' in `url-gw.el' if
 	"ssl.el" is unavailable.
 
+	* twittering-mode.el: Fix a bug that `twittering-username' is not
+	initialized when using encryption of authorized token with OAuth.
+	(twittering-http-get-verify-credentials-sentinel): apropriately
+	initialize `twittering-username' even if encryption of authorized
+	token is used with OAuth.
+
 2010-11-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix a bug in registration of a sentinel for

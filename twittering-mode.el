@@ -3926,11 +3926,11 @@ If `twittering-password' is nil, read it from the minibuffer."
      status-code
      (("200")
       (cond
-       ((eq twittering-auth-method 'xauth)
-	(setq twittering-username (cdr (assq 'username connection-info))))
        ((eq twittering-auth-method 'basic)
 	(setq twittering-username (cdr (assq 'username connection-info)))
-	(setq twittering-password (cdr (assq 'password connection-info)))))
+	(setq twittering-password (cdr (assq 'password connection-info))))
+       (t
+	(setq twittering-username (cdr (assq 'username connection-info)))))
       (setq twittering-account-authorization 'authorized)
       (twittering-start)
       (format "Authorization for the account \"%s\" succeeded."

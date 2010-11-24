@@ -1257,12 +1257,10 @@ The method to perform the request is determined from
      request additional-info
      (lambda (proc status-str connection-info)
        (let ((status (cond
-		      ((string= status-str "urllib-finished") 'exit)
 		      ((processp proc) (process-status proc))
 		      (t nil)))
 	     (buffer (process-buffer proc))
 	     (exit-status (cond
-			   ((string= status-str "urllib-finished") 0)
 			   ((processp proc) (process-exit-status proc))
 			   (t 1)))
 	     (command (process-command proc))
@@ -1731,6 +1729,7 @@ The method to perform the request is determined from
 			 header-list)))
 	 (url-request-data post-body)
 	 (url-show-status twittering-url-show-status)
+	 (url-http-attempt-keepalives nil)
 	 (tls-program twittering-tls-program)
 	 (coding-system-for-read 'binary)
 	 (coding-system-for-write 'binary))
@@ -1742,7 +1741,7 @@ The method to perform the request is determined from
 	      (lambda (&rest args)
 		(let ((proc url-http-process)
 		      (url-buffer (current-buffer))
-		      (status-str "urllib-finished"))
+		      (status-str "finished"))
 		  ;; Callback may be called multiple times.
 		  ;; (as filter and sentinel?)
 		  (unless (local-variable-if-set-p 'twittering-retrieved)

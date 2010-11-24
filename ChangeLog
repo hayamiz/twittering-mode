@@ -30,6 +30,15 @@
 	(twittering-url-retrieve-async): immediately invoke the sentinel
 	if the given url has been already retrieved.
 
+	* twittering-mode.el: Call `url-retrieve' without attempting
+	keep-alive.
+	(twittering-send-http-request): remove special treatment according
+	to `status-str' for the connection method by url library. It was
+	necessary because `url-retrieve' invoked its sentinel before the
+	process exits.
+	(twittering-send-http-request-urllib): call `url-retrieve' with
+	binding `url-http-attempt-keepalives' to nil.
+
 2010-11-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix a bug in registration of a sentinel for

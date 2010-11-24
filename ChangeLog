@@ -47,6 +47,16 @@
 	`belongs-to'.
 	(twittering-enter): likewise.
 
+	* twittering-mode.el: Fix a bug that some text properties of a
+	tweet rendered on a buffer may be lost by redisplaying it.
+	(twittering-make-common-properties): new function.
+	(twittering-get-common-properties): new function.
+	(twittering-generate-format-status-function): use
+	`twittering-make-common-properties'.
+	(twittering-format-status-for-redisplay): use
+	`twittering-get-common-properties'.
+	(twittering-update-filled-string): likewise.
+
 2010-11-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix a bug in registration of a sentinel for

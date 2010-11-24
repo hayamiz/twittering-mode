@@ -1687,7 +1687,14 @@ The method to perform the request is determined from
 	((require 'ssl nil t)
 	 ;; On Emacs21, `url' requires `ssl'.
 	 t)
-	((or (fboundp 'open-ssl-stream)
+	((or (and (fboundp 'open-ssl-stream)
+		  ;; Since `url-gw' (required by `url') defines autoload of
+		  ;; `open-ssl-stream' from "ssl",
+		  ;; (fboundp 'open-ssl-stream) will be non-nil even if
+		  ;; "ssl" cannot be loaded and `open-ssl-stream' is
+		  ;; unavailable.
+		  ;; Here, the availability is confirmed by `documentation'.
+		  (documentation 'open-ssl-stream))
 	     ;; On Emacs21, `url' requires `ssl' in order to use
 	     ;; `open-ssl-stream', which is included in `ssl.el'.
 	     ;; Even if `ssl' cannot be loaded, `open-tls-stream' can be

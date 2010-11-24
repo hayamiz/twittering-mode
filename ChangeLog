@@ -75,6 +75,13 @@
 	(twittering-render-timeline): do not add the `source-spec'
 	property.
 
+	* twittering-mode.el: Correctly define the alias of
+	`open-ssl-stream' for Emacs21 even if `url-gw.el' has been already
+	loaded and unavailable autoload has been declared.
+	(twittering-start-http-session-urllib-https-p): ignore the
+	autoload declaration of `open-ssl-stream' in `url-gw.el' if
+	"ssl.el" is unavailable.
+
 2010-11-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix a bug in registration of a sentinel for

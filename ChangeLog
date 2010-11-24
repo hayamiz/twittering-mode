@@ -39,6 +39,14 @@
 	(twittering-send-http-request-urllib): call `url-retrieve' with
 	binding `url-http-attempt-keepalives' to nil.
 
+	* twittering-mode.el: The property symbol `belongs-to' is renamed
+	`source-spec'.
+	(twittering-render-timeline): add `source-spec' to each status
+	instead of `belongs-to'.
+	(twittering-direct-message): use `source-spec' instead of
+	`belongs-to'.
+	(twittering-enter): likewise.
+
 2010-11-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix a bug in registration of a sentinel for

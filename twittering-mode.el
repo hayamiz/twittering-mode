@@ -5502,7 +5502,7 @@ variable `twittering-status-format'."
 		 (let ((formatted-status (twittering-format-status status))
 		       (separator "\n"))
 		   (add-text-properties 0 (length formatted-status)
-					`(belongs-spec ,spec)
+					`(source-spec ,spec)
 					formatted-status)
 		   (goto-char pos)
 		   (cond
@@ -6748,7 +6748,7 @@ been initialized yet."
 		   "who receive your message: "
 		   (get-text-property (point) 'username)
 		   'twittering-user-history))
-	(spec (or (get-text-property (point) 'belongs-spec)
+	(spec (or (get-text-property (point) 'source-spec)
 		  '(direct_messages))))
     (if (string= "" username)
 	(message "No user selected")
@@ -6877,7 +6877,7 @@ been initialized yet."
 	(id (or (get-text-property (point) 'original-id)
 		(get-text-property (point) 'id)))
 	(uri (get-text-property (point) 'uri))
-	(spec (get-text-property (point) 'belongs-spec))
+	(spec (get-text-property (point) 'source-spec))
 	(screen-name-in-text
 	 (get-text-property (point) 'screen-name-in-text)))
     (cond (screen-name-in-text

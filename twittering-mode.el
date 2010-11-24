@@ -153,7 +153,7 @@ limited by the hour.")
   "Timer object for timeline redisplay statuses will be stored here.
 DO NOT SET VALUE MANUALLY.")
 
-(defvar twittering-timer-interval-for-redisplaying 1.0
+(defvar twittering-timer-interval-for-redisplaying 5.0
   "The interval of auto redisplaying statuses.
 Each time Emacs remains idle for the interval, twittering-mode updates parts
 requiring to be redrawn.")
@@ -2735,14 +2735,16 @@ this variable specifies. The unit is second.")
 	(let ((sentinels (gethash uri twittering-url-request-sentinel-hash)))
 	  (when sentinels
 	    (remhash uri twittering-url-request-sentinel-hash))
-	  (run-with-idle-timer twittering-url-request-sentinel-delay nil
-			       (lambda (sentinels uri body)
-				 (mapc (lambda (func) (funcall func uri body))
-				       sentinels)
-				 ;; Resolve the rest of requests.
-				 (setq twittering-url-request-resolving-p nil)
-				 (twittering-resolve-url-request))
-			       sentinels uri body)
+	  (twittering-run-on-idle twittering-url-request-sentinel-delay
+				  (lambda (sentinels uri body)
+				    (mapc (lambda (func)
+					    (funcall func uri body))
+					  sentinels)
+				    ;; Resolve the rest of requests.
+				    (setq twittering-url-request-resolving-p
+					  nil)
+				    (twittering-resolve-url-request))
+				  sentinels uri body)
 	  ;;  Without the following nil, it seems that the value of
 	  ;; `sentinels' is displayed.
 	  nil)))))
@@ -5849,12 +5851,57 @@ means the number of statuses retrieved after the last visiting of the buffer.")
 ;;;; Timer
 ;;;;
 
+(defvar twittering-idle-timer-for-redisplay nil)
+
 (defun twittering-timer-action (func)
   (let ((buf (twittering-get-active-buffer-list)))
     (if (null buf)
 	(twittering-stop)
       (funcall func)
       )))
+
+(defun twittering-run-on-idle (idle-interval func &rest args)
+  "Run FUNC the next time Emacs is idle for IDLE-INTERVAL.
+Even if Emacs has been idle longer than IDLE-INTERVAL, run FUNC immediately.
+Since immediate invocation requires `current-idle-time', it is available
+on Emacs 22 and later.
+FUNC is called as (apply FUNC ARGS)."
+  (let ((sufficiently-idling
+	 (and (fboundp 'current-idle-time)
+	      (current-idle-time)
+	      (time-less-p (seconds-to-time idle-interval)
+			   (current-idle-time)))))
+    (if (not sufficiently-idling)
+	(apply 'run-with-idle-timer idle-interval nil func args)
+      (apply func args)
+      nil)))
+
+(defun twittering-run-repeatedly-on-idle (check-interval var idle-interval func &rest args)
+  "Run FUNC every time Emacs is idle for IDLE-INTERVAL.
+Even if Emacs remains idle longer than IDLE-INTERVAL, run FUNC every
+CHECK-INTERVAL seconds. Since this behavior requires `current-idle-time',
+invocation on long idle time is available on Emacs 22 and later.
+VAR is a symbol of a variable to which the idle-timer is bound.
+FUNC is called as (apply FUNC ARGS)."
+  (apply 'run-at-time "0 sec"
+	 check-interval
+	 (lambda (var idle-interval func &rest args)
+	   (let ((registerd (symbol-value var))
+		 (sufficiently-idling
+		  (and (fboundp 'current-idle-time)
+		       (current-idle-time)
+		       (time-less-p (seconds-to-time idle-interval)
+				    (current-idle-time)))))
+	     (when (or (not registerd) sufficiently-idling)
+	       (when (and registerd sufficiently-idling)
+		 (cancel-timer (symbol-value var))
+		 (apply func args))
+	       (set var (apply 'run-with-idle-timer idle-interval nil
+			       (lambda (var func &rest args)
+				 (set var nil)
+				 (apply func args))
+			       var func args)))))
+	 var idle-interval func args))
 
 (defun twittering-start (&optional action)
   (interactive)
@@ -5867,9 +5914,11 @@ means the number of statuses retrieved after the last visiting of the buffer.")
 		       #'twittering-timer-action action)))
   (unless twittering-timer-for-redisplaying
     (setq twittering-timer-for-redisplaying
-	  (run-with-idle-timer twittering-timer-interval-for-redisplaying
-			       t
-			       #'twittering-redisplay-status-on-buffer))))
+	  (twittering-run-repeatedly-on-idle
+	   (* 2 twittering-timer-interval-for-redisplaying)
+	   'twittering-idle-timer-for-redisplay
+	   twittering-timer-interval-for-redisplaying
+	   #'twittering-redisplay-status-on-buffer))))
 
 (defun twittering-stop ()
   (interactive)
@@ -5877,6 +5926,9 @@ means the number of statuses retrieved after the last visiting of the buffer.")
     (cancel-timer twittering-timer)
     (setq twittering-timer nil))
   (when twittering-timer-for-redisplaying
+    (when twittering-idle-timer-for-redisplay
+      (cancel-timer twittering-idle-timer-for-redisplay)
+      (setq twittering-idle-timer-for-redisplay))
     (cancel-timer twittering-timer-for-redisplaying)
     (setq twittering-timer-for-redisplaying nil)))
 

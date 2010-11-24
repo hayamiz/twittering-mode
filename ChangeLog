@@ -8,6 +8,18 @@
 	`twittering-resolve-url-request' only when the current retrieval
 	is failed.
 
+	* twittering-mode.el: Periodically invoke actions associated with
+	idle-timer even if Emacs remains idle long time.
+	(twittering-timer-interval-for-redisplaying): extended to 5.0.
+	(twittering-url-retrieve-async-sentinel): use
+	`twittering-run-on-idle' instead of `run-with-idle-timer'.
+	(twittering-idle-timer-for-redisplay): new variable.
+	(twittering-run-on-idle): new function.
+	(twittering-run-repeatedly-on-idle): new function.
+	(twittering-start): use `twittering-run-repeatedly-on-idle'
+	instead of `run-with-idle-timer'.
+	(twittering-stop): also cancel the idle timer for redisplaying.
+
 2010-11-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix a bug in registration of a sentinel for

@@ -57,6 +57,14 @@
 	`twittering-get-common-properties'.
 	(twittering-update-filled-string): likewise.
 
+	* twittering-mode.el: `twittering-redisplay-status-on-each-buffer'
+	restores common properties of re-rendered tweets.
+	(twittering-format-status-for-redisplay): do not restore
+	properties.
+	(twittering-update-filled-string): likewise.
+	(twittering-redisplay-status-on-each-buffer): restore common
+	properties.
+
 2010-11-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix a bug in registration of a sentinel for

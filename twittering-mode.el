@@ -5330,12 +5330,7 @@ variable `twittering-status-format'."
   (funcall twittering-format-status-function status prefix))
 
 (defun twittering-format-status-for-redisplay (beg end status &optional prefix)
-  (let* ((properties (and beg (twittering-get-common-properties beg)))
-	 (str (twittering-format-status status prefix)))
-    ;; Restore properties.
-    (when properties
-      (add-text-properties 0 (length str) properties str))
-    str))
+  (twittering-format-status status prefix))
 
 ;;;;
 ;;;; Rendering
@@ -5388,11 +5383,7 @@ variable `twittering-status-format'."
   (let* ((str (twittering-fill-string (funcall formater status prefix)
 				      (length prefix) local-prefix
 				      keep-newline))
-	 (next (next-single-property-change 0 'need-to-be-updated str))
-	 (properties (and beg (twittering-get-common-properties beg))))
-    ;; Restore properties.
-    (when properties
-      (add-text-properties 0 (length str) properties str))
+	 (next (next-single-property-change 0 'need-to-be-updated str)))
     (if (or (get-text-property 0 'need-to-be-updated str)
 	    (and next (< next (length str))))
 	(put-text-property 0 (length str) 'need-to-be-updated
@@ -5681,9 +5672,12 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 		 ;; the point becomes outside of the window by the effect of
 		 ;; `set-window-start'.
 		 (setq result beg))
-	       (delete-region beg end)
-	       (goto-char beg)
-	       (insert updated-str)
+	       (let ((common-properties
+		      (twittering-get-common-properties beg)))
+		 ;; Restore common properties.
+		 (delete-region beg end)
+		 (goto-char beg)
+		 (insert (apply 'propertize updated-str common-properties)))
 	       (twittering-restore-window-config-after-modification
 		config beg end))))
 	 buffer))

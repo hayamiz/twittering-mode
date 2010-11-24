@@ -65,6 +65,16 @@
 	(twittering-redisplay-status-on-each-buffer): restore common
 	properties.
 
+	* twittering-mode.el: Add `source-spec' as an entry of alist
+	storing a tweet.
+	(twittering-add-statuses-to-timeline-data): add the `source-spec'
+	property to each new status.
+	(twittering-make-common-properties): add `source-spec' as a common
+	property.
+	(twittering-get-common-properties): update docstring.
+	(twittering-render-timeline): do not add the `source-spec'
+	property.
+
 2010-11-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix a bug in registration of a sentinel for

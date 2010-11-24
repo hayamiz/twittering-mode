@@ -2766,13 +2766,22 @@ retrieved and Emacs remains idle a certain time specified by
 `twittering-url-request-sentinel-delay', SENTINEL will be called as
  (funcall SENTINEL URL url-data).
 The retrieved data can be referred as (gethash URL twittering-url-data-hash)."
-  (add-to-list 'twittering-url-request-list url t)
-  (when sentinel
-    (let ((current (gethash url twittering-url-request-sentinel-hash)))
-      (unless (member sentinel current)
-	(puthash url (cons sentinel current)
-		 twittering-url-request-sentinel-hash))))
-  (twittering-resolve-url-request))
+  (let ((data (gethash url twittering-url-data-hash)))
+    (cond
+     ((or (null data) (integerp data))
+      (add-to-list 'twittering-url-request-list url t)
+      (when sentinel
+	(let ((current (gethash url twittering-url-request-sentinel-hash)))
+	  (unless (member sentinel current)
+	    (puthash url (cons sentinel current)
+		     twittering-url-request-sentinel-hash))))
+      (twittering-resolve-url-request)
+      nil)
+     (t
+      ;; URL has been already retrieved.
+      (twittering-run-on-idle twittering-url-request-sentinel-delay
+			      sentinel url data)
+      data))))
 
 ;;;;
 ;;;; XML parser

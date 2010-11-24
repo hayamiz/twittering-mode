@@ -25,6 +25,11 @@
 	(twittering-http-get-default-sentinel): add `spec-string' on
 	successful retrieval even if there are no new statuses.
 
+	* twittering-mode.el: `twittering-url-retrieve-async' immediately
+	invokes the sentinel if the url has been already retrieved.
+	(twittering-url-retrieve-async): immediately invoke the sentinel
+	if the given url has been already retrieved.
+
 2010-11-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix a bug in registration of a sentinel for

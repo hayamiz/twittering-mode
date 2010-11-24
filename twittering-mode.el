@@ -2734,26 +2734,28 @@ this variable specifies. The unit is second.")
 	      (remove uri twittering-internal-url-queue))
 	(let ((sentinels (gethash uri twittering-url-request-sentinel-hash)))
 	  (when sentinels
-	    (remhash uri twittering-url-request-sentinel-hash)
-	    (run-with-idle-timer twittering-url-request-sentinel-delay nil
-				 (lambda (sentinels uri body)
-				   (mapc (lambda (func)
-					   (funcall func uri body))
-					 sentinels))
-				 sentinels uri body)
-	    ;;  Without the following nil, it seems that the value of
-	    ;; `sentinels' is displayed.
-	    nil))))))
+	    (remhash uri twittering-url-request-sentinel-hash))
+	  (run-with-idle-timer twittering-url-request-sentinel-delay nil
+			       (lambda (sentinels uri body)
+				 (mapc (lambda (func) (funcall func uri body))
+				       sentinels)
+				 ;; Resolve the rest of requests.
+				 (setq twittering-url-request-resolving-p nil)
+				 (twittering-resolve-url-request))
+			       sentinels uri body)
+	  ;;  Without the following nil, it seems that the value of
+	  ;; `sentinels' is displayed.
+	  nil)))))
 
 (defun twittering-url-retrieve-async-clean-up-sentinel (proc status connection-info)
   (when (memq status '(exit signal closed failed))
     (let* ((uri (cdr (assq 'uri connection-info)))
 	   (current (gethash uri twittering-url-data-hash)))
       (when (or (null current) (integerp current))
-	;; Increment the counter on failure.
-	(puthash uri (1+ (or current 0)) twittering-url-data-hash)))
-    (setq twittering-url-request-resolving-p nil)
-    (twittering-resolve-url-request)))
+	;; Increment the counter on failure and then retry retrieval.
+	(puthash uri (1+ (or current 0)) twittering-url-data-hash)
+	(setq twittering-url-request-resolving-p nil)
+	(twittering-resolve-url-request)))))
 
 (defun twittering-url-retrieve-async (url &optional sentinel)
   "Retrieve URL asynchronously and call SENTINEL with the retrieved data.

@@ -1,3 +1,13 @@
+2010-11-25  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Delay next asynchronous retrieval until all
+	sentinels for the current retrieval finish.
+	(twittering-url-retrieve-async-sentinel): call
+	`twittering-resolve-url-request' after sentinels finish.
+	(twittering-url-retrieve-async-clean-up-sentinel): call
+	`twittering-resolve-url-request' only when the current retrieval
+	is failed.
+
 2010-11-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix a bug in registration of a sentinel for

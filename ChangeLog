@@ -20,6 +20,11 @@
 	instead of `run-with-idle-timer'.
 	(twittering-stop): also cancel the idle timer for redisplaying.
 
+	* twittering-mode.el: Add retrieved timeline spec string to
+	history even if it includes no new statuses.
+	(twittering-http-get-default-sentinel): add `spec-string' on
+	successful retrieval even if there are no new statuses.
+
 2010-11-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix a bug in registration of a sentinel for

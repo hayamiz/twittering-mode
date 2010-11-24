@@ -1938,8 +1938,8 @@ the server when the HTTP status code equals to 400 or 403."
 	    ;; xmltree with HTTP status-code is "200" when we
 	    ;; retrieved all un-retrieved statuses.
 	    (when (and new-statuses buffer)
-	      (twittering-render-timeline buffer t new-statuses))
-	    (twittering-add-timeline-history spec-string)))
+	      (twittering-render-timeline buffer t new-statuses))))
+	(twittering-add-timeline-history spec-string)
 	(if twittering-notify-successful-http-get
 	    (format "Success: Get %s." spec-string)
 	  nil)))

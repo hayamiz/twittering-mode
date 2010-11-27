@@ -1,3 +1,12 @@
+2010-11-27  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix a bug of retrieving a URI repeatedly.
+	(twittering-resolve-url-request): bind `additional-info' to the
+	appropriate alist storing the URI that will be retrieved. The
+	alist is referred by `twittering-url-retrieve-async-sentinel' and
+	`twittering-url-retrieve-async-clean-up-sentinel'. Since the alist
+	was null, a URI might be retrieved repeatedly.
+
 2010-11-25  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Delay next asynchronous retrieval until all

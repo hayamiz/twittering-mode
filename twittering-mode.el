@@ -2723,7 +2723,7 @@ this variable specifies. The unit is second.")
 	(setq twittering-url-request-resolving-p nil)
       (let* ((url (car twittering-internal-url-queue))
 	     (request (twittering-make-http-request-from-uri "GET" nil url))
-	     (additional-info nil))
+	     (additional-info `((uri . ,url))))
 	(twittering-send-http-request
 	 request additional-info
 	 'twittering-url-retrieve-async-sentinel

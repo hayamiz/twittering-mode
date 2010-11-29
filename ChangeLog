@@ -1,3 +1,13 @@
+2010-11-30  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Ensure that the methods using url library
+	works well for HTTP redirection.
+	(twittering-send-http-request-urllib): make the variable,
+	`url-http-attempt-keepalives', buffer-local in order to send the
+	local value to the sentinel invoked for HTTP redirection. If the
+	variable is not made buffer-local, the connection with redirection
+	may not be closed according to its global value.
+
 2010-11-27  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix a bug of retrieving a URI repeatedly.

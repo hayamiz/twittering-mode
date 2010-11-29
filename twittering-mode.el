@@ -1779,7 +1779,11 @@ The method to perform the request is determined from
 	(when (buffer-live-p result-buffer)
 	  (with-current-buffer result-buffer
 	    (set (make-local-variable 'url-show-status)
-		 twittering-url-show-status))
+		 twittering-url-show-status)
+	    ;; Make `url-http-attempt-keepalives' buffer-local
+	    ;; in order to send the current value of the variable
+	    ;; to the sentinel invoked for HTTP redirection,
+	    (make-local-variable 'url-http-attempt-keepalives))
 	  (get-buffer-process result-buffer))))))
 
 (defun twittering-pre-process-buffer-urllib (proc buffer connection-info)

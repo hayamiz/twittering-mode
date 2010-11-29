@@ -8,6 +8,17 @@
 	variable is not made buffer-local, the connection with redirection
 	may not be closed according to its global value.
 
+	* twittering-mode.el: Introduce an ad-hoc treatment for url
+	library on Emacs21 again. This ensures that the sentinel for an
+	redirect HTTP request, such as asynchronous retrieval of icon
+	images, works well.
+	(twittering-send-http-request): introduce an ad-hoc treatment for
+	the url library again. It is required because the process for a
+	redirected HTTP request is alive when the url library for Emacs21
+	invokes the callback.
+	(twittering-send-http-request-urllib): add an ad-hoc treatment for
+	HTTP redirection on Emacs21.
+
 2010-11-27  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix a bug of retrieving a URI repeatedly.

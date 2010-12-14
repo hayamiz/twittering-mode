@@ -3014,6 +3014,7 @@ If SHORTEN is non-nil, the abbreviated expression will be used."
      ((eq type 'mentions) ":mentions")
      ((eq type 'public) ":public")
      ((eq type 'replies) (if shorten "@" ":replies"))
+     ((eq type 'favorites) ":favorites")
      ((eq type 'retweeted_by_me) ":retweeted_by_me")
      ((eq type 'retweeted_to_me) ":retweeted_to_me")
      ((eq type 'retweets_of_me) ":retweets_of_me")
@@ -3057,6 +3058,8 @@ Return cons of the spec and the rest string."
     `((home) . ,(substring str (match-end 0))))
    ((string-match (concat "^" twittering-regexp-atmark) str)
     `((replies) . ,(substring str (match-end 0))))
+   ((string-match (concat "^" twittering-regexp-atmark) str)
+    `((favorites) . ,(substring str (match-end 0))))
    ((string-match (concat "^" twittering-regexp-hash "\\([a-zA-Z0-9_-]+\\)")
 		  str)
     (let* ((tag (match-string 1 str))
@@ -3073,6 +3076,7 @@ Return cons of the spec and the rest string."
 		   ("mentions" . mentions)
 		   ("public" . public)
 		   ("replies" . replies)
+		   ("favorites" . favorites)
 		   ("retweeted_by_me" . retweeted_by_me)
 		   ("retweeted_to_me" . retweeted_to_me)
 		   ("retweets_of_me" . retweets_of_me))))
@@ -3177,7 +3181,7 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 	 '(user list
 		direct_messages direct_messages_sent
 		friends home mentions public replies
-		search
+		favorites search
 		retweeted_by_me retweeted_to_me retweets_of_me))
 	(type (car spec)))
     (memq type primary-spec-types)))
@@ -5971,6 +5975,7 @@ managed by `twittering-mode'."
     (let ((km twittering-mode-map))
       (define-key km (kbd "C-c C-f") 'twittering-friends-timeline)
       (define-key km (kbd "C-c C-r") 'twittering-replies-timeline)
+      (define-key km (kbd "C-c C-a") 'twittering-favorites-timeline)
       (define-key km (kbd "C-c C-u") 'twittering-user-timeline)
       (define-key km (kbd "C-c C-d") 'twittering-direct-messages-timeline)
       (define-key km (kbd "C-c C-s") 'twittering-update-status-interactive)
@@ -6037,6 +6042,7 @@ managed by `twittering-mode'."
   (let ((important-commands
 	 '(("Timeline" . twittering-friends-timeline)
 	   ("Replies" . twittering-replies-timeline)
+	   ("Favorites" . twittering-favorites-timeline)
 	   ("Update status" . twittering-update-status-interactive)
 	   ("Next" . twittering-goto-next-status)
 	   ("Prev" . twittering-goto-previous-status))))
@@ -6487,7 +6493,7 @@ been initialized yet."
 	  (append twittering-timeline-history
 		  (twittering-get-usernames-from-timeline)
 		  '(":direct_messages" ":direct_messages_sent" ":friends"
-		    ":home" ":mentions" ":public" ":replies"
+		    ":home" ":mentions" ":public" ":replies" ":favorites"
 		    ":retweeted_by_me" ":retweeted_to_me" ":retweets_of_me")))
 	 (spec-string (twittering-completing-read prompt dummy-hist
 						  nil nil initial 'dummy-hist))
@@ -6634,6 +6640,10 @@ been initialized yet."
 (defun twittering-replies-timeline ()
   (interactive)
   (twittering-visit-timeline '(replies)))
+
+(defun twittering-favorites-timeline ()
+  (interactive)
+  (twittering-visit-timeline '(favorites)))
 
 (defun twittering-public-timeline ()
   (interactive)

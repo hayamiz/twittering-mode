@@ -3648,6 +3648,7 @@ send-direct-message -- Send a direct message.
 	      (home . "statuses/home_timeline")
 	      (mentions . "statuses/mentions")
 	      (public . "statuses/public_timeline")
+	      (favorites . "favorites")
 	      (replies . "statuses/replies")
 	      (retweeted_by_me . "statuses/retweeted_by_me")
 	      (retweeted_to_me . "statuses/retweeted_to_me")

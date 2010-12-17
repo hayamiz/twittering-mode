@@ -6824,6 +6824,10 @@ been initialized yet."
 
 (defun twittering-organic-retweet ()
   (interactive)
+  (let* ((id (twittering-get-id-at))
+	 (status (twittering-find-status (twittering-get-id-at))))
+    (when (equal "true" (cdr (assoc 'user-protected status)))
+      (error "Cannot retweet protected tweets.")))
   (let ((username (get-text-property (point) 'username))
 	(text (get-text-property (point) 'text))
 	(id (get-text-property (point) 'id))

@@ -1,3 +1,8 @@
+2010-12-17  Yuto HAYAMIZU  <y.hayamizu@gmail.com>
+
+	* twittering-mode.el (twittering-organic-retweet): prohibit
+	retweeting protected tweets.
+
 2010-11-30  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Ensure that the methods using url library

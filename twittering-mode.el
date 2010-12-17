@@ -6387,6 +6387,17 @@ been initialized yet."
     (re-search-forward "\\`[[:space:]]*@[a-zA-Z0-9_-]+\\([[:space:]]+@[a-zA-Z0-9_-]+\\)*" nil t)
     (re-search-forward "[^[:space:]]" nil t)))
 
+(defun twittering-update-status-from-region ()
+  (interactive)
+  (let ((status (buffer-substring (region-beginning) (region-end))))
+    (if (< 140 (length status))
+	(message "Status too long, not posting.")
+      (when (twittering-status-not-blank-p status)
+	(twittering-call-api
+	 'update-status
+	 `((status . ,status)))
+	(message (concat "Posted status: " status))))))
+
 (defun twittering-update-status-from-minibuffer (&optional init-str reply-to-id username spec)
   (and (not (twittering-timeline-spec-is-direct-messages-p spec))
        (null init-str)

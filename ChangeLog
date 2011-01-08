@@ -1,3 +1,16 @@
+2011-01-08  Lars Gregori  <github+twittering-mode@mail.beidfarbig.de>
+
+	* twittering-mode.el: Added bit.ly URL shortening service.
+	An account with a login and API key is necessary. The API key
+	can be set on http://bit.ly/a/account page.
+	(twittering-tinyurl-service): Added 'tinyurl as service.
+	(twittering-bitly-login): The bit.ly login name.
+	(twittering-bitly-api-key): The bit.ly API key.
+	(twittering-tinyurl-services-map): Is now a function to use
+	bit.ly login name and API key.
+	(twittering-tinyurl-get): Handles twittering-tinyurl-services-map
+	with a list as value.
+
 2011-01-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Ensure that encrypted strings are written

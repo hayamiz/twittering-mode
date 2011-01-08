@@ -119,12 +119,20 @@ on authorization via OAuth.")
 The upper limit is `twittering-max-number-of-tweets-on-retrieval'.")
 
 (defvar twittering-tinyurl-service 'tinyurl
-  "The service to use. One of 'tinyurl' or 'toly'.")
+  "The service to use. One of 'tinyurl', 'toly' or 'bitly'.")
 
-(defvar twittering-tinyurl-services-map
-  '((tinyurl . "http://tinyurl.com/api-create.php?url=")
-    (toly    . "http://to.ly/api.php?longurl="))
-  "Alist of tinyfy services.")
+(defvar twittering-bitly-login nil
+  "The bit.ly login name.")
+
+(defvar twittering-bitly-api-key nil
+  "The bit.ly API key. You can find the API key at http://bit.ly/a/account on your account settings.")
+
+(defun twittering-tinyurl-services-map ()
+  "Alist of tinyfy services."
+  `((tinyurl "http://tinyurl.com/api-create.php?url=")
+    (toly    "http://to.ly/api.php?longurl=")
+    (bitly   "http://api.bit.ly/v3/shorten?login=" ,twittering-bitly-login 
+	     "&apiKey=" ,twittering-bitly-api-key "&format=txt&longUrl=")))
 
 (defvar twittering-mode-map (make-sparse-keymap))
 (defvar twittering-mode-menu-on-uri-map (make-sparse-keymap "Twittering Mode"))
@@ -2901,15 +2909,17 @@ BEG and END mean a region that had been modified."
 (defun twittering-tinyurl-get (longurl)
   "Tinyfy LONGURL."
   (let ((api (cdr (assoc twittering-tinyurl-service
-			 twittering-tinyurl-services-map))))
+			 (twittering-tinyurl-services-map)))))
     (unless api
       (error "Invalid `twittering-tinyurl-service'. try one of %s"
 	     (mapconcat (lambda (x)
 			  (symbol-name (car x)))
-			twittering-tinyurl-services-map ", ")))
+			(twittering-tinyurl-services-map) ", ")))
     (if longurl
 	(let ((buffer
-	       (twittering-url-retrieve-synchronously (concat api longurl))))
+	       (twittering-url-retrieve-synchronously (concat 
+						       (mapconcat (lambda (x) x) api "") 
+						       longurl))))
 	  (with-current-buffer buffer
 	    (goto-char (point-min))
 	    (prog1

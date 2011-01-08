@@ -1,3 +1,10 @@
+2011-01-09  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Ensure that encrypted strings are written
+	with no conversion. Thanks to Sakuma.
+	(twittering-write-and-encrypt): ensure that encrypted strings are
+	written with no conversion.
+
 2010-12-17  Yuto HAYAMIZU  <y.hayamizu@gmail.com>
 
 	* twittering-mode.el (twittering-organic-retweet): prohibit

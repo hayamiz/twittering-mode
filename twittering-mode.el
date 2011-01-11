@@ -119,19 +119,21 @@ on authorization via OAuth.")
 The upper limit is `twittering-max-number-of-tweets-on-retrieval'.")
 
 (defvar twittering-tinyurl-service 'tinyurl
-  "The service to use. One of 'tinyurl', 'toly' or 'bitly'.")
+  "The service to use. One of 'tinyurl', 'toly', 'bitly', or 'jmp'.")
 
 (defvar twittering-bitly-login nil
-  "The bit.ly login name.")
+  "The bit.ly or j.mp login name. Note: j.mp is a bit.ly service.")
 
 (defvar twittering-bitly-api-key nil
-  "The bit.ly API key. You can find the API key at http://bit.ly/a/account on your account settings.")
+  "The bit.ly or j.mp API key. You can find the API key at http://bit.ly/a/account on your account settings.")
 
 (defun twittering-tinyurl-services-map ()
   "Alist of tinyfy services."
   `((tinyurl "http://tinyurl.com/api-create.php?url=")
     (toly    "http://to.ly/api.php?longurl=")
     (bitly   "http://api.bit.ly/v3/shorten?login=" ,twittering-bitly-login 
+	     "&apiKey=" ,twittering-bitly-api-key "&format=txt&longUrl=")
+    (jmp     "http://api.j.mp/v3/shorten?login=" ,twittering-bitly-login 
 	     "&apiKey=" ,twittering-bitly-api-key "&format=txt&longUrl=")))
 
 (defvar twittering-mode-map (make-sparse-keymap))

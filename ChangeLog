@@ -60,6 +60,22 @@
 	original-id properties.
 	(twittering-enter): do not refer original-id property.
 
+	* twittering-mode.el: Support favorites timeline.
+	(twittering-timeline-spec-to-string): support favorites timeline
+	spec.
+	(twittering-extract-timeline-spec): likewise.
+	(twittering-timeline-spec-primary-p): add favorites timeline spec
+	is a primary timeline spec.
+	(twittering-call-api): support favorites timeline spec.
+	(twittering-read-timeline-spec-with-completion): add ":favorites"
+	as a candidate of completion. In addition, one can input a
+	username with completion for ":favorites/".
+	(twittering-goto-next-status): display an error message on the
+	oldest tweet on favorites timeline.
+	(twittering-goto-previous-status): likewise.
+	* test/test-twittering-mode.el: Add tests for favorites timeline
+	spec.
+
 2011-01-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Ensure that encrypted strings are written

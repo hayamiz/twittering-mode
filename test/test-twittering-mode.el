@@ -220,6 +220,16 @@
    (test-restore-timeline-spec
     ":retweets_of_me" '(retweets_of_me)  '(retweets_of_me))
    '(t t))
+
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ":favorites" '(favorites) '(favorites))
+   '(t t))
+
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ":favorites/USER" '(favorites "USER") '(favorites "USER"))
+   '(t t))
   )
 
 (defun format-status (status format-str)

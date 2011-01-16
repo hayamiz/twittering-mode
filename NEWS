@@ -102,6 +102,13 @@
   from stucking on inputting characters on other buffer. The delay time is
   specified by the new variable `twittering-url-request-sentinel-delay',
   which is 1 second by default.
+* Support for favorites timeline.
+  ":favorites" and ":favorites/USER" are added as new timeline specs.
+  By using the latter, you can read favorites for other users.
+  Note that favorites are rendered in order of time when each tweet is
+  posted. This is because it is impossible to retrieve the time when a
+  tweet was favorited. At most, 20 favorites can be retrieved. Backward
+  retrieval of more previous favorites is not supported yet.
 * ...
 
 ### Bug fixes

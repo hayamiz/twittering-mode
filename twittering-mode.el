@@ -2943,6 +2943,8 @@ BEG and END mean a region that had been modified."
 ;;;
 ;;; - (direct_messages): received direct messages.
 ;;; - (direct_messages_sent): sent direct messages.
+;;; - (favorites): favorites timeline for the current user.
+;;; - (favorites USER): favorites timeline for the specified user.
 ;;; - (friends): friends timeline.
 ;;; - (home): home timeline.
 ;;; - (mentions): mentions timeline.
@@ -2973,6 +2975,7 @@ BEG and END mean a region that had been modified."
 ;;; LISTNAME ::= /[a-zA-Z0-9_-]+/
 ;;; DIRECT_MESSSAGES ::= ":direct_messages"
 ;;; DIRECT_MESSSAGES_SENT ::= ":direct_messages_sent"
+;;; FAVORITES ::= ":favorites" | ":favorites/" USER
 ;;; FRIENDS ::= ":friends"
 ;;; HOME ::= ":home" | "~"
 ;;; MENTIONS ::= ":mentions"
@@ -3012,6 +3015,10 @@ If SHORTEN is non-nil, the abbreviated expression will be used."
      ;; simple
      ((eq type 'direct_messages) ":direct_messages")
      ((eq type 'direct_messages_sent) ":direct_messages_sent")
+     ((eq type 'favorites)
+      (if value
+	  (concat ":favorites/" (car value))
+	":favorites"))
      ((eq type 'friends) ":friends")
      ((eq type 'home) (if shorten "~" ":home"))
      ((eq type 'mentions) ":mentions")
@@ -3083,6 +3090,11 @@ Return cons of the spec and the rest string."
        ((assoc type alist)
 	(let ((first-spec (list (cdr (assoc type alist)))))
 	  (cons first-spec following)))
+       ((string= type "favorites")
+	(if (string-match "^:favorites/\\([a-zA-Z0-9_-]+\\)" str)
+	    (let ((rest (substring str (match-end 0))))
+	      `((favorites ,(match-string 1 str)) . ,rest))
+	  `((favorites) . ,following)))
        ((string= type "search")
 	(if (string-match "^:search/\\(\\(.*?[^\\]\\)??\\(\\\\\\\\\\)*\\)??/"
 			  str)
@@ -3179,7 +3191,7 @@ Return nil if SPEC-STR is invalid as a timeline spec."
   (let ((primary-spec-types
 	 '(user list
 		direct_messages direct_messages_sent
-		friends home mentions public replies
+		favorites friends home mentions public replies
 		search
 		retweeted_by_me retweeted_to_me retweets_of_me))
 	(type (car spec)))
@@ -3554,6 +3566,8 @@ retrieve-timeline -- Retrieve a timeline.
       the buffer associated to the process. This is used as an argument
       CLEAN-UP-SENTINEL of `twittering-send-http-request' via
       `twittering-http-get'.
+    page -- (optional and valid only for favorites timeline) which page will
+      be retrieved.
 get-list-index -- Retrieve list names owned by a user.
   Valid key symbols in ARGS-ALIST:
     username -- the username.
@@ -3620,23 +3634,28 @@ send-direct-message -- Send a direct message.
 	      (min (max 1 number) max-number)))
 	   (number-str (number-to-string number))
 	   (max_id (cdr (assq 'max_id args-alist)))
+	   (page (cdr (assq 'page args-alist)))
 	   (since_id (cdr (assq 'since_id args-alist)))
 	   (word (when (eq 'search spec-type)
 		   (cadr spec)))
 	   (parameters
-	    `(,@(when max_id `(("max_id" . ,max_id)))
-	      ,@(when since_id `(("since_id" . ,since_id)))
-	      ,@(cond
-		 ((eq spec-type 'search)
-		  `(("q" . ,word)
-		    ("rpp" . ,number-str)))
-		 ((eq spec-type 'list)
-		  `(("per_page" . ,number-str)))
-		 ((memq spec-type '(user friends mentions public))
-		  `(("count" . ,number-str)
-		    ("include_rts" . "true")))
-		 (t
-		  `(("count" . ,number-str))))))
+	    (cond
+	     ((eq spec-type 'favorites)
+	      `(,@(when page `(("page" . ,page)))))
+	     (t
+	      `(,@(when max_id `(("max_id" . ,max_id)))
+		,@(when since_id `(("since_id" . ,since_id)))
+		,@(cond
+		   ((eq spec-type 'search)
+		    `(("q" . ,word)
+		      ("rpp" . ,number-str)))
+		   ((eq spec-type 'list)
+		    `(("per_page" . ,number-str)))
+		   ((memq spec-type '(user friends mentions public))
+		    `(("count" . ,number-str)
+		      ("include_rts" . "true")))
+		   (t
+		    `(("count" . ,number-str))))))))
 	   (format (if (eq spec-type 'search)
 		       "atom"
 		     "xml"))
@@ -3662,6 +3681,11 @@ send-direct-message -- Send a direct message.
 	      (let ((username (elt spec 1))
 		    (list-name (elt spec 2)))
 		(twittering-api-path username "/lists/" list-name "/statuses")))
+	     ((eq spec-type 'favorites)
+	      (let ((user (elt spec 1)))
+		(if user
+		    (twittering-api-path "favorites/" user)
+		  (twittering-api-path "favorites"))))
 	     ((eq spec-type 'search)
 	      twittering-search-api-method)
 	     ((assq spec-type simple-spec-list)
@@ -6566,13 +6590,22 @@ been initialized yet."
   (let* ((dummy-hist
 	  (append twittering-timeline-history
 		  (twittering-get-usernames-from-timeline)
-		  '(":direct_messages" ":direct_messages_sent" ":friends"
+		  '(":direct_messages" ":direct_messages_sent"
+		    ":favorites" ":friends"
 		    ":home" ":mentions" ":public" ":replies"
 		    ":retweeted_by_me" ":retweeted_to_me" ":retweets_of_me")))
 	 (spec-string (twittering-completing-read prompt dummy-hist
 						  nil nil initial 'dummy-hist))
 	 (spec-string
 	  (cond
+	   ((string-match "^:favorites/$" spec-string)
+	    (let ((username
+		   (twittering-read-username-with-completion
+		    "whose favorites: " ""
+		    (twittering-get-usernames-from-timeline))))
+	      (if username
+		  (concat ":favorites/" username)
+		nil)))
 	   ((string-match "^\\([a-zA-Z0-9_-]+\\)/$" spec-string)
 	    (let* ((username (match-string 1 spec-string))
 		   (list-index (twittering-get-list-index-sync username))
@@ -7124,10 +7157,14 @@ Return nil if no statuses are rendered."
       (let ((id (or (get-text-property (point) 'id)
 		    (let ((prev (twittering-get-previous-status-head)))
 		      (when prev
-			(get-text-property prev 'id))))))
-        (when id
+			(get-text-property prev 'id)))))
+	    (spec-type (car (twittering-current-timeline-spec))))
+	(cond
+	 ((eq spec-type 'favorites)
+	  (message "Backward retrieval of favorites is not supported yet."))
+	 (id
 	  (message "Get more previous timeline...")
-	  (twittering-get-and-render-timeline nil id)))))))
+	  (twittering-get-and-render-timeline nil id))))))))
 
 (defun twittering-get-next-status-head (&optional pos)
   "Search forward from POS for the nearest head of a status.
@@ -7166,10 +7203,14 @@ Otherwise, return a positive integer greater than POS."
       (let ((id (or (get-text-property (point) 'id)
 		    (let ((next (twittering-get-next-status-head)))
 		      (when next
-			(get-text-property next 'id))))))
-	(when id
+			(get-text-property next 'id)))))
+	    (spec-type (car (twittering-current-timeline-spec))))
+	(cond
+	 ((eq spec-type 'favorites)
+	  (message "Backward retrieval of favorites is not supported yet."))
+	 (id
 	  (message "Get more previous timeline...")
-	  (twittering-get-and-render-timeline nil id))))
+	  (twittering-get-and-render-timeline nil id)))))
      (t
       (message "The latest status.")))))
 

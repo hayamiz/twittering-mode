@@ -34,6 +34,24 @@
 	(twittering-get-next-status-head): likewise.
 	(twittering-get-previous-status-head): likewise.
 
+	* twittering-mode.el: Use rendered-as property for rendering
+	replied statuses instead of a trick with id and original-id
+	properties.
+	(twittering-get-common-properties): add rendered-as property as a
+	common property.
+	(twittering-make-field-properties): add rendered-as property if
+	necessary.
+	(twittering-make-field-properties-of-popped-ancestors): new
+	function.
+	(twittering-rendered-as-ancestor-status-p): new function.
+	(twittering-get-base-id-of-ancestor-at): new function.
+	(twittering-replied-statuses-visible-p): use the new function
+	`twittering-get-base-id-of-ancestor-at' instead of directly
+	referring id and original-id properties.
+	(twittering-hide-replied-statuses): likewise.
+	(twittering-show-replied-statuses): use
+	`twittering-make-field-properties-of-popped-ancestors'.
+
 2011-01-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Ensure that encrypted strings are written

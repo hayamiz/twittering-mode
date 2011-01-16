@@ -4,6 +4,14 @@
 	editing a tweet.
 	(twittering-ensure-whole-of-status-is-visible): new function.
 
+	* twittering-mode.el: Isolate addition of text properties from a
+	function parsing XML.
+	(twittering-http-get-default-sentinel): call
+	`twittering-make-clickable-status-datum' here.
+	(twittering-atom-xmltree-to-status): do not add text properties to
+	statuses.
+	(twittering-status-to-status-datum): likewise.
+
 2011-01-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Ensure that encrypted strings are written

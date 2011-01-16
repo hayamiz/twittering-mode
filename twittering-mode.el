@@ -1939,13 +1939,14 @@ the server when the HTTP status code equals to 400 or 403."
 	     (statuses
 	      (let ((xmltree
 		     (twittering-xml-parse-region (point-min) (point-max))))
-		(cond
-		 ((null xmltree)
-		  nil)
-		 ((eq 'search (car spec))
-		  (twittering-atom-xmltree-to-status xmltree))
-		 (t
-		  (twittering-xmltree-to-status xmltree))))))
+		(mapcar 'twittering-make-clickable-status-datum
+			(cond
+			 ((null xmltree)
+			  nil)
+			 ((eq 'search (car spec))
+			  (twittering-atom-xmltree-to-status xmltree))
+			 (t
+			  (twittering-xmltree-to-status xmltree)))))))
 	(when statuses
 	  (let ((new-statuses
 		 (twittering-add-statuses-to-timeline-data statuses spec))
@@ -4056,9 +4057,7 @@ If `twittering-password' is nil, read it from the minibuffer."
 		(mapcar (lambda (x)
 		 	  (if (eq (car-safe x) 'entry) `(,x) nil))
 			(cdar atom-xmltree)))))
-    (mapcar (lambda (entry)
-	      (twittering-make-clickable-status-datum
-	       (twittering-atom-xmltree-to-status-datum entry)))
+    (mapcar 'twittering-atom-xmltree-to-status-datum
 	    entry-list)))
 
 (defun twittering-status-to-status-datum (status)
@@ -4134,21 +4133,20 @@ If `twittering-password' is nil, read it from the minibuffer."
       (setq user-url (assq-get 'url user-data))
       (setq user-protected (assq-get 'protected user-data))
 
-      (twittering-make-clickable-status-datum
-       (mapcar (lambda (sym)
-                 `(,sym . ,(symbol-value sym)))
-               '(id text source created-at truncated
-                    in-reply-to-status-id
-                    in-reply-to-screen-name
-                    source-id
-                    user-id user-name user-screen-name user-location
-                    user-description
-                    user-profile-image-url
-                    user-url
-                    user-protected
-                    original-user-name
-                    original-user-screen-name
-		    recipient-screen-name))))))
+      (mapcar (lambda (sym)
+		`(,sym . ,(symbol-value sym)))
+	      '(id text source created-at truncated
+		   in-reply-to-status-id
+		   in-reply-to-screen-name
+		   source-id
+		   user-id user-name user-screen-name user-location
+		   user-description
+		   user-profile-image-url
+		   user-url
+		   user-protected
+		   original-user-name
+		   original-user-screen-name
+		   recipient-screen-name)))))
 
 (defun twittering-make-clickable-status-datum (status)
   (flet ((assq-get (item seq)

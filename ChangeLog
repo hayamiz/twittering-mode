@@ -26,6 +26,14 @@
 	(twittering-show-replied-statuses): add special field property to
 	replied statuses.
 
+	* twittering-mode.el: Move point by using field property instead
+	of id property.
+	(twittering-get-current-status-head): redefined with field
+	property instead of id property.
+	(twittering-get-first-status-head): likewise.
+	(twittering-get-next-status-head): likewise.
+	(twittering-get-previous-status-head): likewise.
+
 2011-01-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Ensure that encrypted strings are written

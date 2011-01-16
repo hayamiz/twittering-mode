@@ -7044,17 +7044,30 @@ is `(point)'."
 	  (and prev (get-text-property prev 'id))))))
 
 (defun twittering-get-current-status-head (&optional pos)
-  "Return the head position of the status at POS. The default value of POS
-is `(point)'."
+  "Return the head position of the status at POS.
+If POS is nil, the value of point is used for POS.
+If a separator is rendered at POS, return the head of the status followed
+by the separator.
+Return POS if no statuses are rendered."
   (let* ((pos (or pos (point)))
-	 (id (twittering-get-id-at pos))
-	 (prev-head (twittering-get-previous-status-head pos)))
-    (if (null prev-head)
-	(point-min)
-      (let ((prev-id (and prev-head (twittering-get-id-at prev-head))))
-	(if (twittering-status-id= id prev-id)
-	    prev-head
-	  (twittering-get-next-status-head prev-head))))))
+	 (field-id (get-text-property pos 'field))
+	 (head (field-beginning pos)))
+    (cond
+     ((null field-id)
+      ;; A separator is rendered at `pos'.
+      (if (get-text-property head 'field)
+	  ;; When `pos' points the head of the separator, `head' points
+	  ;; to the beginning of the status followed by the separator.
+	  head
+	;; In the case that `pos' points to a character of the separator,
+	;; but not to the head of the separator.
+	(field-beginning head)))
+     ((null (get-text-property head 'field))
+      ;; When `head' points to a separator, `pos' points to the head
+      ;; of a status.
+      pos)
+     (t
+      head))))
 
 (defun twittering-goto-first-status ()
   "Go to the first status."
@@ -7065,7 +7078,7 @@ is `(point)'."
 (defun twittering-get-first-status-head ()
   "Return the head position of the first status in the current buffer.
 Return nil if no statuses are rendered."
-  (if (get-text-property (point-min) 'id)
+  (if (get-text-property (point-min) 'field)
       (point-min)
     (twittering-get-next-status-head (point-min))))
 
@@ -7089,14 +7102,29 @@ Return nil if no statuses are rendered."
 
 (defun twittering-get-next-status-head (&optional pos)
   "Search forward from POS for the nearest head of a status.
-The return value is nil or a positive integer greater than POS."
+Return nil if there are no following statuses.
+Otherwise, return a positive integer greater than POS."
   (let* ((pos (or pos (point)))
-	 (pos (next-single-property-change pos 'id)))
-    (if pos
-	(if (get-text-property pos 'id)
-	    pos
-	  (next-single-property-change pos 'id))
-	nil)))
+	 (field-id (get-text-property pos 'field))
+	 (head (field-end pos t))
+	 (head-id (get-text-property head 'field)))
+    (cond
+     ((= pos (point-max))
+      ;; There is no next status.
+      nil)
+     ((and (null field-id) head-id)
+      ;; `pos' points to a separator and `head' points to a head
+      ;; of a status.
+      head)
+     ((null head-id)
+      ;; `head' points to a head of a separator.
+      (let ((next-head (field-end head t)))
+	(if (get-text-property next-head 'field)
+	    next-head
+	  ;; There is no next status.
+	  nil)))
+     (t
+      head))))
 
 (defun twittering-goto-previous-status ()
   "Go to previous status."
@@ -7118,27 +7146,30 @@ The return value is nil or a positive integer greater than POS."
 
 (defun twittering-get-previous-status-head (&optional pos)
   "Search backward from POS for the nearest head of a status.
-The return value is nil or a positive integer less than POS."
-  (let ((current (or pos (point))))
-    (if (eq current (point-min))
-	nil
-      (let ((previous (previous-single-property-change current 'id)))
-	(cond
-	 ((null previous)
-	  (if (get-text-property (point-min) 'id)
-	      (point-min)
-	    nil))
-	 ((get-text-property previous 'id) previous)
-	 (t
-	  ;; `previous' is not placed on either a status or (point-min).
-	  ;; So, `previous-single-property-change' necessarily returns the
-	  ;; position on a status if it succeeds.
-	  (let ((previous (previous-single-property-change previous 'id)))
-	    (if (null previous)
-		(if (get-text-property (point-min) 'id)
-		    (point-min)
-		  nil)
-	      previous))))))))
+If POS points to a head of a status, return the head of the *previous* status.
+If there are no preceding statuses, return nil.
+Otherwise, return a positive integer less than POS."
+  (let* ((pos (or pos (point)))
+	 (field-id (get-text-property pos 'field))
+	 (head (field-beginning pos t))
+	 (head-id (get-text-property head 'field)))
+    (cond
+     ((= pos (point-min))
+      ;; There is no previous status.
+      nil)
+     ((and (null field-id) head-id)
+      ;; `pos' points to a separator and `head' points to a head
+      ;; of a status.
+      head)
+     ((null head-id)
+      ;; `head' points to a head of a separator.
+      (let ((prev-head (field-beginning head t)))
+	(if (get-text-property prev-head 'field)
+	    prev-head
+	  ;; There is no previous status.
+	  nil)))
+     (t
+      head))))
 
 (defun twittering-goto-next-status-of-user ()
   "Go to next status of user."

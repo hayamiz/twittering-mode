@@ -52,6 +52,14 @@
 	(twittering-show-replied-statuses): use
 	`twittering-make-field-properties-of-popped-ancestors'.
 
+	* twittering-mode.el: Remove a trick using id and original-id
+	properties for rendering replied statuses.
+	(twittering-get-common-properties): remove original-id from common
+	properties.
+	(twittering-show-replied-statuses): do not overwrite id and
+	original-id properties.
+	(twittering-enter): do not refer original-id property.
+
 2011-01-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Ensure that encrypted strings are written

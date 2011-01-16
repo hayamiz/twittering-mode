@@ -12,6 +12,20 @@
 	statuses.
 	(twittering-status-to-status-datum): likewise.
 
+	* twittering-mode.el: Render statuses in order of field property
+	instead of id property.
+	(twittering-make-common-properties): add field property as a
+	common property.
+	(twittering-get-common-properties): likewise.
+	(twittering-field-id<): new function.
+	(twittering-field-id=): new function.
+	(twittering-make-field-id): new function.
+	(twittering-make-field-properties): new function.
+	(twittering-render-timeline): render statuses in order of their
+	field properties.
+	(twittering-show-replied-statuses): add special field property to
+	replied statuses.
+
 2011-01-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Ensure that encrypted strings are written

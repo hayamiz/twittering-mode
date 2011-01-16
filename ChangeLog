@@ -1,3 +1,9 @@
+2011-01-16  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Ensure that the pointed tweet is visible on
+	editing a tweet.
+	(twittering-ensure-whole-of-status-is-visible): new function.
+
 2011-01-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Ensure that encrypted strings are written

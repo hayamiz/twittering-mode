@@ -9,6 +9,7 @@
 
 ### Improvements
 
+* Add is.gd as URL shortening service
 * Support for storing private information in a file encrypted by master
   password. Once you save the authorized account by using master password,
   you have to input PIN no longer. This is enabled by

@@ -119,11 +119,12 @@ on authorization via OAuth.")
 The upper limit is `twittering-max-number-of-tweets-on-retrieval'.")
 
 (defvar twittering-tinyurl-service 'tinyurl
-  "The service to use. One of 'tinyurl' or 'toly'.")
+  "The service to use. One of 'tinyurl', 'toly' or 'is.gd'.")
 
 (defvar twittering-tinyurl-services-map
   '((tinyurl . "http://tinyurl.com/api-create.php?url=")
-    (toly    . "http://to.ly/api.php?longurl="))
+    (toly    . "http://to.ly/api.php?longurl=")
+    (is.gd   . "http://is.gd/create.php?format=simple&url="))
   "Alist of tinyfy services.")
 
 (defvar twittering-mode-map (make-sparse-keymap))

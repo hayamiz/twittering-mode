@@ -6,6 +6,11 @@
 	document as UTF-8 before parsing it if Content-Type in response
 	header has a parameter "charset=utf-8".
 
+	* twittering-mode.el: The format specifier "%FOLD[prefix]{...}"
+	does not squeeze white spaces.
+	(twittering-fill-string): does not squeeze white spaces if
+	`keep-newline' is non-nil.
+
 2011-01-16  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Ensure that the pointed tweet is visible on

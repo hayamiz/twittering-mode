@@ -5478,7 +5478,7 @@ rendered at POS, return nil."
 				   (concat hard-newline fill-prefix))))
 	      (use-hard-newlines)
 	      (insert (concat prefix str))
-	      (fill-region (point-min) (point-max))
+	      (fill-region (point-min) (point-max) nil t)
 	      (remove-text-properties (point-min) (point-max) '(hard nil)))
 	  (insert (concat prefix str))
 	  (fill-region-as-paragraph (point-min) (point-max)))

@@ -1934,6 +1934,21 @@ the server when the HTTP status code equals to 400 or 403."
      status-code
      (("200")
       (debug-printf "connection-info=%s" connection-info)
+      ;; It may be necessary to decode the contents of the buffer by
+      ;; UTF-8 because `twittering-http-application-headers' specifies
+      ;; utf-8 as one of acceptable charset.
+      ;; For the present, only UTF-8 is taken into account.
+      (let* ((content-type (cdr (assoc "Content-Type" header-info)))
+	     (parameters (cdr (split-string content-type ";")))
+	     (regexp "^[[:space:]]*charset=utf-8[[:space:]]*$")
+	     (encoded-with-utf-8
+	      (let ((case-fold-search t))
+		(remove nil
+			(mapcar (lambda (entry)
+				  (string-match regexp entry))
+				parameters)))))
+	(when encoded-with-utf-8
+	  (decode-coding-region (point-min) (point-max) 'utf-8)))
       (let* ((spec (cdr (assq 'timeline-spec connection-info)))
 	     (spec-string (cdr (assq 'timeline-spec-string connection-info)))
 	     (statuses

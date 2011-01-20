@@ -1,3 +1,11 @@
+2011-01-21  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Decode received XML document as UTF-8 before
+	parsing it.
+	(twittering-http-get-default-sentinel): decode received XML
+	document as UTF-8 before parsing it if Content-Type in response
+	header has a parameter "charset=utf-8".
+
 2011-01-16  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Ensure that the pointed tweet is visible on

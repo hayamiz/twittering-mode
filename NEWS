@@ -104,7 +104,9 @@
   which is 1 second by default.
 * Support for favorites timeline.
   ":favorites" and ":favorites/USER" are added as new timeline specs.
-  By using the latter, you can read favorites for other users.
+  By using the latter, you can read favorites for other users. You can
+  specify a username with completion when you input ":favorites/" for
+  `twittering-visit-timeline' bound to "V" in default.
   Note that favorites are rendered in order of time when each tweet is
   posted. This is because it is impossible to retrieve the time when a
   tweet was favorited. At most, 20 favorites can be retrieved. Backward

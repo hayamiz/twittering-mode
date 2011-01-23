@@ -1,4 +1,13 @@
 
+(when (and (> 22 emacs-major-version)
+	   (require 'url-methods nil t))
+  ;; `twittering-make-http-request-from-uri', which is called for the format
+  ;; specifier "%i", requires `url-generic-parse-url'. But the function for
+  ;; Emacs 21, which is distributed with twittering-mode, does not work
+  ;; correctly until calling `url-scheme-get-property'.
+  (url-scheme-get-property "http" 'name)
+  (url-scheme-get-property "https" 'name))
+
 (defcase test-version nil nil
   (test-assert-string-match "^twittering-mode-v\\([0-9]+\\(\\.[0-9]+\\)*\\|HEAD\\)"
     (twittering-mode-version)))

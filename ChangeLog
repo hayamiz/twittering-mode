@@ -1,3 +1,9 @@
+2011-01-23  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* test/test-twittering-mode.el: Fix an error of
+	`url-generic-parse-url' on Emacs21 by calling
+	`url-scheme-get-property' before `url-generic-parse-url' is called.
+
 2011-01-21  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Decode received XML document as UTF-8 before

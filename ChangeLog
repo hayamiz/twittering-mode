@@ -1,5 +1,10 @@
 2011-01-23  Tadashi MATSUO  <tad@mymail.twin.jp>
 
+	* test/test-twittering-mode.el: Add some tests for the format
+	specifiers "%FILL[prefix]{...}" and "%FOLD[prefix]{...}".
+	* twittering-mode.el (twittering-status-format): add a document
+	for the format specifier "%FOLD[prefix]{...}".
+
 	* test/test-twittering-mode.el: Fix an error of
 	`url-generic-parse-url' on Emacs21 by calling
 	`url-scheme-get-property' before `url-generic-parse-url' is called.

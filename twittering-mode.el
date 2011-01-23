@@ -267,7 +267,8 @@ Items:
  %FILL[prefix]{...} - strings filled as a paragraph. The prefix is optional.
                       You can use any other specifiers in braces.
  %FOLD[prefix]{...} - strings folded within the frame width.
-                      The prefix is optional. This keeps newlines.
+                      The prefix is optional. This keeps newlines and does not
+                      squeeze a series of white spaces.
                       You can use any other specifiers in braces.
  %f - source
  %# - id

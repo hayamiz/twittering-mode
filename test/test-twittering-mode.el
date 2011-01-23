@@ -353,6 +353,38 @@
      (let ((twittering-icon-mode t)
 	   (window-system t))
        (format-status status "%i %s,  :\n  %T // from %f%L%r")))
+
+    (test-assert-string-equal
+     "
+  Help protect and support Free Software and the GNU Project by joining the
+  Free Software Foundation! http://www.fsf.org/join?referrer=7019 // from web"
+     (let ((twittering-fill-column 80))
+       (format-status status "\n%FILL[  ]{%T // from %f%L%r}")))
+
+    (test-assert-string-equal
+     "
+  Help protect and support Free Software and the GNU Project by joining the
+  Free Software Foundation! http://www.fsf.org/join?referrer=7019 // from web"
+     (let ((twittering-fill-column 80))
+       (format-status status "\n%FOLD[  ]{%T // from %f%L%r}")))
+
+    (test-assert-string-equal
+     "
+  Edit XHTML5 documents in nxml-mode with on-the-fly validation:
+  http://bit.ly/lYnEg (by @hober) // from web"
+     (let ((twittering-fill-column 80)
+	   (oldest-status (car (last (get-fixture 'timeline-data)))))
+       (format-status oldest-status "\n%FILL[  ]{%T // from %f%L%r}")))
+
+    (test-assert-string-equal
+     "
+--Edit XHTML5 documents in nxml-mode with on-the-fly validation:
+--http://bit.ly/lYnEg
+--			     
+--	(by @hober) // from web"
+     (let ((twittering-fill-column 80)
+	   (oldest-status (car (last (get-fixture 'timeline-data)))))
+       (format-status oldest-status "\n%FOLD[--]{%T // from %f%L%r}")))
     ))
 
 (defcase test-find-curl-program nil nil

@@ -52,6 +52,15 @@
 	(twittering-make-clickable-status-datum): do not redefine
 	`source'.
 
+	* twittering-mode.el: Add text properties to tweets on rendering.
+	(twittering-http-get-default-sentinel): do not call
+	`twittering-make-clickable-status-datum'.
+	(twittering-make-clickable-status-datum): removed.
+	(twittering-make-string-with-user-name-property): new function.
+	(twittering-make-string-with-source-property): new function.
+	(twittering-make-fontified-tweet-text): new function.
+	(twittering-generate-format-table): add text properties.
+
 2011-01-23  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* test/test-twittering-mode.el: Add some tests for the format

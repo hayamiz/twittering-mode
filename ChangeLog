@@ -14,6 +14,14 @@
 	(twittering-tinyurl-service): update the document.
 	(twittering-tinyurl-services-map): add an entry for `is.gd'.
 
+	* twittering-mode.el: Extend the format of
+	`twittering-tinyurl-services-map'. One can register a service that
+	requires a special HTTP request and/or post-processing.
+	(twittering-tinyurl-services-map): extend the meaning of the
+	variable.
+	(twittering-tinyurl-get): support new format of
+	`twittering-tinyurl-services-map'.
+
 2011-01-23  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* test/test-twittering-mode.el: Add some tests for the format

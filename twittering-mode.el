@@ -775,25 +775,6 @@ SCHEME must be \"http\" or \"https\"."
 
 (defvar twittering-url-show-status nil
   "*Whether to show a running total of bytes transferred.")
-(defun twittering-url-wrapper (func &rest args)
-  (let ((url-proxy-services
-	 (when twittering-proxy-use
-	   (twittering-url-proxy-services)))
-	(url-show-status twittering-url-show-status))
-    (if (eq func 'url-retrieve)
-	(let ((buffer (apply func args)))
-	  (when (buffer-live-p buffer)
-	    (with-current-buffer buffer
-	      (set (make-local-variable 'url-show-status)
-		   twittering-url-show-status)))
-	  buffer)
-      (apply func args))))
-
-(defun twittering-url-insert-file-contents (url)
-  (twittering-url-wrapper 'url-insert-file-contents url))
-
-(defun twittering-url-retrieve-synchronously (url)
-  (twittering-url-wrapper 'url-retrieve-synchronously url))
 
 ;;;;
 ;;;; CA certificate
@@ -2916,25 +2897,38 @@ BEG and END mean a region that had been modified."
 ;;;;
 
 (defun twittering-tinyurl-get (longurl)
-  "Tinyfy LONGURL."
-  (let ((api (cdr (assoc twittering-tinyurl-service
-			 twittering-tinyurl-services-map))))
+  "Shorten LONGURL with the service specified by `twittering-tinyurl-service'."
+  (let* ((api (cdr (assoc twittering-tinyurl-service
+			  twittering-tinyurl-services-map)))
+	 (uri (concat api (twittering-percent-encode longurl))))
     (unless api
       (error "Invalid `twittering-tinyurl-service'. try one of %s"
 	     (mapconcat (lambda (x)
 			  (symbol-name (car x)))
 			twittering-tinyurl-services-map ", ")))
-    (if longurl
-	(let ((buffer
-	       (twittering-url-retrieve-synchronously (concat api longurl))))
-	  (with-current-buffer buffer
-	    (goto-char (point-min))
-	    (prog1
-		(if (search-forward-regexp "\n\r?\n\\([^\n\r]*\\)" nil t)
-		    (match-string-no-properties 1)
-		  (error "TinyURL failed: %s" longurl))
-	      (kill-buffer buffer))))
-      nil)))
+    (let ((request (twittering-make-http-request-from-uri "GET" nil uri))
+	  (additional-info `((longurl . ,longurl))))
+      (lexical-let ((result 'queried))
+	(twittering-send-http-request
+	 request additional-info
+	 (lambda (proc status connection-info header-info)
+	   (let ((status-line (cdr (assq 'status-line header-info)))
+		 (status-code (cdr (assq 'status-code header-info))))
+	     (case-string
+	      status-code
+	      (("200")
+	       (setq result (buffer-string))
+	       nil)
+	      (t
+	       (setq result nil)
+	       (format "Response: %s" status-line)))))
+	 (lambda (proc status connection-info)
+	   (when (and (memq status '(nil closed exit failed signal))
+		      (eq result 'queried))
+	     (setq result nil))))
+	(while (eq result 'queried)
+	  (sit-for 0.1))
+	result))))
 
 (defun twittering-tinyurl-replace-at-point ()
   "Replace the url at point with a tiny version."

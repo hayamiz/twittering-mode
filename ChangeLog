@@ -1,3 +1,14 @@
+2011-01-29  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Reimplement `twittering-tinyurl-get' with
+	`twittering-send-http-request'.
+	(twittering-url-wrapper): removed.
+	(twittering-url-insert-file-contents): removed.
+	(twittering-url-retrieve-synchronously): removed.
+	(twittering-tinyurl-get): reimplemented with
+	`twittering-send-http-request'. In addition, the query parameter
+	is correcly encoded by `twittering-percent-encode'.
+
 2011-01-23  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* test/test-twittering-mode.el: Add some tests for the format

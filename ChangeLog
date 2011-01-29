@@ -22,6 +22,9 @@
 	(twittering-tinyurl-get): support new format of
 	`twittering-tinyurl-services-map'.
 
+	* twittering-mode.el: Add `goo.gl' as a URL shortening service.
+	(twittering-tinyurl-services-map): add an entry for `goo.gl'.
+
 2011-01-23  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* test/test-twittering-mode.el: Add some tests for the format

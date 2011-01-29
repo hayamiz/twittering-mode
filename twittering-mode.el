@@ -123,7 +123,17 @@ The upper limit is `twittering-max-number-of-tweets-on-retrieval'.")
 This must be one of key symbols of `twittering-tinyurl-services-map'.")
 
 (defvar twittering-tinyurl-services-map
-  '((is.gd . "http://is.gd/create.php?format=simple&url=")
+  '((goo.gl
+     (lambda (service longurl)
+       (twittering-make-http-request-from-uri
+	"POST" '(("Content-Type" . "application/json"))
+	"https://www.googleapis.com/urlshortener/v1/url"
+	(concat "{\"longUrl\": \"" longurl "\"}")))
+     (lambda (service reply)
+       (when (string-match "\"id\"[[:space:]]*:[[:space:]]*\"\\([^\"]*\\)\""
+			   reply)
+	 (match-string 1 reply))))
+    (is.gd . "http://is.gd/create.php?format=simple&url=")
     (tinyurl . "http://tinyurl.com/api-create.php?url=")
     (toly
      (lambda (service longurl)

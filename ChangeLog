@@ -9,6 +9,11 @@
 	`twittering-send-http-request'. In addition, the query parameter
 	is correcly encoded by `twittering-percent-encode'.
 
+	* twittering-mode.el: Add `is.gd' as a URL shortening service.
+	Thanks to Michael Kohl.
+	(twittering-tinyurl-service): update the document.
+	(twittering-tinyurl-services-map): add an entry for `is.gd'.
+
 2011-01-23  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* test/test-twittering-mode.el: Add some tests for the format

@@ -111,6 +111,10 @@
   posted. This is because it is impossible to retrieve the time when a
   tweet was favorited. At most, 20 favorites can be retrieved. Backward
   retrieval of more previous favorites is not supported yet.
+* Support for `is.gd' as URL shortening service.
+  You can use `is.gd' as URL shortening service by the following.
+  (setq twittering-tinyurl-service 'is.gd)
+  Thanks to Michael Kohl.
 * ...
 
 ### Bug fixes

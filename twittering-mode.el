@@ -4128,14 +4128,15 @@ If `twittering-password' is nil, read it from the minibuffer."
       (id . ,(progn
 	       (string-match ":\\([0-9]+\\)$" id-str)
 	       (match-string 1 id-str)))
-      (source
-       . ,(let ((html (twittering-decode-html-entities
+      ,@(let ((source (twittering-decode-html-entities
 		       (car (cddr (assq 'twitter:source atom-xml-entry))))))
-	    (when (string-match
-		   "<a href=\"\\(.*?\\)\".*?>\\(.*\\)</a>" html)
-	      (let ((uri (match-string-no-properties 1 html))
-		    (caption (match-string-no-properties 2 html)))
-		caption))))
+	  `((source . ,source)
+	    ,@(if (string-match "<a href=\"\\(.*?\\)\".*?>\\(.*\\)</a>"
+				source)
+		  (let ((uri (match-string-no-properties 1 source))
+			(caption (match-string-no-properties 2 source)))
+		    `((source-uri . ,uri)))
+		`((source-uri . "")))))
       (text . ,(twittering-decode-html-entities
 		(car (cddr (assq 'title atom-xml-entry)))))
       ,@(cond
@@ -4183,93 +4184,92 @@ If `twittering-password' is nil, read it from the minibuffer."
     (mapcar 'twittering-atom-xmltree-to-status-datum
 	    entry-list)))
 
-(defun twittering-status-to-status-datum (status)
-  (flet ((assq-get (item seq)
-		   (car (cddr (assq item seq)))))
-    (let* ((status-data (cddr status))
-	   id text source created-at truncated
-	   in-reply-to-status-id
-	   in-reply-to-screen-name
-	   (user-data (cddr (assq 'user status-data)))
-	   user-id user-name
-	   user-screen-name
-	   user-location
-	   user-description
-	   user-profile-image-url
-	   user-url
-	   user-protected
-	   regex-index
-	   (retweeted-status-data (cddr (assq 'retweeted_status status-data)))
-	   original-created-at ;; need not export
-	   original-user-name
-	   original-user-screen-name
-	   (recipient-screen-name
-	    (assq-get 'recipient_screen_name status-data))
-	   recipient_screen_name
-	   source-id
-	   source-created-at)
-
-      ;; save original status and adjust data if status was retweeted
-      (cond
-       (retweeted-status-data
-	(setq original-user-screen-name (twittering-decode-html-entities
-					 (assq-get 'screen_name user-data))
-	      original-user-name (twittering-decode-html-entities
-				  (assq-get 'name user-data))
-	      original-created-at (assq-get 'created_at status-data))
-
-	;; use id and created-at issued when retweeted.
-	(setq id (assq-get 'id status-data))
-	(setq created-at (assq-get 'created_at status-data))
-
-	(setq status-data retweeted-status-data
-	      user-data (cddr (assq 'user retweeted-status-data)))
-
-	;; id and created-at of source tweet.
-	(setq source-id (assq-get 'id status-data))
-	(setq source-created-at (assq-get 'created_at status-data)))
-       (t
-	(setq id (assq-get 'id status-data))
-	(setq created-at (assq-get 'created_at status-data))))
-
-      (setq text (twittering-decode-html-entities
-		  (assq-get 'text status-data)))
-      (setq source (twittering-decode-html-entities
-		    (assq-get 'source status-data)))
-      (setq truncated (assq-get 'truncated status-data))
-      (setq in-reply-to-status-id
-	    (twittering-decode-html-entities
-	     (assq-get 'in_reply_to_status_id status-data)))
-      (setq in-reply-to-screen-name
-	    (twittering-decode-html-entities
-	     (assq-get 'in_reply_to_screen_name status-data)))
-      (setq user-id (assq-get 'id user-data))
-      (setq user-name (twittering-decode-html-entities
-		       (assq-get 'name user-data)))
-      (setq user-screen-name (twittering-decode-html-entities
-			      (assq-get 'screen_name user-data)))
-      (setq user-location (twittering-decode-html-entities
-			   (assq-get 'location user-data)))
-      (setq user-description (twittering-decode-html-entities
-			      (assq-get 'description user-data)))
-      (setq user-profile-image-url (assq-get 'profile_image_url user-data))
-      (setq user-url (assq-get 'url user-data))
-      (setq user-protected (assq-get 'protected user-data))
-
-      (mapcar (lambda (sym)
-		`(,sym . ,(symbol-value sym)))
-	      '(id text source created-at truncated
-		   in-reply-to-status-id
-		   in-reply-to-screen-name
-		   source-id
-		   user-id user-name user-screen-name user-location
-		   user-description
-		   user-profile-image-url
-		   user-url
-		   user-protected
-		   original-user-name
-		   original-user-screen-name
-		   recipient-screen-name)))))
+(defun twittering-normalize-raw-status (raw-status &optional ignore-retweet)
+  (let* ((status-data (cddr raw-status))
+	 (raw-retweeted-status (assq 'retweeted_status status-data)))
+    (cond
+     ((and raw-retweeted-status
+	   (not ignore-retweet))
+      (let ((retweeted-status
+	     (twittering-normalize-raw-status raw-retweeted-status t))
+	    (retweeting-status
+	     (twittering-normalize-raw-status raw-status t))
+	    (items-overwritten-by-retweet
+	     '(id created-at)))
+	`((original-created-at
+	   . ,(cdr (assq 'created-at retweeting-status)))
+	  (original-user-name
+	   . ,(cdr (assq 'user-name retweeting-status)))
+	  (original-user-screen-name
+	   . ,(cdr (assq 'user-screen-name retweeting-status)))
+	  (source-id . ,(cdr (assq 'id retweeted-status)))
+	  (source-created-at
+	   . ,(cdr (assq 'created-at retweeted-status)))
+	  ,@(mapcar
+	     (lambda (entry)
+	       (let ((sym (car entry))
+		     (value (cdr entry)))
+		 (if (memq sym items-overwritten-by-retweet)
+		     (let ((value-on-retweet
+			    (cdr (assq sym retweeting-status))))
+		       ;; Replace the value in `retweeted-status' with
+		       ;; that in `retweeting-status'.
+		       `(,sym . ,value-on-retweet))
+		   `(,sym . ,value))))
+	     retweeted-status))))
+     (t
+      (flet ((assq-get (item seq)
+		       (car (cddr (assq item seq)))))
+	`(,@(mapcar
+	     (lambda (entry)
+	       (let* ((sym (elt entry 0))
+		      (sym-in-data (elt entry 1))
+		      (encoded (elt entry 2))
+		      (data (assq-get sym-in-data status-data)))
+		 `(,sym . ,(if encoded
+			       (twittering-decode-html-entities data)
+			     data))))
+	     '(;; Raw entries.
+	       (created-at created_at)
+	       (id id)
+	       (recipient-screen-name recipient_screen_name)
+	       (truncated truncated)
+	       ;; Encoded entries.
+	       (in-reply-to-screen-name in_reply_to_screen_name t)
+	       (in-reply-to-status-id in_reply_to_status_id t)
+	       (source source t)
+	       (text text t)
+	       ))
+	  ;; Source.
+	  ,@(let ((source (assq-get 'source status-data)))
+	      (if (and source
+		       (string-match "<a href=\"\\(.*?\\)\".*?>\\(.*\\)</a>"
+				     source))
+		  (let ((uri (match-string-no-properties 1 source))
+			(caption (match-string-no-properties 2 source)))
+		    `((source-uri . ,uri)))
+		`((source-uri . ""))))
+	  ;; Items related to the user that posted the tweet.
+	  ,@(let ((user-data (cddr (assq 'user status-data))))
+	      (mapcar
+	       (lambda (entry)
+		 (let* ((sym (elt entry 0))
+			(sym-in-user-data (elt entry 1))
+			(encoded (elt entry 2))
+			(value (assq-get sym-in-user-data user-data)))
+		   `(,sym . ,(if encoded
+				 (twittering-decode-html-entities value)
+			       value))))
+	       '(;; Raw entries.
+		 (user-id id)
+		 (user-profile-image-url profile_image_url)
+		 (user-url url)
+		 (user-protected protected)
+		 ;; Encoded entries.
+		 (user-name name t)
+		 (user-screen-name screen_name t)
+		 (user-location location t)
+		 (user-description description t))))))))))
 
 (defun twittering-make-clickable-status-datum (status)
   (flet ((assq-get (item seq)
@@ -4436,7 +4436,7 @@ If `twittering-password' is nil, read it from the minibuffer."
 	 (t ;; unknown format?
 	  nil)))
 
-  (mapcar #'twittering-status-to-status-datum
+  (mapcar #'twittering-normalize-raw-status
  	  ;; quirk to treat difference between xml.el in Emacs21 and Emacs22
  	  ;; On Emacs22, there may be blank strings
 	  (remove nil (mapcar (lambda (x)

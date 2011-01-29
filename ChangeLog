@@ -33,6 +33,17 @@
 	(twittering-bitly-api-key): new variable.
 	(twittering-make-http-request-for-bitly): new function.
 
+	* twittering-mode.el: Reimplement normalization of alists from XML
+	structure.
+	(twittering-atom-xmltree-to-status-datum): change the value
+	corresponding to the key `source' into a URL with a tag.
+	(twittering-status-to-status-datum): removed.
+	(twittering-normalize-raw-status): new function to generate
+	normalized alist representing a tweet.
+	(twittering-xmltree-to-status): use
+	`twittering-normalize-raw-status' instead of
+	`twittering-status-to-status-datum'.
+
 2011-01-23  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* test/test-twittering-mode.el: Add some tests for the format

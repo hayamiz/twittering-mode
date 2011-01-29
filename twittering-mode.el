@@ -120,10 +120,13 @@ The upper limit is `twittering-max-number-of-tweets-on-retrieval'.")
 
 (defvar twittering-tinyurl-service 'tinyurl
   "*The service to shorten URI.
-This must be one of key symbols of `twittering-tinyurl-services-map'.")
+This must be one of key symbols of `twittering-tinyurl-services-map'.
+To use 'bit.ly or 'j.mp, you have to configure `twittering-bitly-login' and
+`twittering-bitly-api-key'.")
 
 (defvar twittering-tinyurl-services-map
-  '((goo.gl
+  '((bit.ly twittering-make-http-request-for-bitly)
+    (goo.gl
      (lambda (service longurl)
        (twittering-make-http-request-from-uri
 	"POST" '(("Content-Type" . "application/json"))
@@ -134,6 +137,7 @@ This must be one of key symbols of `twittering-tinyurl-services-map'.")
 			   reply)
 	 (match-string 1 reply))))
     (is.gd . "http://is.gd/create.php?format=simple&url=")
+    (j.mp twittering-make-http-request-for-bitly)
     (tinyurl . "http://tinyurl.com/api-create.php?url=")
     (toly
      (lambda (service longurl)
@@ -161,6 +165,11 @@ If the second element is nil, the reply is directly used as a shortened URL.
 If the second element is a function, it is called as `(funcall
 THE-SECOND-ELEMENT service-symbol HTTP-reply-string)' and its result is used
 as a shortened URL.")
+
+(defvar twittering-bitly-login nil
+  "*The login name for URL shortening service bit.ly and j.mp.")
+(defvar twittering-bitly-api-key nil
+  "*The API key for URL shortening service bit.ly and j.mp.")
 
 (defvar twittering-mode-map (make-sparse-keymap))
 (defvar twittering-mode-menu-on-uri-map (make-sparse-keymap "Twittering Mode"))
@@ -3002,6 +3011,25 @@ BEG and END mean a region that had been modified."
 	    (narrow-to-region (car url-bounds) (cdr url-bounds))
 	    (delete-region (point-min) (point-max))
 	    (insert url)))))))
+
+(defun twittering-make-http-request-for-bitly (service longurl)
+  "Make a HTTP request for URL shortening service bit.ly or j.mp.
+Before calling this, you have to configure `twittering-bitly-login' and
+`twittering-bitly-api-key'."
+  (let* ((query-string
+	  (mapconcat
+	   (lambda (entry)
+	     (concat (car entry) "=" (cdr entry)))
+	   `(("login" . ,twittering-bitly-login)
+	     ("apiKey" . ,twittering-bitly-api-key)
+	     ("format" . "txt")
+	     ("longUrl" . ,(twittering-percent-encode longurl)))
+	   "&"))
+	 (prefix
+	  (cdr (assq service '((bit.ly . "http://api.bit.ly/v3/shorten?")
+			       (j.mp . "http://api.j.mp/v3/shorten?")))))
+	 (uri (concat prefix query-string)))
+    (twittering-make-http-request-from-uri "GET" nil uri)))
 
 ;;;;
 ;;;; Timeline spec

@@ -111,11 +111,18 @@
   posted. This is because it is impossible to retrieve the time when a
   tweet was favorited. At most, 20 favorites can be retrieved. Backward
   retrieval of more previous favorites is not supported yet.
-* Support for `goo.gl' and `is.gd' as URL shortening service.
-  You can use `goo.gl' and `is.gd' as URL shortening service by the following.
+* Support for new URL shortening services.
+  You can use `bit.ly', `goo.gl', `is.gd' or `j.mp' as URL shortening
+  service by the following.
+  (setq twittering-tinyurl-service 'bit.ly) ;; for bit.ly
   (setq twittering-tinyurl-service 'goo.gl) ;; for goo.gl
   (setq twittering-tinyurl-service 'is.gd)  ;; for is.gd
-  Thanks to Michael Kohl.
+  (setq twittering-tinyurl-service 'j.mp)   ;; for j.mp
+  To use `bit.ly' or `j.mp', you need to configure `twittering-bitly-login'
+  and `twittering-bitly-api-key' according to your account as follows.
+  (setq twittering-bitly-login "YOUR-LOGIN-NAME")
+  (setq twittering-bitly-api-key "YOUR-API-KEY")
+  Thanks to Michael Kohl and Lars Gregori.
 * ...
 
 ### Bug fixes

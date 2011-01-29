@@ -25,6 +25,14 @@
 	* twittering-mode.el: Add `goo.gl' as a URL shortening service.
 	(twittering-tinyurl-services-map): add an entry for `goo.gl'.
 
+	* twittering-mode.el: Add `bit.ly' and `j.mp' as URL shortening
+	services. Thanks to Lars Gregori.
+	(twittering-tinyurl-services-map): add entries for `bit.ly' and
+	`j.mp'.
+	(twittering-bitly-login): new variable.
+	(twittering-bitly-api-key): new variable.
+	(twittering-make-http-request-for-bitly): new function.
+
 2011-01-23  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* test/test-twittering-mode.el: Add some tests for the format

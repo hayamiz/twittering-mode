@@ -4130,13 +4130,14 @@ If `twittering-password' is nil, read it from the minibuffer."
 	       (match-string 1 id-str)))
       ,@(let ((source (twittering-decode-html-entities
 		       (car (cddr (assq 'twitter:source atom-xml-entry))))))
-	  `((source . ,source)
-	    ,@(if (string-match "<a href=\"\\(.*?\\)\".*?>\\(.*\\)</a>"
+	  `(,@(if (string-match "<a href=\"\\(.*?\\)\".*?>\\(.*\\)</a>"
 				source)
 		  (let ((uri (match-string-no-properties 1 source))
 			(caption (match-string-no-properties 2 source)))
-		    `((source-uri . ,uri)))
-		`((source-uri . "")))))
+		    `((source . ,caption)
+		      (source-uri . ,uri)))
+		`((source . ,source)
+		  (source-uri . "")))))
       (text . ,(twittering-decode-html-entities
 		(car (cddr (assq 'title atom-xml-entry)))))
       ,@(cond
@@ -4237,18 +4238,20 @@ If `twittering-password' is nil, read it from the minibuffer."
 	       ;; Encoded entries.
 	       (in-reply-to-screen-name in_reply_to_screen_name t)
 	       (in-reply-to-status-id in_reply_to_status_id t)
-	       (source source t)
 	       (text text t)
 	       ))
 	  ;; Source.
-	  ,@(let ((source (assq-get 'source status-data)))
+	  ,@(let ((source (twittering-decode-html-entities
+			   (assq-get 'source status-data))))
 	      (if (and source
 		       (string-match "<a href=\"\\(.*?\\)\".*?>\\(.*\\)</a>"
 				     source))
 		  (let ((uri (match-string-no-properties 1 source))
 			(caption (match-string-no-properties 2 source)))
-		    `((source-uri . ,uri)))
-		`((source-uri . ""))))
+		    `((source . ,caption)
+		      (source-uri . ,uri)))
+		`((source . ,source)
+		  (source-uri . ""))))
 	  ;; Items related to the user that posted the tweet.
 	  ,@(let ((user-data (cddr (assq 'user status-data))))
 	      (mapcar
@@ -4278,6 +4281,7 @@ If `twittering-password' is nil, read it from the minibuffer."
 	  (id (assq-get 'id status))
 	  (text (assq-get 'text status))
 	  (source (assq-get 'source status))
+	  (source-uri (assq-get 'source-uri status))
 	  (created-at (assq-get 'created-at status))
 	  (truncated (assq-get 'truncated status))
 	  (in-reply-to-status-id (assq-get 'in-reply-to-status-id status))
@@ -4388,20 +4392,14 @@ If `twittering-password' is nil, read it from the minibuffer."
 		     (setq pos next-pos))))))
 
       ;; make source pretty and clickable
-      (when (and source
-		 (string-match "<a href=\"\\(.*?\\)\".*?>\\(.*\\)</a>" source))
-	(let ((uri (match-string-no-properties 1 source))
-	      (caption (match-string-no-properties 2 source)))
-	  (setq source caption)
-	  (add-text-properties
-	   0 (length source)
-	   `(mouse-face highlight
-			keymap ,twittering-mode-on-uri-map
-			uri ,uri
-			face twittering-uri-face
-			source ,source)
-	   source)
-	  (add-to-list 'status (cons 'source source))))
+      (add-text-properties
+       0 (length source)
+       `(mouse-face highlight
+		    keymap ,twittering-mode-on-uri-map
+		    uri ,source-uri
+		    face twittering-uri-face
+		    source ,source)
+       source)
       status)))
 
 (defun twittering-xmltree-to-status (xmltree)

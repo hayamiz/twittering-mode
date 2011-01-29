@@ -44,6 +44,14 @@
 	`twittering-normalize-raw-status' instead of
 	`twittering-status-to-status-datum'.
 
+	* twittering-mode.el: `twittering-make-clickable-status-datum'
+	does not redefine `source'.
+	(twittering-atom-xmltree-to-status-datum): define `source' as
+	a text surrounded by A-tag.
+	(twittering-normalize-raw-status): likewise.
+	(twittering-make-clickable-status-datum): do not redefine
+	`source'.
+
 2011-01-23  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* test/test-twittering-mode.el: Add some tests for the format

@@ -2008,7 +2008,7 @@ the server when the HTTP status code equals to 400 or 403."
 	      (twittering-render-timeline buffer t new-statuses))))
 	(twittering-add-timeline-history spec-string)
 	(if twittering-notify-successful-http-get
-	    (format "Success: Get %s." spec-string)
+	    (format "Fetching %s.  Success." spec-string)
 	  nil)))
      (t
       (format "Response: %s"
@@ -5921,8 +5921,8 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 	      t))
 	(when interactive
 	  (if (twittering-have-replied-statuses-p base-id)
-	      (message "The replied statuses does not fetched yet.")
-	    (message "This status does not seem having a replied status.")))
+	      (message "The status this replies to has not been fetched yet.")
+	    (message "This status is not a reply.")))
 	nil))))
 
 (defun twittering-hide-replied-statuses (&optional interactive)
@@ -5966,7 +5966,7 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 			 (point-min)))))
       (delete-region beg end)))
    (interactive
-    (message "The replied statuses were already hidden."))))
+    (message "The status this replies to was already hidden."))))
 
 (defun twittering-toggle-show-replied-statuses ()
   (interactive)
@@ -6471,7 +6471,7 @@ been initialized yet."
      ((not (twittering-status-not-blank-p status))
       (message "Empty tweet!"))
      ((< 140 (length status))
-      (message "Too long tweet!"))
+      (message "Tweet is too long!"))
      ((or (not twittering-request-confirmation-on-posting)
 	  (y-or-n-p "Send this tweet? "))
       (setq twittering-edit-history
@@ -6689,7 +6689,7 @@ been initialized yet."
 	   ((string-match "^:favorites/$" spec-string)
 	    (let ((username
 		   (twittering-read-username-with-completion
-		    "whose favorites: " ""
+		    "Whose favorites: " ""
 		    (twittering-get-usernames-from-timeline))))
 	      (if username
 		  (concat ":favorites/" username)
@@ -6882,7 +6882,7 @@ been initialized yet."
 	 (username (progn
 		     (set-text-properties 0 (length username) nil username)
 		     (or (twittering-read-username-with-completion
-			  "whose list: "
+			  "Whose list: "
 			  username
 			  'twittering-user-history)
 			 ""))))
@@ -6959,7 +6959,7 @@ been initialized yet."
 (defun twittering-direct-message ()
   (interactive)
   (let ((username (twittering-read-username-with-completion
-		   "who receive your message: "
+		   "Who would you like to receive the DM? "
 		   (get-text-property (point) 'username)
 		   'twittering-user-history))
 	(spec (or (get-text-property (point) 'source-spec)
@@ -7251,7 +7251,7 @@ Return nil if no statuses are rendered."
 	 ((eq spec-type 'favorites)
 	  (message "Backward retrieval of favorites is not supported yet."))
 	 (id
-	  (message "Get more previous timeline...")
+	  (message "Get more of the previous timeline...")
 	  (twittering-get-and-render-timeline nil id))))))))
 
 (defun twittering-get-next-status-head (&optional pos)
@@ -7297,7 +7297,7 @@ Otherwise, return a positive integer greater than POS."
 	 ((eq spec-type 'favorites)
 	  (message "Backward retrieval of favorites is not supported yet."))
 	 (id
-	  (message "Get more previous timeline...")
+	  (message "Get more of the previous timeline...")
 	  (twittering-get-and-render-timeline nil id)))))
      (t
       (message "The latest status.")))))

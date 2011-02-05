@@ -6,6 +6,17 @@
 	that removes a trailing newline from result of `bit.ly' and
 	`j.mp'.
 
+	* twittering-mode.el: Revise some messages. Thanks to Server.
+	(twittering-http-get-default-sentinel): revise messages.
+	(twittering-show-replied-statuses): likewise.
+	(twittering-hide-replied-statuses): likewise.
+	(twittering-edit-post-status): likewise.
+	(twittering-read-timeline-spec-with-completion): likewise.
+	(twittering-other-user-list-interactive): likewise.
+	(twittering-direct-message): likewise.
+	(twittering-goto-next-status): likewise.
+	(twittering-goto-previous-status): likewise.
+
 2011-01-29  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Reimplement `twittering-tinyurl-get' with

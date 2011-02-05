@@ -125,7 +125,11 @@ To use 'bit.ly or 'j.mp, you have to configure `twittering-bitly-login' and
 `twittering-bitly-api-key'.")
 
 (defvar twittering-tinyurl-services-map
-  '((bit.ly twittering-make-http-request-for-bitly)
+  '((bit.ly twittering-make-http-request-for-bitly
+	    (lambda (service reply)
+	      (if (string-match "\n\\'" reply)
+		  (substring reply 0 (match-beginning 0))
+		reply)))
     (goo.gl
      (lambda (service longurl)
        (twittering-make-http-request-from-uri
@@ -137,7 +141,11 @@ To use 'bit.ly or 'j.mp, you have to configure `twittering-bitly-login' and
 			   reply)
 	 (match-string 1 reply))))
     (is.gd . "http://is.gd/create.php?format=simple&url=")
-    (j.mp twittering-make-http-request-for-bitly)
+    (j.mp twittering-make-http-request-for-bitly
+	  (lambda (service reply)
+	    (if (string-match "\n\\'" reply)
+		(substring reply 0 (match-beginning 0))
+	      reply)))
     (tinyurl . "http://tinyurl.com/api-create.php?url=")
     (toly
      (lambda (service longurl)

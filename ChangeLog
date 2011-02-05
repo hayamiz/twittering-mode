@@ -1,3 +1,11 @@
+2011-02-05  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Remove a trailing newline from strings
+	received from `bit.ly' and `j.mp'. Thanks to mm_o_ig.
+	(twittering-tinyurl-services-map): add a post-processing function
+	that removes a trailing newline from result of `bit.ly' and
+	`j.mp'.
+
 2011-01-29  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Reimplement `twittering-tinyurl-get' with

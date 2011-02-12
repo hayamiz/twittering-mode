@@ -7133,17 +7133,33 @@ been initialized yet."
 
 (defun twittering-follow (&optional remove)
   (interactive "P")
-  (let ((username (copy-sequence (get-text-property (point) 'username)))
-	(method (if remove 'destroy-friendships 'create-friendships))
-	(mes (if remove "Unfollowing" "Following")))
-    (unless username
-      (setq username (or (twittering-read-username-with-completion
-			  "who: " "" 'twittering-user-history)
-			 "")))
+  (let* ((method (if remove 'destroy-friendships 'create-friendships))
+	 (mes (if remove "unfollow" "follow"))
+	 (id (twittering-get-id-at))
+	 (status (when id (twittering-find-status id)))
+	 (username
+	  (cond
+	   ((assq 'retweeted-id status)
+	    (let* ((retweeting-username
+		    (cdr (assq 'retweeting-user-screen-name status)))
+		   (retweeted-username
+		    (cdr (assq 'retweeted-user-screen-name status)))
+		   (default (if remove
+				retweeting-username
+			      retweeted-username))
+		   (prompt (format "Who do you %s? (default:%s): "
+				   mes default))
+		   (candidates (list retweeted-username retweeting-username)))
+	      (twittering-completing-read prompt candidates nil t
+					  nil nil default)))
+	   (status
+	    (cdr (assq 'user-screen-name status)))
+	   (t
+	    (twittering-read-username-with-completion
+	     (format "Who do you %s? " mes) "" 'twittering-user-history)))))
     (if (string= "" username)
 	(message "No user selected")
-      (set-text-properties 0 (length username) nil username)
-      (if (y-or-n-p (format "%s %s? " mes username))
+      (if (y-or-n-p (format "%s %s? " (capitalize mes) username))
 	  (twittering-call-api method `((username . ,username)))
 	(message "Request canceled")))))
 

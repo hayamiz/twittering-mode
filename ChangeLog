@@ -30,6 +30,11 @@
 	`created_at'. The key `created_at' in an alist representing a
 	retweet means when the original tweet was posted.
 
+	* twittering-mode.el: When `twittering-follow' is invoked on an
+	official retweet, ask a subject.
+	(twittering-follow): ask a subject when this function is invoked
+	on an official retweet.
+
 2011-02-05  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Remove a trailing newline from strings

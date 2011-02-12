@@ -3436,12 +3436,12 @@ Statuses are stored in ascending-order with respect to their IDs."
 		   (mapcar
 		    (lambda (status)
 		      (let ((id (cdr (assq 'id status)))
-			    (source-id (cdr-safe (assq 'source-id status))))
-			(unless (or (not source-id)
-				    (gethash source-id referring-id-table))
+			    (retweeted-id (cdr (assq 'retweeted-id status))))
+			(unless (or (not retweeted-id)
+				    (gethash retweeted-id referring-id-table))
 			  ;; Store the id of the first observed tweet
-			  ;; that refers `source-id'.
-			  (puthash source-id id referring-id-table))
+			  ;; that refers `retweeted-id'.
+			  (puthash retweeted-id id referring-id-table))
 			(if (gethash id id-table)
 			    nil
 			  (puthash id status id-table)
@@ -4204,16 +4204,7 @@ If `twittering-password' is nil, read it from the minibuffer."
 	     (twittering-normalize-raw-status raw-status t))
 	    (items-overwritten-by-retweet
 	     '(id created-at)))
-	`((original-created-at
-	   . ,(cdr (assq 'created-at retweeting-status)))
-	  (original-user-name
-	   . ,(cdr (assq 'user-name retweeting-status)))
-	  (original-user-screen-name
-	   . ,(cdr (assq 'user-screen-name retweeting-status)))
-	  (source-id . ,(cdr (assq 'id retweeted-status)))
-	  (source-created-at
-	   . ,(cdr (assq 'created-at retweeted-status)))
-	  ,@(mapcar
+	`(,@(mapcar
 	     (lambda (entry)
 	       (let ((sym (car entry))
 		     (value (cdr entry)))
@@ -4224,7 +4215,21 @@ If `twittering-password' is nil, read it from the minibuffer."
 		       ;; that in `retweeting-status'.
 		       `(,sym . ,value-on-retweet))
 		   `(,sym . ,value))))
-	     retweeted-status))))
+	     retweeted-status)
+	  ,@(mapcar
+	     (lambda (entry)
+	       (let ((sym (car entry))
+		     (value (cdr entry)))
+		 `(,(intern (concat "retweeted-" (symbol-name sym)))
+		   . ,value)))
+	     retweeted-status)
+	  ,@(mapcar
+	     (lambda (entry)
+	       (let ((sym (car entry))
+		     (value (cdr entry)))
+		 `(,(intern (concat "retweeting-" (symbol-name sym)))
+		   . ,value)))
+	     retweeting-status))))
      (t
       (flet ((assq-get (item seq)
 		       (car (cddr (assq item seq)))))
@@ -5047,7 +5052,7 @@ static char * unplugged_xpm[] = {
 		   (let ((prop-sym (if (consp entry) (car entry) entry))
 			 (status-sym (if (consp entry) (cdr entry) entry)))
 		     (list prop-sym (cdr (assq status-sym status)))))
-		 '(id source-id source-spec
+		 '(id retweeted-id source-spec
 		      (username . user-screen-name) text))))
 
 (defun twittering-get-common-properties (pos)
@@ -5061,7 +5066,8 @@ of format. The common properties follows:
 		   (let ((value (get-text-property pos prop)))
 		     (when value
 		       `(,prop ,value))))
-		 '(field id rendered-as source-id source-spec text username))))
+		 '(field id rendered-as retweeted-id source-spec
+			 text username))))
 
 (defun twittering-format-string (string prefix replacement-table)
   "Format STRING according to PREFIX and REPLACEMENT-TABLE.
@@ -5294,7 +5300,7 @@ following symbols;
 	   (concat " " (apply 'propertize str properties))))))
     ("R" .
      (let ((retweeted-by
-	    (or (cdr (assq 'original-user-screen-name ,status-sym)) "")))
+	    (or (cdr (assq 'retweeting-user-screen-name ,status-sym)) "")))
        (unless (string= "" retweeted-by)
 	 (concat " (retweeted by " retweeted-by ")"))))
     ("S" .
@@ -5329,10 +5335,13 @@ following symbols;
 		    (apply 'encode-time
 			   (parse-time-string created-at-str)))
 		   (url
-		    (twittering-get-status-url
-		     (cdr (assq 'user-screen-name ,status-sym))
-		     (or (cdr (assq 'source-id ,status-sym))
-			 (cdr (assq 'id ,status-sym)))))
+		    (if (assq 'retweeted-id ,status-sym)
+			(twittering-get-status-url
+			 (cdr (assq 'retweeted-user-screen-name ,status-sym))
+			 (cdr (assq 'retweeted-id ,status-sym)))
+		      (twittering-get-status-url
+		       (cdr (assq 'user-screen-name ,status-sym))
+		       (cdr (assq 'id ,status-sym)))))
 		   (properties
 		    (list 'mouse-face 'highlight 'face 'twittering-uri-face
 			  'keymap twittering-mode-on-uri-map
@@ -5621,14 +5630,14 @@ rendered at POS, return nil."
 		    (mapcar
 		     (lambda (status)
 		       (let ((id (cdr (assq 'id status)))
-			     (source-id (cdr (assq 'source-id status))))
+			     (retweeted-id (cdr (assq 'retweeted-id status))))
 			 (cond
-			  ((not source-id)
+			  ((null retweeted-id)
 			   ;; `status' is not a retweet.
 			   status)
-			  ((and source-id
+			  ((and retweeted-id
 				(twittering-status-id=
-				 id (gethash source-id referring-id-table)))
+				 id (gethash retweeted-id referring-id-table)))
 			   ;; `status' is the first retweet.
 			   status)
 			  (t
@@ -7056,7 +7065,7 @@ been initialized yet."
 
 (defun twittering-native-retweet ()
   (interactive)
-  (let ((id (or (get-text-property (point) 'source-id)
+  (let ((id (or (get-text-property (point) 'retweeted-id)
 		(get-text-property (point) 'id)))
 	(text (copy-sequence (get-text-property (point) 'text)))
 	(user (get-text-property (point) 'username))

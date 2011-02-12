@@ -2,6 +2,27 @@
 
 	* test/test-twittering-mode.el (test-hmac-sha1): Fix a typo.
 
+	* twittering-mode.el: Rearrange internal representation of a
+	retweet.
+	(twittering-add-statuses-to-timeline-data): use `retweeted-id'
+	instead of `source-id'.
+	(twittering-normalize-raw-status): rearrange internal
+	representation of a retweet. The information as a tweet posted by
+	the retweeter is stored with keys prefixed with `retweeting-'. The
+	information as a tweet posted by the original author is stored
+	with keys prefixed with `retweeted-'. Keys prefixed with
+	`original-' or `source-' are obsolete.
+	(twittering-make-common-properties): use `retweeted-id' instead of
+	`source-id'.
+	(twittering-get-common-properties): likewise.
+	(twittering-generate-format-table): use
+	`retweeting-user-screen-name' instead of
+	`original-user-screen-name'.
+	(twittering-generate-formater-for-first-spec): use `retweeted-id'
+	instead of `source-id'.
+	(twittering-render-timeline): likewise.
+	(twittering-native-retweet): likewise.
+
 2011-02-05  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Remove a trailing newline from strings

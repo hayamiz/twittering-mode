@@ -126,6 +126,10 @@
 * Change of the format specifiers, "%c", "%C", "%@", for official ReTweet.
   `created_at' for official ReTweet means when the original tweet was
   posted instead of when it was retweeted.
+* Function to report a user as a spammer.
+  The function `twittering-block-and-report-as-spammer' is added. By
+  invoking the function on a tweet, you can block its author and report
+  him or her as a spammer.
 * ...
 
 ### Bug fixes

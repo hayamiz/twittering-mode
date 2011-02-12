@@ -35,6 +35,11 @@
 	(twittering-follow): ask a subject when this function is invoked
 	on an official retweet.
 
+	* twittering-mode.el: Add a function to report a user as a spammer.
+	(twittering-call-api): support a new command
+	`block-and-report-as-spammer'.
+	(twittering-block-and-report-as-spammer): new function.
+
 2011-02-05  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Remove a trailing newline from strings

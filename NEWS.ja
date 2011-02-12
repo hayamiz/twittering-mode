@@ -129,6 +129,10 @@
 * 公式ReTweetについての書式指定子"%c","%C","%@"の意味を変更
   公式ReTweetの`created_at'は、retweetした時刻ではなくオリジナルの
   tweetを投稿した時刻を意味するようになりました。
+* spam送信者報告機能
+  関数`twittering-block-and-report-as-spammer'を追加しました。tweet上で
+  この関数を呼び出すと、その投稿者をブロックし、さらにspam送信者として
+  報告できます。
 * ...
 
 ### バグ修正

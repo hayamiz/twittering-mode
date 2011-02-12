@@ -130,6 +130,9 @@
   The function `twittering-block-and-report-as-spammer' is added. By
   invoking the function on a tweet, you can block its author and report
   him or her as a spammer.
+* Function to block a user.
+  The function `twittering-block' is added. By invoking the function
+  on a tweet, you can block its author.
 * ...
 
 ### Bug fixes

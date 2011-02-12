@@ -3719,6 +3719,12 @@ send-direct-message -- Send a direct message.
   Valid key symbols in ARGS-ALIST:
     username -- the username who the message is sent to.
     status -- the sent message.
+block -- Block a user.
+  Valid key symbols in ARGS-ALIST:
+    user-id -- the user-id that will be blocked.
+    username -- the username who will be blocked.
+  This command requires either of the above key. If both are given, `user-id'
+  will be used in REST API.
 block-and-report-as-spammer -- Block a user and report him or her as a spammer.
   Valid key symbols in ARGS-ALIST:
     user-id -- the user-id that will be blocked.
@@ -3882,6 +3888,16 @@ block-and-report-as-spammer -- Block a user and report him or her as a spammer.
 	     ("text" . ,(cdr (assq 'status args-alist))))))
       (twittering-http-post twittering-api-host
 			    (twittering-api-path "direct_messages/new")
+			    parameters nil additional-info)))
+   ((eq command 'block)
+    ;; Block a user.
+    (let* ((user-id (cdr (assq 'user-id args-alist)))
+	   (username (cdr (assq 'username args-alist)))
+	   (parameters (if user-id
+			   `(("user_id" . ,user-id))
+			 `(("screen_name" . ,username)))))
+      (twittering-http-post twittering-api-host
+			    (twittering-api-path "blocks/create")
 			    parameters nil additional-info)))
    ((eq command 'block-and-report-as-spammer)
     ;; Report a user as a spammer and block him or her.
@@ -7211,6 +7227,33 @@ been initialized yet."
 (defun twittering-unfavorite ()
   (interactive)
   (twittering-favorite t))
+
+(defun twittering-block ()
+  "Block a user who posted the tweet at the current position."
+  (interactive)
+  (let* ((id (twittering-get-id-at))
+	 (status (when id (twittering-find-status id)))
+	 (username
+	  (cond
+	   ((assq 'retweeted-id status)
+	    (let* ((retweeting-username
+		    (cdr (assq 'retweeting-user-screen-name status)))
+		   (retweeted-username
+		    (cdr (assq 'retweeted-user-screen-name status)))
+		   (prompt "Who do you block? ")
+		   (candidates (list retweeted-username retweeting-username)))
+	      (twittering-completing-read prompt candidates nil t)))
+	   (status
+	    (cdr (assq 'user-screen-name status)))
+	   (t
+	    nil))))
+    (cond
+     ((or (null username) (string= "" username))
+      (message "No user selected"))
+     ((yes-or-no-p (format "Really block \"%s\"? " username))
+      (twittering-call-api 'block `((username . ,username))))
+     (t
+      (message "Request canceled")))))
 
 (defun twittering-block-and-report-as-spammer ()
   "Report a user who posted the tweet at the current position as a spammer.

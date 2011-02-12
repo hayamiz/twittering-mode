@@ -40,6 +40,10 @@
 	`block-and-report-as-spammer'.
 	(twittering-block-and-report-as-spammer): new function.
 
+	* twittering-mode.el: Add a function to block a user.
+	(twittering-call-api): support a new command `block'.
+	(twittering-block): new function.
+
 2011-02-05  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Remove a trailing newline from strings

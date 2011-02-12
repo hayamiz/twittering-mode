@@ -133,6 +133,9 @@
   関数`twittering-block-and-report-as-spammer'を追加しました。tweet上で
   この関数を呼び出すと、その投稿者をブロックし、さらにspam送信者として
   報告できます。
+* ブロック機能
+  関数`twittering-block'を追加しました。tweet上でこの関数を呼び出すと、
+  その投稿者をブロックできます。
 * ...
 
 ### バグ修正

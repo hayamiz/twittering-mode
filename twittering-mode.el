@@ -4666,6 +4666,15 @@ invoking \"convert\". Otherwise, cropped images are displayed.")
   "*Whether to use `profile_image' API for retrieving scaled icon images.
 NOTE: This API is rate limited.")
 
+(defvar twittering-icon-storage-file
+  (expand-file-name "~/.twittering-mode-icons.gz")
+  "*The file to which icon images are stored.")
+
+(defvar twittering-use-icon-storage nil
+  "*Whether to use the persistent icon storage.
+If this variable is non-nil, icon images are stored to the file specified
+by `twittering-icon-storage-file'.")
+
 (defconst twittering-error-icon-data-pair
   '(xpm . "/* XPM */
 static char * yellow3_xpm[] = {
@@ -4747,18 +4756,20 @@ available and `twittering-use-convert' is non-nil."
      (t
       twittering-error-icon-data-pair))))
 
-(defun twittering-register-image-data (image-url image-data)
-  (let ((image-pair (twittering-create-image-pair image-data)))
+(defun twittering-register-image-spec (image-url spec size)
+  (let ((hash (gethash size twittering-icon-prop-hash)))
+    (unless hash
+      (setq hash (make-hash-table :test 'equal))
+      (puthash size hash twittering-icon-prop-hash))
+    (puthash image-url spec hash)))
+
+(defun twittering-register-image-data (image-url image-data &optional size)
+  (let ((image-pair (twittering-create-image-pair image-data))
+	(size (or size twittering-convert-fix-size)))
     (when image-pair
-      (let ((hash (gethash twittering-convert-fix-size
-			   twittering-icon-prop-hash)))
-	(unless hash
-	  (setq hash (make-hash-table :test 'equal))
-	  (puthash twittering-convert-fix-size hash
-		   twittering-icon-prop-hash))
-	(let ((spec (twittering-make-display-spec-for-icon image-pair)))
-	  (puthash image-url spec hash)
-	  spec)))))
+      (let ((spec (twittering-make-display-spec-for-icon image-pair)))
+	(twittering-register-image-spec image-url spec size)
+	spec))))
 
 (defun twittering-make-slice-spec (image-spec)
   "Return slice property for reducing the image size by cropping it."
@@ -4826,6 +4837,52 @@ image are displayed."
 			 icon-string)
       (twittering-url-retrieve-async image-url 'twittering-register-image-data)
       icon-string))))
+
+(defun twittering-save-icon-properties (&optional filename)
+  (let ((filename (or filename twittering-icon-storage-file))
+	(dummy-icon-properties (twittering-make-display-spec-for-icon
+				twittering-error-icon-data-pair)))
+    (with-auto-compression-mode
+      (with-temp-file filename
+	(insert "(")
+	(maphash
+	 (lambda (size hash)
+	   (insert (format "(%d . (" size))
+	   (maphash (lambda (url properties)
+		      (unless (equal properties dummy-icon-properties)
+			(insert "(")
+			(prin1 url (current-buffer))
+			(insert " . ")
+			(prin1 properties (current-buffer))
+			(insert ")")))
+		    hash)
+	   (insert "))"))
+	 twittering-icon-prop-hash)
+	(insert ")")))))
+
+(defun twittering-load-icon-properties (&optional filename)
+  (let* ((filename (or filename twittering-icon-storage-file))
+	 (alist
+	  (with-temp-buffer
+	    (condition-case err
+		(cond
+		 ((file-exists-p filename)
+		  (with-auto-compression-mode (insert-file-contents filename))
+		  (read (current-buffer)))
+		 (t
+		  nil))
+	      (error
+	       (message "Failed to load icon images. %s" (cdr err))
+	       nil)))))
+    (mapc (lambda (entry)
+	    (let ((size (car entry))
+		  (prop-alist (cdr entry)))
+	      (mapc (lambda (entry)
+		      (let ((url (car entry))
+			    (properties (cdr entry)))
+			(twittering-register-image-spec url properties size)))
+		    prop-alist)))
+	  alist)))
 
 ;;;;
 ;;;; Mode-line
@@ -6314,6 +6371,9 @@ been initialized yet."
 					   nil t))
 	      (setq twittering-use-convert nil)))))
     (twittering-setup-proxy)
+    (when twittering-use-icon-storage
+      (twittering-load-icon-properties)
+      (add-hook 'kill-emacs-hook 'twittering-save-icon-properties))
     (setq twittering-initialized t)))
 
 (defun twittering-mode-setup (spec-string)

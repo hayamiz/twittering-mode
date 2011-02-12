@@ -44,6 +44,15 @@
 	(twittering-call-api): support a new command `block'.
 	(twittering-block): new function.
 
+	* twittering-mode.el: Support persistent icon storage.
+	(twittering-icon-storage-file): new variable.
+	(twittering-use-icon-storage): new variable.
+	(twittering-register-image-spec): new function.
+	(twittering-register-image-data): reimplemented with
+	`twittering-register-image-spec'.
+	(twittering-save-icon-properties): new function.
+	(twittering-load-icon-properties): new function.
+
 2011-02-05  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Remove a trailing newline from strings

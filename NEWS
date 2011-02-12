@@ -133,6 +133,16 @@
 * Function to block a user.
   The function `twittering-block' is added. By invoking the function
   on a tweet, you can block its author.
+* Support for persistent icon storage.
+  By "(setq twittering-use-icon-storage t)", you can save retrieved
+  and resized icon images into a persistent storage. On next and later
+  invocation, twittering-mode can display icons faster because the
+  storage reduces time required to retrieve and resize images. In
+  default, this function is disabled.
+  The default storage file is `~/.twittering-mode-icons.gz'. You can
+  change it by changing `twittering-icon-storage-file'. Note that icon
+  images in the storage generated on a certain version of Emacs may be
+  unavailable on another version of Emacs.
 * ...
 
 ### Bug fixes

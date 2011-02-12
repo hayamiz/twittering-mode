@@ -1,3 +1,7 @@
+2011-02-13  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* test/test-twittering-mode.el (test-hmac-sha1): Fix a typo.
+
 2011-02-05  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Remove a trailing newline from strings

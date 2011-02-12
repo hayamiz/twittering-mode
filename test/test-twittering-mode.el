@@ -422,7 +422,7 @@
   )
 
 (defcase test-hmac-sha1 nil nil
-  ;; The following tests are copied from RFC 2022.
+  ;; The following tests are copied from RFC 2202.
   (test-assert-string-equal
    (let* ((v (make-list 20 ?\x0b))
 	  (key (cond

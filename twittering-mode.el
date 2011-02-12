@@ -4203,7 +4203,7 @@ If `twittering-password' is nil, read it from the minibuffer."
 	    (retweeting-status
 	     (twittering-normalize-raw-status raw-status t))
 	    (items-overwritten-by-retweet
-	     '(id created-at)))
+	     '(id)))
 	`(,@(mapcar
 	     (lambda (entry)
 	       (let ((sym (car entry))

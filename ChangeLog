@@ -23,6 +23,13 @@
 	(twittering-render-timeline): likewise.
 	(twittering-native-retweet): likewise.
 
+	* twittering-mode.el: `created_at' for an official retweet means
+	when the original tweet was posted instead of when it was
+	retweeted.
+	(twittering-normalize-raw-status): do not override
+	`created_at'. The key `created_at' in an alist representing a
+	retweet means when the original tweet was posted.
+
 2011-02-05  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Remove a trailing newline from strings

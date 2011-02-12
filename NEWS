@@ -123,6 +123,9 @@
   (setq twittering-bitly-login "YOUR-LOGIN-NAME")
   (setq twittering-bitly-api-key "YOUR-API-KEY")
   Thanks to Michael Kohl and Lars Gregori.
+* Change of the format specifiers, "%c", "%C", "%@", for official ReTweet.
+  `created_at' for official ReTweet means when the original tweet was
+  posted instead of when it was retweeted.
 * ...
 
 ### Bug fixes

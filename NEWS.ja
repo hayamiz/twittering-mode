@@ -126,6 +126,9 @@
   (setq twittering-bitly-login "YOUR-LOGIN-NAME")
   (setq twittering-bitly-api-key "YOUR-API-KEY")
   Thanks to Michael Kohl and Lars Gregori.
+* 公式ReTweetについての書式指定子"%c","%C","%@"の意味を変更
+  公式ReTweetの`created_at'は、retweetした時刻ではなくオリジナルの
+  tweetを投稿した時刻を意味するようになりました。
 * ...
 
 ### バグ修正

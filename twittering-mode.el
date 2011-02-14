@@ -307,6 +307,11 @@ Items:
  %r - \" sent to user\" (use on direct_messages{,_sent})
  %r - \" in reply to user\" (use on other standard timeline)
  %R - \" (retweeted by user)\"
+ %RT{...} - strings rendered only when the tweet is a retweet.
+            The braced strings are rendered with the information of the
+            retweet itself instead of that of the retweeted original tweet.
+            For example, %s for a retweet means who posted the original
+            tweet, but %RT{%s} means who retweeted it.
  %u - url
  %j - user.id
  %p - protected?
@@ -5473,6 +5478,25 @@ following symbols;
 	  `((twittering-update-filled-string
 	     nil nil ,formater ,status-sym ,prefix-sym ,prefix-str
 	     ,keep-newline)
+	    . ,rest)))
+       ((string-match "\\`RT{" following)
+	(let* ((str-after-brace (substring following (match-end 0)))
+	       (pair (twittering-generate-formater-for-current-level
+		      str-after-brace 'retweeting prefix-sym))
+	       (braced-body (car pair))
+	       (rest (cdr pair)))
+	  `((when (assq 'retweeted-id ,status-sym)
+	      (let ((retweeting
+		     (mapcar (lambda (entry)
+			       (let ((key-str (symbol-name (car entry)))
+				     (value (cdr entry)))
+				 (when (string-match "\\`retweeting-" key-str)
+				   (let ((new-key
+					  (intern (substring key-str
+							     (match-end 0)))))
+				     (cons new-key value)))))
+			     ,status-sym)))
+		(concat ,@braced-body)))
 	    . ,rest)))
        ((string-match regexp following)
 	(let ((specifier (match-string 1 following))

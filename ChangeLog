@@ -5,6 +5,11 @@
 	(twittering-update-status-format): update the function only if the
 	given format string is valid.
 
+	* twittering-mode.el: Support a new format specifier "%RT{...}".
+	(twittering-status-format): update docstring.
+	(twittering-generate-formater-for-first-spec): support a new
+	format specifier "%RT{...}".
+
 2011-02-13  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* test/test-twittering-mode.el (test-hmac-sha1): Fix a typo.

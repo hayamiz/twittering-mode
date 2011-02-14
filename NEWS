@@ -143,6 +143,13 @@
   change it by changing `twittering-icon-storage-file'. Note that icon
   images in the storage generated on a certain version of Emacs may be
   unavailable on another version of Emacs.
+* New format specifier "%RT{...}".
+  For `twittering-status-format', the new format specifier "%RT{...}"
+  is added, which is rendered only when the tweet is an official
+  ReTweet. In the brace, you can use any format specifiers, which are
+  rendered with the information of the retweet itself instead of the
+  retweeted original tweet. For example, "%RT{%s}" means who retweeted
+  the tweet.
 * ...
 
 ### Bug fixes

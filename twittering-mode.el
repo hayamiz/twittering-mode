@@ -5541,17 +5541,30 @@ following symbols;
       nil))))
 
 (defun twittering-update-status-format (&optional format-str)
+  "Update the format for rendering a tweet.
+If FORMAT-STR is nil, `twittering-status-format' is used in place of
+FORMAT-STR.
+
+If FORMAT-STR is valid as a format, `twittering-format-status-function'
+is replaced by the result of `twittering-generate-format-status-function'
+for FORMAT-STR.
+If FORMAT-STR is invalid as a format, an error is signaled and
+`twittering-format-status-function' is not updated."
   (let ((format-str (or format-str twittering-status-format)))
     (unless (string= format-str twittering-format-status-function-source)
-      (setq twittering-format-status-function-source format-str)
-      (let ((before (get-buffer "*Compile-Log*")))
-	(setq twittering-format-status-function
-	      (byte-compile
-	       (twittering-generate-format-status-function format-str)))
-	(let ((current (get-buffer "*Compile-Log*")))
-	  (when (and (null before) current (= 0 (buffer-size current)))
-	    (kill-buffer current)))))
-    (setq twittering-status-format format-str)))
+      (let* ((before (get-buffer "*Compile-Log*"))
+	     (func (twittering-generate-format-status-function format-str)))
+	(cond
+	 ((and func (functionp func))
+	  (setq twittering-format-status-function-source format-str)
+	  (setq twittering-format-status-function (byte-compile func))
+	  (setq twittering-status-format format-str)
+	  (let ((current (get-buffer "*Compile-Log*")))
+	    (when (and (null before) current (= 0 (buffer-size current)))
+	      (kill-buffer current))))
+	 (t
+	  (error "Invalid format: %s" format-str)
+	  nil))))))
 
 (defun twittering-format-status (status &optional prefix)
   "Format a STATUS by using `twittering-format-status-function'.

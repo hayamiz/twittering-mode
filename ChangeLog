@@ -1,3 +1,10 @@
+2011-02-15  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Confirm validity of a format string before
+	updating the function formatting a tweet.
+	(twittering-update-status-format): update the function only if the
+	given format string is valid.
+
 2011-02-13  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* test/test-twittering-mode.el (test-hmac-sha1): Fix a typo.

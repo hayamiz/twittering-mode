@@ -14,6 +14,23 @@
 	(twittering-add-timeline-history): use
 	`twittering-add-to-history'.
 
+	* twittering-mode.el: Introduce the limit of number of
+	icons being stored persistently.
+	(twittering-icon-storage-file): add docstring about
+	`twittering-icon-storage-limit'.
+	(twittering-icon-storage-recent-icons): new variable to which
+	properties of recently rendered icons are stored.
+	(twittering-icon-storage-limit): new variable.
+	(twittering-update-icon-storage-recent-icons): new function.
+	(twittering-get-display-spec-for-icon): invoke
+	`twittering-update-icon-storage-recent-icons' whenever this
+	function is invoked.
+	(twittering-save-icon-properties): write properties of icons
+	within the limit specified by `twittering-icon-storage-limit'. In
+	addition, this function records properties in the new format.
+	(twittering-load-icon-properties): support the new format for
+	storing properties of icons.
+
 2011-02-15  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Confirm validity of a format string before

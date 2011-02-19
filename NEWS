@@ -135,10 +135,13 @@
   on a tweet, you can block its author.
 * Support for persistent icon storage.
   By "(setq twittering-use-icon-storage t)", you can save retrieved
-  and resized icon images into a persistent storage. On next and later
-  invocation, twittering-mode can display icons faster because the
-  storage reduces time required to retrieve and resize images. In
-  default, this function is disabled.
+  and resized icon images into a persistent storage, which is disabled
+  in default. On next and later invocation, twittering-mode can
+  display icons faster because the storage reduces time required to
+  retrieve and resize images.
+  In default, recently rendered 500 icons are stored at most. You can
+  change the limit by the variable `twittering-icon-storage-limit'. To
+  store all icons, configure the variable as nil.
   The default storage file is `~/.twittering-mode-icons.gz'. You can
   change it by changing `twittering-icon-storage-file'. Note that icon
   images in the storage generated on a certain version of Emacs may be

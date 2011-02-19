@@ -1,3 +1,13 @@
+2011-02-19  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Disable the persistent icon storage if
+	`jka-compr' is unavailable.
+	(twittering-save-icon-properties): confirm that `jka-compr' is
+	available.
+	(twittering-load-icon-properties): likewise.
+	(twittering-initialize-global-variables-if-necessary): disable
+	the persistent icon storage if `jka-compr' is unavilable.
+
 2011-02-15  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Confirm validity of a format string before

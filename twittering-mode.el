@@ -4847,23 +4847,24 @@ image are displayed."
   (let ((filename (or filename twittering-icon-storage-file))
 	(dummy-icon-properties (twittering-make-display-spec-for-icon
 				twittering-error-icon-data-pair)))
-    (with-auto-compression-mode
-      (with-temp-file filename
-	(insert "(")
-	(maphash
-	 (lambda (size hash)
-	   (insert (format "(%d . (" size))
-	   (maphash (lambda (url properties)
-		      (unless (equal properties dummy-icon-properties)
-			(insert "(")
-			(prin1 url (current-buffer))
-			(insert " . ")
-			(prin1 properties (current-buffer))
-			(insert ")")))
-		    hash)
-	   (insert "))"))
-	 twittering-icon-prop-hash)
-	(insert ")")))))
+    (when (require 'jka-compr nil t)
+      (with-auto-compression-mode
+	(with-temp-file filename
+	  (insert "(")
+	  (maphash
+	   (lambda (size hash)
+	     (insert (format "(%d . (" size))
+	     (maphash (lambda (url properties)
+			(unless (equal properties dummy-icon-properties)
+			  (insert "(")
+			  (prin1 url (current-buffer))
+			  (insert " . ")
+			  (prin1 properties (current-buffer))
+			  (insert ")")))
+		      hash)
+	     (insert "))"))
+	   twittering-icon-prop-hash)
+	  (insert ")"))))))
 
 (defun twittering-load-icon-properties (&optional filename)
   (let* ((filename (or filename twittering-icon-storage-file))
@@ -4871,7 +4872,8 @@ image are displayed."
 	  (with-temp-buffer
 	    (condition-case err
 		(cond
-		 ((file-exists-p filename)
+		 ((and (require 'jka-compr)
+		       (file-exists-p filename))
 		  (with-auto-compression-mode (insert-file-contents filename))
 		  (read (current-buffer)))
 		 (t
@@ -6409,8 +6411,13 @@ been initialized yet."
 	      (setq twittering-use-convert nil)))))
     (twittering-setup-proxy)
     (when twittering-use-icon-storage
-      (twittering-load-icon-properties)
-      (add-hook 'kill-emacs-hook 'twittering-save-icon-properties))
+      (cond
+       ((require 'jka-compr nil t)
+	(twittering-load-icon-properties)
+	(add-hook 'kill-emacs-hook 'twittering-save-icon-properties))
+       (t
+	(setq twittering-use-icon-storage nil)
+	(error "Disabled icon-storage because it failed to load jka-compr."))))
     (setq twittering-initialized t)))
 
 (defun twittering-mode-setup (spec-string)

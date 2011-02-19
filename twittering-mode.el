@@ -534,6 +534,22 @@ as a list of a string on Emacs21."
     (completing-read prompt collection predicate require-match
                      initial-input hist def inherit-input-method)))
 
+(defun twittering-add-to-history (history-var elt &optional maxelt keep-all)
+  (if (functionp 'add-to-history)
+      (add-to-history history-var elt maxelt keep-all)
+    (let* ((added (cons elt
+			(if (and (not keep-all)
+				 (boundp 'history-delete-duplicates)
+				 history-delete-duplicates)
+			    (delete elt (symbol-value history-var))
+			  (symbol-value history-var))))
+	   (maxelt (or maxelt history-length))
+	   (len (length added)))
+      (set history-var
+	    (if (<= len maxelt)
+		added
+	      (butlast added (- len maxelt)))))))
+
 ;;;;
 ;;;; Debug mode
 ;;;;
@@ -4144,10 +4160,7 @@ If `twittering-password' is nil, read it from the minibuffer."
 (defun twittering-add-timeline-history (spec-string)
   (when (or (null twittering-timeline-history)
 	    (not (string= spec-string (car twittering-timeline-history))))
-    (if (functionp 'add-to-history)
-	(add-to-history 'twittering-timeline-history spec-string)
-      (setq twittering-timeline-history
-	    (cons spec-string twittering-timeline-history)))))
+    (twittering-add-to-history 'twittering-timeline-history spec-string)))
 
 (defun twittering-atom-xmltree-to-status-datum (atom-xml-entry)
   (let ((id-str (car (cddr (assq 'id atom-xml-entry))))

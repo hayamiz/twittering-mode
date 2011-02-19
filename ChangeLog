@@ -8,6 +8,12 @@
 	(twittering-initialize-global-variables-if-necessary): disable
 	the persistent icon storage if `jka-compr' is unavilable.
 
+	* twittering-mode.el: Add `twittering-add-to-history' for
+	Emacs21.
+	(twittering-add-to-history): new function.
+	(twittering-add-timeline-history): use
+	`twittering-add-to-history'.
+
 2011-02-15  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Confirm validity of a format string before

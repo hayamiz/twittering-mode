@@ -4903,23 +4903,25 @@ image are displayed."
 	   (reverse twittering-icon-storage-recent-icons)))))
     (when (require 'jka-compr nil t)
       (with-auto-compression-mode
-	(with-temp-file filename
-	  (insert "( 2 ")
-	  (prin1 (cons 'emacs-version emacs-version) (current-buffer))
-	  (insert "(icon-list ")
-	  (mapc (lambda (entry)
-		  (let* ((size (elt entry 0))
-			 (url (elt entry 1))
-			 (properties
-			  (gethash url
-				   (gethash size twittering-icon-prop-hash))))
-		    (insert (format "(%d " size))
-		    (prin1 url (current-buffer))
-		    (insert " ")
-		    (prin1 properties (current-buffer))
-		    (insert ")\n")))
-		stored-data)
-	  (insert "))"))))))
+	(let ((coding-system-for-write 'binary))
+	  (with-temp-file filename
+	    (insert "( 2 ")
+	    (prin1 (cons 'emacs-version emacs-version) (current-buffer))
+	    (insert "(icon-list ")
+	    (mapc
+	     (lambda (entry)
+	       (let* ((size (elt entry 0))
+		      (url (elt entry 1))
+		      (properties
+		       (gethash url
+				(gethash size twittering-icon-prop-hash))))
+		 (insert (format "(%d " size))
+		 (prin1 url (current-buffer))
+		 (insert " ")
+		 (prin1 properties (current-buffer))
+		 (insert ")\n")))
+	     stored-data)
+	    (insert "))")))))))
 
 (defun twittering-load-icon-properties (&optional filename)
   (let* ((filename (or filename twittering-icon-storage-file))
@@ -4929,7 +4931,9 @@ image are displayed."
 		(cond
 		 ((and (require 'jka-compr)
 		       (file-exists-p filename))
-		  (with-auto-compression-mode (insert-file-contents filename))
+		  (with-auto-compression-mode
+		    (let ((coding-system-for-read 'binary))
+		      (insert-file-contents filename)))
 		  (read (current-buffer)))
 		 (t
 		  nil))

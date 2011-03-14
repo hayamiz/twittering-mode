@@ -5,6 +5,12 @@
 	(twittering-delete-status): cancel a retweet if it has been
 	retweeted by the authenticated user.
 
+	* twittering-mode.el: Explicitly use binary coding system on I/O
+	of icon properties. Thanks to Naohiro Aota.
+	(twittering-save-icon-properties): explicitly use binary coding
+	system on writing icon properties.
+	(twittering-load-icon-properties): likewise.
+
 2011-02-19  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Disable the persistent icon storage if

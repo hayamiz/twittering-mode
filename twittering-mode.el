@@ -7205,12 +7205,15 @@ been initialized yet."
 
 (defun twittering-delete-status (&optional id)
   (interactive)
-  (let* ((id (get-text-property (point) 'id))
-	 (username (get-text-property (point) 'username))
-	 (text (copy-sequence (get-text-property (point) 'text)))
-	 (text (progn
-		 (set-text-properties 0 (length text) nil text)
-		 text))
+  (let* ((id (twittering-get-id-at))
+	 (status (twittering-find-status id))
+	 (is-retweet (assq 'retweeted-id status))
+	 (username (if is-retweet
+		       (cdr (assq 'retweeting-user-screen-name status))
+		     (cdr (assq 'user-screen-name status))))
+	 (text (if is-retweet
+		   (cdr (assq 'retweeting-text status))
+		 (cdr (assq 'text status))))
 	 (width (max 40 ;; XXX
 		     (- (frame-width)
 			1 ;; margin for wide characters

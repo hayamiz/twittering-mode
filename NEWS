@@ -153,6 +153,9 @@
   rendered with the information of the retweet itself instead of the
   retweeted original tweet. For example, "%RT{%s}" means who retweeted
   the tweet.
+* Cancel of official ReTweets.
+  If an official ReTweet has been posted by yourself, you can cancel
+  it by 'C-cD', which is the same way of deleting a tweet.
 * ...
 
 ### Bug fixes

@@ -1,3 +1,10 @@
+2011-03-15  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Support cancel of retweets posted by the
+	authenticated user.
+	(twittering-delete-status): cancel a retweet if it has been
+	retweeted by the authenticated user.
+
 2011-02-19  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Disable the persistent icon storage if

@@ -1,3 +1,20 @@
+2011-03-26  Naohiro Aota  <naota@elisp.net>
+
+	* twittering-mode.el (twittering-http-get-list-sentinel-base): New
+	macro: from `twittering-http-get-list-index-sentinel'.
+	(twittering-http-get-list-index-sentinel): Use it.
+	(twittering-http-get-list-subscriptions-sentinel): Ditto.
+	(twittering-call-api): Add `get-list-subscriptions' description;
+	Implement `get-list-subscriptions'.
+	(twittering-get-list-subscriptions): New function.
+	(twittering-get-list-sync): New function from
+	`twittering-get-list-index-sync'.
+	(twittering-get-list-index-sync): Rewrite to use it.
+	(twittering-get-list-subscriptions-sync): New function. Use it.
+	(twittering-read-timeline-spec-with-completion): New function.
+	(twittering-other-user-list-interactive): Accept prefix to read
+	other users' subscription list.
+
 2011-03-15  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Support cancel of retweets posted by the

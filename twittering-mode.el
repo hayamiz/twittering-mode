@@ -2035,8 +2035,8 @@ the server when the HTTP status code equals to 400 or 403."
       (format "Response: %s"
 	      (twittering-get-error-message header-info (current-buffer)))))))
 
-(defun twittering-http-get-list-index-sentinel (proc status connection-info header-info)
-  (let ((status-line (cdr (assq 'status-line header-info)))
+(defmacro twittering-http-get-list-sentinel-base (what)
+  `(let ((status-line (cdr (assq 'status-line header-info)))
 	(status-code (cdr (assq 'status-code header-info)))
 	(indexes nil)
 	(mes nil))
@@ -2048,7 +2048,7 @@ the server when the HTTP status code equals to 400 or 403."
 	  (setq indexes
 		(mapcar
 		 (lambda (c-node)
-		   (caddr (assq 'slug c-node)))
+		   (caddr (assq ,what c-node)))
 		 (remove nil
 			 (mapcar
 			  (lambda (node)
@@ -2067,6 +2067,12 @@ the server when the HTTP status code equals to 400 or 403."
 	      mes
 	      "")) ;; set "" explicitly if user does not have a list.
     mes))
+
+(defun twittering-http-get-list-index-sentinel (proc status connection-info header-info)
+  (twittering-http-get-list-sentinel-base 'slug))
+
+(defun twittering-http-get-list-subscriptions-sentinel (proc status connection-info header-info)
+  (twittering-http-get-list-sentinel-base 'full_name))
 
 (defun twittering-http-post (host method &optional parameters format additional-info sentinel clean-up-sentinel)
   "Send HTTP POST request to api.twitter.com (or search.twitter.com)
@@ -3705,6 +3711,16 @@ get-list-index -- Retrieve list names owned by a user.
       the buffer associated to the process. This is used as an argument
       CLEAN-UP-SENTINEL of `twittering-send-http-request' via
       `twittering-http-get'.
+get-list-subscriptions -- Retrieve list names followed by a user.
+  Valid key symbols in ARGS-ALIST:
+    username -- the username.
+    sentinel -- the sentinel that processes retrieved strings. This is used
+      as an argument SENTINEL of `twittering-send-http-request'
+      via `twittering-http-get'.
+    clean-up-sentinel -- (optional) the clean-up sentinel that post-processes
+      the buffer associated to the process. This is used as an argument
+      CLEAN-UP-SENTINEL of `twittering-send-http-request' via
+      `twittering-http-get'.
 create-friendships -- Follow a user.
   Valid key symbols in ARGS-ALIST:
     username -- the username which will be followed.
@@ -3842,6 +3858,14 @@ block-and-report-as-spammer -- Block a user and report him or her as a spammer.
 	  (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
       (twittering-http-get twittering-api-host
 			   (twittering-api-path username "/lists")
+			   nil nil additional-info
+			   sentinel clean-up-sentinel)))
+   ((eq command 'get-list-subscriptions)
+    (let ((username (cdr (assq 'username args-alist)))
+	  (sentinel (cdr (assq 'sentinel args-alist)))
+	  (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
+      (twittering-http-get twittering-api-host
+			   (twittering-api-path username "/lists/subscriptions")
 			   nil nil additional-info
 			   sentinel clean-up-sentinel)))
    ((eq command 'create-friendships)
@@ -4413,9 +4437,15 @@ If `twittering-password' is nil, read it from the minibuffer."
    `((username . ,username)
      (sentinel . twittering-http-get-list-index-sentinel))))
 
-(defun twittering-get-list-index-sync (username)
+(defun twittering-get-list-subscriptions (username)
+  (twittering-call-api
+   'get-list-subscriptions
+   `((username . ,username)
+     (sentinel . twittering-http-get-list-subscriptions-sentinel))))
+
+(defun twittering-get-list-sync (username function)
   (setq twittering-list-index-retrieved nil)
-  (let ((proc (twittering-get-list-index username)))
+  (let ((proc (funcall function username)))
     (when proc
       (while (and (not twittering-list-index-retrieved)
 		  (not (memq (process-status proc)
@@ -4431,6 +4461,12 @@ If `twittering-password' is nil, read it from the minibuffer."
     nil)
    ((listp twittering-list-index-retrieved)
     twittering-list-index-retrieved)))
+
+(defun twittering-get-list-index-sync (username)
+  (twittering-get-list-sync username 'twittering-get-list-index))
+
+(defun twittering-get-list-subscriptions-sync (username)
+  (twittering-get-list-sync username 'twittering-get-list-subscriptions))
 
 ;;;;
 ;;;; Buffer info
@@ -6900,6 +6936,20 @@ been initialized yet."
 	nil
       listname)))
 
+(defun twittering-read-subscription-list-name (username &optional list-index)
+  (let* ((list-index (or list-index
+			 (twittering-get-list-subscriptions-sync username)))
+	 (username (prog1 (copy-sequence username)
+		     (set-text-properties 0 (length username) nil username)))
+	 (prompt (format "%s's subscripting list: " username))
+	 (listname
+	  (if list-index
+	      (twittering-completing-read prompt list-index nil t nil)
+	    nil)))
+    (if (string= "" listname)
+	nil
+      listname)))
+
 (defun twittering-read-timeline-spec-with-completion (prompt initial &optional as-string)
   (let* ((dummy-hist
 	  (append twittering-timeline-history
@@ -7102,20 +7152,28 @@ been initialized yet."
 	(message "No user selected")
       (twittering-visit-timeline `(user ,username)))))
 
-(defun twittering-other-user-list-interactive ()
-  (interactive)
+(defun twittering-other-user-list-interactive (&optional subscriptions)
+  (interactive "P")
   (let* ((username (copy-sequence (get-text-property (point) 'username)))
 	 (username (progn
 		     (set-text-properties 0 (length username) nil username)
 		     (or (twittering-read-username-with-completion
-			  "Whose list: "
+			  (if subscriptions
+			      "Whose subscripting list: "
+			    "Whose list: ")
 			  username
 			  'twittering-user-history)
 			 ""))))
     (if (string= "" username)
 	(message "No user selected")
-      (let* ((list-name (twittering-read-list-name username))
-	     (spec `(list ,username ,list-name)))
+      (let* ((list-name (if subscriptions
+			    (twittering-read-subscription-list-name username)
+			  (twittering-read-list-name username)))
+	     (spec (if subscriptions
+		       (and (string-match "@\\(.*\\)/\\(.*\\)" list-name)
+			    `(list ,(match-string 1 list-name)
+				   ,(match-string 2 list-name)))
+		     `(list ,username ,list-name))))
 	(if list-name
 	    (twittering-visit-timeline spec)
 	  ;; Don't show message here to prevent an overwrite of a

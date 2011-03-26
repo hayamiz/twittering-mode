@@ -40,6 +40,11 @@
 	(twittering-convert-image-data): add an option "-flatten" to the
 	command "convert" unless `create-animated-image'.
 
+	* twittering-mode.el: Always convert a GIF image into a XPM image
+	if Emacs does not support animated images.
+	(twittering-create-image-pair): always convert a GIF image into a
+	XPM image if Emacs does not support animated images.
+
 2011-03-26  Naohiro Aota  <naota@elisp.net>
 
 	* twittering-mode.el (twittering-http-get-list-sentinel-base): New

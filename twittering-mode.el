@@ -4854,6 +4854,9 @@ available and `twittering-use-convert' is non-nil."
      ((null image-data)
       twittering-error-icon-data-pair)
      ((and (image-type-available-p image-type)
+	   (or (fboundp 'create-animated-image)
+	       (not (and twittering-use-convert
+			 (eq image-type 'gif))))
 	   (or (not (integerp twittering-convert-fix-size))
 	       (equal (image-size (create-image image-data image-type t) t)
 		      converted-size)))

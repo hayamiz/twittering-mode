@@ -4836,7 +4836,7 @@ return nil."
 		,(format "%s:-" dest-type)))
 	     (exit-status
 	      (apply 'call-process-region (point-min) (point-max)
-		     twittering-convert-program t t nil args)))
+		     twittering-convert-program t `(t nil) nil args)))
 	(if (equal 0 exit-status)
 	    (buffer-string)
 	  ;; failed to convert the image.

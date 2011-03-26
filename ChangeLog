@@ -1,3 +1,12 @@
+2011-03-27  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Discard standard error of the program
+	"convert". On an environment where the option "-flatten" cause a
+	warning for a non-animated image, Emacs must exclude such
+	warnings.
+	(twittering-convert-image-data): discard standard error of the
+	program "convert".
+
 2011-03-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: `twittering-other-user-list-interactive'

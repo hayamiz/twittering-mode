@@ -6948,7 +6948,7 @@ been initialized yet."
 			 (twittering-get-list-subscriptions-sync username)))
 	 (username (prog1 (copy-sequence username)
 		     (set-text-properties 0 (length username) nil username)))
-	 (prompt (format "%s's subscripting list: " username))
+	 (prompt (format "%s's subscription: " username))
 	 (listname
 	  (if list-index
 	      (twittering-completing-read prompt list-index nil t nil)
@@ -7166,7 +7166,7 @@ been initialized yet."
 		     (set-text-properties 0 (length username) nil username)
 		     (or (twittering-read-username-with-completion
 			  (if subscriptions
-			      "Whose subscripting list: "
+			      "Whose subscription: "
 			    "Whose list: ")
 			  username
 			  'twittering-user-history)

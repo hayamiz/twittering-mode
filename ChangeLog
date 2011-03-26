@@ -13,6 +13,11 @@
 	(twittering-other-user-list-interactive): follow the above
 	modification.
 
+	* twittering-mode.el: Modify the prompts for subscription.
+	(twittering-read-subscription-list-name): modify the prompt for
+	subscription.
+	(twittering-other-user-list-interactive): likewise.
+
 2011-03-26  Naohiro Aota  <naota@elisp.net>
 
 	* twittering-mode.el (twittering-http-get-list-sentinel-base): New

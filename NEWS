@@ -156,6 +156,9 @@
 * Cancel of official ReTweets.
   If an official ReTweet has been posted by yourself, you can cancel
   it by 'C-cD', which is the same way of deleting a tweet.
+* Completion of lists to which a specific user subscribes.
+  You can visit a list to which a specific user subscribes by 'C-uL'.
+  Thanks to Naohiro Aota.
 * ...
 
 ### Bug fixes

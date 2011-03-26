@@ -7,6 +7,11 @@
 	(twittering-convert-image-data): discard standard error of the
 	program "convert".
 
+	* twittering-mode.el: Entrust image type estimation to the command
+	"convert".
+	(twittering-create-image-pair): do not send image type estimated by
+	Emacs to the function `twittering-convert-image-data'.
+
 2011-03-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: `twittering-other-user-list-interactive'

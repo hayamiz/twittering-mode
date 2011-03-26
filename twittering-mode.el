@@ -4863,7 +4863,7 @@ available and `twittering-use-convert' is non-nil."
       image-pair)
      (twittering-use-convert
       (let ((converted-data
-	     (twittering-convert-image-data image-data 'xpm image-type)))
+	     (twittering-convert-image-data image-data 'xpm)))
 	(if converted-data
 	    `(xpm . ,converted-data)
 	  twittering-error-icon-data-pair)))

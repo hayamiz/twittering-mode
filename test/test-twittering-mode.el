@@ -377,11 +377,19 @@
        (format-status oldest-status "\n%FILL[  ]{%T // from %f%L%r}")))
 
     (test-assert-string-equal
-     "
+     (if (> 22 emacs-major-version)
+	 ;; `fill-region' on Emacs21 does not keep white spaces and
+	 ;; tabs adjacent to hard newlines.
+	 "
+--Edit XHTML5 documents in nxml-mode with on-the-fly validation:
+--http://bit.ly/lYnEg
+--
+--	(by @hober) // from web"
+       "
 --Edit XHTML5 documents in nxml-mode with on-the-fly validation:
 --http://bit.ly/lYnEg
 --			     
---	(by @hober) // from web"
+--	(by @hober) // from web")
      (let ((twittering-fill-column 80)
 	   (oldest-status (car (last (get-fixture 'timeline-data)))))
        (format-status oldest-status "\n%FOLD[--]{%T // from %f%L%r}")))

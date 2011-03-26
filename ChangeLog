@@ -22,6 +22,11 @@
 	when `getenv' returns an empty string on Emacs21. The bug had been
 	fixed on Emacs22 and later.
 
+	* test/test-twittering-mode.el: Fix a test of formating a status
+	according to a change of behavior of `fill-region'. It does not
+	keep white spaces and tabs adjacent to hard newlines on Emacs21,
+	but it keeps them on Emacs22 and later.
+
 2011-03-26  Naohiro Aota  <naota@elisp.net>
 
 	* twittering-mode.el (twittering-http-get-list-sentinel-base): New

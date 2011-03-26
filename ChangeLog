@@ -27,6 +27,13 @@
 	keep white spaces and tabs adjacent to hard newlines on Emacs21,
 	but it keeps them on Emacs22 and later.
 
+	* twittering-mode.el: Remove opacity on converting an image into
+	a XPM image on Emacs22 and earlier.
+	(twittering-convert-image-data): add an option "+matte" to the
+	command "convert" in order to avoid color allocation error
+	occurring when Emacs22 and earlier try to decode a XPM image with
+	opacity.
+
 2011-03-26  Naohiro Aota  <naota@elisp.net>
 
 	* twittering-mode.el (twittering-http-get-list-sentinel-base): New

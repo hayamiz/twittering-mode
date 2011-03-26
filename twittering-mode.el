@@ -4826,6 +4826,8 @@ return nil."
 		    ;; on decoding a XPM image with opacity. To ignore
 		    ;; opacity, the option "+matte" is added.
 		    '("+matte"))
+		,@(unless (fboundp 'create-animated-image)
+		    '("-flatten"))
 		,(if src-type (format "%s:-" src-type) "-")
 		,@(when (integerp twittering-convert-fix-size)
 		    `("-resize"

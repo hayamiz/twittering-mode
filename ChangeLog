@@ -34,6 +34,12 @@
 	occurring when Emacs22 and earlier try to decode a XPM image with
 	opacity.
 
+	* twittering-mode.el: Convert an image, which may be animated,
+	into a single static image if Emacs does not support animated
+	images.
+	(twittering-convert-image-data): add an option "-flatten" to the
+	command "convert" unless `create-animated-image'.
+
 2011-03-26  Naohiro Aota  <naota@elisp.net>
 
 	* twittering-mode.el (twittering-http-get-list-sentinel-base): New

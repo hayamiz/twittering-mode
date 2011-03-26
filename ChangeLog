@@ -1,3 +1,11 @@
+2011-03-26  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: `twittering-other-user-list-interactive'
+	works well when the specified user follows no list.
+	(twittering-other-user-list-interactive): fix an error occurring
+	when the specified user follows no list or selection is
+	cancelled.
+
 2011-03-26  Naohiro Aota  <naota@elisp.net>
 
 	* twittering-mode.el (twittering-http-get-list-sentinel-base): New

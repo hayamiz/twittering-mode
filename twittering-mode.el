@@ -7169,12 +7169,16 @@ been initialized yet."
       (let* ((list-name (if subscriptions
 			    (twittering-read-subscription-list-name username)
 			  (twittering-read-list-name username)))
-	     (spec (if subscriptions
-		       (and (string-match "@\\(.*\\)/\\(.*\\)" list-name)
-			    `(list ,(match-string 1 list-name)
-				   ,(match-string 2 list-name)))
-		     `(list ,username ,list-name))))
-	(if list-name
+	     (spec (cond
+		    ((null list-name)
+		     nil)
+		    (subscriptions
+		     (and (string-match "@\\(.*\\)/\\(.*\\)" list-name)
+			  `(list ,(match-string 1 list-name)
+				 ,(match-string 2 list-name))))
+		    (t
+		     `(list ,username ,list-name)))))
+	(if spec
 	    (twittering-visit-timeline spec)
 	  ;; Don't show message here to prevent an overwrite of a
 	  ;; message which is outputted by `twittering-read-list-name'.

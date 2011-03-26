@@ -2072,7 +2072,14 @@ the server when the HTTP status code equals to 400 or 403."
   (twittering-http-get-list-sentinel-base 'slug))
 
 (defun twittering-http-get-list-subscriptions-sentinel (proc status connection-info header-info)
-  (twittering-http-get-list-sentinel-base 'full_name))
+  (let ((result (twittering-http-get-list-sentinel-base 'full_name)))
+    (when (listp twittering-list-index-retrieved)
+      (setq twittering-list-index-retrieved
+	    (mapcar (lambda (str)
+		      (and (string-match "\\`@\\(.*\\)\\'" str)
+			   (match-string 1 str)))
+		    twittering-list-index-retrieved)))
+    result))
 
 (defun twittering-http-post (host method &optional parameters format additional-info sentinel clean-up-sentinel)
   "Send HTTP POST request to api.twitter.com (or search.twitter.com)
@@ -7173,7 +7180,7 @@ been initialized yet."
 		    ((null list-name)
 		     nil)
 		    (subscriptions
-		     (and (string-match "@\\(.*\\)/\\(.*\\)" list-name)
+		     (and (string-match "\\`\\(.*\\)/\\(.*\\)\\'" list-name)
 			  `(list ,(match-string 1 list-name)
 				 ,(match-string 2 list-name))))
 		    (t

@@ -6,6 +6,13 @@
 	when the specified user follows no list or selection is
 	cancelled.
 
+	* twittering-mode.el: `twittering-other-user-list-interactive'
+	displays a subscription as a string like timeline spec string.
+	(twittering-http-get-list-subscriptions-sentinel): exclude
+	preceding "@" from a string corresponding to a subscription.
+	(twittering-other-user-list-interactive): follow the above
+	modification.
+
 2011-03-26  Naohiro Aota  <naota@elisp.net>
 
 	* twittering-mode.el (twittering-http-get-list-sentinel-base): New

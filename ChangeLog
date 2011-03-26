@@ -18,6 +18,10 @@
 	subscription.
 	(twittering-other-user-list-interactive): likewise.
 
+	* twittering-mode.el: Add an advice for avoiding an error occuring
+	when `getenv' returns an empty string on Emacs21. The bug had been
+	fixed on Emacs22 and later.
+
 2011-03-26  Naohiro Aota  <naota@elisp.net>
 
 	* twittering-mode.el (twittering-http-get-list-sentinel-base): New

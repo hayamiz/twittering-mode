@@ -61,7 +61,23 @@
        ;; the explicitly require 'unicode to update a workaround with
        ;; navi2ch. see a comment of `twittering-ucs-to-char' for more
        ;; details.
-       (require 'unicode nil t)))
+       (require 'unicode nil t))
+  (defadvice url-scheme-register-proxy (around twittering-fix-process-env (scheme) activate)
+    (let ((process-environment
+	   (apply 'append
+		  (let ((env-var (concat scheme "_proxy")))
+		    (mapcar
+		     (lambda (str)
+		       (if (string-match
+			    (concat "^\\("
+				    (regexp-opt (list (upcase env-var)
+						      (downcase env-var)))
+				    "\\)=$")
+			    str)
+			   nil
+			 (list str)))
+		     process-environment)))))
+      ad-do-it)))
 (require 'url)
 
 (defconst twittering-mode-version "HEAD")

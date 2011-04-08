@@ -1220,12 +1220,8 @@ The parameter symbols are following:
       ,@(when twittering-proxy-use
 	  `((proxy-server . ,(twittering-proxy-info scheme 'server))
 	    (proxy-port . ,(twittering-proxy-info scheme 'port))
-	    (proxy-user . ,(if use-ssl
-			       twittering-https-proxy-user
-			     twittering-http-proxy-user))
-	    (proxy-password . ,(if use-ssl
-				   twittering-https-proxy-password
-				 twittering-http-proxy-password))))
+	    (proxy-user . ,(twittering-proxy-info scheme 'user))
+	    (proxy-password . ,(twittering-proxy-info scheme 'password))))
       (request . ,request)
       ,@additional
       ,@entry)))
@@ -1422,19 +1418,31 @@ The method to perform the request is determined from
 ;; TODO: proxy
 (defun twittering-send-http-request-native (name buffer connection-info sentinel)
   (let* ((request (cdr (assq 'request connection-info)))
+	 (uri (cdr (assq 'uri connection-info)))
 	 (method (cdr (assq 'method request)))
 	 (scheme (cdr (assq 'scheme request)))
 	 (host (cdr (assq 'host request)))
 	 (port (cdr (assq 'port request)))
 	 (path (cdr (assq 'path request)))
 	 (query-string (cdr (assq 'query-string request)))
-	 (header-list (cdr (assq 'header-list request)))
 	 (post-body (cdr (assq 'post-body request)))
 	 (use-proxy (cdr (assq 'use-proxy connection-info)))
 	 (proxy-server (cdr (assq 'proxy-server connection-info)))
 	 (proxy-port (cdr (assq 'proxy-port connection-info)))
 	 (proxy-user (cdr (assq 'proxy-user connection-info)))
 	 (proxy-password (cdr (assq 'proxy-password connection-info)))
+	 (proxy-credentials
+	  (when (and proxy-user proxy-password)
+	    (concat "Basic "
+		    (base64-encode-string
+		     (concat proxy-user ":" proxy-password)))))
+	 (header-list
+	  (let ((original-header-list (cdr (assq 'header-list request))))
+	    (if proxy-credentials
+		(cons
+		 `("Proxy-Authorization" ,proxy-credentials)
+		 original-header-list)
+	      original-header-list)))
 	 (use-ssl (cdr (assq 'use-ssl connection-info)))
 	 (allow-insecure-server-cert
 	  (cdr (assq 'allow-insecure-server-cert connection-info)))
@@ -1443,21 +1451,19 @@ The method to perform the request is determined from
 		       (file-name-directory cacert-fullpath)))
 	 (cacert-filename (when cacert-fullpath
 			    (file-name-nondirectory cacert-fullpath)))
-	 (proxy-info
-	  (when twittering-proxy-use
-	    (twittering-proxy-info scheme)))
-	 (connect-host (if proxy-info
-			   (cdr (assq 'server proxy-info))
-			 host))
-	 (connect-port (if proxy-info
-			   (cdr (assq 'port proxy-info))
-			 port))
+	 (connect-host (or proxy-server host))
+	 (connect-port (or proxy-port port))
 	 (request-str
-	  (format "%s %s%s HTTP/1.1\r\n%s\r\n\r\n%s\r\n"
-		  method path
-		  (if query-string
-		      (concat "?" query-string)
-		    "")
+	  (format "%s %s HTTP/1.1\r\n%s\r\n\r\n%s\r\n"
+		  method
+		  (if use-proxy
+		      ;; As described in 5.1.2 of RFC2616, the
+		      ;; absolute URI is required here if the connection
+		      ;; uses a proxy.
+		      uri
+		    (concat path
+			    (when query-string
+			      (concat "?" query-string))))
 		  (mapconcat (lambda (pair)
 			       (format "%s: %s" (car pair) (cdr pair)))
 			     header-list "\r\n")
@@ -1790,6 +1796,13 @@ The method to perform the request is determined from
 	 (use-proxy (cdr (assq 'use-proxy connection-info)))
 	 (proxy-server (cdr (assq 'proxy-server connection-info)))
 	 (proxy-port (cdr (assq 'proxy-port connection-info)))
+	 (proxy-user (cdr (assq 'proxy-user connection-info)))
+	 (proxy-password (cdr (assq 'proxy-password connection-info)))
+	 (proxy-credentials
+	  (when (and proxy-user proxy-password)
+	    (concat "Basic "
+		    (base64-encode-string
+		     (concat proxy-user ":" proxy-password)))))
 	 (coding-system-for-read 'binary)
 	 (coding-system-for-write 'binary)
 	 (url-proxy-services
@@ -1807,7 +1820,11 @@ The method to perform the request is determined from
 				       '("Host" "Content-Length"))
 			       nil
 			     `(,pair)))
-			 header-list)))
+			 (if proxy-credentials
+			     (cons
+			      `("Proxy-Authorization" ,proxy-credentials)
+			      header-list)
+			   header-list))))
 	 (url-request-data post-body)
 	 (url-show-status twittering-url-show-status)
 	 (url-http-attempt-keepalives nil)
@@ -1907,20 +1924,6 @@ The method to perform the request is determined from
 	    headers))
     (when (string= "POST" method)
       (push (cons "Content-Type" "text/plain") headers))
-    (when twittering-proxy-use
-      (let* ((scheme (if twittering-use-ssl "https" "http"))
-	     (keep-alive (twittering-proxy-info scheme 'keep-alive))
-	     (user (twittering-proxy-info scheme 'user))
-	     (password (twittering-proxy-info scheme 'password)))
-	(when (twittering-proxy-info scheme 'keep-alive)
-	  (push (cons "Proxy-Connection" "Keep-Alive")
-		headers))
-	(when (and user password)
-	  (push (cons
-		 "Proxy-Authorization"
-		 (concat "Basic "
-			 (base64-encode-string (concat user ":" password))))
-		headers))))
     headers
     ))
 

@@ -1,3 +1,19 @@
+2011-04-09  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix headers for a proxy.
+	(twittering-make-connection-info): extract proxy information from
+	`connection-info' instead of directly referring to
+	`twittering-http-proxy-user', `twittering-http-proxy-password',
+	etc.
+	(twittering-send-http-request-native): generate the
+	"Proxy-Authorization" header correctly and give the absolute URI
+	as the request URI when the connection is peformed via a proxy.
+	(twittering-send-http-request-urllib): add "Proxy-Authorization"
+	header if necessary.
+	(twittering-http-application-headers): do not add headers related
+	to a proxy. They are added in functions for each connection
+	method.
+
 2011-03-27  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Discard standard error of the program

@@ -173,7 +173,11 @@
   footer: insert `twittering-edit-skeleton-footer' as a footer,
   footer-only-normal: insert `twittering-edit-skeleton-footer' as a
   footer only when the tweet being edited is a normal tweet, not a
-  reply or direct message.
+  reply or direct message,
+  inherit-hashtags: insert hashtags extracted from the replied tweet,
+  inherit-mentions: insert mentions extracted from the replied tweet,
+  inherit-any: insert hashtags and mentions extracted from the replied
+  tweet.
   You can switch the current edit skeleton by invoking
   `twittering-switch-edit-skeleton'.
   The footer string, `twittering-edit-skeleton-footer', can be changed

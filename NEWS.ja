@@ -176,6 +176,9 @@
   として末尾に追加します。
   footer-only-normal: footerと同様ですがreplyやdirect messageを編集す
   る際には追加を行いません。
+  inherit-hashtags: 返信先に含まれるハッシュタグを末尾に追加します。
+  inherit-mentions: 返信先に含まれるユーザ参照を先頭に追加します。
+  inherit-any: 返信先に含まれるハッシュタグやユーザ参照を追加します。
   関数`twittering-switch-edit-skeleton'で有効なedit skeletonを切り替え
   るにはことができます。
   また、フッタ文字列`twittering-edit-skeleton-footer'の内容は関数

@@ -36,6 +36,14 @@
 	edit skeleton before editing a tweet.
 	(twittering-update-status-from-minibuffer): likewise.
 
+	* twittering-mode.el: Add pre-defined edit skeletons.
+	(twittering-extract-matched-substring-all): new function.
+	(twittering-edit-skeleton-alist): add some examples of edit
+	skeletons.
+	(twittering-edit-skeleton-inherit-hashtags): new function for an
+	edit skeleton.
+	(twittering-edit-skeleton-inherit-mentions): likewise.
+
 2011-03-27  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Discard standard error of the program

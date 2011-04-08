@@ -516,6 +516,14 @@ StatusNet Service.")
 	     ,@body)))
        clauses)))
 
+(defun twittering-extract-matched-substring-all (regexp str)
+  (let ((pos 0)
+	(result nil))
+    (while (string-match regexp str pos)
+      (setq result (cons (match-string 1 str) result))
+      (setq pos (match-end 0)))
+    (reverse result)))
+
 ;;;;
 ;;;; Utility for portability
 ;;;;
@@ -6649,7 +6657,14 @@ been initialized yet."
   '((none . nil)
     (footer . ((nil _ twittering-edit-skeleton-footer)))
     (footer-only-normal
-     . ((nil _ twittering-edit-skeleton-footer) . normal)))
+     . ((nil _ twittering-edit-skeleton-footer) . normal))
+    (inherit-hashtags
+     . (twittering-edit-skeleton-inherit-hashtags . reply))
+    (inherit-mentions
+     . (twittering-edit-skeleton-inherit-mentions . reply))
+    (inherit-any
+     . [(twittering-edit-skeleton-inherit-mentions . reply)
+	(twittering-edit-skeleton-inherit-hashtags . reply)]))
   "*Alist of skeletons performed on `twittering-update-status-interactive'.
 A key of the alist is a symbol and each value is nil, (SKELETON . PRED),
  (FUNC . PRED) or a vector of them.
@@ -6751,6 +6766,44 @@ entry in `twittering-edit-skeleton-alist' are performed.")
 	(insert (car pair))
 	(goto-char (+ -1 current (cdr pair))))
     (twittering-edit-skeleton-insert-base tweet-type in-reply-to-id)))
+
+(defun twittering-edit-skeleton-inherit-hashtags (tweet-type in-reply-to-id)
+  (when in-reply-to-id
+    (let* ((status (twittering-find-status in-reply-to-id))
+	   (text (cdr (assq 'text status)))
+	   (hashtags
+	    (twittering-extract-matched-substring-all
+	     (concat twittering-regexp-hash
+		     "\\([a-zA-Z0-9_-]+\\)")
+	     text))
+	   (footer
+	    (mapconcat (lambda (tag) (concat "#" tag))
+		       hashtags " ")))
+      (when hashtags
+	(skeleton-insert `(nil _ " " ,footer))))))
+
+(defun twittering-edit-skeleton-inherit-mentions (tweet-type in-reply-to-id)
+  (when in-reply-to-id
+    (let* ((status (twittering-find-status in-reply-to-id))
+	   (text (cdr (assq 'text status)))
+	   (recipient (cdr (assq 'user-screen-name status)))
+	   (mentions
+	    (twittering-extract-matched-substring-all
+	     (concat twittering-regexp-atmark
+		     "\\([a-zA-Z0-9_-]+\\)")
+	     text))
+	   (reduced-mentions
+	    (remove nil
+		    (mapcar
+		     (lambda (mention)
+		       (unless (or (string= mention recipient)
+				   (string= mention (twittering-get-username)))
+			 mention))
+		     mentions))))
+      (when reduced-mentions
+	(let ((header (mapconcat (lambda (user) (concat "@" user))
+				 reduced-mentions " ")))
+	  (skeleton-insert `(nil ,header " " _)))))))
 
 ;;;;
 ;;;; Edit mode

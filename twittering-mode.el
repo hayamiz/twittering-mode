@@ -7285,16 +7285,11 @@ been initialized yet."
   (let ((username (twittering-read-username-with-completion
 		   "Who would you like to receive the DM? "
 		   (get-text-property (point) 'username)
-		   'twittering-user-history))
-	(spec (or (get-text-property (point) 'source-spec)
-		  '(direct_messages))))
+		   'twittering-user-history)))
     (if (string= "" username)
 	(message "No user selected")
       (funcall twittering-update-status-function
-	       (if (twittering-timeline-spec-is-direct-messages-p spec)
-		   nil
-		 (concat "d " username " "))
-	       nil username spec))))
+	       nil nil username '(direct_messages)))))
 
 (defun twittering-reply-to-user ()
   (interactive)

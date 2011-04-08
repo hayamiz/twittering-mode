@@ -19,6 +19,11 @@
 	(twittering-push-uri-onto-kill-ring): push a URI of a tweet unless
 	the currently pointed character has a uri property.
 
+	* twittering-mode.el: `twittering-direct-message' always posts a
+	tweet with direct message API.
+	(twittering-direct-message): always post a tweet with direct
+	message API.
+
 2011-03-27  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Discard standard error of the program

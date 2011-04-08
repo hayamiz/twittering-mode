@@ -63,6 +63,8 @@
   (setq twittering-api-prefix "api/")
   (setq twittering-search-api-method "api/search")
   (setq twittering-web-path-prefix "")
+* Copy a URI in a tweet or a URI pointing to the tweet by "U".
+  Thanks to Faried Nawaz.
 * Copy tweets by "C-<mouse-3>".
   Thanks to Faried Nawaz.
 * Support for `wget'.

@@ -14,6 +14,11 @@
 	to a proxy. They are added in functions for each connection
 	method.
 
+	* twittering-mode.el: "U" pushes a URI of a tweet on text without
+	a uri property.
+	(twittering-push-uri-onto-kill-ring): push a URI of a tweet unless
+	the currently pointed character has a uri property.
+
 2011-03-27  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Discard standard error of the program

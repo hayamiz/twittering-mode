@@ -67,6 +67,8 @@
   (setq twittering-api-prefix "api/")
   (setq twittering-search-api-method "api/search")
   (setq twittering-web-path-prefix "")
+* "U"でtweet中のURIやそのtweet自体へのURIをコピー
+  Thanks to Faried Nawaz.
 * "C-<mouse-3>"でtweetをコピー
   Thanks to Faried Nawaz.
 * wgetによるtweet取得に対応

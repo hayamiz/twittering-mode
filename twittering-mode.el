@@ -7826,10 +7826,16 @@ which fetch older tweets on reverse-mode."
 
 (defun twittering-push-uri-onto-kill-ring ()
   "Push URI on the current position onto the kill ring.
-If the character on the current position does not have `uri' property,
-this function does nothing."
+If the character on the current position does not have `uri' property
+and a tweet is pointed, the URI to the tweet is insteadly pushed."
   (interactive)
-  (let ((uri (get-text-property (point) 'uri)))
+  (let ((uri (or (get-text-property (point) 'uri)
+		 (if (get-text-property (point) 'field)
+		     (let ((id (or (get-text-property (point) 'retweeted-id)
+				   (get-text-property (point) 'id)))
+			   (username (get-text-property (point) 'username)))
+		       (twittering-get-status-url username id))
+		   nil))))
     (cond
      ((not (stringp uri))
       nil)

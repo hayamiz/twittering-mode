@@ -163,6 +163,23 @@
 * あるユーザがフォローしているリストの補完付き選択機能
   'C-uL'で特定ユーザがフォローしているリストを補完付きで選択し、開ける
   ようになりました。
+* Edit skeleton
+  投稿内容編集開始時に状況に応じて自動的に文字を追加できる仕組みを導入
+  しました。edit skeletonはいつ、どのような文字列を先頭に、あるいは末
+  尾に追加するかの規則です。連想リスト`twittering-edit-skeleton-alist'
+  に要素を追加することで、新しいedit skeletonを定義できます。edit
+  skeletonの定義方法の詳細については`twittering-edit-skeleton-alist'の
+  docstringを参照ください。
+  デフォルトでは以下のedit skeletonが定義されています。
+  none: 何も追加しません。
+  footer: `twittering-edit-skeleton-footer'で指定された文字列をフッタ
+  として末尾に追加します。
+  footer-only-normal: footerと同様ですがreplyやdirect messageを編集す
+  る際には追加を行いません。
+  関数`twittering-switch-edit-skeleton'で有効なedit skeletonを切り替え
+  るにはことができます。
+  また、フッタ文字列`twittering-edit-skeleton-footer'の内容は関数
+  `twittering-edit-skeleton-change-footer'で変更できます。
 * ...
 
 ### バグ修正

@@ -6640,6 +6640,119 @@ been initialized yet."
   (funcall twittering-sign-string-function))
 
 ;;;;
+;;;; Edit mode skeleton
+;;;;
+
+(defvar twittering-edit-skeleton-footer "")
+(defvar twittering-edit-skeleton-footer-history nil)
+(defvar twittering-edit-skeleton-alist
+  '((none . nil)
+    (footer . ((nil _ twittering-edit-skeleton-footer)))
+    (footer-only-normal
+     . ((nil _ twittering-edit-skeleton-footer) . normal)))
+  "*Alist of skeletons performed on `twittering-update-status-interactive'.
+A key of the alist is a symbol and each value is nil, (SKELETON . PRED),
+ (FUNC . PRED) or a vector of them.
+
+When invoking `twittering-update-status-interactive', the value corresponding
+to the key specified `twittering-edit-skeleton' are performed.
+
+The value like (SKELETON . PRED) or (FUNC . PRED) is performed when the
+current context matches with PRED.
+PRED is nil, a symbol or a function.
+If PRED is nil, the value is unconditionally performed.
+If PRED is a symbol, the value is performed only when it equals to the
+type of the tweet being edited. The type is one of 'normal, 'reply and
+'direct-message.
+If PRED is a function, the value is performed only when the predicate
+function PRED returns non-nil. PRED is invoked with two arguments
+TWEET-TYPE and IN-REPLY-TO-ID.
+TWEET-TYPE is a symbol, which is one of 'normal, 'reply, and 'direct-message,
+specifying which type of tweet will be edited.
+If the tweet will not be edited as a reply, IN-REPLY-TO-ID is nil.
+If the tweet will be edited as a reply, IN-REPLY-TO-ID is a string specifying
+the replied tweet.
+
+If PRED matches the current context, the value is performed as follows.
+The value like (SKELETON . PRED) is performed by directly using SKELETON as an
+argument of `skeleton-insert'.
+The value like (FUNC . PRED) is performed by invoking FUNC with two arguments,
+TWEET-TYPE and IN-REPLY-TO-ID as same as PRED.
+
+If the value is a vector, each element is performed in order of elements
+in the vector.
+
+Note that the effective skeleton is invoked after inserting a
+recipient.")
+(defvar twittering-edit-skeleton 'none
+  "*A symbol specifying an effective skeleton.
+It must be one of a symbol in `twittering-edit-skeleton-alist'.
+When entering `twittering-edit-mode', the skeletons in the specified
+entry in `twittering-edit-skeleton-alist' are performed.")
+
+(defun twittering-switch-edit-skeleton ()
+  (interactive)
+  (let ((skeleton-keys
+	 (mapcar (lambda (entry) (symbol-name (car entry)))
+		 twittering-edit-skeleton-alist))
+	(current (symbol-name (or twittering-edit-skeleton 'none))))
+    (let ((selected
+	   (twittering-completing-read
+	    (format "Skeleton (%s): " current)
+	    skeleton-keys nil t nil nil current)))
+      (when selected
+	(setq twittering-edit-skeleton (intern selected)))))
+  (when (null twittering-edit-skeleton)
+    (setq twittering-edit-skeleton 'none))
+  (message "Current skeleton: %s" twittering-edit-skeleton))
+
+(defun twittering-edit-skeleton-change-footer (&optional footer-str)
+  (interactive)
+  (let ((footer-str
+	 (or footer-str
+	     (read-from-minibuffer "Footer: " twittering-edit-skeleton-footer
+				   nil nil
+				   'twittering-edit-skeleton-footer-history))))
+    (when footer-str
+      (setq twittering-edit-skeleton-footer footer-str)))
+  (message "Current footer: [%s]" twittering-edit-skeleton-footer))
+
+(defun twittering-edit-skeleton-insert-base (&optional tweet-type in-reply-to-id)
+  (let ((entry
+	 (cdr (assq twittering-edit-skeleton twittering-edit-skeleton-alist))))
+    (when entry
+      (require 'skeleton)
+      (let ((skeletons (if (vectorp entry)
+			   entry
+			 (list entry))))
+	(mapcar (lambda (def)
+		  (let ((skeleton-or-func (car def))
+			(pred (cdr def)))
+		    (when (or (null pred)
+			      (and (functionp pred)
+				   (funcall pred tweet-type in-reply-to-id))
+			      (and (symbolp pred)
+				   (eq pred tweet-type)))
+		      (cond
+		       ((functionp skeleton-or-func)
+			(funcall skeleton-or-func tweet-type in-reply-to-id))
+		       (t
+			(skeleton-insert skeleton-or-func))))))
+		skeletons)))))
+
+(defun twittering-edit-skeleton-insert (&optional tweet-type in-reply-to-id)
+  (if (> 22 emacs-major-version)
+      ;; This prevents Emacs21 from inserting skeletons before the cursor.
+      (let ((current (point))
+	    (pair (with-temp-buffer
+		    (twittering-edit-skeleton-insert-base tweet-type
+							  in-reply-to-id)
+		    `(,(buffer-string) . ,(point)))))
+	(insert (car pair))
+	(goto-char (+ -1 current (cdr pair))))
+    (twittering-edit-skeleton-insert-base tweet-type in-reply-to-id)))
+
+;;;;
 ;;;; Edit mode
 ;;;;
 
@@ -6757,7 +6870,16 @@ been initialized yet."
       (insert init-str)
       (set-buffer-modified-p nil))
     (make-local-variable 'twittering-reply-recipient)
-    (setq twittering-reply-recipient `(,reply-to-id ,username ,spec))))
+    (setq twittering-reply-recipient `(,reply-to-id ,username ,spec))
+    (let ((tweet-type
+	   (cond
+	    ((twittering-timeline-spec-is-direct-messages-p spec)
+	     'direct-message)
+	    (reply-to-id
+	     'reply)
+	    (t
+	     'normal))))
+      (twittering-edit-skeleton-insert tweet-type reply-to-id))))
 
 (defun twittering-edit-post-status ()
   (interactive)
@@ -6882,7 +7004,20 @@ been initialized yet."
        (null init-str)
        twittering-current-hashtag
        (setq init-str (format " #%s " twittering-current-hashtag)))
-  (let ((status init-str)
+  (let ((status
+	 (with-temp-buffer
+	   (when init-str
+	     (insert init-str))
+	   (let ((tweet-type
+		  (cond
+		   ((twittering-timeline-spec-is-direct-messages-p spec)
+		    'direct-message)
+		   (reply-to-id
+		    'reply)
+		   (t
+		    'normal))))
+	     (twittering-edit-skeleton-insert tweet-type reply-to-id))
+	   `(,(buffer-string) . ,(point))))
 	(sign-str (if (twittering-timeline-spec-is-direct-messages-p spec)
 		      nil
 		    (twittering-sign-string)))

@@ -161,6 +161,23 @@
 * Completion of lists to which a specific user subscribes.
   You can visit a list to which a specific user subscribes by 'C-uL'.
   Thanks to Naohiro Aota.
+* Edit skeleton.
+  Edit skeleton is a dynamic template system on posting a tweet. You
+  can define an "edit skeleton", which specifies what string is
+  automatically inserted as a footer, header or others before editing
+  a tweet. `twittering-edit-skeleton-alist' is the alist of edit
+  skeletons. For further details, see docstring of
+  `twittering-edit-skeleton-alist'.
+  The following edit skeletons are pre-defined;
+  none: insert nothing,
+  footer: insert `twittering-edit-skeleton-footer' as a footer,
+  footer-only-normal: insert `twittering-edit-skeleton-footer' as a
+  footer only when the tweet being edited is a normal tweet, not a
+  reply or direct message.
+  You can switch the current edit skeleton by invoking
+  `twittering-switch-edit-skeleton'.
+  The footer string, `twittering-edit-skeleton-footer', can be changed
+  by invoking `twittering-edit-skeleton-change-footer'.
 * ...
 
 ### Bug fixes

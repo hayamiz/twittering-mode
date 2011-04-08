@@ -24,6 +24,18 @@
 	(twittering-direct-message): always post a tweet with direct
 	message API.
 
+	* twittering-mode.el: Introduce "edit skeleton".
+	(twittering-edit-skeleton-footer): new variable.
+	(twittering-edit-skeleton-footer-history): new variable.
+	(twittering-edit-skeleton-alist): new variable.
+	(twittering-switch-edit-skeleton): new function.
+	(twittering-edit-skeleton-change-footer): new function.
+	(twittering-edit-skeleton-insert-base): new function.
+	(twittering-edit-skeleton-insert): new function.
+	(twittering-update-status-from-pop-up-buffer): insert the current
+	edit skeleton before editing a tweet.
+	(twittering-update-status-from-minibuffer): likewise.
+
 2011-03-27  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Discard standard error of the program

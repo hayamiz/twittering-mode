@@ -4750,6 +4750,11 @@ is the display property for the icon.")
 is non-nil. If this variable is non-nil, icon images are converted by
 invoking \"convert\". Otherwise, cropped images are displayed.")
 
+(defvar twittering-fallback-image-format 'xpm
+  "*Fallback format used for displaying an image without a supproted format.
+Images which Emacs does not supports are converted into the fallback image
+format.")
+
 (defvar twittering-use-profile-image-api nil
   "*Whether to use `profile_image' API for retrieving scaled icon images.
 NOTE: This API is rate limited.")
@@ -4874,9 +4879,10 @@ available and `twittering-use-convert' is non-nil."
       image-pair)
      (twittering-use-convert
       (let ((converted-data
-	     (twittering-convert-image-data image-data 'xpm)))
+	     (twittering-convert-image-data image-data
+					    twittering-fallback-image-format)))
 	(if converted-data
-	    `(xpm . ,converted-data)
+	    `(,twittering-fallback-image-format . ,converted-data)
 	  twittering-error-icon-data-pair)))
      (t
       twittering-error-icon-data-pair))))

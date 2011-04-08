@@ -183,6 +183,14 @@
   るにはことができます。
   また、フッタ文字列`twittering-edit-skeleton-footer'の内容は関数
   `twittering-edit-skeleton-change-footer'で変更できます。
+* 代替画像形式を指定する変数
+  アイコン画像の形式がEmacsにサポートされていない形式である場合、画像
+  をEmacsがサポートする形式に変換してから表示するのですが、その際の変
+  換先の画像形式を指定する変数`twittering-fallback-image-format'を追加
+  しました。デフォルトの形式はXPMです。
+  下記のように設定すれば、NTEmacsでXPMを表示する際の不自然な挙動を回避
+  できるかもしれません。 Thanks to Silver Chariot.
+  (setq twittering-fallback-image-format 'png)
 * ...
 
 ### バグ修正

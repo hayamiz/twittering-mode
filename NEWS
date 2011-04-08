@@ -182,6 +182,14 @@
   `twittering-switch-edit-skeleton'.
   The footer string, `twittering-edit-skeleton-footer', can be changed
   by invoking `twittering-edit-skeleton-change-footer'.
+* Variable of fallback image format.
+  You can change the fallback format of images by changing the
+  variable `twittering-fallback-image-format'. The default format is
+  XPM. Images which Emacs does not supports are displayed by
+  converting them into the fallback format.
+  By the following configuration, you may avoid strange behaviors when
+  displaying XPM images on NTEmacs. Thanks to Silver Chariot.
+  (setq twittering-fallback-image-format 'png)
 * ...
 
 ### Bug fixes

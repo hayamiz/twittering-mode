@@ -44,6 +44,13 @@
 	edit skeleton.
 	(twittering-edit-skeleton-inherit-mentions): likewise.
 
+	* twittering-mode.el: Add the variable
+	`twittering-fallback-image-format'.
+	(twittering-fallback-image-format): new variable.
+	(twittering-create-image-pair): use the value of
+	`twittering-fallback-image-format' as the fallback format instead
+	of directly using 'xpm.
+
 2011-03-27  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Discard standard error of the program

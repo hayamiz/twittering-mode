@@ -2,11 +2,12 @@
 
 # What to do on a release
 
-- Fix the new version number based on the rule above and update `/VERSION`.
-- Update version numbers in source code(`/twittering-mode.el`).
-- Add new version number to `/NEWS` and describe updates.
-- Update version numbers on web pages(`/doc/web/index.text`).
-- Change the version number in `/VERSION` to next (expected) version number.
+- Add new version number to `/NEWS` and `/NEWS.ja` and describe updates.
+- `make release` to update version numbers and create tarballs.
+  - Fix the new version number based on the rule above and update `/VERSION`.
+  - Update version numbers in source code(`/twittering-mode.el`).
+  - Update version numbers on web pages(`/doc/web/index.text`).
+  - Change the version number in `/VERSION` to next (expected) version number.
 - Make a tag `v<VERSION>`
 - Upload new source files to souceforge.net
 - Publish web pages(`cd doc/web; make upload`).

@@ -5431,84 +5431,86 @@ following symbols;
 		    'source str))
     ""))
 
-(defun twittering-make-fontified-tweet-text (str)
-  (let* ((regexp-list
-	  `(;; Hashtag
-	    (hashtag . ,(concat twittering-regexp-hash "\\([a-zA-Z0-9_-]+\\)"))
-	    ;; @USER/LIST
-	    (list-name . ,(concat twittering-regexp-atmark
-				 "\\([a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+\\)"))
-	    ;; @USER
-	    (screen-name
-	     . ,(concat twittering-regexp-atmark "\\([a-zA-Z0-9_-]+\\)"))
-	    ;; URI
-	    (uri . "\\(https?://[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+\\)")))
-	 (regexp-str (mapconcat 'cdr regexp-list "\\|"))
-	 (pos 0)
-	 (str (copy-sequence str)))
-    (while (string-match regexp-str str pos)
-      (let* ((entry
-	      ;; Find matched entries.
-	      (let ((rest regexp-list)
-		    (counter 1))
-		(while (and rest (not (match-string counter str)))
-		  (setq rest (cdr rest))
-		  (setq counter (1+ counter)))
-		(when rest
-		  (list (caar rest)
-			(match-beginning counter)
-			(match-string counter str)))))
-	     (sym (elt entry 0))
-	     (matched-beg (elt entry 1))
-	     (matched-str (elt entry 2))
-	     (beg (if (memq sym '(list-name screen-name))
-		      ;; Properties are added to the matched part only.
-		      ;; The prefixes `twittering-regexp-atmark' will not
-		      ;; be highlighted.
-		      matched-beg
-		    (match-beginning 0)))
-	     (end (match-end 0))
-	     (properties
-	      (cond
-	       ((eq sym 'hashtag)
-		(let* ((hashtag matched-str)
-		       (spec
-			(twittering-string-to-timeline-spec
-			 (concat "#" hashtag)))
-		       (url (twittering-get-search-url (concat "#" hashtag))))
-		  (list
-		   'mouse-face 'highlight
-		   'keymap twittering-mode-on-uri-map
-		   'uri url
-		   'goto-spec spec
-		   'face 'twittering-username-face)))
-	       ((eq sym 'list-name)
-		(let ((list-name matched-str))
-		  (list
-		    'mouse-face 'highlight
-		    'keymap twittering-mode-on-uri-map
-		    'uri (twittering-get-status-url list-name)
-		    'goto-spec (twittering-string-to-timeline-spec list-name)
-		    'face 'twittering-username-face)))
-	       ((eq sym 'screen-name)
-		(let ((screen-name matched-str))
-		  (list
-		   'mouse-face 'highlight
-		   'keymap twittering-mode-on-uri-map
-		   'uri (twittering-get-status-url screen-name)
-		   'screen-name-in-text screen-name
-		   'goto-spec (twittering-string-to-timeline-spec screen-name)
-		   'face 'twittering-uri-face)))
-	       ((eq sym 'uri)
-		(let ((uri matched-str))
-		  (list
-		   'mouse-face 'highlight
-		   'keymap twittering-mode-on-uri-map
-		   'uri uri
-		   'face 'twittering-uri-face))))))
-	(add-text-properties beg end properties str)
-	(setq pos end)))
-    str))
+(defun twittering-make-fontified-tweet-text (str-expr regexp-hash regexp-atmark)
+  (let ((regexp-str
+	 (mapconcat
+	  'identity
+	  (list
+	   ;; hashtag
+	   (concat regexp-hash "\\([a-zA-Z0-9_-]+\\)")
+	   ;; @USER/LIST
+	   (concat regexp-atmark "\\([a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+\\)")
+	   ;; @USER
+	   (concat regexp-atmark "\\([a-zA-Z0-9_-]+\\)")
+	   ;; URI
+	   "\\(https?://[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+\\)")
+	  "\\|")))
+    `(let ((pos 0)
+	   (str (copy-sequence ,str-expr)))
+       (while (string-match ,regexp-str str pos)
+	 (let* ((beg (match-beginning 0))
+		(end (match-end 0))
+		(range-and-properties
+		 (cond
+		  ((match-string 1 str)
+		   ;; hashtag
+		   (let* ((hashtag (match-string 1 str))
+			  (spec (twittering-string-to-timeline-spec
+				 (concat "#" hashtag)))
+			  (url (twittering-get-search-url
+				(concat "#" hashtag))))
+		     (list
+		      beg end
+		      'mouse-face 'highlight
+		      'keymap twittering-mode-on-uri-map
+		      'uri url
+		      'goto-spec spec
+		      'face 'twittering-username-face)))
+		  ((match-string 2 str)
+		   ;; @USER/LIST
+		   (let ((list-name (match-string 2 str))
+			 ;; Properties are added to the matched part only.
+			 ;; The prefixes `twittering-regexp-atmark' will not
+			 ;; be highlighted.
+			 (beg (match-beginning 2)))
+		     (list
+		      beg end
+		      'mouse-face 'highlight
+		      'keymap twittering-mode-on-uri-map
+		      'uri (twittering-get-status-url list-name)
+		      'goto-spec (twittering-string-to-timeline-spec list-name)
+		      'face 'twittering-username-face)))
+		  ((match-string 3 str)
+		   ;; @USER
+		   (let ((screen-name (match-string 3 str))
+			 ;; Properties are added to the matched part only.
+			 ;; The prefixes `twittering-regexp-atmark' will not
+			 ;; be highlighted.
+			 (beg (match-beginning 3)))
+		     (list
+		      beg end
+		      'mouse-face 'highlight
+		      'keymap twittering-mode-on-uri-map
+		      'uri (twittering-get-status-url screen-name)
+		      'screen-name-in-text screen-name
+		      'goto-spec
+		      (twittering-string-to-timeline-spec screen-name)
+		      'face 'twittering-uri-face)))
+		  ((match-string 4 str)
+		   ;; URI
+		   (let ((uri (match-string 4 str)))
+		     (list
+		      beg end
+		      'mouse-face 'highlight
+		      'keymap twittering-mode-on-uri-map
+		      'uri uri
+		      'face 'twittering-uri-face)))))
+		(beg (car range-and-properties))
+		(end (cadr range-and-properties))
+		(properties (cddr range-and-properties)))
+	   (add-text-properties beg end properties str)
+	   (setq pos end)))
+       str)))
 
 (defun twittering-generate-format-table (status-sym prefix-sym)
   `(("%" . "%")
@@ -5584,9 +5586,13 @@ following symbols;
      (twittering-make-string-with-user-name-property
       (cdr (assq 'user-screen-name ,status-sym)) ,status-sym))
     ("T" .
-     (twittering-make-fontified-tweet-text (cdr (assq 'text ,status-sym))))
+     ,(twittering-make-fontified-tweet-text
+       `(cdr (assq 'text ,status-sym))
+       twittering-regexp-hash twittering-regexp-atmark))
     ("t" .
-     (twittering-make-fontified-tweet-text (cdr (assq 'text ,status-sym))))
+     ,(twittering-make-fontified-tweet-text
+       `(cdr (assq 'text ,status-sym))
+       twittering-regexp-hash twittering-regexp-atmark))
     ("u" . (cdr (assq 'user-url ,status-sym)))))
 
 (defun twittering-generate-formater-for-first-spec (format-str status-sym prefix-sym)

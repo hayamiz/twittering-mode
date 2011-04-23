@@ -24,6 +24,15 @@
 	(twittering-update-status-format): store the formatter function as
 	a lambda expression before being compiled.
 
+	* twittering-mode.el: Embed expressions for fontification in the
+	formatter function instead of calling them as a function.
+	(twittering-make-fontified-tweet-text): return an expression that
+	fontifies a given string. The regular expressions of strings being
+	fontified are concatenated on generating a formatter function.
+	(twittering-generate-format-table): embed the expression
+	fontifying a string in the formatter function. The expression will
+	be byte-compiled by `twittering-update-status-format'.
+
 2011-04-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix headers for a proxy.

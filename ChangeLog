@@ -14,6 +14,9 @@
 	(twittering-initialize-global-variables-if-necessary): likewise.
 	(twittering-status-not-blank-p): likewise.
 
+	* test/test-twittering-mode.el: add a test for a timeline spec
+	string like "#hashtag".
+
 2011-04-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix headers for a proxy.

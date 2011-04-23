@@ -239,6 +239,11 @@
    (test-restore-timeline-spec
     ":favorites/USER" '(favorites "USER") '(favorites "USER"))
    '(t t))
+
+  (test-assert-equal
+   (test-restore-timeline-spec
+    "#tag" '(search "#tag") '(search "#tag"))
+   '(t t))
   )
 
 (defun format-status (status format-str)

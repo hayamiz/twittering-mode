@@ -444,6 +444,9 @@ If nil, this is initialized with a list of valied entries extracted from
 `twittering-format-status-function'.")
 (defvar twittering-format-status-function nil
   "The formating function generated from `twittering-format-status-function-source'.")
+(defvar twittering-format-status-function-without-compile nil
+  "The formating function generated from `twittering-format-status-function-source',
+which is a lambda expression without being compiled.")
 
 (defvar twittering-timeline-data-table (make-hash-table :test 'equal))
 
@@ -5759,6 +5762,7 @@ If FORMAT-STR is invalid as a format, an error is signaled and
 	 ((and func (functionp func))
 	  (setq twittering-format-status-function-source format-str)
 	  (setq twittering-format-status-function (byte-compile func))
+	  (setq twittering-format-status-function-without-compile func)
 	  (setq twittering-status-format format-str)
 	  (let ((current (get-buffer "*Compile-Log*")))
 	    (when (and (null before) current (= 0 (buffer-size current)))

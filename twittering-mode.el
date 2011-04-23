@@ -5318,16 +5318,17 @@ static char * unplugged_xpm[] = {
     (+ (* (car encoded-time) 65536)
        (cadr encoded-time))))
 
-(defun twittering-make-common-properties (status)
-  "Generate a property list that tweets should have irrespective of format."
-  (apply 'append
-	 `(field ,(twittering-make-field-id status))
-	 (mapcar (lambda (entry)
-		   (let ((prop-sym (if (consp entry) (car entry) entry))
-			 (status-sym (if (consp entry) (cdr entry) entry)))
-		     (list prop-sym (cdr (assq status-sym status)))))
-		 '(id retweeted-id source-spec
-		      (username . user-screen-name) text))))
+(eval-and-compile
+  (defsubst twittering-make-common-properties (status)
+    "Generate a property list that tweets should have irrespective of format."
+    (apply 'append
+	   `(field ,(twittering-make-field-id status))
+	   (mapcar (lambda (entry)
+		     (let ((prop-sym (if (consp entry) (car entry) entry))
+			   (status-sym (if (consp entry) (cdr entry) entry)))
+		       (list prop-sym (cdr (assq status-sym status)))))
+		   '(id retweeted-id source-spec
+			(username . user-screen-name) text)))))
 
 (defun twittering-get-common-properties (pos)
   "Get a common property list of the tweet rendered at POS.
@@ -5406,30 +5407,31 @@ following symbols;
       (concat result skipped-string))
     ))
 
-(defun twittering-make-string-with-user-name-property (str status)
-  (if str
-      (let* ((user-screen-name (cdr (assq 'user-screen-name status)))
-	     (uri (twittering-get-status-url user-screen-name))
-	     (spec (twittering-string-to-timeline-spec user-screen-name)))
-	(propertize str
-		    'mouse-face 'highlight
-		    'keymap twittering-mode-on-uri-map
-		    'uri uri
-		    'screen-name-in-text user-screen-name
-		    'goto-spec spec
-		    'face 'twittering-username-face))
-    ""))
+(eval-and-compile
+  (defsubst twittering-make-string-with-user-name-property (str status)
+    (if str
+	(let* ((user-screen-name (cdr (assq 'user-screen-name status)))
+	       (uri (twittering-get-status-url user-screen-name))
+	       (spec (twittering-string-to-timeline-spec user-screen-name)))
+	  (propertize str
+		      'mouse-face 'highlight
+		      'keymap twittering-mode-on-uri-map
+		      'uri uri
+		      'screen-name-in-text user-screen-name
+		      'goto-spec spec
+		      'face 'twittering-username-face))
+      ""))
 
-(defun twittering-make-string-with-source-property (str status)
-  (if str
-      (let ((uri (cdr (assq 'source-uri status))))
-	(propertize str
-		    'mouse-face 'highlight
-		    'keymap twittering-mode-on-uri-map
-		    'uri uri
-		    'face 'twittering-uri-face
-		    'source str))
-    ""))
+  (defsubst twittering-make-string-with-source-property (str status)
+    (if str
+	(let ((uri (cdr (assq 'source-uri status))))
+	  (propertize str
+		      'mouse-face 'highlight
+		      'keymap twittering-mode-on-uri-map
+		      'uri uri
+		      'face 'twittering-uri-face
+		      'source str))
+      "")))
 
 (defun twittering-make-fontified-tweet-text (str-expr regexp-hash regexp-atmark)
   (let ((regexp-str
@@ -5836,99 +5838,101 @@ rendered at POS, return nil."
   (let ((pos (or pos (point))))
     (cdr (assq 'ancestor-of (get-text-property pos 'rendered-as)))))
 
-(defun twittering-fill-string (str &optional adjustment prefix keep-newline)
-  (when (and (not (boundp 'kinsoku-limit))
-	     enable-kinsoku)
-    ;; `kinsoku-limit' is defined on loading "international/kinsoku.el".
-    ;; Without preloading, "kinsoku.el" will be loaded by auto-loading
-    ;; triggered by `fill-region-as-paragraph'.
-    ;; In that case, the local binding of `kinsoku-limit' conflicts the
-    ;; definition by `defvar' in "kinsoku.el".
-    ;; The below warning is displayed;
-    ;; "Warning: defvar ignored because kinsoku-limit is let-bound".
-    ;; So, we load "kinsoku.el" in advance if necessary.
-    (load "international/kinsoku"))
-  (let* ((kinsoku-limit 1)
-	 (adjustment (+ (or adjustment 0)
-			(if enable-kinsoku
-			    kinsoku-limit
-			  0)))
-	 (min-width
-	  (apply 'min
-		 (or
-		  (mapcar 'window-width
-			  (get-buffer-window-list (current-buffer) nil t))
-		  ;; Use `(frame-width)' if no windows display
-		  ;; the current buffer.
-		  `(,(frame-width)))))
-	 (temporary-fill-column (- (or twittering-fill-column (1- min-width))
-				   adjustment)))
-    (with-temp-buffer
-      (let ((fill-column temporary-fill-column)
-	    (fill-prefix (or prefix fill-prefix))
-	    (adaptive-fill-regexp ""))
-	(if keep-newline
-	    (let* ((hard-newline (propertize "\n" 'hard t))
-		   (str (mapconcat 'identity (split-string str "\n")
-				   (concat hard-newline fill-prefix))))
-	      (use-hard-newlines)
-	      (insert (concat prefix str))
-	      (fill-region (point-min) (point-max) nil t)
-	      (remove-text-properties (point-min) (point-max) '(hard nil)))
-	  (insert (concat prefix str))
-	  (fill-region-as-paragraph (point-min) (point-max)))
-	(buffer-substring (point-min) (point-max))))))
+(eval-and-compile
+  (defsubst twittering-fill-string (str &optional adjustment prefix keep-newline)
+    (when (and (not (boundp 'kinsoku-limit))
+	       enable-kinsoku)
+      ;; `kinsoku-limit' is defined on loading "international/kinsoku.el".
+      ;; Without preloading, "kinsoku.el" will be loaded by auto-loading
+      ;; triggered by `fill-region-as-paragraph'.
+      ;; In that case, the local binding of `kinsoku-limit' conflicts the
+      ;; definition by `defvar' in "kinsoku.el".
+      ;; The below warning is displayed;
+      ;; "Warning: defvar ignored because kinsoku-limit is let-bound".
+      ;; So, we load "kinsoku.el" in advance if necessary.
+      (load "international/kinsoku"))
+    (let* ((kinsoku-limit 1)
+	   (adjustment (+ (or adjustment 0)
+			  (if enable-kinsoku
+			      kinsoku-limit
+			    0)))
+	   (min-width
+	    (apply 'min
+		   (or
+		    (mapcar 'window-width
+			    (get-buffer-window-list (current-buffer) nil t))
+		    ;; Use `(frame-width)' if no windows display
+		    ;; the current buffer.
+		    `(,(frame-width)))))
+	   (temporary-fill-column (- (or twittering-fill-column (1- min-width))
+				     adjustment)))
+      (with-temp-buffer
+	(let ((fill-column temporary-fill-column)
+	      (fill-prefix (or prefix fill-prefix))
+	      (adaptive-fill-regexp ""))
+	  (if keep-newline
+	      (let* ((hard-newline (propertize "\n" 'hard t))
+		     (str (mapconcat 'identity (split-string str "\n")
+				     (concat hard-newline fill-prefix))))
+		(use-hard-newlines)
+		(insert (concat prefix str))
+		(fill-region (point-min) (point-max) nil t)
+		(remove-text-properties (point-min) (point-max) '(hard nil)))
+	    (insert (concat prefix str))
+	    (fill-region-as-paragraph (point-min) (point-max)))
+	  (buffer-substring (point-min) (point-max))))))
 
-(defun twittering-update-filled-string (beg end formater status prefix local-prefix &optional keep-newline)
-  (let* ((str (twittering-fill-string (funcall formater status prefix)
-				      (length prefix) local-prefix
-				      keep-newline))
-	 (next (next-single-property-change 0 'need-to-be-updated str)))
-    (if (or (get-text-property 0 'need-to-be-updated str)
-	    (and next (< next (length str))))
-	(put-text-property 0 (length str) 'need-to-be-updated
-			   `(twittering-update-filled-string
-			     ,formater ,status ,prefix ,local-prefix
-			     ,keep-newline)
-			   str)
-      ;; Remove the property required no longer.
-      (remove-text-properties 0 (length str) '(need-to-be-updated nil) str))
-    str))
+  (defsubst twittering-update-filled-string (beg end formater status prefix local-prefix &optional keep-newline)
+    (let* ((str (twittering-fill-string (funcall formater status prefix)
+					(length prefix) local-prefix
+					keep-newline))
+	   (next (next-single-property-change 0 'need-to-be-updated str)))
+      (if (or (get-text-property 0 'need-to-be-updated str)
+	      (and next (< next (length str))))
+	  (put-text-property 0 (length str) 'need-to-be-updated
+			     `(twittering-update-filled-string
+			       ,formater ,status ,prefix ,local-prefix
+			       ,keep-newline)
+			     str)
+	;; Remove the property required no longer.
+	(remove-text-properties 0 (length str) '(need-to-be-updated nil) str))
+      str))
 
-(defun twittering-make-passed-time-string
-  (beg end encoded-created-at time-format &optional additional-properties)
-  (let* ((now (current-time))
-	 (secs (+ (* (- (car now) (car encoded-created-at)) 65536)
-		  (- (cadr now) (cadr encoded-created-at))))
-	 (time-string
-	  (cond
-	   ((< secs 5) "less than 5 seconds ago")
-	   ((< secs 10) "less than 10 seconds ago")
-	   ((< secs 20) "less than 20 seconds ago")
-	   ((< secs 30) "half a minute ago")
-	   ((< secs 60) "less than a minute ago")
-	   ((< secs 150) "1 minute ago")
-	   ((< secs 2400) (format "%d minutes ago"
-				  (/ (+ secs 30) 60)))
-	   ((< secs 5400) "about 1 hour ago")
-	   ((< secs 84600) (format "about %d hours ago"
-				   (/ (+ secs 1800) 3600)))
-	   (t (format-time-string time-format encoded-created-at))))
-	 (properties (append additional-properties
-			     (and beg (text-properties-at beg)))))
-    ;; Restore properties.
-    (when properties
-      (add-text-properties 0 (length time-string) properties time-string))
-    (if (< secs 84600)
-	(put-text-property 0 (length time-string)
-			   'need-to-be-updated
-			   `(twittering-make-passed-time-string
-			     ,encoded-created-at ,time-format)
-			   time-string)
-      ;; Remove the property required no longer.
-      (remove-text-properties 0 (length time-string) '(need-to-be-updated nil)
-			      time-string))
-    time-string))
+  (defsubst twittering-make-passed-time-string
+    (beg end encoded-created-at time-format &optional additional-properties)
+    (let* ((now (current-time))
+	   (secs (+ (* (- (car now) (car encoded-created-at)) 65536)
+		    (- (cadr now) (cadr encoded-created-at))))
+	   (time-string
+	    (cond
+	     ((< secs 5) "less than 5 seconds ago")
+	     ((< secs 10) "less than 10 seconds ago")
+	     ((< secs 20) "less than 20 seconds ago")
+	     ((< secs 30) "half a minute ago")
+	     ((< secs 60) "less than a minute ago")
+	     ((< secs 150) "1 minute ago")
+	     ((< secs 2400) (format "%d minutes ago"
+				    (/ (+ secs 30) 60)))
+	     ((< secs 5400) "about 1 hour ago")
+	     ((< secs 84600) (format "about %d hours ago"
+				     (/ (+ secs 1800) 3600)))
+	     (t (format-time-string time-format encoded-created-at))))
+	   (properties (append additional-properties
+			       (and beg (text-properties-at beg))))
+	   (time-string
+	    ;; Copy a string and restore properties.
+	    (apply 'propertize time-string properties)))
+      (if (< secs 84600)
+	  (put-text-property 0 (length time-string)
+			     'need-to-be-updated
+			     `(twittering-make-passed-time-string
+			       ,encoded-created-at ,time-format)
+			     time-string)
+	;; Remove the property required no longer.
+	(remove-text-properties 0 (length time-string)
+				'(need-to-be-updated nil)
+				time-string))
+      time-string)))
 
 (defun twittering-render-timeline (buffer &optional additional timeline-data keep-point)
   (with-current-buffer buffer

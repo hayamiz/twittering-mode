@@ -33,6 +33,16 @@
 	fontifying a string in the formatter function. The expression will
 	be byte-compiled by `twittering-update-status-format'.
 
+	* twittering-mode.el: Redefine some functions as inline in order
+	to make the formatter function more efficient.
+	(twittering-make-common-properties): redefined as an inline
+	function.
+	(twittering-make-string-with-user-name-property): likewise.
+	(twittering-make-string-with-source-property): likewise.
+	(twittering-fill-string): likewise.
+	(twittering-update-filled-string): likewise.
+	(twittering-make-passed-time-string): likewise.
+
 2011-04-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix headers for a proxy.

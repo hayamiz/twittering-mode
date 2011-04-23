@@ -9,6 +9,15 @@
 
 ### Improvements
 
+### Bug fixes
+
+ 2.0.0: 2011-04-22
+------------------
+
+### Important notice
+
+### Improvements
+
 * Support for storing private information in a file encrypted by master
   password. Once you save the authorized account by using master password,
   you have to input PIN no longer. This is enabled by
@@ -190,7 +199,6 @@
   By the following configuration, you may avoid strange behaviors when
   displaying XPM images on NTEmacs. Thanks to Silver Chariot.
   (setq twittering-fallback-image-format 'png)
-* ...
 
 ### Bug fixes
 
@@ -204,7 +212,6 @@
   The specifier "%L" is correctly rendered with a preceding whitespace.
   Thanks to Tom X. Tobin.
 * Fix of repeatedly registering a sentinel for retrieving an image.
-* ...
 
  1.0.0: 2010-06-05
 ------------------

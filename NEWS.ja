@@ -9,6 +9,15 @@
 
 ### 改良
 
+### バグ修正
+
+ 2.0.0: 2011-04-22
+------------------
+
+### 重要なお知らせ
+
+### 改良
+
 * OAuth, xAuthで取得した認証済みaccess tokenの暗号化保存に対応
   認証済みaccess tokenをGnuPGで暗号化して保存することができます。
   tokenを保存しておけば、次回以降の起動時にOAuthのための外部
@@ -191,7 +200,6 @@
   下記のように設定すれば、NTEmacsでXPMを表示する際の不自然な挙動を回避
   できるかもしれません。 Thanks to Silver Chariot.
   (setq twittering-fallback-image-format 'png)
-* ...
 
 ### バグ修正
 
@@ -210,7 +218,6 @@
   なりました。
   Thanks to Tom X. Tobin.
 * アイコン画像取得の際に同一sentinelを複数回登録していたのを修正
-* ...
 
  1.0.0: 2010-06-05
 ------------------

@@ -3224,6 +3224,14 @@ If SHORTEN is non-nil, the abbreviated expression will be used."
      (t
       nil))))
 
+(eval-and-compile
+  (defmacro twittering-make-user-timeline-spec-direct (user)
+    `(list 'user ,user))
+  (defmacro twittering-make-list-timeline-spec-direct (owner listname)
+    `(list 'list ,owner ,listname))
+  (defmacro twittering-make-hashtag-timeline-spec-direct (tag)
+    `(list 'search (concat "#" ,tag))))
+
 (defun twittering-extract-timeline-spec (str &optional unresolved-aliases)
   "Extract one timeline spec from STR.
 Return cons of the spec and the rest string."
@@ -3235,11 +3243,11 @@ Return cons of the spec and the rest string."
     (let ((user (match-string 1 str))
 	  (listname (match-string 2 str))
 	  (rest (substring str (match-end 0))))
-      `((list ,user ,listname) . ,rest)))
+      `(,(twittering-make-list-timeline-spec-direct user listname) . ,rest)))
    ((string-match "^\\([a-zA-Z0-9_-]+\\)" str)
     (let ((user (match-string 1 str))
 	  (rest (substring str (match-end 0))))
-      `((user ,user) . ,rest)))
+      `(,(twittering-make-user-timeline-spec-direct user) . ,rest)))
    ((string-match "^~" str)
     `((home) . ,(substring str (match-end 0))))
    ((string-match (concat "^" twittering-regexp-atmark) str)
@@ -3247,9 +3255,8 @@ Return cons of the spec and the rest string."
    ((string-match (concat "^" twittering-regexp-hash "\\([a-zA-Z0-9_-]+\\)")
 		  str)
     (let* ((tag (match-string 1 str))
-	   (query (concat "#" tag))
 	   (rest (substring str (match-end 0))))
-      `((search ,query) . ,rest)))
+      `(,(twittering-make-hashtag-timeline-spec-direct tag) . ,rest)))
    ((string-match "^:\\([a-z_-]+\\)" str)
     (let ((type (match-string 1 str))
 	  (following (substring str (match-end 0)))
@@ -5412,7 +5419,8 @@ following symbols;
     (if str
 	(let* ((user-screen-name (cdr (assq 'user-screen-name status)))
 	       (uri (twittering-get-status-url user-screen-name))
-	       (spec (twittering-string-to-timeline-spec user-screen-name)))
+	       (spec
+		(twittering-make-user-timeline-spec-direct user-screen-name)))
 	  (propertize str
 		      'mouse-face 'highlight
 		      'keymap twittering-mode-on-uri-map
@@ -5441,7 +5449,8 @@ following symbols;
 	   ;; hashtag
 	   (concat regexp-hash "\\([a-zA-Z0-9_-]+\\)")
 	   ;; @USER/LIST
-	   (concat regexp-atmark "\\([a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+\\)")
+	   (concat regexp-atmark
+		   "\\(\\([a-zA-Z0-9_-]+\\)/\\([a-zA-Z0-9_-]+\\)\\)")
 	   ;; @USER
 	   (concat regexp-atmark "\\([a-zA-Z0-9_-]+\\)")
 	   ;; URI
@@ -5457,8 +5466,8 @@ following symbols;
 		  ((match-string 1 str)
 		   ;; hashtag
 		   (let* ((hashtag (match-string 1 str))
-			  (spec (twittering-string-to-timeline-spec
-				 (concat "#" hashtag)))
+			  (spec (twittering-make-hashtag-timeline-spec-direct
+				 hashtag))
 			  (url (twittering-get-search-url
 				(concat "#" hashtag))))
 		     (list
@@ -5470,7 +5479,8 @@ following symbols;
 		      'face 'twittering-username-face)))
 		  ((match-string 2 str)
 		   ;; @USER/LIST
-		   (let ((list-name (match-string 2 str))
+		   (let ((owner (match-string 3 str))
+			 (list-name (match-string 4 str))
 			 ;; Properties are added to the matched part only.
 			 ;; The prefixes `twittering-regexp-atmark' will not
 			 ;; be highlighted.
@@ -5480,15 +5490,17 @@ following symbols;
 		      'mouse-face 'highlight
 		      'keymap twittering-mode-on-uri-map
 		      'uri (twittering-get-status-url list-name)
-		      'goto-spec (twittering-string-to-timeline-spec list-name)
+		      'goto-spec
+		      (twittering-make-list-timeline-spec-direct owner
+								 list-name)
 		      'face 'twittering-username-face)))
-		  ((match-string 3 str)
+		  ((match-string 5 str)
 		   ;; @USER
-		   (let ((screen-name (match-string 3 str))
+		   (let ((screen-name (match-string 5 str))
 			 ;; Properties are added to the matched part only.
 			 ;; The prefixes `twittering-regexp-atmark' will not
 			 ;; be highlighted.
-			 (beg (match-beginning 3)))
+			 (beg (match-beginning 5)))
 		     (list
 		      beg end
 		      'mouse-face 'highlight
@@ -5496,11 +5508,11 @@ following symbols;
 		      'uri (twittering-get-status-url screen-name)
 		      'screen-name-in-text screen-name
 		      'goto-spec
-		      (twittering-string-to-timeline-spec screen-name)
+		      (twittering-make-user-timeline-spec-direct screen-name)
 		      'face 'twittering-uri-face)))
-		  ((match-string 4 str)
+		  ((match-string 6 str)
 		   ;; URI
-		   (let ((uri (match-string 4 str)))
+		   (let ((uri (match-string 6 str)))
 		     (list
 		      beg end
 		      'mouse-face 'highlight

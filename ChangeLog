@@ -43,6 +43,21 @@
 	(twittering-update-filled-string): likewise.
 	(twittering-make-passed-time-string): likewise.
 
+	* twittering-mode.el: Reduce redundant calls of `string-match' on
+	formatting a tweet. When generating a timeline spec from a string
+	with obvious meaning, the new macros are used instead of the
+	general function, `twittering-extract-timeline-spec'.
+	(twittering-make-user-timeline-spec-direct): new macro.
+	(twittering-make-list-timeline-spec-direct): new macro.
+	(twittering-make-hashtag-timeline-spec-direct): new macro.
+	(twittering-extract-timeline-spec): use new macros.
+	(twittering-make-string-with-user-name-property): call the new
+	macro `twittering-make-user-timeline-spec-direct' instead of
+	calling `twittering-extract-timeline-spec'.
+	(twittering-make-fontified-tweet-text): call the new macros
+	`twittering-make-{user,list,hashtag}-timeline-spec-direct' instead
+	of calling `twittering-extract-timeline-spec'.
+
 2011-04-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix headers for a proxy.

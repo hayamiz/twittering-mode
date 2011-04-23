@@ -3,6 +3,17 @@
 	* NEWS, NEWS.ja, LAST-VERSION, VERSION, doc/web/index.text:
 	Version 2.0.0 released.
 
+	* twittering-mode.el: Fix coding system for some operations so
+	that they work well even if the default coding system is
+	`utf-16le-dos'. Thanks to Moto_Dong who reported the problem.
+	(twittering-ensure-ca-cert): explicitly specify coding-system.
+	(twittering-start-http-session-curl-https-p): likewise.
+	(twittering-read-from-encrypted-file): likewise.
+	(twittering-write-and-encrypt): likewise.
+	(twittering-load-icon-properties): likewise.
+	(twittering-initialize-global-variables-if-necessary): likewise.
+	(twittering-status-not-blank-p): likewise.
+
 2011-04-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix headers for a proxy.

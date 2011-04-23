@@ -894,7 +894,8 @@ its file name. The certificate is retrieved from
 `https://www.geotrust.com/resources/root_certificates/certificates/Equifax_Secure_Certificate_Authority.cer'."
   (if twittering-cert-file
       twittering-cert-file
-    (let ((file-name (make-temp-file "twmode-cacert")))
+    (let ((file-name (make-temp-file "twmode-cacert"))
+	  (coding-system-for-write 'us-ascii))
       (with-temp-file file-name
 	(insert "-----BEGIN CERTIFICATE-----
 MIIDIDCCAomgAwIBAgIENd70zzANBgkqhkiG9w0BAQUFADBOMQswCQYDVQQGEwJV
@@ -1554,14 +1555,16 @@ The method to perform the request is determined from
   (when (twittering-start-http-session-curl-p)
     (unless twittering-curl-program-https-capability
       (with-temp-buffer
-	(call-process twittering-curl-program
-		      nil (current-buffer) nil
-		      "--version")
-	(goto-char (point-min))
-	(setq twittering-curl-program-https-capability
-	      (if (search-forward-regexp "^Protocols: .*https" nil t)
-		  'capable
-		'incapable))))
+	(let ((coding-system-for-read 'us-ascii)
+	      (coding-system-for-write 'us-ascii))
+	  (call-process twittering-curl-program
+			nil (current-buffer) nil
+			"--version")
+	  (goto-char (point-min))
+	  (setq twittering-curl-program-https-capability
+		(if (search-forward-regexp "^Protocols: .*https" nil t)
+		    'capable
+		  'incapable)))))
     (eq twittering-curl-program-https-capability 'capable)))
 
 (defun twittering-send-http-request-curl (name buffer connection-info sentinel)
@@ -2738,6 +2741,8 @@ like following:
     (with-temp-buffer
       (let ((buffer-file-name file)
 	    (alpaca-regex-suffix ".*")
+	    (coding-system-for-read 'binary)
+	    (coding-system-for-write 'binary)
 	    (temp-buffer (current-buffer)))
 	(insert-file-contents-literally file)
 	(set-buffer-modified-p nil)
@@ -2771,6 +2776,7 @@ like following:
 	      ;; `epa-file-name-regexp' is temorarily changed into the null
 	      ;; regexp that never matches any string.
 	      (let ((epa-file-name-regexp "\\`\\'")
+		    (coding-system-for-read 'binary)
 		    (coding-system-for-write 'binary))
 		(when (fboundp 'epa-file-name-regexp-update)
 		  (epa-file-name-regexp-update))
@@ -2791,6 +2797,7 @@ like following:
     (with-temp-file file)
     (with-temp-buffer
       (let ((buffer-file-name file)
+	    (coding-system-for-read 'binary)
 	    (coding-system-for-write 'binary))
 	(insert str)
 	(condition-case nil
@@ -5018,7 +5025,8 @@ image are displayed."
 		 ((and (require 'jka-compr)
 		       (file-exists-p filename))
 		  (with-auto-compression-mode
-		    (let ((coding-system-for-read 'binary))
+		    (let ((coding-system-for-read 'binary)
+			  (coding-system-for-write 'binary))
 		      (insert-file-contents filename)))
 		  (read (current-buffer)))
 		 (t
@@ -6570,12 +6578,14 @@ been initialized yet."
       (if (null twittering-convert-program)
 	  (setq twittering-use-convert nil)
 	(with-temp-buffer
-	  (call-process twittering-convert-program nil (current-buffer) nil
-			"-version")
-	  (goto-char (point-min))
-	  (if (null (search-forward-regexp "\\(Image\\|Graphics\\)Magick"
-					   nil t))
-	      (setq twittering-use-convert nil)))))
+	  (let ((coding-system-for-read 'us-ascii)
+		(coding-system-for-write 'us-ascii))
+	    (call-process twittering-convert-program nil (current-buffer) nil
+			  "-version")
+	    (goto-char (point-min))
+	    (if (null (search-forward-regexp "\\(Image\\|Graphics\\)Magick"
+					     nil t))
+		(setq twittering-use-convert nil))))))
     (twittering-setup-proxy)
     (when twittering-use-icon-storage
       (cond
@@ -7051,12 +7061,14 @@ entry in `twittering-edit-skeleton-alist' are performed.")
   (remove-hook 'post-command-hook 'twittering-show-minibuffer-length t))
 
 (defun twittering-status-not-blank-p (status)
-  (with-temp-buffer
-    (insert status)
-    (goto-char (point-min))
-    ;; skip user name
-    (re-search-forward "\\`[[:space:]]*@[a-zA-Z0-9_-]+\\([[:space:]]+@[a-zA-Z0-9_-]+\\)*" nil t)
-    (re-search-forward "[^[:space:]]" nil t)))
+  (let ((coding-system-for-read 'binary)
+	(coding-system-for-write 'binary))
+    (with-temp-buffer
+      (insert status)
+      (goto-char (point-min))
+      ;; skip user name
+      (re-search-forward "\\`[[:space:]]*@[a-zA-Z0-9_-]+\\([[:space:]]+@[a-zA-Z0-9_-]+\\)*" nil t)
+      (re-search-forward "[^[:space:]]" nil t))))
 
 (defun twittering-update-status-from-minibuffer (&optional init-str reply-to-id username spec)
   (and (not (twittering-timeline-spec-is-direct-messages-p spec))

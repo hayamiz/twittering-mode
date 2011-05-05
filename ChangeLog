@@ -18,6 +18,18 @@
 	string such as "#HASHTAG" for `goto-spec' of a hashtag instead of
 	a search timeline spec as an internal representation.
 
+	* twittering-mode.el: Add `twittering-update-status' as a function.
+	(twittering-update-status-function): update docstring.
+	(twittering-update-status-from-pop-up-buffer): rename the argument
+	`spec' `tweet-type-as-spec'.
+	(twittering-update-status-from-minibuffer): likewise.
+	(twittering-update-status): new function.
+	(twittering-direct-message): call `twittering-update-status'
+	instead of referring `twittering-update-status-function'.
+	(twittering-reply-to-user): likewise.
+	(twittering-organic-retweet): likewise.
+	(twittering-enter): likewise.
+
 2011-04-23  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* NEWS, NEWS.ja, LAST-VERSION, VERSION, doc/web/index.text:

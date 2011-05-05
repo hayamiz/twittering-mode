@@ -459,10 +459,15 @@ which is a lambda expression without being compiled.")
 
 (defvar twittering-update-status-function
   'twittering-update-status-from-pop-up-buffer
-  "The function used to posting a tweet. It takes two arguments:
-the first argument INIT-STR is initial text to be edited and the
-second argument REPLY-TO-ID is a user ID of a tweet to which you
-are going to reply.
+  "The function used to posting a tweet. It takes 4 arguments,
+INIT-STR, REPLY-TO-ID, USERNAME, TWEET-TYPE-AS-SPEC.
+The first argument INIT-STR is nil or an initial text to be edited.
+REPLY-TO-ID and USERNAME are an ID and a user-screen-name of a tweet to
+which you are going to reply. If the tweet is not a reply, they are nil.
+TWEET-TYPE-AS-SPEC is a timeline spec specifying a type of a tweet being
+edited. Now, only `(direct-messages)' and nil are available as
+TWEET-TYPE-AS-SPEC. If TWEET-TYPE-AS-SPEC is nil, it means that a tweet is
+edited as a normal tweet.
 
 Twittering-mode provides two functions for updating status:
 * `twittering-update-status-from-minibuffer': edit tweets in minibuffer
@@ -6947,7 +6952,7 @@ entry in `twittering-edit-skeleton-alist' are performed.")
 	  (when (< (window-end window t) current-tail)
 	    (twittering-set-window-end window current-tail)))))))
 
-(defun twittering-update-status-from-pop-up-buffer (&optional init-str reply-to-id username spec)
+(defun twittering-update-status-from-pop-up-buffer (&optional init-str reply-to-id username tweet-type-as-spec)
   (interactive)
   (let ((buf (generate-new-buffer twittering-edit-buffer)))
     (setq twittering-pre-edit-window-configuration
@@ -6958,8 +6963,8 @@ entry in `twittering-edit-skeleton-alist' are performed.")
       (pop-to-buffer buf)
       (twittering-ensure-whole-of-status-is-visible win))
     (twittering-edit-mode)
-    (twittering-edit-setup-help username spec)
-    (if (twittering-timeline-spec-is-direct-messages-p spec)
+    (twittering-edit-setup-help username tweet-type-as-spec)
+    (if (twittering-timeline-spec-is-direct-messages-p tweet-type-as-spec)
 	(message "C-c C-c to send, C-c C-k to cancel")
       (and (null init-str)
 	   twittering-current-hashtag
@@ -6969,10 +6974,11 @@ entry in `twittering-edit-skeleton-alist' are performed.")
       (insert init-str)
       (set-buffer-modified-p nil))
     (make-local-variable 'twittering-reply-recipient)
-    (setq twittering-reply-recipient `(,reply-to-id ,username ,spec))
+    (setq twittering-reply-recipient
+	  `(,reply-to-id ,username ,tweet-type-as-spec))
     (let ((tweet-type
 	   (cond
-	    ((twittering-timeline-spec-is-direct-messages-p spec)
+	    ((twittering-timeline-spec-is-direct-messages-p tweet-type-as-spec)
 	     'direct-message)
 	    (reply-to-id
 	     'reply)
@@ -7100,8 +7106,8 @@ entry in `twittering-edit-skeleton-alist' are performed.")
       (re-search-forward "\\`[[:space:]]*@[a-zA-Z0-9_-]+\\([[:space:]]+@[a-zA-Z0-9_-]+\\)*" nil t)
       (re-search-forward "[^[:space:]]" nil t))))
 
-(defun twittering-update-status-from-minibuffer (&optional init-str reply-to-id username spec)
-  (and (not (twittering-timeline-spec-is-direct-messages-p spec))
+(defun twittering-update-status-from-minibuffer (&optional init-str reply-to-id username tweet-type-as-spec)
+  (and (not (twittering-timeline-spec-is-direct-messages-p tweet-type-as-spec))
        (null init-str)
        twittering-current-hashtag
        (setq init-str (format " #%s " twittering-current-hashtag)))
@@ -7111,7 +7117,8 @@ entry in `twittering-edit-skeleton-alist' are performed.")
 	     (insert init-str))
 	   (let ((tweet-type
 		  (cond
-		   ((twittering-timeline-spec-is-direct-messages-p spec)
+		   ((twittering-timeline-spec-is-direct-messages-p
+		     tweet-type-as-spec)
 		    'direct-message)
 		   (reply-to-id
 		    'reply)
@@ -7119,7 +7126,8 @@ entry in `twittering-edit-skeleton-alist' are performed.")
 		    'normal))))
 	     (twittering-edit-skeleton-insert tweet-type reply-to-id))
 	   `(,(buffer-string) . ,(point))))
-	(sign-str (if (twittering-timeline-spec-is-direct-messages-p spec)
+	(sign-str (if (twittering-timeline-spec-is-direct-messages-p
+		       tweet-type-as-spec)
 		      nil
 		    (twittering-sign-string)))
 	(not-posted-p t)
@@ -7139,7 +7147,8 @@ entry in `twittering-edit-skeleton-alist' are performed.")
 	      (setq prompt "status: ")
 	      (when (twittering-status-not-blank-p status)
 		(cond
-		 ((twittering-timeline-spec-is-direct-messages-p spec)
+		 ((twittering-timeline-spec-is-direct-messages-p
+		   tweet-type-as-spec)
 		  (if username
 		      (twittering-call-api 'send-direct-message
 					   `((username . ,username)
@@ -7480,9 +7489,23 @@ entry in `twittering-edit-skeleton-alist' are performed.")
 
 ;;;; Commands for posting a status
 
+(defun twittering-update-status (&optional init-str reply-to-id username tweet-type-as-spec)
+  "Post a tweet.
+The first argument INIT-STR is nil or an initial text to be edited.
+REPLY-TO-ID and USERNAME are an ID and a user-screen-name of a tweet to
+which you are going to reply. If the tweet is not a reply, they are nil.
+TWEET-TYPE-AS-SPEC is a timeline spec specifying a type of a tweet being
+edited. Now, only `(direct-messages)' and nil are available as
+TWEET-TYPE-AS-SPEC. If TWEET-TYPE-AS-SPEC is nil, it means that a tweet is
+edited as a normal tweet.
+
+How to edit a tweet is determined by `twittering-update-status-funcion'."
+  (funcall twittering-update-status-function init-str reply-to-id username
+	   tweet-type-as-spec))
+
 (defun twittering-update-status-interactive ()
   (interactive)
-  (funcall twittering-update-status-function))
+  (twittering-update-status))
 
 (defun twittering-update-lambda ()
   (interactive)
@@ -7524,14 +7547,13 @@ entry in `twittering-edit-skeleton-alist' are performed.")
 		   'twittering-user-history)))
     (if (string= "" username)
 	(message "No user selected")
-      (funcall twittering-update-status-function
-	       nil nil username '(direct_messages)))))
+      (twittering-update-status nil nil username '(direct_messages)))))
 
 (defun twittering-reply-to-user ()
   (interactive)
   (let ((username (get-text-property (point) 'username)))
     (if username
-	(funcall twittering-update-status-function (concat "@" username " "))
+	(twittering-update-status (concat "@" username " "))
       (message "No user selected"))))
 
 ;;;; Command for deleting a status
@@ -7608,7 +7630,7 @@ entry in `twittering-edit-skeleton-alist' are performed.")
 		    (format-time-string (match-string 1 str) ',retweet-time))))
 	       ))
 	    )
-	(funcall twittering-update-status-function
+	(twittering-update-status
 	 (twittering-format-string format-str prefix replace-table))
 	))))
 
@@ -7656,19 +7678,19 @@ entry in `twittering-edit-skeleton-alist' are performed.")
 	(screen-name-in-text
 	 (get-text-property (point) 'screen-name-in-text)))
     (cond (screen-name-in-text
-	   (funcall twittering-update-status-function
-		    (if (twittering-timeline-spec-is-direct-messages-p spec)
-			nil
-		      (concat "@" screen-name-in-text " "))
-		    id screen-name-in-text spec))
+	   (twittering-update-status
+	    (if (twittering-timeline-spec-is-direct-messages-p spec)
+		nil
+	      (concat "@" screen-name-in-text " "))
+	    id screen-name-in-text spec))
 	  (uri
 	   (browse-url uri))
 	  (username
-	   (funcall twittering-update-status-function
-		    (if (twittering-timeline-spec-is-direct-messages-p spec)
-			nil
-		      (concat "@" username " "))
-		    id username spec)))))
+	   (twittering-update-status
+	    (if (twittering-timeline-spec-is-direct-messages-p spec)
+		nil
+	      (concat "@" username " "))
+	    id username spec)))))
 
 (defun twittering-view-user-page ()
   (interactive)

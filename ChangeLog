@@ -30,6 +30,21 @@
 	(twittering-organic-retweet): likewise.
 	(twittering-enter): likewise.
 
+	* twittering-mode.el: Edit skeletons can refer to the current
+	timeline spec.
+	(twittering-update-status-function): update the docstring to
+	follow the additional argument CURRENT-SPEC.
+	(twittering-edit-skeleton-alist): update the docstring.
+	(twittering-edit-skeleton-insert-base): support the new argument
+	CURRENT-SPEC.
+	(twittering-edit-skeleton-insert): likewise.
+	(twittering-edit-skeleton-inherit-hashtags): likewise.
+	(twittering-edit-skeleton-inherit-mentions): likewise.
+	(twittering-update-status-from-pop-up-buffer): likewise.
+	(twittering-update-status-from-minibuffer): likewise.
+	(twittering-update-status): add a new argument
+	IGNORE-CURRENT-SPEC.
+
 2011-04-23  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* NEWS, NEWS.ja, LAST-VERSION, VERSION, doc/web/index.text:

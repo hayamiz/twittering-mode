@@ -8,6 +8,10 @@
 ### 重要なお知らせ
 
 ### 改良
+* 現在のtimelineに応じたedit skeleton
+  現在のtimelineに応じたedit skeletonを定義できるようになりました。
+  詳しくは変数`twittering-edit-skeleton-alist'のdocstringを参照くださ
+  い。
 
 ### バグ修正
 

@@ -459,8 +459,8 @@ which is a lambda expression without being compiled.")
 
 (defvar twittering-update-status-function
   'twittering-update-status-from-pop-up-buffer
-  "The function used to posting a tweet. It takes 4 arguments,
-INIT-STR, REPLY-TO-ID, USERNAME, TWEET-TYPE-AS-SPEC.
+  "The function used to posting a tweet. It takes 5 arguments,
+INIT-STR, REPLY-TO-ID, USERNAME, TWEET-TYPE-AS-SPEC, CURRENT-SPEC.
 The first argument INIT-STR is nil or an initial text to be edited.
 REPLY-TO-ID and USERNAME are an ID and a user-screen-name of a tweet to
 which you are going to reply. If the tweet is not a reply, they are nil.
@@ -468,6 +468,7 @@ TWEET-TYPE-AS-SPEC is a timeline spec specifying a type of a tweet being
 edited. Now, only `(direct-messages)' and nil are available as
 TWEET-TYPE-AS-SPEC. If TWEET-TYPE-AS-SPEC is nil, it means that a tweet is
 edited as a normal tweet.
+CURRENT-SPEC means on which timeline the function is called.
 
 Twittering-mode provides two functions for updating status:
 * `twittering-update-status-from-minibuffer': edit tweets in minibuffer
@@ -6710,7 +6711,7 @@ been initialized yet."
     (footer-only-normal
      . ((nil _ twittering-edit-skeleton-footer) . normal))
     (inherit-hashtags
-     . (twittering-edit-skeleton-inherit-hashtags . reply))
+     . [(twittering-edit-skeleton-inherit-hashtags . reply)])
     (inherit-mentions
      . (twittering-edit-skeleton-inherit-mentions . reply))
     (inherit-any
@@ -6731,13 +6732,19 @@ If PRED is a symbol, the value is performed only when it equals to the
 type of the tweet being edited. The type is one of 'normal, 'reply and
 'direct-message.
 If PRED is a function, the value is performed only when the predicate
-function PRED returns non-nil. PRED is invoked with two arguments
-TWEET-TYPE and IN-REPLY-TO-ID.
+function PRED returns non-nil. PRED is invoked with three arguments
+TWEET-TYPE, IN-REPLY-TO-ID and CURRENT-SPEC.
 TWEET-TYPE is a symbol, which is one of 'normal, 'reply, and 'direct-message,
 specifying which type of tweet will be edited.
 If the tweet will not be edited as a reply, IN-REPLY-TO-ID is nil.
 If the tweet will be edited as a reply, IN-REPLY-TO-ID is a string specifying
 the replied tweet.
+CURRENT-SPEC specifies where the action of posting a tweet is performed.
+If the action is performed on a twittering-mode buffer, CURRENT-SPEC is
+a timeline spec string of the buffer.
+If the action is performed on other buffers, CURRENT-SPEC is nil.
+If the option IGNORE-CURRENT-SPEC for `twittering-update-status' is non-nil,
+CURRENT-SPEC is also nil.
 
 If PRED matches the current context, the value is performed as follows.
 The value like (SKELETON . PRED) is performed by directly using SKELETON as an
@@ -6783,7 +6790,7 @@ entry in `twittering-edit-skeleton-alist' are performed.")
       (setq twittering-edit-skeleton-footer footer-str)))
   (message "Current footer: [%s]" twittering-edit-skeleton-footer))
 
-(defun twittering-edit-skeleton-insert-base (&optional tweet-type in-reply-to-id)
+(defun twittering-edit-skeleton-insert-base (&optional tweet-type in-reply-to-id current-spec)
   (let ((entry
 	 (cdr (assq twittering-edit-skeleton twittering-edit-skeleton-alist))))
     (when entry
@@ -6801,24 +6808,27 @@ entry in `twittering-edit-skeleton-alist' are performed.")
 				   (eq pred tweet-type)))
 		      (cond
 		       ((functionp skeleton-or-func)
-			(funcall skeleton-or-func tweet-type in-reply-to-id))
+			(funcall skeleton-or-func tweet-type in-reply-to-id
+				 current-spec))
 		       (t
 			(skeleton-insert skeleton-or-func))))))
 		skeletons)))))
 
-(defun twittering-edit-skeleton-insert (&optional tweet-type in-reply-to-id)
+(defun twittering-edit-skeleton-insert (&optional tweet-type in-reply-to-id current-spec)
   (if (> 22 emacs-major-version)
       ;; This prevents Emacs21 from inserting skeletons before the cursor.
       (let ((current (point))
 	    (pair (with-temp-buffer
 		    (twittering-edit-skeleton-insert-base tweet-type
-							  in-reply-to-id)
+							  in-reply-to-id
+							  current-spec)
 		    `(,(buffer-string) . ,(point)))))
 	(insert (car pair))
 	(goto-char (+ -1 current (cdr pair))))
-    (twittering-edit-skeleton-insert-base tweet-type in-reply-to-id)))
+    (twittering-edit-skeleton-insert-base tweet-type in-reply-to-id
+					  current-spec)))
 
-(defun twittering-edit-skeleton-inherit-hashtags (tweet-type in-reply-to-id)
+(defun twittering-edit-skeleton-inherit-hashtags (tweet-type in-reply-to-id current-spec)
   (when in-reply-to-id
     (let* ((status (twittering-find-status in-reply-to-id))
 	   (text (cdr (assq 'text status)))
@@ -6833,7 +6843,7 @@ entry in `twittering-edit-skeleton-alist' are performed.")
       (when hashtags
 	(skeleton-insert `(nil _ " " ,footer))))))
 
-(defun twittering-edit-skeleton-inherit-mentions (tweet-type in-reply-to-id)
+(defun twittering-edit-skeleton-inherit-mentions (tweet-type in-reply-to-id current-spec)
   (when in-reply-to-id
     (let* ((status (twittering-find-status in-reply-to-id))
 	   (text (cdr (assq 'text status)))
@@ -6952,7 +6962,7 @@ entry in `twittering-edit-skeleton-alist' are performed.")
 	  (when (< (window-end window t) current-tail)
 	    (twittering-set-window-end window current-tail)))))))
 
-(defun twittering-update-status-from-pop-up-buffer (&optional init-str reply-to-id username tweet-type-as-spec)
+(defun twittering-update-status-from-pop-up-buffer (&optional init-str reply-to-id username tweet-type-as-spec current-spec)
   (interactive)
   (let ((buf (generate-new-buffer twittering-edit-buffer)))
     (setq twittering-pre-edit-window-configuration
@@ -6984,7 +6994,8 @@ entry in `twittering-edit-skeleton-alist' are performed.")
 	     'reply)
 	    (t
 	     'normal))))
-      (twittering-edit-skeleton-insert tweet-type reply-to-id))))
+      (twittering-edit-skeleton-insert tweet-type reply-to-id
+				       current-spec))))
 
 (defun twittering-edit-post-status ()
   (interactive)
@@ -7106,7 +7117,7 @@ entry in `twittering-edit-skeleton-alist' are performed.")
       (re-search-forward "\\`[[:space:]]*@[a-zA-Z0-9_-]+\\([[:space:]]+@[a-zA-Z0-9_-]+\\)*" nil t)
       (re-search-forward "[^[:space:]]" nil t))))
 
-(defun twittering-update-status-from-minibuffer (&optional init-str reply-to-id username tweet-type-as-spec)
+(defun twittering-update-status-from-minibuffer (&optional init-str reply-to-id username tweet-type-as-spec current-spec)
   (and (not (twittering-timeline-spec-is-direct-messages-p tweet-type-as-spec))
        (null init-str)
        twittering-current-hashtag
@@ -7124,7 +7135,8 @@ entry in `twittering-edit-skeleton-alist' are performed.")
 		    'reply)
 		   (t
 		    'normal))))
-	     (twittering-edit-skeleton-insert tweet-type reply-to-id))
+	     (twittering-edit-skeleton-insert tweet-type reply-to-id
+					      current-spec))
 	   `(,(buffer-string) . ,(point))))
 	(sign-str (if (twittering-timeline-spec-is-direct-messages-p
 		       tweet-type-as-spec)
@@ -7489,7 +7501,7 @@ entry in `twittering-edit-skeleton-alist' are performed.")
 
 ;;;; Commands for posting a status
 
-(defun twittering-update-status (&optional init-str reply-to-id username tweet-type-as-spec)
+(defun twittering-update-status (&optional init-str reply-to-id username tweet-type-as-spec ignore-current-spec)
   "Post a tweet.
 The first argument INIT-STR is nil or an initial text to be edited.
 REPLY-TO-ID and USERNAME are an ID and a user-screen-name of a tweet to
@@ -7498,10 +7510,14 @@ TWEET-TYPE-AS-SPEC is a timeline spec specifying a type of a tweet being
 edited. Now, only `(direct-messages)' and nil are available as
 TWEET-TYPE-AS-SPEC. If TWEET-TYPE-AS-SPEC is nil, it means that a tweet is
 edited as a normal tweet.
+If IGNORE-CURRENT-SPEC is non-nil, the timeline spec of the current buffer
+is sent to the function specified by `twittering-update-status-function'.
 
 How to edit a tweet is determined by `twittering-update-status-funcion'."
-  (funcall twittering-update-status-function init-str reply-to-id username
-	   tweet-type-as-spec))
+  (let ((current-spec (unless ignore-current-spec
+			(twittering-current-timeline-spec))))
+    (funcall twittering-update-status-function init-str reply-to-id username
+	     tweet-type-as-spec current-spec)))
 
 (defun twittering-update-status-interactive ()
   (interactive)

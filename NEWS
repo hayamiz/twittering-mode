@@ -8,6 +8,9 @@
 ### Important notice
 
 ### Improvements
+* Edit skeleton according to the current timeline.
+  You can define edit skeletons that refer to the current timeline.
+  See the docstring of the variable `twittering-edit-skeleton-alist'.
 
 ### Bug fixes
 

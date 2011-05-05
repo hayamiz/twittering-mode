@@ -47,16 +47,17 @@
 (require 'xml)
 (require 'parse-time)
 (when (> 22 emacs-major-version)
-  (setq load-path
-	(append (mapcar (lambda (dir)
-			  (expand-file-name
-			   dir
-			   (if load-file-name
-			       (or (file-name-directory load-file-name)
-				   ".")
-			     ".")))
-			'("url-emacs21" "emacs21"))
-		load-path))
+  (eval-and-compile
+    (setq load-path
+	  (append (mapcar (lambda (dir)
+			    (expand-file-name
+			     dir
+			     (if load-file-name
+				 (or (file-name-directory load-file-name)
+				     ".")
+			       ".")))
+			  '("url-emacs21" "emacs21"))
+		  load-path)))
   (and (require 'un-define nil t)
        ;; the explicitly require 'unicode to update a workaround with
        ;; navi2ch. see a comment of `twittering-ucs-to-char' for more

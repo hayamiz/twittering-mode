@@ -7,6 +7,9 @@
 	(twittering-start-http-session-curl-https-p): likewise.
 	(twittering-initialize-global-variables-if-necessary): likewise.
 
+	* twittering-mode.el: Add some directories for Emacs21 to
+	`load-path' even when byte-compiling the file on Emacs21.
+
 2011-04-23  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* NEWS, NEWS.ja, LAST-VERSION, VERSION, doc/web/index.text:

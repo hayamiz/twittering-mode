@@ -10,6 +10,14 @@
 	* twittering-mode.el: Add some directories for Emacs21 to
 	`load-path' even when byte-compiling the file on Emacs21.
 
+	* twittering-mode.el: embed a timeline spec string such as
+	"#HASHTAG" for `goto-spec' of a hashtag instead of a search
+	timeline spec as an internal representation.
+	(twittering-make-hashtag-timeline-spec-string-direct): new macro.
+	(twittering-make-fontified-tweet-text): embed a timeline spec
+	string such as "#HASHTAG" for `goto-spec' of a hashtag instead of
+	a search timeline spec as an internal representation.
+
 2011-04-23  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* NEWS, NEWS.ja, LAST-VERSION, VERSION, doc/web/index.text:

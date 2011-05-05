@@ -3231,7 +3231,9 @@ If SHORTEN is non-nil, the abbreviated expression will be used."
   (defmacro twittering-make-list-timeline-spec-direct (owner listname)
     `(list 'list ,owner ,listname))
   (defmacro twittering-make-hashtag-timeline-spec-direct (tag)
-    `(list 'search (concat "#" ,tag))))
+    `(list 'search (concat "#" ,tag)))
+  (defmacro twittering-make-hashtag-timeline-spec-string-direct (tag)
+    `(concat "#" ,tag)))
 
 (defun twittering-extract-timeline-spec (str &optional unresolved-aliases)
   "Extract one timeline spec from STR.
@@ -5467,8 +5469,9 @@ following symbols;
 		  ((match-string 1 str)
 		   ;; hashtag
 		   (let* ((hashtag (match-string 1 str))
-			  (spec (twittering-make-hashtag-timeline-spec-direct
-				 hashtag))
+			  (spec-string
+			   (twittering-make-hashtag-timeline-spec-string-direct
+			    hashtag))
 			  (url (twittering-get-search-url
 				(concat "#" hashtag))))
 		     (list
@@ -5476,7 +5479,7 @@ following symbols;
 		      'mouse-face 'highlight
 		      'keymap twittering-mode-on-uri-map
 		      'uri url
-		      'goto-spec spec
+		      'goto-spec spec-string
 		      'face 'twittering-username-face)))
 		  ((match-string 2 str)
 		   ;; @USER/LIST

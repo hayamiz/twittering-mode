@@ -45,6 +45,20 @@
 	(twittering-update-status): add a new argument
 	IGNORE-CURRENT-SPEC.
 
+	* twittering-mode.el: The predefined edit skeletons
+	`inherit-hashtags' and `inherit-any' insert hashtags if the
+	current timeline is a search timeline where the query string
+	includes hashtags.
+	(twittering-timeline-spec-is-search-p): new function.
+	(twittering-extract-query-string-from-search-timeline-spec): new
+	function.
+	(twittering-edit-skeleton-alist): change the definition of
+	`inherit-hashtags' and `inherit-any' so that they add hashtags if
+	the current timeline is a search timeline.
+	(twittering-edit-skeleton-inherit-hashtags): insert hashtags if
+	CURRENT-SPEC is a search timeline where the query string includes
+	hashtags.
+
 2011-04-23  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* NEWS, NEWS.ja, LAST-VERSION, VERSION, doc/web/index.text:

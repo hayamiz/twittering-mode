@@ -12,6 +12,9 @@
   現在のtimelineに応じたedit skeletonを定義できるようになりました。
   詳しくは変数`twittering-edit-skeleton-alist'のdocstringを参照くださ
   い。
+  また、定義済みedit skeleton `inherit-hashtags'と`inherit-any'は現在
+  のtimelineがハッシュタグを含むようなsearch timelineである場合に、そ
+  のハッシュタグを自動で追加するよう変更されています。
 
 ### バグ修正
 

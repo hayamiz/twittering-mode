@@ -3396,6 +3396,17 @@ direct_messages."
   (and spec
        (memq (car spec) '(direct_messages direct_messages_sent))))
 
+(defun twittering-timeline-spec-is-search-p (spec)
+  "Return non-nil if SPEC is a search timeline spec."
+  (and (consp spec)
+       (eq 'search (car spec))))
+
+(defun twittering-extract-query-string-from-search-timeline-spec (spec)
+  "Return the query string if SPEC is a search timeline spec.
+If SPEC is not a search timeline spec, return nil."
+  (and (eq 'search (car spec))
+       (cadr spec)))
+
 (defun twittering-equal-string-as-timeline (spec-str1 spec-str2)
   "Return non-nil if SPEC-STR1 equals SPEC-STR2 as a timeline spec."
   (if (and (stringp spec-str1) (stringp spec-str2))
@@ -6711,11 +6722,13 @@ been initialized yet."
     (footer-only-normal
      . ((nil _ twittering-edit-skeleton-footer) . normal))
     (inherit-hashtags
-     . [(twittering-edit-skeleton-inherit-hashtags . reply)])
+     . [(twittering-edit-skeleton-inherit-hashtags . normal)
+	(twittering-edit-skeleton-inherit-hashtags . reply)])
     (inherit-mentions
      . (twittering-edit-skeleton-inherit-mentions . reply))
     (inherit-any
      . [(twittering-edit-skeleton-inherit-mentions . reply)
+	(twittering-edit-skeleton-inherit-hashtags . normal)
 	(twittering-edit-skeleton-inherit-hashtags . reply)]))
   "*Alist of skeletons performed on `twittering-update-status-interactive'.
 A key of the alist is a symbol and each value is nil, (SKELETON . PRED),
@@ -6829,7 +6842,8 @@ entry in `twittering-edit-skeleton-alist' are performed.")
 					  current-spec)))
 
 (defun twittering-edit-skeleton-inherit-hashtags (tweet-type in-reply-to-id current-spec)
-  (when in-reply-to-id
+  (cond
+   (in-reply-to-id
     (let* ((status (twittering-find-status in-reply-to-id))
 	   (text (cdr (assq 'text status)))
 	   (hashtags
@@ -6841,7 +6855,18 @@ entry in `twittering-edit-skeleton-alist' are performed.")
 	    (mapconcat (lambda (tag) (concat "#" tag))
 		       hashtags " ")))
       (when hashtags
-	(skeleton-insert `(nil _ " " ,footer))))))
+	(skeleton-insert `(nil _ " " ,footer)))))
+   ((twittering-timeline-spec-is-search-p current-spec)
+    (let* ((query-string
+	    (twittering-extract-query-string-from-search-timeline-spec
+	     current-spec))
+	   (hashtag-list
+	    (twittering-extract-matched-substring-all
+	     (concat "\\(" twittering-regexp-hash "[a-zA-Z0-9_-]+\\)")
+	     query-string)))
+      (when hashtag-list
+	(let ((footer (mapconcat 'identity hashtag-list " ")))
+	  (skeleton-insert `(nil _ " " ,footer))))))))
 
 (defun twittering-edit-skeleton-inherit-mentions (tweet-type in-reply-to-id current-spec)
   (when in-reply-to-id

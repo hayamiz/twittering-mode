@@ -11,6 +11,9 @@
 * Edit skeleton according to the current timeline.
   You can define edit skeletons that refer to the current timeline.
   See the docstring of the variable `twittering-edit-skeleton-alist'.
+  In addition, `inherit-hashtags' and `inherit-any', the predefined
+  edit skeletons, insert hashtags if the current timeline is a search
+  timeline where the query string includes hashtags.
 
 ### Bug fixes
 

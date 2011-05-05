@@ -898,7 +898,7 @@ its file name. The certificate is retrieved from
   (if twittering-cert-file
       twittering-cert-file
     (let ((file-name (make-temp-file "twmode-cacert"))
-	  (coding-system-for-write 'us-ascii))
+	  (coding-system-for-write 'iso-safe))
       (with-temp-file file-name
 	(insert "-----BEGIN CERTIFICATE-----
 MIIDIDCCAomgAwIBAgIENd70zzANBgkqhkiG9w0BAQUFADBOMQswCQYDVQQGEwJV
@@ -1558,8 +1558,8 @@ The method to perform the request is determined from
   (when (twittering-start-http-session-curl-p)
     (unless twittering-curl-program-https-capability
       (with-temp-buffer
-	(let ((coding-system-for-read 'us-ascii)
-	      (coding-system-for-write 'us-ascii))
+	(let ((coding-system-for-read 'iso-safe)
+	      (coding-system-for-write 'iso-safe))
 	  (call-process twittering-curl-program
 			nil (current-buffer) nil
 			"--version")
@@ -6604,8 +6604,8 @@ been initialized yet."
       (if (null twittering-convert-program)
 	  (setq twittering-use-convert nil)
 	(with-temp-buffer
-	  (let ((coding-system-for-read 'us-ascii)
-		(coding-system-for-write 'us-ascii))
+	  (let ((coding-system-for-read 'iso-safe)
+		(coding-system-for-write 'iso-safe))
 	    (call-process twittering-convert-program nil (current-buffer) nil
 			  "-version")
 	    (goto-char (point-min))

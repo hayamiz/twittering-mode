@@ -1,3 +1,12 @@
+2011-05-06  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Replace the symbol `us-ascii' for a
+	coding-system with `iso-safe', which is valid even on Emacs21.
+	(twittering-ensure-ca-cert): use `iso-safe' instead of `us-ascii'
+	as a coding-system for ASCII.
+	(twittering-start-http-session-curl-https-p): likewise.
+	(twittering-initialize-global-variables-if-necessary): likewise.
+
 2011-04-23  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* NEWS, NEWS.ja, LAST-VERSION, VERSION, doc/web/index.text:

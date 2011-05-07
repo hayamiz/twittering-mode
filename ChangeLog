@@ -1,3 +1,8 @@
+2011-05-08  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* test/test-twittering-mode.el: Fix and add tests of proxy
+	configuration. Now they do not depend on environment variables.
+
 2011-05-06  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Replace the symbol `us-ascii' for a

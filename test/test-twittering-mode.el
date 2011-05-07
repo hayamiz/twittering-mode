@@ -17,7 +17,13 @@
   (test-assert-eq nil (assocref 'quxx '((baz . qux) (foo . bar)))))
 
 (defcase test-toggle-proxy nil nil
-  (setq twittering-proxy-use nil)
+  (setq twittering-proxy-use nil
+	twittering-http-proxy-server nil
+	twittering-http-proxy-port nil)
+  (twittering-toggle-proxy)
+  (test-assert-ok (not twittering-proxy-use))
+  (setq twittering-http-proxy-server "proxy.example.com"
+	twittering-http-proxy-port 8080)
   (twittering-toggle-proxy)
   (test-assert-ok twittering-proxy-use)
   (twittering-toggle-proxy)

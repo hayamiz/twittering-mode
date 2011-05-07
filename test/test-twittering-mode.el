@@ -16,12 +16,65 @@
   (test-assert-eq 'bar (assocref 'foo '((baz . qux) (foo . bar))))
   (test-assert-eq nil (assocref 'quxx '((baz . qux) (foo . bar)))))
 
-(defcase test-toggle-proxy nil nil
-  (setq twittering-proxy-use nil)
-  (twittering-toggle-proxy)
-  (test-assert-ok twittering-proxy-use)
-  (twittering-toggle-proxy)
-  (test-assert-ok (not twittering-proxy-use)))
+(defmacro test-setup-proxy(bindings)
+  `(let ,(append '((process-environment nil)
+		   (twittering-proxy-use t)
+		   (twittering-proxy-server nil)
+		   (twittering-proxy-port nil)
+		   (twittering-http-proxy-server nil)
+		   (twittering-http-proxy-port nil)
+		   (twittering-https-proxy-server nil)
+		   (twittering-https-proxy-port nil))
+		 bindings)
+     (twittering-setup-proxy)))
+
+(defcase test-proxy nil nil
+  (test-assert-ok
+   (test-setup-proxy
+    ((twittering-proxy-server "proxy.example.com")
+     (twittering-proxy-port 8080))))
+  (test-assert-ok
+   (test-setup-proxy
+    ((twittering-proxy-server "proxy.example.com")
+     (twittering-proxy-port "8080"))))
+
+  (test-assert-ok
+   (test-setup-proxy
+    ((twittering-http-proxy-server "proxy.example.com")
+     (twittering-http-proxy-port 8080))))
+  (test-assert-ok
+   (test-setup-proxy
+    ((twittering-http-proxy-server "proxy.example.com")
+     (twittering-http-proxy-port "8080"))))
+
+  (test-assert-ok
+   (test-setup-proxy
+    ((twittering-https-proxy-server "proxy.example.com")
+     (twittering-https-proxy-port 8080))))
+  (test-assert-ok
+   (test-setup-proxy
+    ((twittering-https-proxy-server "proxy.example.com")
+     (twittering-https-proxy-port "8080"))))
+
+  (test-assert-equal
+   (let ((twittering-proxy-use nil)
+	 (process-environment nil)
+	 (twittering-https-proxy-server "proxy.example.com")
+	 (twittering-https-proxy-port 8080))
+     (twittering-toggle-proxy)
+     (list twittering-proxy-use
+	   (progn
+	     (twittering-toggle-proxy)
+	     twittering-proxy-use)))
+   '(t nil))
+
+  ;; The test of configuration via an environment variable should be
+  ;; performed last because it changes global variables of the url library
+  ;; in an irreversible manner.
+  (test-assert-ok
+   (test-setup-proxy
+    ((process-environment
+      '("http_proxy=http://proxy1.example.com:8080/"))))))
 
 (defcase test-sign-string nil nil
   (setq twittering-sign-simple-string nil)

@@ -525,6 +525,24 @@ StatusNet Service.")
       (setq pos (match-end 0)))
     (reverse result)))
 
+(defun twittering-process-alive-p (proc)
+  "Return non-nil if PROC is alive."
+  (not (memq (process-status proc) '(nil closed exit failed signal))))
+
+(defun twittering-start-process-with-sentinel (name buffer program args sentinel)
+  "Start a program in a subprocess with a sentinel.
+
+This function is the same as `start-process' except that SENTINEL must
+be invoked when the process is successfully started."
+  (let ((proc (apply 'start-process name buffer program args)))
+    (when (and proc (functionp sentinel))
+      (if (twittering-process-alive-p proc)
+	  (set-process-sentinel proc sentinel)
+	;; Ensure that the sentinel is invoked if a subprocess is
+	;; successfully started.
+	(funcall sentinel proc "finished")))
+    proc))
+
 ;;;;
 ;;;; Utility for portability
 ;;;;
@@ -1489,7 +1507,10 @@ The method to perform the request is determined from
 		   nil connect-host connect-port)))
     (when proc
       (set-process-buffer proc buffer)
-      (set-process-sentinel proc sentinel)
+      (when (functionp sentinel)
+	(if (twittering-process-alive-p proc)
+	    (set-process-sentinel proc sentinel)
+	  (funcall sentinel proc "finished")))
       (process-send-string proc request-str)
       proc)))
 
@@ -1631,12 +1652,10 @@ The method to perform the request is determined from
 	   ;; file if you use Emacs on Cygwin.
 	   (if use-ssl
 	       cacert-dir
-	     default-directory))
-	 (proc (apply 'start-process name buffer
-		      twittering-curl-program curl-args)))
-    (when (and proc (functionp sentinel))
-      (set-process-sentinel proc sentinel))
-    proc))
+	     default-directory)))
+    (twittering-start-process-with-sentinel name buffer
+					    twittering-curl-program
+					    curl-args sentinel)))
 
 (defun twittering-pre-process-buffer-curl (proc buffer connection-info)
   (let ((use-ssl (cdr (assq 'use-ssl connection-info)))
@@ -1737,12 +1756,10 @@ The method to perform the request is determined from
 	  `(,@(when (and use-proxy proxy-server proxy-port)
 		`(,(format "%s_proxy=%s://%s:%s/" scheme
 			   scheme proxy-server proxy-port)))
-	    ,@process-environment))
-	 (proc
-	  (apply 'start-process name buffer twittering-wget-program args)))
-    (when (and proc (functionp sentinel))
-      (set-process-sentinel proc sentinel))
-    proc))
+	    ,@process-environment)))
+    (twittering-start-process-with-sentinel name buffer
+					    twittering-wget-program args
+					    sentinel)))
 
 (defun twittering-pre-process-buffer-wget (proc buffer connection-info)
   (with-current-buffer buffer

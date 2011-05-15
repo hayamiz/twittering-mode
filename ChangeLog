@@ -1,3 +1,16 @@
+2011-05-16  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Ensure that a sentinel is invoked when a
+	process is started successfully.
+	(twittering-process-alive-p): new function.
+	(twittering-start-process-with-sentinel): new function.
+	(twittering-send-http-request-native): ensure that the given
+	sentinel is invoked when the process is started successfully.
+	(twittering-send-http-request-curl): replace `start-process' with
+	`twittering-start-process-with-sentinel' in order to ensure that
+	the sentinel is invoked.
+	(twittering-send-http-request-wget): likewise.
+
 2011-05-08  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* test/test-twittering-mode.el: Fix and add tests of proxy

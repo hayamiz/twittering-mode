@@ -3610,6 +3610,16 @@ Statuses are stored in ascending-order with respect to their IDs."
 		     twittering-service-method-table)))))
     (funcall func username id)))
 
+(defun twittering-get-list-url (username listname)
+  "Generate a URL of a specific list."
+  (let ((func
+	 (cdr (assq
+	       'status-url
+	       (assq twittering-service-method
+		     twittering-service-method-table))))
+	(str (concat username "/" listname)))
+    (funcall func str nil)))
+
 (defun twittering-get-status-url-twitter (username &optional id)
   "Generate status URL for Twitter."
   (if id
@@ -5548,7 +5558,7 @@ following symbols;
 		      beg end
 		      'mouse-face 'highlight
 		      'keymap twittering-mode-on-uri-map
-		      'uri (twittering-get-status-url list-name)
+		      'uri (twittering-get-list-url owner list-name)
 		      'goto-spec
 		      (twittering-make-list-timeline-spec-direct owner
 								 list-name)

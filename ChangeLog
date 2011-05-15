@@ -24,6 +24,12 @@
 	(twittering-xml-parse-region): return nil if an error happens on
 	`xml-parse-region'.
 
+	* twittering-mode.el: Fix uri property of a list name in a
+	tweet. Thanks to Naohiro Aota who reported the problem.
+	(twittering-get-list-url): new function.
+	(twittering-make-fontified-tweet-text): correctly generate uri
+	property for a list name in a tweet.
+
 2011-05-08  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* test/test-twittering-mode.el: Fix and add tests of proxy

@@ -20,6 +20,10 @@
 	(twittering-verify-credentials): likewise.
 	(twittering-get-list-sync): use `twittering-process-alive-p'.
 
+	* twittering-mode.el: Ignore errors on `xml-parse-region'.
+	(twittering-xml-parse-region): return nil if an error happens on
+	`xml-parse-region'.
+
 2011-05-08  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* test/test-twittering-mode.el: Fix and add tests of proxy

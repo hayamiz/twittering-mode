@@ -2999,7 +2999,11 @@ exiting abnormally by decoding unknown numeric character reference."
      'decode-char 'after 'twittering-add-fail-over-to-decode-char)
     (ad-activate 'decode-char)
     (unwind-protect
-	(apply 'xml-parse-region args)
+	(condition-case err
+	    (apply 'xml-parse-region args)
+	  (error
+	   (message "Failed to parse the retrieved XML.")
+	   nil))
       (ad-disable-advice 'decode-char 'after
 			 'twittering-add-fail-over-to-decode-char)
       (if activated

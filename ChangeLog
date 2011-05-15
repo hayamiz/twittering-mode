@@ -11,6 +11,15 @@
 	the sentinel is invoked.
 	(twittering-send-http-request-wget): likewise.
 
+	* twittering-mode.el: Confirm that the process is alive on waiting
+	for its sentinel.
+	(twittering-oauth-get-token-alist): check whether the process is
+	alive on waiting for the invocation of the sentinel for the
+	process.
+	(twittering-tinyurl-get): likewise.
+	(twittering-verify-credentials): likewise.
+	(twittering-get-list-sync): use `twittering-process-alive-p'.
+
 2011-05-08  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* test/test-twittering-mode.el: Fix and add tests of proxy

@@ -2540,31 +2540,36 @@ function."
 	    ("Content-Type" . "application/x-www-form-urlencoded"))
 	  url post-body)))
     (lexical-let ((result 'queried))
-      (twittering-send-http-request
-       request nil
-       (lambda (proc status connection-info header-info)
-	 (let ((status-line (cdr (assq 'status-line header-info)))
-	       (status-code (cdr (assq 'status-code header-info))))
-	   (case-string
-	    status-code
-	    (("200")
-	     (when twittering-debug-mode
-	       (let ((buffer (current-buffer)))
-		 (with-current-buffer (twittering-debug-buffer)
-		   (insert-buffer-substring buffer))))
-	     (setq result
-		   (twittering-oauth-make-response-alist (buffer-string)))
-	     nil)
-	    (t
-	     (setq result nil)
-	     (format "Response: %s" status-line)))))
-       (lambda (proc status connection-info)
-	 (when (and (memq status '(nil closed exit failed signal))
-		    (eq result 'queried))
-	   (setq result nil))))
-      (while (eq result 'queried)
-	(sit-for 0.1))
-      result)))
+      (let ((proc
+	     (twittering-send-http-request
+	      request nil
+	      (lambda (proc status connection-info header-info)
+		(let ((status-line (cdr (assq 'status-line header-info)))
+		      (status-code (cdr (assq 'status-code header-info))))
+		  (case-string
+		   status-code
+		   (("200")
+		    (when twittering-debug-mode
+		      (let ((buffer (current-buffer)))
+			(with-current-buffer (twittering-debug-buffer)
+			  (insert-buffer-substring buffer))))
+		    (setq result
+			  (twittering-oauth-make-response-alist
+			   (buffer-string)))
+		    nil)
+		   (t
+		    (setq result nil)
+		    (format "Response: %s" status-line)))))
+	      (lambda (proc status connection-info)
+		(when (and (not (twittering-process-alive-p proc))
+			   (eq result 'queried))
+		  (setq result nil))))))
+	(while (and (eq result 'queried)
+		    (twittering-process-alive-p proc))
+	  (sit-for 0.1))
+	(when (eq result 'queried)
+	  (setq result nil))
+	result))))
 
 (defun twittering-oauth-get-request-token (url consumer-key consumer-secret)
   (let ((auth-str
@@ -3074,25 +3079,29 @@ BEG and END mean a region that had been modified."
       nil)
      (t
       (lexical-let ((result 'queried))
-	(twittering-send-http-request
-	 request additional-info
-	 (lambda (proc status connection-info header-info)
-	   (let ((status-line (cdr (assq 'status-line header-info)))
-		 (status-code (cdr (assq 'status-code header-info))))
-	     (case-string
-	      status-code
-	      (("200")
-	       (setq result (buffer-string))
-	       nil)
-	      (t
-	       (setq result nil)
-	       (format "Response: %s" status-line)))))
-	 (lambda (proc status connection-info)
-	   (when (and (memq status '(nil closed exit failed signal))
-		      (eq result 'queried))
-	     (setq result nil))))
-	(while (eq result 'queried)
-	  (sit-for 0.1))
+	(let ((proc
+	       (twittering-send-http-request
+		request additional-info
+		(lambda (proc status connection-info header-info)
+		  (let ((status-line (cdr (assq 'status-line header-info)))
+			(status-code (cdr (assq 'status-code header-info))))
+		    (case-string
+		     status-code
+		     (("200")
+		      (setq result (buffer-string))
+		      nil)
+		     (t
+		      (setq result nil)
+		      (format "Response: %s" status-line)))))
+		(lambda (proc status connection-info)
+		  (when (and (not (twittering-process-alive-p proc))
+			     (eq result 'queried))
+		    (setq result nil))))))
+	  (while (and (eq result 'queried)
+		      (twittering-process-alive-p proc))
+	    (sit-for 0.1))
+	  (when (eq result 'queried)
+	    (setq result nil)))
 	(let ((processed-result (if (and result (functionp post-process))
 				    (funcall post-process service result)
 				  result)))
@@ -4123,8 +4132,13 @@ If `twittering-password' is nil, read it from the minibuffer."
 	  (setq twittering-oauth-access-token-alist nil))
 	 (t
 	  ;; wait for verification to finish.
-	  (while (twittering-account-authorization-queried-p)
-	    (sit-for 0.1))))))
+	  (while (and (twittering-account-authorization-queried-p)
+		      (twittering-process-alive-p proc))
+	    (sit-for 0.1))
+	  (when (twittering-account-authorization-queried-p)
+	    (message "Status of Authorization process is `%s'. Type M-x twit to retry."
+		     (process-status proc))
+	    (setq twittering-account-authorization nil))))))
      (t
       (message "Failed to load an authorized token from \"%s\"."
 	       twittering-private-info-file)
@@ -4221,8 +4235,12 @@ If `twittering-password' is nil, read it from the minibuffer."
 	(setq twittering-password nil))
        (t
 	;; wait for verification to finish.
-	(while (twittering-account-authorization-queried-p)
-	  (sit-for 0.1))))))
+	(while (and (twittering-account-authorization-queried-p)
+		    (twittering-process-alive-p proc))
+	  (sit-for 0.1))
+	(when (twittering-account-authorization-queried-p)
+	  (message "Authorization was interrupted. Type M-x twit to retry.")
+	  (setq twittering-account-authorization nil))))))
    (t
     (message "%s is invalid as an authorization method."
 	     twittering-auth-method)))
@@ -4536,8 +4554,7 @@ If `twittering-password' is nil, read it from the minibuffer."
   (let ((proc (funcall function username)))
     (when proc
       (while (and (not twittering-list-index-retrieved)
-		  (not (memq (process-status proc)
-			     '(exit signal closed failed nil))))
+		  (twittering-process-alive-p proc))
 	(sit-for 0.1))))
   (cond
    ((null twittering-list-index-retrieved)

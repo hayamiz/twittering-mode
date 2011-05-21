@@ -4150,8 +4150,9 @@ If `twittering-password' is nil, read it from the minibuffer."
 		      (twittering-process-alive-p proc))
 	    (sit-for 0.1))
 	  (when (twittering-account-authorization-queried-p)
-	    (message "Status of Authorization process is `%s'. Type M-x twit to retry."
-		     (process-status proc))
+	    (message
+	     "Status of Authorization process is `%s'. Type M-x twit to retry."
+	     (process-status proc))
 	    (setq twittering-account-authorization nil))))))
      (t
       (message "Failed to load an authorized token from \"%s\"."
@@ -4253,7 +4254,9 @@ If `twittering-password' is nil, read it from the minibuffer."
 		    (twittering-process-alive-p proc))
 	  (sit-for 0.1))
 	(when (twittering-account-authorization-queried-p)
-	  (message "Authorization was interrupted. Type M-x twit to retry.")
+	  (message
+	   "Status of Authorization process is `%s'. Type M-x twit to retry."
+	   (process-status proc))
 	  (setq twittering-account-authorization nil))))))
    (t
     (message "%s is invalid as an authorization method."

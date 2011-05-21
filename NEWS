@@ -21,7 +21,7 @@
   input methods seem to interfere the update of the overlay. In such
   case, you may avoid the problems by disabling the update of the
   overlay as follows.
-  (setq twittering-disable-overlay-on-excessive-string t)
+  (setq twittering-disable-overlay-on-too-long-string t)
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

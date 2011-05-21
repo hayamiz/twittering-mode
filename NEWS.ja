@@ -21,7 +21,7 @@
   しかし環境によってはinput methodとこのoverlayの更新とが干渉して問題
   を起こす場合があるようです。そのような場合、下記の設定でoverlayの付
   加を無効化すれば問題を回避できる可能性があります。
-  (setq twittering-disable-overlay-on-excessive-string t)
+  (setq twittering-disable-overlay-on-too-long-string t)
 
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正

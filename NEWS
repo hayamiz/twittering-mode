@@ -16,6 +16,7 @@
   timeline where the query string includes hashtags.
 
 ### Bug fixes
+* Fix of displaying a message of authorization.
 
  2.0.0: 2011-04-22
 ------------------

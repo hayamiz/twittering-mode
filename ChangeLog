@@ -6,6 +6,14 @@
 	on basic authentication similar as that on OAuth/xAuth
 	authentication.
 
+	* twittering-mode.el: Fix the display of messages about
+	authorization.
+	(twittering-send-http-request): do not display a message on
+	authorization.
+	(twittering-http-get-verify-credentials-sentinel): directly
+	display a message whether the authorization succeeded or not.
+	`twittering-send-http-request' does not display it.
+
 2011-05-16  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Ensure that a sentinel is invoked when a

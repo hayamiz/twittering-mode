@@ -2,6 +2,12 @@
  NEWS -- The history of twittering-mode
 ========================================
 
+ 2.0.x: XXXX-XX-XX
+------------------
+
+### Bug fixes
+* Fix of displaying a message of authorization.
+
  2.0.0: 2011-04-22
 ------------------
 

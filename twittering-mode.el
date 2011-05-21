@@ -1398,8 +1398,7 @@ The method to perform the request is determined from
 			 (apply func proc status connection-info
 				header-info nil))))))
 	   ;; unwind-forms
-	   (when (and mes (or (twittering-buffer-related-p)
-			      (twittering-account-authorization-queried-p)))
+	   (when (and mes (twittering-buffer-related-p))
 	     ;; CLEAN-UP-FUNC can overwrite a message from the return value
 	     ;; of FUNC.
 	     (message "%s" mes))
@@ -4226,32 +4225,34 @@ If `twittering-password' is nil, read it from the minibuffer."
 
 (defun twittering-http-get-verify-credentials-sentinel (proc status connection-info header-info)
   (let ((status-line (cdr (assq 'status-line header-info)))
-	(status-code (cdr (assq 'status-code header-info))))
+	(status-code (cdr (assq 'status-code header-info)))
+	(username (cdr (assq 'username connection-info))))
     (case-string
      status-code
      (("200")
       (cond
        ((eq twittering-auth-method 'basic)
-	(setq twittering-username (cdr (assq 'username connection-info)))
+	(setq twittering-username username)
 	(setq twittering-password (cdr (assq 'password connection-info))))
        (t
-	(setq twittering-username (cdr (assq 'username connection-info)))))
+	(setq twittering-username username)))
       (setq twittering-account-authorization 'authorized)
       (twittering-start)
-      (format "Authorization for the account \"%s\" succeeded."
-	      (twittering-get-username)))
+      (message "Authorization for the account \"%s\" succeeded." username)
+      nil)
      (t
       (setq twittering-account-authorization nil)
       (let ((error-mes
 	     (format "Authorization for the account \"%s\" failed. Type M-x twit to retry."
-		     (twittering-get-username))))
+		     username)))
 	(cond
 	 ((memq twittering-auth-method '(oauth xauth))
 	  (setq twittering-oauth-access-token-alist nil))
 	 ((eq twittering-auth-method 'basic)
 	  (setq twittering-username nil)
 	  (setq twittering-password nil)))
-	error-mes)))))
+	(message "%s" error-mes)
+	nil)))))
 
 (defun twittering-http-get-verify-credentials-clean-up-sentinel (proc status connection-info)
   (when (and (memq status '(exit signal closed failed))

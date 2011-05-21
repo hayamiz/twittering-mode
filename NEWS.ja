@@ -15,6 +15,13 @@
   また、定義済みedit skeleton `inherit-hashtags'と`inherit-any'は現在
   のtimelineがハッシュタグを含むようなsearch timelineである場合に、そ
   のハッシュタグを自動で追加するよう変更されています。
+* 超過文字列の強調表示無効化
+  通常、`twittering-edit-mode'では140字を超える部分にoverlay
+  `twittering-warning-overlay'を付加して強調表示するようになっています。
+  しかし環境によってはinput methodとこのoverlayの更新とが干渉して問題
+  を起こす場合があるようです。そのような場合、下記の設定でoverlayの付
+  加を無効化すれば問題を回避できる可能性があります。
+  (setq twittering-disable-overlay-on-excessive-string t)
 
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正

@@ -14,6 +14,14 @@
   In addition, `inherit-hashtags' and `inherit-any', the predefined
   edit skeletons, insert hashtags if the current timeline is a search
   timeline where the query string includes hashtags.
+* Disabling overlay on excessive string.
+  In default, `twittering-edit-mode' emphasizes too long strings by
+  putting the overlay `twittering-warning-overlay' on characters
+  following the 140th character. On some environments, however, some
+  input methods seem to interfere the update of the overlay. In such
+  case, you may avoid the problems by disabling the update of the
+  overlay as follows.
+  (setq twittering-disable-overlay-on-excessive-string t)
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

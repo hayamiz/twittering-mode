@@ -375,6 +375,16 @@ This value will be used only when showing new tweets.
 
 See `twittering-show-replied-tweets' for more details.")
 
+(defvar twittering-disable-overlay-on-too-long-string nil
+  "*If non-nil, disable overlay on too long string on edit buffer.
+
+If nil, `twittering-edit-mode' puts an overlay `twittering-warning-overlay' on
+characters following the 140th character.
+
+On some environments, some input methods seem to interfere the update of the
+overlay. In such case, you may avoid the problems by setting this variable to
+non-nil.")
+
 (defvar twittering-use-show-minibuffer-length t
   "*Show current length of minibuffer if this variable is non-nil.
 
@@ -6990,9 +7000,10 @@ entry in `twittering-edit-skeleton-alist' are performed.")
     (setq mode-name
 	  (format "twmode-status-edit[%d/%d/140]" length maxlen))
     (force-mode-line-update)
-    (if (< maxlen length)
-	(move-overlay twittering-warning-overlay (1+ maxlen) (1+ length))
-      (move-overlay twittering-warning-overlay 1 1))))
+    (unless twittering-disable-overlay-on-too-long-string
+      (if (< maxlen length)
+	  (move-overlay twittering-warning-overlay (1+ maxlen) (1+ length))
+	(move-overlay twittering-warning-overlay 1 1)))))
 
 (defun twittering-edit-extract-status ()
   (if (eq major-mode 'twittering-edit-mode)

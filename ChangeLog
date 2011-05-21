@@ -1,3 +1,11 @@
+2011-05-21  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix the message for dead process on basic
+	authentication.
+	(twittering-verify-credentials): make the message for dead process
+	on basic authentication similar as that on OAuth/xAuth
+	authentication.
+
 2011-05-16  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Ensure that a sentinel is invoked when a

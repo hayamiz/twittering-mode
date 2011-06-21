@@ -8,6 +8,30 @@
 ### Important notice
 
 ### Improvements
+* Edit skeleton according to the current timeline.
+  You can define edit skeletons that refer to the current timeline.
+  See the docstring of the variable `twittering-edit-skeleton-alist'.
+  In addition, `inherit-hashtags' and `inherit-any', the predefined
+  edit skeletons, insert hashtags if the current timeline is a search
+  timeline where the query string includes hashtags.
+* Disabling overlay on excessive string.
+  In default, `twittering-edit-mode' emphasizes too long strings by
+  putting the overlay `twittering-warning-overlay' on characters
+  following the 140th character. On some environments, however, some
+  input methods seem to interfere the update of the overlay. In such
+  case, you may avoid the problems by disabling the update of the
+  overlay as follows.
+  (setq twittering-disable-overlay-on-too-long-string t)
+
+### Bug fixes
+* Fix of displaying a message of authorization.
+
+ 2.0.0: 2011-04-22
+------------------
+
+### Important notice
+
+### Improvements
 
 * Support for storing private information in a file encrypted by master
   password. Once you save the authorized account by using master password,
@@ -22,11 +46,187 @@
   because it deeply depends on internal implementation of `alpaca.el'.
 * Authentication via xAuth.
   You can enable xAuth by "(setq twittering-auth-method 'xauth)".
-* ...
+* Rejection of invalid PIN code input and strip extra white spaces.
+* Confirmation of process status for avoiding dead-lock.
+* Native retweets on `user', `friends', `mentions' and `public' timelines.
+* Detection of abnormal exit of an invoked process.
+  The exit-status on abnormal exit is printed to the buffer "*Messages*".
+* Support for disabling server authentication.
+  Server authentication is enabled by default.
+  It can be disabled by "(setq twittering-allow-insecure-server-cert t)".
+* Replacement of unknown numeric character references with its alternative.
+  The alternative can be specified by "twittering-unicode-replacement-char".
+  Its default value is U+FFFD.
+* Addition of the files ".nosearch".
+  The files ".nosearch" are added to sub-directories. This makes the sub-
+  directories be excluded from recursive registration of "load-path".
+* Suppression of multiple authorization.
+  Authorization will be performed only once even if multiple timelines
+  are specified as initial timelines.
+* Independence of byte-compiled form from "cl".
+  Byte-compiled `twittering-mode.el' does not depend on `cl'.
+* Update of the embedded CA certificate.
+  The embedded CA certificate is replaced with `Equifax Secure Certificate
+  Authority'.
+* Support for StatusNet.
+  You can switch `twittering-mode.el' to StatusNet mode by
+  "(setq twittering-service-method 'statusnet)". Note that you cannot
+  use one instance of Emacs with `twittering-mode.el' for Twitter and
+  StatusNet simultaneously.
+  To use StatusNet, you must configure variables of host information.
+  For the service on `http://identi.ca/', you may require the below
+  configuration.
+  (setq twittering-service-method 'statusnet)
+  (setq twittering-auth-method 'basic)
+  (setq twittering-username "YOUR-ACCOUNT-NAME")
+  ;; host
+  (setq twittering-api-host "identi.ca")
+  (setq twittering-api-search-host "identi.ca")
+  (setq twittering-web-host "identi.ca")
+  ;; paths for API
+  (setq twittering-api-prefix "api/")
+  (setq twittering-search-api-method "api/search")
+  (setq twittering-web-path-prefix "")
+* Copy a URI in a tweet or a URI pointing to the tweet by "U".
+  Thanks to Faried Nawaz.
+* Copy tweets by "C-<mouse-3>".
+  Thanks to Faried Nawaz.
+* Support for `wget'.
+  The external program `wget' can be used for communicating with Twitter
+  as well as `curl'. You can give priority to `wget' by the below
+  configuration.
+  (setq twittering-connection-type-order '(wget curl native))
+* Display of the current connection method on the mode-line.
+  By default, the current connection method is displayed on the mode-line.
+  You can disable it by "(setq twittering-display-connection-method nil)".
+* Silent retrieval of icons.
+  The default value of `twittering-url-show-status' is changed to nil.
+  So, icons are retrieved silently by default.
+* New connection methods, `urllib-http' and `urllib-https'.
+  New connection methods are added, which are implemented by using `url'
+  library. The library supports HTTP redirection, but it may be slow and
+  unstable. This method is not recommended if you can use other methods.
+  If you give incorrect account information on BASIC authentication or
+  xAuth with this new methods, you will be asked to input account
+  information again. This behavior is a function of the url library, but
+  twittering-mode cannot use account information given on the second try.
+  When you are asked to input it again, cancel it by 'C-g' and do
+  'M-x twit'.
+* Redisplaying tweets with idle timer.
+  Twittering-mode waits for Emacs to become idle before it redisplays
+  tweets for time and icon image. Tweets are redisplayed each time Emacs
+  remains idle for a certain time specified by the variable
+  `twittering-timer-interval-for-redisplaying', which is 1 second by
+  default.
+* Retrieval of icon images by `curl' and `wget'.
+  Icon images can be retrieved by the same connection method as that used
+  for retrieving tweets. The priority of methods is similarly determined
+  by `twittering-connection-type-order'.
+* Lazy invocation of `convert'.
+  The program `convert' for converting the size of icon images is invoked
+  after Emacs remains idle a certain time. The delay will prevent Emacs
+  from stucking on inputting characters on other buffer. The delay time is
+  specified by the new variable `twittering-url-request-sentinel-delay',
+  which is 1 second by default.
+* Support for favorites timeline.
+  ":favorites" and ":favorites/USER" are added as new timeline specs.
+  By using the latter, you can read favorites for other users. You can
+  specify a username with completion when you input ":favorites/" for
+  `twittering-visit-timeline' bound to "V" in default.
+  Note that favorites are rendered in order of time when each tweet is
+  posted. This is because it is impossible to retrieve the time when a
+  tweet was favorited. At most, 20 favorites can be retrieved. Backward
+  retrieval of more previous favorites is not supported yet.
+* Support for new URL shortening services.
+  You can use `bit.ly', `goo.gl', `is.gd' or `j.mp' as URL shortening
+  service by the following.
+  (setq twittering-tinyurl-service 'bit.ly) ;; for bit.ly
+  (setq twittering-tinyurl-service 'goo.gl) ;; for goo.gl
+  (setq twittering-tinyurl-service 'is.gd)  ;; for is.gd
+  (setq twittering-tinyurl-service 'j.mp)   ;; for j.mp
+  To use `bit.ly' or `j.mp', you need to configure `twittering-bitly-login'
+  and `twittering-bitly-api-key' according to your account as follows.
+  (setq twittering-bitly-login "YOUR-LOGIN-NAME")
+  (setq twittering-bitly-api-key "YOUR-API-KEY")
+  Thanks to Michael Kohl and Lars Gregori.
+* Change of the format specifiers, "%c", "%C", "%@", for official ReTweet.
+  `created_at' for official ReTweet means when the original tweet was
+  posted instead of when it was retweeted.
+* Function to report a user as a spammer.
+  The function `twittering-block-and-report-as-spammer' is added. By
+  invoking the function on a tweet, you can block its author and report
+  him or her as a spammer.
+* Function to block a user.
+  The function `twittering-block' is added. By invoking the function
+  on a tweet, you can block its author.
+* Support for persistent icon storage.
+  By "(setq twittering-use-icon-storage t)", you can save retrieved
+  and resized icon images into a persistent storage, which is disabled
+  in default. On next and later invocation, twittering-mode can
+  display icons faster because the storage reduces time required to
+  retrieve and resize images.
+  In default, recently rendered 500 icons are stored at most. You can
+  change the limit by the variable `twittering-icon-storage-limit'. To
+  store all icons, configure the variable as nil.
+  The default storage file is `~/.twittering-mode-icons.gz'. You can
+  change it by changing `twittering-icon-storage-file'. Note that icon
+  images in the storage generated on a certain version of Emacs may be
+  unavailable on another version of Emacs.
+* New format specifier "%RT{...}".
+  For `twittering-status-format', the new format specifier "%RT{...}"
+  is added, which is rendered only when the tweet is an official
+  ReTweet. In the brace, you can use any format specifiers, which are
+  rendered with the information of the retweet itself instead of the
+  retweeted original tweet. For example, "%RT{%s}" means who retweeted
+  the tweet.
+* Cancel of official ReTweets.
+  If an official ReTweet has been posted by yourself, you can cancel
+  it by 'C-cD', which is the same way of deleting a tweet.
+* Completion of lists to which a specific user subscribes.
+  You can visit a list to which a specific user subscribes by 'C-uL'.
+  Thanks to Naohiro Aota.
+* Edit skeleton.
+  Edit skeleton is a dynamic template system on posting a tweet. You
+  can define an "edit skeleton", which specifies what string is
+  automatically inserted as a footer, header or others before editing
+  a tweet. `twittering-edit-skeleton-alist' is the alist of edit
+  skeletons. For further details, see docstring of
+  `twittering-edit-skeleton-alist'.
+  The following edit skeletons are pre-defined;
+  none: insert nothing,
+  footer: insert `twittering-edit-skeleton-footer' as a footer,
+  footer-only-normal: insert `twittering-edit-skeleton-footer' as a
+  footer only when the tweet being edited is a normal tweet, not a
+  reply or direct message,
+  inherit-hashtags: insert hashtags extracted from the replied tweet,
+  inherit-mentions: insert mentions extracted from the replied tweet,
+  inherit-any: insert hashtags and mentions extracted from the replied
+  tweet.
+  You can switch the current edit skeleton by invoking
+  `twittering-switch-edit-skeleton'.
+  The footer string, `twittering-edit-skeleton-footer', can be changed
+  by invoking `twittering-edit-skeleton-change-footer'.
+* Variable of fallback image format.
+  You can change the fallback format of images by changing the
+  variable `twittering-fallback-image-format'. The default format is
+  XPM. Images which Emacs does not supports are displayed by
+  converting them into the fallback format.
+  By the following configuration, you may avoid strange behaviors when
+  displaying XPM images on NTEmacs. Thanks to Silver Chariot.
+  (setq twittering-fallback-image-format 'png)
 
 ### Bug fixes
 
-* ...
+* Support for the url library included in Emacs 23 and later.
+* Fix of options of `curl' for POST with an empty body.
+* Fix of retweeting a retweet.
+* Fix of a race condition on abnormal exit of a process for verification.
+* Fix of replying to tweets displayed as replied tweets.
+  Thanks to Naohiro Aota.
+* Fix of rendering the format specifier "%L".
+  The specifier "%L" is correctly rendered with a preceding whitespace.
+  Thanks to Tom X. Tobin.
+* Fix of repeatedly registering a sentinel for retrieving an image.
 
  1.0.0: 2010-06-05
 ------------------
@@ -158,7 +358,7 @@ existing way.
 * Kouhei Sutou
 * Naohiro Aota
 * Satoshi Yatagawa
-* Tadasohi MATSUO
+* Tadashi MATSUO
 * Thomas Danckaert
 * Tsuyoshi CHO
 * IMAI Toshiyuki

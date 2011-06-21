@@ -8,12 +8,231 @@
 ### 重要なお知らせ
 
 ### 改良
+* 現在のtimelineに応じたedit skeleton
+  現在のtimelineに応じたedit skeletonを定義できるようになりました。
+  詳しくは変数`twittering-edit-skeleton-alist'のdocstringを参照くださ
+  い。
+  また、定義済みedit skeleton `inherit-hashtags'と`inherit-any'は現在
+  のtimelineがハッシュタグを含むようなsearch timelineである場合に、そ
+  のハッシュタグを自動で追加するよう変更されています。
+* 超過文字列の強調表示無効化
+  通常、`twittering-edit-mode'では140字を超える部分にoverlay
+  `twittering-warning-overlay'を付加して強調表示するようになっています。
+  しかし環境によってはinput methodとこのoverlayの更新とが干渉して問題
+  を起こす場合があるようです。そのような場合、下記の設定でoverlayの付
+  加を無効化すれば問題を回避できる可能性があります。
+  (setq twittering-disable-overlay-on-too-long-string t)
 
-* ...
+### バグ修正
+* 認証成功・失敗についてのメッセージが表示されるよう修正
+
+ 2.0.0: 2011-04-22
+------------------
+
+### 重要なお知らせ
+
+### 改良
+
+* OAuth, xAuthで取得した認証済みaccess tokenの暗号化保存に対応
+  認証済みaccess tokenをGnuPGで暗号化して保存することができます。
+  tokenを保存しておけば、次回以降の起動時にOAuthのための外部
+  ブラウザ起動やPIN入力等の手続きは必要なくなります。代わりに暗号化を
+  解くためのpassphraseを入力してください。
+  この機能は"(setq twittering-use-master-password t)"とすれば有効に
+  なります(デフォルトでは無効です)。
+  暗号化された秘密情報はデフォルトでは`~/.twittering-mode.gpg'に記録
+  されますがこの保存先は変数`twittering-private-info-file'で変更可能
+  です。
+  この機能を有効にするには外部プログラムGnuPGに加えてEmacs LISPプロ
+  グラム`alpaca.el'かEasyPGが必要です。Emacsは23以降であればEasyPGを
+  同梱していますので追加のEmacs LISPプログラムは必要ありません。
+  `alpaca.el'はversion 0.13を想定していますので、他のversionでは動作に
+  問題がある恐れがあります。
+* xAuthのサポート
+  OAuth認証の他にxAuthによる認証にも対応しました。xAuthによる認証を
+  有効にするには"(setq twittering-auth-method 'xauth)"の設定を追加して
+  ください。
+* PINコード入力時に不必要な空白を自動で削除
+* 起動した外部プロセスのstatusを確認してdead-lockを回避
+* `user', `friends', `mentions', `public'でもnative retweetを表示
+* 起動した外部プロセスの異常終了を検出
+  異常終了したプロセスのexit-statusは"*Messages*"バッファで確認できます。
+* HTTPS通信でのサーバ認証の無効化に対応
+  サーバ認証はデフォルトでは有効ですが、これを無効化することもできる
+  ようになりました。"(setq twittering-allow-insecure-server-cert t)"の
+  設定でHTTPS通信時にもサーバ認証を行わなくなります。
+* 未知の数値文字参照を代替文字で置換
+  decodeできない数値文字参照が現れたときにその文字を変数
+  `twittering-unicode-replacement-char'で指定された文字に置換して表示
+  します。代替文字のデフォルトはU+FFFDです。
+* サブディレクトリに`.nosearch'を追加
+  必要のないサブディレクトリが再帰的に`load-path'に追加されるのを防ぎ
+  ます。
+* 初期timelineを複数設定している場合の認証情報入力回数を1回に変更
+* byte-compile後のclライブラリへの依存を解消
+* 内蔵しているCA証明書を更新
+  内蔵しているCA証明書を`Equifax Secure Certificate Authority'で置き
+  換えました。
+* StatusNetモードをサポート
+  `twittering-mode.el'をStatusNet用に切り替えられるようになりました。
+  "(setq twittering-service-method 'statusnet)"という設定で切り替わ
+  ります。TwitterとStatusNetを同時に使うことはできませんので注意して
+  ください。
+  StatusNet向けに使うにはホスト情報の設定も必要になります。
+  `http://identi.ca/'でのサービスの場合、以下のような設定が必要です。
+  (setq twittering-service-method 'statusnet)
+  (setq twittering-auth-method 'basic)
+  (setq twittering-username "YOUR-ACCOUNT-NAME")
+  ;; host
+  (setq twittering-api-host "identi.ca")
+  (setq twittering-api-search-host "identi.ca")
+  (setq twittering-web-host "identi.ca")
+  ;; paths for API
+  (setq twittering-api-prefix "api/")
+  (setq twittering-search-api-method "api/search")
+  (setq twittering-web-path-prefix "")
+* "U"でtweet中のURIやそのtweet自体へのURIをコピー
+  Thanks to Faried Nawaz.
+* "C-<mouse-3>"でtweetをコピー
+  Thanks to Faried Nawaz.
+* wgetによるtweet取得に対応
+  Twitterサーバとの通信に外部プログラムwgetを使えるようになりました。
+  下記の設定でwgetが優先して使われるようになります。
+  (setq twittering-connection-type-order '(wget curl native))
+* 現在の通信方法(connection method)をモードライン上に表示
+  デフォルトで現在の通信方法(connection method)がモードライン上に表示
+  されます。下記の設定で表示しないようにもできます。
+  (setq twittering-display-connection-method nil)
+* アイコン取得時の情報表示をデフォルトで抑制
+  `twittering-url-show-status'のデフォルト値がnilに変更されました。
+  デフォルトではアイコン取得時の情報は表示されなくなります。
+* urlライブラリによるtweet取得に対応
+  通信方法(connection method)として`urllib-http'と`urllib-https'を追加
+  しました。`native'とは異なりHTTP redirectionもサポートしていますが
+  動作は遅く、また不安定になる場合もあるようです。他のmethodが利用できる
+  場合にはそちらを用いることを推奨します。
+  `urllib-http',`urllib-https'を用いてのBASIC認証,xAuthで間違ったアカウ
+  ント情報を与えるとurlライブラリの機能で再入力を求められますが、再入力
+  した情報で通信を続行することはできません。再入力を求められたときはC-g
+  でキャンセルし、改めてM-x twitを実行してください。
+* ユーザからの入力待ち状態になってから再描画
+  時刻やアイコン画像の表示のためのtweetの再描画を、Emacsがユーザからの
+  入力待ち状態(idle状態)に入り、その状態が一定時間継続してから行うように
+  しました。待ち時間は変数`twittering-timer-interval-for-redisplaying'で
+  指定できます。デフォルトの待ち時間は1秒です。
+* curlやwgetでのアイコン画像取得に対応
+  アイコン画像の取得にtweet取得と同じ通信方法(connection method)が使える
+  ようになりました。各methodの優先順位はtweet取得と同じく変数
+  `twittering-connection-type-order'で決定されます。
+* アイコン画像変更プログラムの遅延呼び出し
+  アイコン画像を指定されたサイズに変更するためのプログラム(convert)実行
+  をEmacsがユーザからの入力待ち状態(idle状態)になって一定時間が経過して
+  から行うようにしました。待ち時間は変数
+  `twittering-url-request-sentinel-delay'で指定できます。デフォルトの
+  待ち時間は1秒です。
+* 「お気に入り」に対応
+  「お気に入り」一覧を表示するtimeline specとして":favorites"と
+  ":favorites/USER"を追加しました。":favorites/USER"で指定したユーザの
+  「お気に入り」を見ることができます。`twittering-visit-timeline'(デフォ
+  ルトでは"V"にbindされています)に対して":favorites/"と入力してEnter
+  すると、続いてユーザ名を補完入力できます。「お気に入り」は元々のtweetの
+  投稿時刻の順に表示されるので注意してください。これは「お気に入り」に
+  登録した時刻を取得する方法がないためです。また、取得できる「お気に入
+  り」は最大20件です。より過去にさかのぼっての取得は未対応です。
+* 新たにいくつかの短縮URL生成サービスに対応
+  新たに`bit.ly', `goo.gl', `is.gd', `j.mp'に対応しました。下記のような
+  設定で有効にできます。
+  (setq twittering-tinyurl-service 'bit.ly) ;; bit.lyの場合
+  (setq twittering-tinyurl-service 'goo.gl) ;; goo.glの場合
+  (setq twittering-tinyurl-service 'is.gd)  ;; is.gdの場合
+  (setq twittering-tinyurl-service 'j.mp)   ;; j.mpの場合
+  `bit.ly'や`j.mp'を使うにはお持ちのアカウントに応じて下記のように
+  `twittering-bitly-login'と`twittering-bitly-api-key'を設定しておく必要が
+  あります。
+  (setq twittering-bitly-login "YOUR-LOGIN-NAME")
+  (setq twittering-bitly-api-key "YOUR-API-KEY")
+  Thanks to Michael Kohl and Lars Gregori.
+* 公式ReTweetについての書式指定子"%c","%C","%@"の意味を変更
+  公式ReTweetの`created_at'は、retweetした時刻ではなくオリジナルの
+  tweetを投稿した時刻を意味するようになりました。
+* spam送信者報告機能
+  関数`twittering-block-and-report-as-spammer'を追加しました。tweet上で
+  この関数を呼び出すと、その投稿者をブロックし、さらにspam送信者として
+  報告できます。
+* ブロック機能
+  関数`twittering-block'を追加しました。tweet上でこの関数を呼び出すと、
+  その投稿者をブロックできます。
+* アイコン画像保存機能
+  "(setq twittering-use-icon-storage t)"とすることで一度取得・サイズ変
+  更したアイコン画像を専用のファイルに保存しておけるようになりました。
+  この機能はデフォルトでは無効です。次回以降は専用ファイルに格納された
+  画像が優先的に使われますのでアイコン取得・サイズ変更にかかる時間が省
+  けます。
+  デフォルトでは直近に描画されたアイコンを最大500個まで保存します。保
+  存されるアイコンの個数は変数`twittering-icon-storage-limit'で変更で
+  きます。この変数をnilに設定すると全てのアイコンが保存されます。
+  アイコンを保存するファイルはデフォルトでは
+  `~/.twittering-mode-icons.gz'ですが`twittering-icon-storage-file'と
+  いう変数で変更できます。あるバージョンのEmacsで生成したアイコン保存
+  ファイルは別のバージョンでは使えない恐れがあるので注意してください。
+* 新しい書式指定子"%RT{...}"
+  `twittering-status-format'で使える書式指定子として"%RT{...}"が追加さ
+  れました。これは対象となるtweetが公式RTのときだけ描画されます。括弧
+  の中には任意の文字列と書式指定子を入れることができ、括弧内の書式指定
+  子はRTされたtweetではなくそのRT自身の情報を使って描画されます。例え
+  ば、"%RT{%s}"はRTしたユーザのscreen_nameとなります。
+* 公式ReTweetのキャンセル
+  自分自身が投稿した公式ReTweetをtweet削除と同じ操作(デフォルトで
+  は'C-cD')でキャンセルできるようになりました。
+* あるユーザがフォローしているリストの補完付き選択機能
+  'C-uL'で特定ユーザがフォローしているリストを補完付きで選択し、開ける
+  ようになりました。
+* Edit skeleton
+  投稿内容編集開始時に状況に応じて自動的に文字を追加できる仕組みを導入
+  しました。edit skeletonはいつ、どのような文字列を先頭に、あるいは末
+  尾に追加するかの規則です。連想リスト`twittering-edit-skeleton-alist'
+  に要素を追加することで、新しいedit skeletonを定義できます。edit
+  skeletonの定義方法の詳細については`twittering-edit-skeleton-alist'の
+  docstringを参照ください。
+  デフォルトでは以下のedit skeletonが定義されています。
+  none: 何も追加しません。
+  footer: `twittering-edit-skeleton-footer'で指定された文字列をフッタ
+  として末尾に追加します。
+  footer-only-normal: footerと同様ですがreplyやdirect messageを編集す
+  る際には追加を行いません。
+  inherit-hashtags: 返信先に含まれるハッシュタグを末尾に追加します。
+  inherit-mentions: 返信先に含まれるユーザ参照を先頭に追加します。
+  inherit-any: 返信先に含まれるハッシュタグやユーザ参照を追加します。
+  関数`twittering-switch-edit-skeleton'で有効なedit skeletonを切り替え
+  るにはことができます。
+  また、フッタ文字列`twittering-edit-skeleton-footer'の内容は関数
+  `twittering-edit-skeleton-change-footer'で変更できます。
+* 代替画像形式を指定する変数
+  アイコン画像の形式がEmacsにサポートされていない形式である場合、画像
+  をEmacsがサポートする形式に変換してから表示するのですが、その際の変
+  換先の画像形式を指定する変数`twittering-fallback-image-format'を追加
+  しました。デフォルトの形式はXPMです。
+  下記のように設定すれば、NTEmacsでXPMを表示する際の不自然な挙動を回避
+  できるかもしれません。 Thanks to Silver Chariot.
+  (setq twittering-fallback-image-format 'png)
 
 ### バグ修正
 
-* ...
+* Emacs 23以降に同梱されているurlライブラリでも正しく動くよう修正
+* 外部コマンドcURLでbodyが空のPOSTを正しく行えるよう修正
+* Native retweetをさらにretweetできるよう修正
+  オリジナルのtweetへのretweet扱いになります。
+* アカウント認証時に発生する可能性のあった競合状態が起こらないよう修正
+* 返信先として表示されているtweetへの返信を正しく扱うよう修正
+  `twittering-show-replied-statuses'で返信先として表示されているtweetに
+  対して`twittering-enter'で返信したときに、カーソル下のtweetに対する
+  返信となるよう修正しました。
+  Thanks to Naohiro Aota.
+* 書式指定子"%L"の振舞いを修正
+  `twittering-status-format'のdocstringの通りに空白が挿入されるように
+  なりました。
+  Thanks to Tom X. Tobin.
+* アイコン画像取得の際に同一sentinelを複数回登録していたのを修正
 
  1.0.0: 2010-06-05
 ------------------
@@ -111,7 +330,7 @@ twittering-update-status-from-minibuffer に設定してください。
 * Kouhei Sutou
 * Naohiro Aota
 * Satoshi Yatagawa
-* Tadasohi MATSUO
+* Tadashi MATSUO
 * Thomas Danckaert
 * Tsuyoshi CHO
 * IMAI Toshiyuki

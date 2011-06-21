@@ -9,7 +9,7 @@ DISTRIB_FILES = twittering-mode.el \
 		url-emacs21 \
 		emacs21
 
-.PHONY: all check clean update-po release release-upload
+.PHONY: all check clean update-po release release-upload upload
 
 all:
 
@@ -50,6 +50,9 @@ release: $(DISTRIB_FILES)
 	rm -rf $(DISTRIB_DIR)
 
 release-upload: release
+	make upload
+
+upload:
 	(echo "cd /home/frs/project/t/tw/twmode/"; \
 	 echo "-rm $(DISTRIB_DIR)/*"; \
 	 echo "-rmdir $(DISTRIB_DIR)"; \

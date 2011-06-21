@@ -5731,8 +5731,21 @@ following symbols;
 	      (rest (substring following (match-end 0))))
 	  `((let* ((created-at-str (cdr (assq 'created-at ,status-sym)))
 		   (created-at (apply 'encode-time
-				      (parse-time-string created-at-str))))
-	      (format-time-string ,time-format created-at))
+				      (parse-time-string created-at-str)))
+		   (url
+		    (if (assq 'retweeted-id ,status-sym)
+			(twittering-get-status-url
+			 (cdr (assq 'retweeted-user-screen-name ,status-sym))
+			 (cdr (assq 'retweeted-id ,status-sym)))
+		      (twittering-get-status-url
+		       (cdr (assq 'user-screen-name ,status-sym))
+		       (cdr (assq 'id ,status-sym)))))
+		   (properties
+		    (list 'mouse-face 'highlight 'face 'twittering-uri-face
+			  'keymap twittering-mode-on-uri-map
+			  'uri url)))
+	      (twittering-make-time-string
+	       nil nil created-at ,time-format properties))
 	    . ,rest)))
        ((string-match "\\`FACE\\[\\([a-zA-Z0-9:-]+\\)\\]{" following)
 	(let* ((face-name-str (match-string 1 following))
@@ -6021,6 +6034,28 @@ rendered at POS, return nil."
 	  (put-text-property 0 (length time-string)
 			     'need-to-be-updated
 			     `(twittering-make-passed-time-string
+			       ,encoded-created-at ,time-format)
+			     time-string)
+	;; Remove the property required no longer.
+	(remove-text-properties 0 (length time-string)
+				'(need-to-be-updated nil)
+				time-string))
+      time-string))
+
+  (defsubst twittering-make-time-string
+    (beg end encoded-created-at time-format &optional additional-properties)
+    (let* ((now (current-time))
+	   (secs (+ (* (- (car now) (car encoded-created-at)) 65536)
+		    (- (cadr now) (cadr encoded-created-at))))
+	   (properties (append additional-properties
+			       (and beg (text-properties-at beg))))
+	   (time-string
+	    ;; Copy a string and restore properties.
+	    (apply 'propertize (format-time-string time-format encoded-created-at) properties)))
+      (if (< secs 84600)
+	  (put-text-property 0 (length time-string)
+			     'need-to-be-updated
+			     `(twittering-make-time-string
 			       ,encoded-created-at ,time-format)
 			     time-string)
 	;; Remove the property required no longer.

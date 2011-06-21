@@ -1,3 +1,10 @@
+2011-06-21  Takashi Masuda  <masutaka@nifty.com>
+
+	* twittering-mode.el: Add text properties to "%C".
+	(twittering-generate-formater-for-first-spec): use
+	`twittering-make-time-string' instead of `format-time-string'.
+	(twittering-make-time-string): new function.
+
 2011-05-21  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the message for dead process on basic

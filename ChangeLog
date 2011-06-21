@@ -5,6 +5,12 @@
 	`twittering-make-time-string' instead of `format-time-string'.
 	(twittering-make-time-string): new function.
 
+	* twittering-mode.el: Add timeline spec aliases as completion
+	candidates on specifying a timeline spec.
+	(twittering-read-timeline-spec-with-completion): add timeline spec
+	aliases, defined in `twittering-timeline-spec-alias', as
+	completion candidates.
+
 2011-05-21  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the message for dead process on basic

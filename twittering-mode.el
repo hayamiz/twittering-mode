@@ -7373,7 +7373,10 @@ entry in `twittering-edit-skeleton-alist' are performed.")
 		  '(":direct_messages" ":direct_messages_sent"
 		    ":favorites" ":friends"
 		    ":home" ":mentions" ":public" ":replies"
-		    ":retweeted_by_me" ":retweeted_to_me" ":retweets_of_me")))
+		    ":retweeted_by_me" ":retweeted_to_me" ":retweets_of_me")
+		  (mapcar (lambda (cell)
+			    (concat "$" (car cell) (if (listp (cdr cell)) "()" "")))
+			  twittering-timeline-spec-alias)))
 	 (spec-string (twittering-completing-read prompt dummy-hist
 						  nil nil initial 'dummy-hist))
 	 (spec-string

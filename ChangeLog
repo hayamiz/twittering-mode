@@ -1,5 +1,10 @@
 2010-06-21  Takashi Masuda  <masutaka@nifty.com>
 
+	* twittering-mode.el: Add timeline spec aliases which are builded
+	from twittering-timeline-spec-alias, to candidates of completion.
+	(twittering-read-timeline-spec-with-completion): add timeline spec
+	aliases to dummy-hist.
+
 	* twittering-mode.el: Add text properties to "%C".
 	(twittering-generate-formater-for-first-spec): use
 	`twittering-make-time-string' instead of `format-time-string'.

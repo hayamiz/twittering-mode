@@ -536,6 +536,31 @@ StatusNet Service.")
 	     ,@body)))
        clauses)))
 
+(defmacro twittering-wait-while (timeout interval condition &optional form &rest timeout-forms)
+  "Wait while CONDITION returns non-nil until TIMEOUT seconds passes.
+
+The form CONDITION is repeatedly evaluated for every INTERVAL seconds
+until CONDITION returns nil or TIMEOUT seconds passes unless TIMEOUT is nil.
+If TIMEOUT is nil, there is no time limit.
+
+If CONDITION returns nil, evaluate the form FORM and return its value.
+If TIMEOUT seconds passes, evaluate the forms TIMEOUT-FORMS and return
+the value of the last form in TIMEOUT-FORMS."
+  (let ((current-sym (gensym))
+	(timeout-sym (gensym))
+	(interval-sym (gensym)))
+    `(let ((,timeout-sym ,timeout)
+	   (,interval-sym ,interval)
+	   (,current-sym 0.0))
+       (while (and (or (null ,timeout-sym) (< ,current-sym ,timeout-sym))
+		   ,condition)
+	 (sit-for ,interval-sym)
+	 (setq ,current-sym (+ ,current-sym ,interval-sym)))
+       (if (or (null ,timeout-sym) (< ,current-sym ,timeout-sym))
+	   ,form
+	 ,@timeout-forms))))
+
+
 (defun twittering-extract-matched-substring-all (regexp str)
   (let ((pos 0)
 	(result nil))
@@ -2573,11 +2598,17 @@ function."
 		(when (and (not (twittering-process-alive-p proc))
 			   (eq result 'queried))
 		  (setq result nil))))))
-	(while (and (eq result 'queried)
-		    (twittering-process-alive-p proc))
-	  (sit-for 0.1))
-	(when (eq result 'queried)
-	  (setq result nil))
+	(twittering-wait-while nil 0.1
+			       (and (eq result 'queried)
+				    (twittering-process-alive-p proc)))
+	(when (and (eq result 'queried)
+		   (not (twittering-process-alive-p proc)))
+	  ;; If the process has been dead, wait a moment because
+	  ;; Emacs may be in the middle of evaluating the sentinel.
+	  (twittering-wait-while 10 0.1
+				 (eq result 'queried)
+				 nil
+				 (setq result nil)))
 	result))))
 
 (defun twittering-oauth-get-request-token (url consumer-key consumer-secret)
@@ -3110,11 +3141,18 @@ BEG and END mean a region that had been modified."
 		  (when (and (not (twittering-process-alive-p proc))
 			     (eq result 'queried))
 		    (setq result nil))))))
-	  (while (and (eq result 'queried)
-		      (twittering-process-alive-p proc))
-	    (sit-for 0.1))
-	  (when (eq result 'queried)
-	    (setq result nil)))
+	  (twittering-wait-while nil 0.1
+				 (and (eq result 'queried)
+				      (twittering-process-alive-p proc)))
+	  (when (and (eq result 'queried)
+		     (not (twittering-process-alive-p proc)))
+	    ;; If the process has been dead, wait a moment because
+	    ;; Emacs may be in the middle of evaluating the sentinel.
+	    (twittering-wait-while 10 0.1
+				   (eq result 'queried)
+				   nil
+				   ;; Reset `result' on timeout.
+				   (setq result nil))))
 	(let ((processed-result (if (and result (functionp post-process))
 				    (funcall post-process service result)
 				  result)))
@@ -4155,14 +4193,23 @@ If `twittering-password' is nil, read it from the minibuffer."
 	  (setq twittering-oauth-access-token-alist nil))
 	 (t
 	  ;; wait for verification to finish.
-	  (while (and (twittering-account-authorization-queried-p)
-		      (twittering-process-alive-p proc))
-	    (sit-for 0.1))
-	  (when (twittering-account-authorization-queried-p)
-	    (message
-	     "Status of Authorization process is `%s'. Type M-x twit to retry."
-	     (process-status proc))
-	    (setq twittering-account-authorization nil))))))
+	  (twittering-wait-while nil 0.1
+				 (and
+				  (twittering-account-authorization-queried-p)
+				  (twittering-process-alive-p proc)))
+	  (when (and (twittering-account-authorization-queried-p)
+		     (not (twittering-process-alive-p proc)))
+	    ;; If the process has been dead, wait a moment because
+	    ;; Emacs may be in the middle of evaluating the sentinel.
+	    (twittering-wait-while
+	     10 0.1
+	     (twittering-account-authorization-queried-p)
+	     nil
+	     ;; Display a message and reset the variable on timeout.
+	     (message
+	      "Status of Authorization process is `%s'. Type M-x twit to retry."
+	      (process-status proc))
+	     (setq twittering-account-authorization nil)))))))
      (t
       (message "Failed to load an authorized token from \"%s\"."
 	       twittering-private-info-file)
@@ -4259,14 +4306,23 @@ If `twittering-password' is nil, read it from the minibuffer."
 	(setq twittering-password nil))
        (t
 	;; wait for verification to finish.
-	(while (and (twittering-account-authorization-queried-p)
-		    (twittering-process-alive-p proc))
-	  (sit-for 0.1))
-	(when (twittering-account-authorization-queried-p)
-	  (message
-	   "Status of Authorization process is `%s'. Type M-x twit to retry."
-	   (process-status proc))
-	  (setq twittering-account-authorization nil))))))
+	(twittering-wait-while nil 0.1
+			       (and
+				(twittering-account-authorization-queried-p)
+				(twittering-process-alive-p proc)))
+	(when (and (twittering-account-authorization-queried-p)
+		   (not (twittering-process-alive-p proc)))
+	  ;; If the process has been dead, wait a moment because
+	  ;; Emacs may be in the middle of evaluating the sentinel.
+	  (twittering-wait-while
+	   10 0.1
+	   (twittering-account-authorization-queried-p)
+	   nil
+	   ;; Display a message and reset the variable on timeout.
+	   (message
+	    "Status of Authorization process is `%s'. Type M-x twit to retry."
+	    (process-status proc))
+	   (setq twittering-account-authorization nil)))))))
    (t
     (message "%s is invalid as an authorization method."
 	     twittering-auth-method)))
@@ -4581,11 +4637,18 @@ If `twittering-password' is nil, read it from the minibuffer."
   (setq twittering-list-index-retrieved nil)
   (let ((proc (funcall function username)))
     (when proc
-      (while (and (not twittering-list-index-retrieved)
-		  (twittering-process-alive-p proc))
-	(sit-for 0.1))))
+      (twittering-wait-while nil 0.1
+			     (and (not twittering-list-index-retrieved)
+				  (twittering-process-alive-p proc)))
+      (when (and (not twittering-list-index-retrieved)
+		 (not (twittering-process-alive-p proc)))
+	;; If the process has been dead, wait a moment because
+	;; Emacs may be in the middle of evaluating the sentinel.
+	(twittering-wait-while 10 0.1
+			       (not twittering-list-index-retrieved)))))
   (cond
    ((null twittering-list-index-retrieved)
+    (message "Failed to retrieve %s's lists." username)
     nil)
    ((stringp twittering-list-index-retrieved)
     (if (string= "" twittering-list-index-retrieved)

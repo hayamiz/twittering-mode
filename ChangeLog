@@ -19,6 +19,19 @@
 	(twittering-goto-next-uri): new function.
 	(twittering-goto-previous-uri): new function.
 
+	* twittering-mode.el: Wait a moment after finding that the process
+	is dead and the query has not been finished. This prevents Emacs
+	from canceling the query on the middle of evaluating the
+	sentinel.
+	(twittering-wait-while): new macro.
+	(twittering-oauth-get-token-alist): wait a moment after finding
+	that the process is dead and the query has not been finished. This
+	prevents Emacs from canceling the query on the middle of
+	evaluating the sentinel.
+	(twittering-tinyurl-get): likewise.
+	(twittering-verify-credentials): likewise.
+	(twittering-get-list-sync): likewise.
+
 2011-06-21  Takashi Masuda  <masutaka@nifty.com>
 
 	* twittering-mode.el: Add text properties to "%C".

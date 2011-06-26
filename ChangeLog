@@ -1,3 +1,13 @@
+2011-06-26  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Revise the routine for the format specifier
+	"%C".
+	(twittering-make-string-with-uri-property): new function.
+	(twittering-generate-formater-for-first-spec): use the function
+	`twittering-make-string-with-uri-property' for the format
+	specifier "%C".
+	(twittering-make-time-string): removed.
+
 2011-06-21  Takashi Masuda  <masutaka@nifty.com>
 
 	* twittering-mode.el: Add text properties to "%C".

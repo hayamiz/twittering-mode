@@ -1086,6 +1086,7 @@ Return nil if no connection methods are available with a compromise."
       (twittering-update-mode-line)
       (twittering-ensure-connection-method order table))
      (t
+      (message "No connection methods are available.")
       nil))))
 
 (defun twittering-make-http-request (method header-list host port path query-parameters post-body use-ssl)
@@ -7562,7 +7563,6 @@ entry in `twittering-edit-skeleton-alist' are performed.")
       (when timeline-spec
 	(switch-to-buffer (twittering-get-managed-buffer timeline-spec)))))
    (t
-    (message "No connection methods are available.")
     nil)))
 
 (defun twittering-friends-timeline ()

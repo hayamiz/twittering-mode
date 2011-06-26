@@ -37,6 +37,13 @@
 	(twittering-ensure-connection-method): return correct value in the
 	case with compromise.
 
+	* twittering-mode.el: `twittering-ensure-connection-method'
+	displays an error message if no connection methods available.
+	(twittering-ensure-connection-method): display an error message if
+	no connection methods are available.
+	(twittering-visit-timeline): do not display an error message if no
+	connection methods are available.
+
 2011-06-21  Takashi Masuda  <masutaka@nifty.com>
 
 	* twittering-mode.el: Add text properties to "%C".

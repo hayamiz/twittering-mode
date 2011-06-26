@@ -32,6 +32,11 @@
 	(twittering-verify-credentials): likewise.
 	(twittering-get-list-sync): likewise.
 
+	* twittering-mode.el: Correctly ensure an available connection
+	method even if SSL is unavailable.
+	(twittering-ensure-connection-method): return correct value in the
+	case with compromise.
+
 2011-06-21  Takashi Masuda  <masutaka@nifty.com>
 
 	* twittering-mode.el: Add text properties to "%C".

@@ -1084,8 +1084,7 @@ Return nil if no connection methods are available with a compromise."
       (setq twittering-use-ssl nil)
       (setq twittering-oauth-use-ssl nil)
       (twittering-update-mode-line)
-      (twittering-ensure-connection-method order table)
-      t)
+      (twittering-ensure-connection-method order table))
      (t
       nil))))
 

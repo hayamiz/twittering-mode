@@ -33,6 +33,7 @@
 
 ### Bug fixes
 * Fix of displaying a message of authorization.
+* Fix of confirmation of available connection methods.
 
  2.0.0: 2011-04-22
 ------------------

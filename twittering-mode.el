@@ -5618,6 +5618,7 @@ following symbols;
 		      'mouse-face 'highlight
 		      'keymap twittering-mode-on-uri-map
 		      'uri uri
+		      'uri-origin 'explicit-uri-in-tweet
 		      'face 'twittering-uri-face)))))
 		(beg (car range-and-properties))
 		(end (cadr range-and-properties))
@@ -8141,32 +8142,85 @@ Otherwise, return a positive integer less than POS."
 	  (message "Start of %s's status." user-name)
 	(message "Invalid user-name.")))))
 
-(defun twittering-goto-next-thing (&optional backward)
-  "Go to next interesting thing. ex) username, URI, ... "
+(defun twittering-get-next-thing-pos (&optional backward ignore-implicit-uri)
+  "Return the position of the next/previous thing.
+
+The thing is one of username or URI or string with uri property.
+If BACKWARD is nil, return the position of the next thing.
+If BACKWARD is non-nil, return the position of the previous thing.
+
+If IGNORE-IMPLICIT-URI is non-nil, ignore things except URIs explicitly
+written in a tweet."
+  (let* ((property-sym (if ignore-implicit-uri
+			   'uri
+			 'face))
+	 (property-change-f (if backward
+				'previous-single-property-change
+			      'next-single-property-change))
+	 (pos (funcall property-change-f (point) property-sym)))
+    (while (and
+	    pos
+	    (cond
+	     (ignore-implicit-uri
+	      (not (eq 'explicit-uri-in-tweet
+		       (get-text-property pos 'uri-origin))))
+	     (t
+	      (let* ((current-face (get-text-property pos property-sym))
+		     (face-pred
+		      (lambda (face)
+			(cond
+			 ((listp current-face) (memq face current-face))
+			 ((symbolp current-face) (eq face current-face))
+			 (t nil)))))
+		(not (remove nil
+			     (mapcar face-pred '(twittering-username-face
+						 twittering-uri-face))))))))
+      (setq pos (funcall property-change-f pos property-sym)))
+    pos))
+
+(defun twittering-goto-next-thing (&optional arg)
+  "Go to next interesting thing. ex) username, URI, ...
+
+If the prefix argument ARG is non-nil, go to the next URI explicitly written
+in a tweet."
+  (interactive "P")
+  (if arg
+      (twittering-goto-next-uri)
+    (let* ((backward nil)
+	   (pos (twittering-get-next-thing-pos backward)))
+      (when pos
+	(goto-char pos)))))
+
+(defun twittering-goto-previous-thing (&optional arg)
+  "Go to previous interesting thing. ex) username, URI, ...
+
+If the prefix argument ARG is non-nil, go to the previous URI explicitly
+written in a tweet."
+  (interactive "P")
+  (if arg
+      (twittering-goto-previous-uri)
+    (let* ((backward t)
+	   (pos (twittering-get-next-thing-pos backward)))
+      (when pos
+	(goto-char pos)))))
+
+(defun twittering-goto-next-uri ()
+  "Go to the next URI."
   (interactive)
-  (let* ((property-change-f (if backward
-			       'previous-single-property-change
-			     'next-single-property-change))
-	 (pos (funcall property-change-f (point) 'face)))
-    (while (and pos
-		(not
-		 (let* ((current-face (get-text-property pos 'face))
-			(face-pred
-			 (lambda (face)
-			   (cond
-			    ((listp current-face) (memq face current-face))
-			    ((symbolp current-face) (eq face current-face))
-			    (t nil)))))
-		   (remove nil (mapcar face-pred '(twittering-username-face
-						   twittering-uri-face))))))
-      (setq pos (funcall property-change-f pos 'face)))
+  (let* ((ignore-implicit-uri t)
+	 (backward nil)
+	 (pos (twittering-get-next-thing-pos backward ignore-implicit-uri)))
     (when pos
       (goto-char pos))))
 
-(defun twittering-goto-previous-thing (&optional backward)
-  "Go to previous interesting thing. ex) username, URI, ... "
+(defun twittering-goto-previous-uri ()
+  "Go to the previous URI."
   (interactive)
-  (twittering-goto-next-thing (not backward)))
+  (let* ((ignore-implicit-uri t)
+	 (backward t)
+	 (pos (twittering-get-next-thing-pos backward ignore-implicit-uri)))
+    (when pos
+      (goto-char pos))))
 
 (defun twittering-get-username-at-pos (pos)
   (or (get-text-property pos 'username)

@@ -22,6 +22,12 @@
   を起こす場合があるようです。そのような場合、下記の設定でoverlayの付
   加を無効化すれば問題を回避できる可能性があります。
   (setq twittering-disable-overlay-on-too-long-string t)
+* tweet中のURI文字列へのジャンプ
+  tweet中のURI文字列へジャンプするコマンド`twittering-goto-next-uri'、
+  `twittering-goto-previous-uri'が追加されました。
+  また、旧来のコマンド`twittering-goto-next-thing'と
+  `twittering-goto-previous-thing'にC-uでprefix argumentを与えると
+  tweet中のURI文字列だけを対象としてジャンプするようになりました。
 
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正

@@ -8,6 +8,17 @@
 	specifier "%C".
 	(twittering-make-time-string): removed.
 
+	* twittering-mode.el: Add a function to go to the next/previous
+	URI explicitly written in a tweet.
+	(twittering-make-fontified-tweet-text): add uri-origin property to
+	URIs explicitly written in a tweet.
+	(twittering-get-next-thing-pos): new function.
+	(twittering-goto-next-thing): ignore things except URIs explicitly
+	written in a tweet if a prefix argument is given.
+	(twittering-goto-previous-thing): likewise.
+	(twittering-goto-next-uri): new function.
+	(twittering-goto-previous-uri): new function.
+
 2011-06-21  Takashi Masuda  <masutaka@nifty.com>
 
 	* twittering-mode.el: Add text properties to "%C".

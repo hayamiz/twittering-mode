@@ -22,6 +22,14 @@
   case, you may avoid the problems by disabling the update of the
   overlay as follows.
   (setq twittering-disable-overlay-on-too-long-string t)
+* Jump to next/previous URI
+  You can go to tne next or previous URI explicitly written in a tweet
+  by the command `twittering-goto-next-uri' or
+  `twittering-goto-previous-uri'.
+  Also, you can use the commands, `twittering-goto-next-thing' and
+  `twittering-goto-previous-thing'. With a prefix argument by
+  preceding "C-u", they ignore things except URIs explicitly written
+  in a tweet.
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

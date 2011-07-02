@@ -536,6 +536,31 @@ StatusNet Service.")
 	     ,@body)))
        clauses)))
 
+(defmacro twittering-wait-while (timeout interval condition &optional form &rest timeout-forms)
+  "Wait while CONDITION returns non-nil until TIMEOUT seconds passes.
+
+The form CONDITION is repeatedly evaluated for every INTERVAL seconds
+until CONDITION returns nil or TIMEOUT seconds passes unless TIMEOUT is nil.
+If TIMEOUT is nil, there is no time limit.
+
+If CONDITION returns nil, evaluate the form FORM and return its value.
+If TIMEOUT seconds passes, evaluate the forms TIMEOUT-FORMS and return
+the value of the last form in TIMEOUT-FORMS."
+  (let ((current-sym (gensym))
+	(timeout-sym (gensym))
+	(interval-sym (gensym)))
+    `(let ((,timeout-sym ,timeout)
+	   (,interval-sym ,interval)
+	   (,current-sym 0.0))
+       (while (and (or (null ,timeout-sym) (< ,current-sym ,timeout-sym))
+		   ,condition)
+	 (sit-for ,interval-sym)
+	 (setq ,current-sym (+ ,current-sym ,interval-sym)))
+       (if (or (null ,timeout-sym) (< ,current-sym ,timeout-sym))
+	   ,form
+	 ,@timeout-forms))))
+
+
 (defun twittering-extract-matched-substring-all (regexp str)
   (let ((pos 0)
 	(result nil))
@@ -1059,9 +1084,9 @@ Return nil if no connection methods are available with a compromise."
       (setq twittering-use-ssl nil)
       (setq twittering-oauth-use-ssl nil)
       (twittering-update-mode-line)
-      (twittering-ensure-connection-method order table)
-      t)
+      (twittering-ensure-connection-method order table))
      (t
+      (message "No connection methods are available.")
       nil))))
 
 (defun twittering-make-http-request (method header-list host port path query-parameters post-body use-ssl)
@@ -2573,11 +2598,17 @@ function."
 		(when (and (not (twittering-process-alive-p proc))
 			   (eq result 'queried))
 		  (setq result nil))))))
-	(while (and (eq result 'queried)
-		    (twittering-process-alive-p proc))
-	  (sit-for 0.1))
-	(when (eq result 'queried)
-	  (setq result nil))
+	(twittering-wait-while nil 0.1
+			       (and (eq result 'queried)
+				    (twittering-process-alive-p proc)))
+	(when (and (eq result 'queried)
+		   (not (twittering-process-alive-p proc)))
+	  ;; If the process has been dead, wait a moment because
+	  ;; Emacs may be in the middle of evaluating the sentinel.
+	  (twittering-wait-while 10 0.1
+				 (eq result 'queried)
+				 nil
+				 (setq result nil)))
 	result))))
 
 (defun twittering-oauth-get-request-token (url consumer-key consumer-secret)
@@ -3110,11 +3141,18 @@ BEG and END mean a region that had been modified."
 		  (when (and (not (twittering-process-alive-p proc))
 			     (eq result 'queried))
 		    (setq result nil))))))
-	  (while (and (eq result 'queried)
-		      (twittering-process-alive-p proc))
-	    (sit-for 0.1))
-	  (when (eq result 'queried)
-	    (setq result nil)))
+	  (twittering-wait-while nil 0.1
+				 (and (eq result 'queried)
+				      (twittering-process-alive-p proc)))
+	  (when (and (eq result 'queried)
+		     (not (twittering-process-alive-p proc)))
+	    ;; If the process has been dead, wait a moment because
+	    ;; Emacs may be in the middle of evaluating the sentinel.
+	    (twittering-wait-while 10 0.1
+				   (eq result 'queried)
+				   nil
+				   ;; Reset `result' on timeout.
+				   (setq result nil))))
 	(let ((processed-result (if (and result (functionp post-process))
 				    (funcall post-process service result)
 				  result)))
@@ -4155,14 +4193,23 @@ If `twittering-password' is nil, read it from the minibuffer."
 	  (setq twittering-oauth-access-token-alist nil))
 	 (t
 	  ;; wait for verification to finish.
-	  (while (and (twittering-account-authorization-queried-p)
-		      (twittering-process-alive-p proc))
-	    (sit-for 0.1))
-	  (when (twittering-account-authorization-queried-p)
-	    (message
-	     "Status of Authorization process is `%s'. Type M-x twit to retry."
-	     (process-status proc))
-	    (setq twittering-account-authorization nil))))))
+	  (twittering-wait-while nil 0.1
+				 (and
+				  (twittering-account-authorization-queried-p)
+				  (twittering-process-alive-p proc)))
+	  (when (and (twittering-account-authorization-queried-p)
+		     (not (twittering-process-alive-p proc)))
+	    ;; If the process has been dead, wait a moment because
+	    ;; Emacs may be in the middle of evaluating the sentinel.
+	    (twittering-wait-while
+	     10 0.1
+	     (twittering-account-authorization-queried-p)
+	     nil
+	     ;; Display a message and reset the variable on timeout.
+	     (message
+	      "Status of Authorization process is `%s'. Type M-x twit to retry."
+	      (process-status proc))
+	     (setq twittering-account-authorization nil)))))))
      (t
       (message "Failed to load an authorized token from \"%s\"."
 	       twittering-private-info-file)
@@ -4259,14 +4306,23 @@ If `twittering-password' is nil, read it from the minibuffer."
 	(setq twittering-password nil))
        (t
 	;; wait for verification to finish.
-	(while (and (twittering-account-authorization-queried-p)
-		    (twittering-process-alive-p proc))
-	  (sit-for 0.1))
-	(when (twittering-account-authorization-queried-p)
-	  (message
-	   "Status of Authorization process is `%s'. Type M-x twit to retry."
-	   (process-status proc))
-	  (setq twittering-account-authorization nil))))))
+	(twittering-wait-while nil 0.1
+			       (and
+				(twittering-account-authorization-queried-p)
+				(twittering-process-alive-p proc)))
+	(when (and (twittering-account-authorization-queried-p)
+		   (not (twittering-process-alive-p proc)))
+	  ;; If the process has been dead, wait a moment because
+	  ;; Emacs may be in the middle of evaluating the sentinel.
+	  (twittering-wait-while
+	   10 0.1
+	   (twittering-account-authorization-queried-p)
+	   nil
+	   ;; Display a message and reset the variable on timeout.
+	   (message
+	    "Status of Authorization process is `%s'. Type M-x twit to retry."
+	    (process-status proc))
+	   (setq twittering-account-authorization nil)))))))
    (t
     (message "%s is invalid as an authorization method."
 	     twittering-auth-method)))
@@ -4581,11 +4637,18 @@ If `twittering-password' is nil, read it from the minibuffer."
   (setq twittering-list-index-retrieved nil)
   (let ((proc (funcall function username)))
     (when proc
-      (while (and (not twittering-list-index-retrieved)
-		  (twittering-process-alive-p proc))
-	(sit-for 0.1))))
+      (twittering-wait-while nil 0.1
+			     (and (not twittering-list-index-retrieved)
+				  (twittering-process-alive-p proc)))
+      (when (and (not twittering-list-index-retrieved)
+		 (not (twittering-process-alive-p proc)))
+	;; If the process has been dead, wait a moment because
+	;; Emacs may be in the middle of evaluating the sentinel.
+	(twittering-wait-while 10 0.1
+			       (not twittering-list-index-retrieved)))))
   (cond
    ((null twittering-list-index-retrieved)
+    (message "Failed to retrieve %s's lists." username)
     nil)
    ((stringp twittering-list-index-retrieved)
     (if (string= "" twittering-list-index-retrieved)
@@ -5521,6 +5584,23 @@ following symbols;
 		      'uri uri
 		      'face 'twittering-uri-face
 		      'source str))
+      ""))
+
+  (defsubst twittering-make-string-with-uri-property (str status)
+    (if str
+	(let ((uri
+	       (if (assq 'retweeted-id status)
+		   (twittering-get-status-url
+		    (cdr (assq 'retweeted-user-screen-name status))
+		    (cdr (assq 'retweeted-id status)))
+		 (twittering-get-status-url
+		  (cdr (assq 'user-screen-name status))
+		  (cdr (assq 'id status))))))
+	  (propertize str
+		      'mouse-face 'highlight
+		      'keymap twittering-mode-on-uri-map
+		      'uri uri
+		      'face 'twittering-uri-face))
       "")))
 
 (defun twittering-make-fontified-tweet-text (str-expr regexp-hash regexp-atmark)
@@ -5601,6 +5681,7 @@ following symbols;
 		      'mouse-face 'highlight
 		      'keymap twittering-mode-on-uri-map
 		      'uri uri
+		      'uri-origin 'explicit-uri-in-tweet
 		      'face 'twittering-uri-face)))))
 		(beg (car range-and-properties))
 		(end (cadr range-and-properties))
@@ -5731,21 +5812,9 @@ following symbols;
 	      (rest (substring following (match-end 0))))
 	  `((let* ((created-at-str (cdr (assq 'created-at ,status-sym)))
 		   (created-at (apply 'encode-time
-				      (parse-time-string created-at-str)))
-		   (url
-		    (if (assq 'retweeted-id ,status-sym)
-			(twittering-get-status-url
-			 (cdr (assq 'retweeted-user-screen-name ,status-sym))
-			 (cdr (assq 'retweeted-id ,status-sym)))
-		      (twittering-get-status-url
-		       (cdr (assq 'user-screen-name ,status-sym))
-		       (cdr (assq 'id ,status-sym)))))
-		   (properties
-		    (list 'mouse-face 'highlight 'face 'twittering-uri-face
-			  'keymap twittering-mode-on-uri-map
-			  'uri url)))
-	      (twittering-make-time-string
-	       nil nil created-at ,time-format properties))
+				      (parse-time-string created-at-str))))
+	      (twittering-make-string-with-uri-property
+	       (format-time-string ,time-format created-at) ,status-sym))
 	    . ,rest)))
        ((string-match "\\`FACE\\[\\([a-zA-Z0-9:-]+\\)\\]{" following)
 	(let* ((face-name-str (match-string 1 following))
@@ -6034,28 +6103,6 @@ rendered at POS, return nil."
 	  (put-text-property 0 (length time-string)
 			     'need-to-be-updated
 			     `(twittering-make-passed-time-string
-			       ,encoded-created-at ,time-format)
-			     time-string)
-	;; Remove the property required no longer.
-	(remove-text-properties 0 (length time-string)
-				'(need-to-be-updated nil)
-				time-string))
-      time-string))
-
-  (defsubst twittering-make-time-string
-    (beg end encoded-created-at time-format &optional additional-properties)
-    (let* ((now (current-time))
-	   (secs (+ (* (- (car now) (car encoded-created-at)) 65536)
-		    (- (cadr now) (cadr encoded-created-at))))
-	   (properties (append additional-properties
-			       (and beg (text-properties-at beg))))
-	   (time-string
-	    ;; Copy a string and restore properties.
-	    (apply 'propertize (format-time-string time-format encoded-created-at) properties)))
-      (if (< secs 84600)
-	  (put-text-property 0 (length time-string)
-			     'need-to-be-updated
-			     `(twittering-make-time-string
 			       ,encoded-created-at ,time-format)
 			     time-string)
 	;; Remove the property required no longer.
@@ -7516,7 +7563,6 @@ entry in `twittering-edit-skeleton-alist' are performed.")
       (when timeline-spec
 	(switch-to-buffer (twittering-get-managed-buffer timeline-spec)))))
    (t
-    (message "No connection methods are available.")
     nil)))
 
 (defun twittering-friends-timeline ()
@@ -8158,32 +8204,85 @@ Otherwise, return a positive integer less than POS."
 	  (message "Start of %s's status." user-name)
 	(message "Invalid user-name.")))))
 
-(defun twittering-goto-next-thing (&optional backward)
-  "Go to next interesting thing. ex) username, URI, ... "
+(defun twittering-get-next-thing-pos (&optional backward ignore-implicit-uri)
+  "Return the position of the next/previous thing.
+
+The thing is one of username or URI or string with uri property.
+If BACKWARD is nil, return the position of the next thing.
+If BACKWARD is non-nil, return the position of the previous thing.
+
+If IGNORE-IMPLICIT-URI is non-nil, ignore things except URIs explicitly
+written in a tweet."
+  (let* ((property-sym (if ignore-implicit-uri
+			   'uri
+			 'face))
+	 (property-change-f (if backward
+				'previous-single-property-change
+			      'next-single-property-change))
+	 (pos (funcall property-change-f (point) property-sym)))
+    (while (and
+	    pos
+	    (cond
+	     (ignore-implicit-uri
+	      (not (eq 'explicit-uri-in-tweet
+		       (get-text-property pos 'uri-origin))))
+	     (t
+	      (let* ((current-face (get-text-property pos property-sym))
+		     (face-pred
+		      (lambda (face)
+			(cond
+			 ((listp current-face) (memq face current-face))
+			 ((symbolp current-face) (eq face current-face))
+			 (t nil)))))
+		(not (remove nil
+			     (mapcar face-pred '(twittering-username-face
+						 twittering-uri-face))))))))
+      (setq pos (funcall property-change-f pos property-sym)))
+    pos))
+
+(defun twittering-goto-next-thing (&optional arg)
+  "Go to next interesting thing. ex) username, URI, ...
+
+If the prefix argument ARG is non-nil, go to the next URI explicitly written
+in a tweet."
+  (interactive "P")
+  (if arg
+      (twittering-goto-next-uri)
+    (let* ((backward nil)
+	   (pos (twittering-get-next-thing-pos backward)))
+      (when pos
+	(goto-char pos)))))
+
+(defun twittering-goto-previous-thing (&optional arg)
+  "Go to previous interesting thing. ex) username, URI, ...
+
+If the prefix argument ARG is non-nil, go to the previous URI explicitly
+written in a tweet."
+  (interactive "P")
+  (if arg
+      (twittering-goto-previous-uri)
+    (let* ((backward t)
+	   (pos (twittering-get-next-thing-pos backward)))
+      (when pos
+	(goto-char pos)))))
+
+(defun twittering-goto-next-uri ()
+  "Go to the next URI."
   (interactive)
-  (let* ((property-change-f (if backward
-			       'previous-single-property-change
-			     'next-single-property-change))
-	 (pos (funcall property-change-f (point) 'face)))
-    (while (and pos
-		(not
-		 (let* ((current-face (get-text-property pos 'face))
-			(face-pred
-			 (lambda (face)
-			   (cond
-			    ((listp current-face) (memq face current-face))
-			    ((symbolp current-face) (eq face current-face))
-			    (t nil)))))
-		   (remove nil (mapcar face-pred '(twittering-username-face
-						   twittering-uri-face))))))
-      (setq pos (funcall property-change-f pos 'face)))
+  (let* ((ignore-implicit-uri t)
+	 (backward nil)
+	 (pos (twittering-get-next-thing-pos backward ignore-implicit-uri)))
     (when pos
       (goto-char pos))))
 
-(defun twittering-goto-previous-thing (&optional backward)
-  "Go to previous interesting thing. ex) username, URI, ... "
+(defun twittering-goto-previous-uri ()
+  "Go to the previous URI."
   (interactive)
-  (twittering-goto-next-thing (not backward)))
+  (let* ((ignore-implicit-uri t)
+	 (backward t)
+	 (pos (twittering-get-next-thing-pos backward ignore-implicit-uri)))
+    (when pos
+      (goto-char pos))))
 
 (defun twittering-get-username-at-pos (pos)
   (or (get-text-property pos 'username)

@@ -1,14 +1,61 @@
-2010-06-21  Takashi Masuda  <masutaka@nifty.com>
+2011-06-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
-	* twittering-mode.el: Add timeline spec aliases which are builded
-	from twittering-timeline-spec-alias, to candidates of completion.
-	(twittering-read-timeline-spec-with-completion): add timeline spec
-	aliases to dummy-hist.
+	* twittering-mode.el: Revise the routine for the format specifier
+	"%C".
+	(twittering-make-string-with-uri-property): new function.
+	(twittering-generate-formater-for-first-spec): use the function
+	`twittering-make-string-with-uri-property' for the format
+	specifier "%C".
+	(twittering-make-time-string): removed.
+
+	* twittering-mode.el: Add a function to go to the next/previous
+	URI explicitly written in a tweet.
+	(twittering-make-fontified-tweet-text): add uri-origin property to
+	URIs explicitly written in a tweet.
+	(twittering-get-next-thing-pos): new function.
+	(twittering-goto-next-thing): ignore things except URIs explicitly
+	written in a tweet if a prefix argument is given.
+	(twittering-goto-previous-thing): likewise.
+	(twittering-goto-next-uri): new function.
+	(twittering-goto-previous-uri): new function.
+
+	* twittering-mode.el: Wait a moment after finding that the process
+	is dead and the query has not been finished. This prevents Emacs
+	from canceling the query on the middle of evaluating the
+	sentinel.
+	(twittering-wait-while): new macro.
+	(twittering-oauth-get-token-alist): wait a moment after finding
+	that the process is dead and the query has not been finished. This
+	prevents Emacs from canceling the query on the middle of
+	evaluating the sentinel.
+	(twittering-tinyurl-get): likewise.
+	(twittering-verify-credentials): likewise.
+	(twittering-get-list-sync): likewise.
+
+	* twittering-mode.el: Correctly ensure an available connection
+	method even if SSL is unavailable.
+	(twittering-ensure-connection-method): return correct value in the
+	case with compromise.
+
+	* twittering-mode.el: `twittering-ensure-connection-method'
+	displays an error message if no connection methods available.
+	(twittering-ensure-connection-method): display an error message if
+	no connection methods are available.
+	(twittering-visit-timeline): do not display an error message if no
+	connection methods are available.
+
+2011-06-21  Takashi Masuda  <masutaka@nifty.com>
 
 	* twittering-mode.el: Add text properties to "%C".
 	(twittering-generate-formater-for-first-spec): use
 	`twittering-make-time-string' instead of `format-time-string'.
 	(twittering-make-time-string): new function.
+
+	* twittering-mode.el: Add timeline spec aliases as completion
+	candidates on specifying a timeline spec.
+	(twittering-read-timeline-spec-with-completion): add timeline spec
+	aliases, defined in `twittering-timeline-spec-alias', as
+	completion candidates.
 
 2011-05-21  Tadashi MATSUO  <tad@mymail.twin.jp>
 
@@ -1505,11 +1552,6 @@
 	combination of `apply', `append' and `mapcar'.
 	(twittering-start-http-session-curl): likewise.
 
-2010-07-06  Takashi Masuda  <masutaka@nifty.com>
-
-	* twittering-mode.el (twittering-generate-format-table):
-	Do not Use icon images scaled by API unless Twitter.
-
 2010-07-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el (twittering-redisplay-status-on-buffer): Fix
@@ -1636,40 +1678,6 @@
 	(twittering-http-application-headers-with-auth): likewise.
 	(twittering-visit-timeline): call
 	`twittering-prepare-account-info' for xAuth.
-
-2010-06-27  Takashi Masuda  <masutaka@nifty.com>
-
-	* twittering-mode.el: fix statusnet user URL
-	(twittering-get-status-url-statusnet): fix user URL
-
-2010-06-15  Takashi Masuda  <masutaka@nifty.com>
-
-	* twittering-mode.el: StatusNet 対応
-	(twittering-api-prefix): new variable.
-	(twittering-search-api-method): new variable.
-	(twittering-web-path-prefix): new variable.
-	(twittering-service-method): new variable.
-	(twittering-service-method-table): new variable.
-	(twittering-api-path): new function.
-	(twittering-lookup-get-status-url): new function.
-	(twittering-get-status-url-twitter): new function.
-	(twittering-get-status-url-statusnet): new function.
-	(twittering-lookup-get-search-url): new function.
-	(twittering-get-search-url-twitter): new function.
-	(twittering-get-search-url-statusnet): new function.
-	(twittering-call-api): API のパスは twittering-api-path か
-	ら取得するようにした。
-	(twittering-edit-post-status): likewise.
-	(twittering-update-status-from-minibuffer): likewise.
-	(twittering-atom-xmltree-to-status-datum): いずれも検索関連の修正。
-	「interpret-time-diff.patch」「user-name が設定されていないユーザに
-	対応」「検索時のユーザアイコンを取得出来るように修正」
-	(twittering-make-clickable-status-datum):
-	twittering-lookup-get-status-url と
-	twittering-lookup-get-search-url を介して status-url と search-url
-	を取得するようにした。
-	(twittering-generate-format-table): likewise.
-	(twittering-generate-formater-for-first-spec): likewise.
 
 2010-06-13  Tadashi MATSUO  <tad@mymail.twin.jp>
 

@@ -18,6 +18,10 @@
 	Redundant statements are no longer added. This suppresses warnings
 	on byte-compilation.
 
+	* twittering-mode.el: Fix docstring of
+	`twittering-edit-skeleton-alist'.
+	(twittering-edit-skeleton-alist): fix docstring.
+
 2011-06-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Revise the routine for the format specifier

@@ -6927,8 +6927,8 @@ CURRENT-SPEC is also nil.
 If PRED matches the current context, the value is performed as follows.
 The value like (SKELETON . PRED) is performed by directly using SKELETON as an
 argument of `skeleton-insert'.
-The value like (FUNC . PRED) is performed by invoking FUNC with two arguments,
-TWEET-TYPE and IN-REPLY-TO-ID as same as PRED.
+The value like (FUNC . PRED) is performed by invoking FUNC with three
+arguments, TWEET-TYPE, IN-REPLY-TO-ID and CURRENT-SPEC as same as PRED.
 
 If the value is a vector, each element is performed in order of elements
 in the vector.

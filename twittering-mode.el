@@ -7594,10 +7594,10 @@ entry in `twittering-edit-skeleton-alist' are performed.")
 ;;;; Commands for visiting a timeline
 (defun twittering-visit-timeline (&optional timeline-spec initial)
   (interactive)
+  (twittering-initialize-global-variables-if-necessary)
   (cond
    ((and (twittering-ensure-connection-method)
 	 (twittering-ensure-private-info))
-    (twittering-initialize-global-variables-if-necessary)
     (twittering-verify-credentials)
     (let ((timeline-spec
 	   (or timeline-spec

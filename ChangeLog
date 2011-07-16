@@ -32,6 +32,11 @@
 	(twittering-visit-timeline): ensure that private information is
 	loaded if necessary.
 
+	* twittering-mode.el: Initialize global variables before ensuring
+	a connection method.
+	(twittering-visit-timeline): invoke
+	`twittering-initialize-global-variables-if-necessary' first.
+
 2011-06-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Revise the routine for the format specifier

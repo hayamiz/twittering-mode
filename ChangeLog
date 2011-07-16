@@ -12,6 +12,12 @@
 	The new function is an alternative without the above problem.
 	(twittering-hmac-sha1): use `twittering-sha1' instead of `sha1'.
 
+	* twittering-mode.el: `twittering-wait-while' is reimplemented
+	with `lexical-let'.
+	(twittering-wait-while): reimplemented with `lexical-let'.
+	Redundant statements are no longer added. This suppresses warnings
+	on byte-compilation.
+
 2011-06-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Revise the routine for the format specifier

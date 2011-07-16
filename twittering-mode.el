@@ -546,19 +546,19 @@ If TIMEOUT is nil, there is no time limit.
 If CONDITION returns nil, evaluate the form FORM and return its value.
 If TIMEOUT seconds passes, evaluate the forms TIMEOUT-FORMS and return
 the value of the last form in TIMEOUT-FORMS."
-  (let ((current-sym (gensym))
-	(timeout-sym (gensym))
-	(interval-sym (gensym)))
-    `(let ((,timeout-sym ,timeout)
-	   (,interval-sym ,interval)
-	   (,current-sym 0.0))
-       (while (and (or (null ,timeout-sym) (< ,current-sym ,timeout-sym))
-		   ,condition)
-	 (sit-for ,interval-sym)
-	 (setq ,current-sym (+ ,current-sym ,interval-sym)))
-       (if (or (null ,timeout-sym) (< ,current-sym ,timeout-sym))
-	   ,form
-	 ,@timeout-forms))))
+  `(lexical-let (,@(when timeout `((timeout ,timeout)))
+		 (interval ,interval)
+		 (current 0.0))
+     (while (and ,@(when timeout '((< current timeout)))
+		 ,condition)
+       (sit-for interval)
+       (setq current (+ current interval)))
+     ,(when (or form timeout-forms)
+	(if (null timeout)
+	    form
+	  `(if (< current timeout)
+	       ,form
+	     ,@timeout-forms)))))
 
 
 (defun twittering-extract-matched-substring-all (regexp str)

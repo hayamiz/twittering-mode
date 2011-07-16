@@ -4211,9 +4211,18 @@ If `twittering-password' is nil, read it from the minibuffer."
     (null (remove t (mapcar 'stringp value-list)))))
 
 (defun twittering-verify-credentials ()
+  "Verify the account.
+
+If the account has been authorized already, return t.
+Otherwise, this function tries to authorize the account.
+If the authorization succeeded, invoke `twittering-start' and return t.
+If the authorization failed, return nil."
   (cond
-   ((or (twittering-account-authorized-p)
-	(twittering-account-authorization-queried-p))
+   ((twittering-account-authorized-p)
+    ;; The account has been authorized already.
+    t)
+   ((twittering-account-authorization-queried-p)
+    ;; The account has not been authorized yet.
     nil)
    ((and (memq twittering-auth-method '(oauth xauth))
 	 (or (null twittering-oauth-consumer-key)
@@ -4236,26 +4245,32 @@ If `twittering-password' is nil, read it from the minibuffer."
 	 ((null proc)
 	  (setq twittering-account-authorization nil)
 	  (message "Authorization failed. Type M-x twit to retry.")
-	  (setq twittering-oauth-access-token-alist nil))
+	  (setq twittering-oauth-access-token-alist nil)
+	  ;; Failed to authorize the account.
+	  nil)
 	 (t
 	  ;; wait for verification to finish.
 	  (twittering-wait-while nil 0.1
 				 (and
 				  (twittering-account-authorization-queried-p)
 				  (twittering-process-alive-p proc)))
-	  (when (and (twittering-account-authorization-queried-p)
-		     (not (twittering-process-alive-p proc)))
+	  (if (not (twittering-account-authorization-queried-p))
+	      ;; The query is completed.
+	      (twittering-account-authorized-p)
 	    ;; If the process has been dead, wait a moment because
 	    ;; Emacs may be in the middle of evaluating the sentinel.
 	    (twittering-wait-while
 	     10 0.1
 	     (twittering-account-authorization-queried-p)
-	     nil
+	     ;; Succeeded in authorizing the account.
+	     t
 	     ;; Display a message and reset the variable on timeout.
 	     (message
 	      "Status of Authorization process is `%s'. Type M-x twit to retry."
 	      (process-status proc))
-	     (setq twittering-account-authorization nil)))))))
+	     (setq twittering-account-authorization nil)
+	     ;; Failed to authorize the account.
+	     nil))))))
    ((eq twittering-auth-method 'oauth)
     (let* ((scheme (if twittering-oauth-use-ssl
 		       "https"
@@ -4288,9 +4303,13 @@ If `twittering-password' is nil, read it from the minibuffer."
 	  (when (and twittering-use-master-password
 		     (twittering-capable-of-encryption-p)
 		     (not (file-exists-p twittering-private-info-file)))
-	    (twittering-save-private-info-with-guide))))
+	    (twittering-save-private-info-with-guide))
+	  ;; Succeeded in authorizing the account.
+	  t))
        (t
-	(message "Authorization via OAuth failed. Type M-x twit to retry.")))))
+	;; Failed to authorize the account.
+	(message "Authorization via OAuth failed. Type M-x twit to retry.")
+	nil))))
    ((eq twittering-auth-method 'xauth)
     (let* ((account-info (twittering-prepare-account-info))
 	   (scheme (if twittering-oauth-use-ssl
@@ -4321,9 +4340,13 @@ If `twittering-password' is nil, read it from the minibuffer."
 		   (twittering-capable-of-encryption-p)
 		   (not (file-exists-p twittering-private-info-file)))
 	  (twittering-save-private-info-with-guide))
-	(twittering-start))
+	(twittering-start)
+	;; Succeeded in authorizing the account.
+	t)
        (t
-	(message "Authorization via xAuth failed. Type M-x twit to retry.")))))
+	;; Failed to authorize the account.
+	(message "Authorization via xAuth failed. Type M-x twit to retry.")
+	nil))))
    ((eq twittering-auth-method 'basic)
     (setq twittering-account-authorization 'queried)
     (let* ((account-info (twittering-prepare-account-info))
@@ -4345,30 +4368,36 @@ If `twittering-password' is nil, read it from the minibuffer."
 	(message "Authorization for the account \"%s\" failed. Type M-x twit to retry."
 		 (car account-info))
 	(setq twittering-username nil)
-	(setq twittering-password nil))
+	(setq twittering-password nil)
+	;; Failed to authorize the account.
+	nil)
        (t
 	;; wait for verification to finish.
 	(twittering-wait-while nil 0.1
 			       (and
 				(twittering-account-authorization-queried-p)
 				(twittering-process-alive-p proc)))
-	(when (and (twittering-account-authorization-queried-p)
-		   (not (twittering-process-alive-p proc)))
+	(if (not (twittering-account-authorization-queried-p))
+	    ;; The query is finished.
+	    (twittering-account-authorized-p)
 	  ;; If the process has been dead, wait a moment because
 	  ;; Emacs may be in the middle of evaluating the sentinel.
 	  (twittering-wait-while
 	   10 0.1
 	   (twittering-account-authorization-queried-p)
-	   nil
+	   ;; Succeeded in authorizing the account.
+	   t
 	   ;; Display a message and reset the variable on timeout.
 	   (message
 	    "Status of Authorization process is `%s'. Type M-x twit to retry."
 	    (process-status proc))
-	   (setq twittering-account-authorization nil)))))))
+	   (setq twittering-account-authorization nil)
+	   ;; Failed to authorize the account.
+	   nil))))))
    (t
     (message "%s is invalid as an authorization method."
-	     twittering-auth-method)))
-  (twittering-account-authorized-p))
+	     twittering-auth-method)
+    nil)))
 
 (defun twittering-http-get-verify-credentials-sentinel (proc status connection-info header-info)
   (let ((status-line (cdr (assq 'status-line header-info)))
@@ -7597,8 +7626,8 @@ entry in `twittering-edit-skeleton-alist' are performed.")
   (twittering-initialize-global-variables-if-necessary)
   (cond
    ((and (twittering-ensure-connection-method)
-	 (twittering-ensure-private-info))
-    (twittering-verify-credentials)
+	 (twittering-ensure-private-info)
+	 (twittering-verify-credentials))
     (let ((timeline-spec
 	   (or timeline-spec
 	       (twittering-read-timeline-spec-with-completion

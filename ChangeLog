@@ -37,6 +37,13 @@
 	(twittering-visit-timeline): invoke
 	`twittering-initialize-global-variables-if-necessary' first.
 
+	* twittering-mode.el: Open the timeline buffer only if
+	authorization succeeded.
+	(twittering-verify-credentials): return t or nil according to
+	whether the authorization succeeded or not.
+	(twittering-visit-timeline): open the timeline buffer only if
+	authorization succeeded.
+
 2011-06-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Revise the routine for the format specifier

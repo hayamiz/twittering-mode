@@ -7,6 +7,10 @@
 
 ### Bug fixes
 * Fix of displaying a message of authorization.
+* Fix of the function for HMAC-SHA1.
+  Results from the function `twittering-hmac-sha1' might return
+  incorrect digests depending on the current coding system. The
+  problem has been fixed.
 
  2.0.0: 2011-04-22
 ------------------

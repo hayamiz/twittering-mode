@@ -22,6 +22,16 @@
 	`twittering-edit-skeleton-alist'.
 	(twittering-edit-skeleton-alist): fix docstring.
 
+	* twittering-mode.el: Load private information before
+	initialization.
+	(twittering-private-info-file-loaded): new variable.
+	(twittering-private-info-loaded-p): new function.
+	(twittering-ensure-private-info): new function.
+	(twittering-verify-credentials): do not try to load private
+	information.
+	(twittering-visit-timeline): ensure that private information is
+	loaded if necessary.
+
 2011-06-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Revise the routine for the format specifier

@@ -494,6 +494,8 @@ pop-up buffer.")
   (expand-file-name "~/.twittering-mode.gpg")
   "*File for storing encrypted private information when
 `twittering-use-master-password' is non-nil.")
+(defvar twittering-private-info-file-loaded nil
+  "Whether the private info file has been loaded or not.")
 (defvar twittering-variables-stored-with-encryption
   '(twittering-oauth-access-token-alist))
 
@@ -2739,6 +2741,9 @@ like following:
 ;;;; Private storage
 ;;;;
 
+(defun twittering-private-info-loaded-p ()
+  twittering-private-info-file-loaded)
+
 (defun twittering-load-private-info ()
   (let* ((file twittering-private-info-file)
 	 (decrypted-str (twittering-read-from-encrypted-file file))
@@ -2789,7 +2794,8 @@ like following:
 	 (str (with-output-to-string (pp obj)))
 	 (file twittering-private-info-file))
     (when (twittering-write-and-encrypt file str)
-      (set-file-modes file #o600))))
+      (set-file-modes file #o600)
+      (setq twittering-private-info-file-loaded t))))
 
 (defun twittering-save-private-info-with-guide ()
   (let ((str (concat
@@ -2904,6 +2910,36 @@ like following:
 	   nil)))))
    (t
     nil)))
+
+(defun twittering-ensure-private-info ()
+  "Ensure that private information is loaded if necessary.
+Return non-nil if `twittering-use-master-password' is nil or private
+information has been already loaded. Also, return non-nil
+if `twittering-use-master-password' is non-nil and this function succeeded
+in loading private information.
+Return nil if private information cannot be loaded."
+  (if (or (not twittering-use-master-password)
+	  (twittering-private-info-loaded-p))
+      ;; The private information is unnecessary or already loaded.
+      t
+    (cond
+     ((not (twittering-capable-of-encryption-p))
+      (message "You need GnuPG and (EasyPG or alpaca.el) for master password!")
+      nil)
+     ((and (memq twittering-auth-method '(oauth xauth))
+	   (file-exists-p twittering-private-info-file))
+      (cond
+       ((twittering-load-private-info-with-guide)
+	(setq twittering-private-info-file-loaded t)
+	(message "The authorized token is loaded.")
+	t)
+       (t
+	(message "Failed to load an authorized token from \"%s\"."
+		 twittering-private-info-file)
+	nil)))
+     (t
+      ;; The file for private infomation does not exist now.
+      t))))
 
 ;;;;
 ;;;; Asynchronous retrieval
@@ -4184,20 +4220,9 @@ If `twittering-password' is nil, read it from the minibuffer."
 	     (null twittering-oauth-consumer-secret)))
     (message "Consumer for OAuth is not specified.")
     nil)
-   ((and twittering-use-master-password
-	 (not (twittering-capable-of-encryption-p)))
-    (message "You need GnuPG and (EasyPG or alpaca.el) for master password!")
-    nil)
-   ((and (memq twittering-auth-method '(oauth xauth))
-	 twittering-use-master-password
-	 (twittering-capable-of-encryption-p)
-	 (file-exists-p twittering-private-info-file))
-    (cond
-     ((and (twittering-load-private-info-with-guide)
-	   (twittering-has-oauth-access-token-p))
-      (message "The authorized token is loaded.")
-      (setq twittering-account-authorization 'queried)
-      (let ((proc
+   ((twittering-has-oauth-access-token-p)
+    (setq twittering-account-authorization 'queried)
+    (let ((proc
 	     (twittering-call-api
 	      'verify-credentials
 	      `((sentinel
@@ -4231,10 +4256,6 @@ If `twittering-password' is nil, read it from the minibuffer."
 	      "Status of Authorization process is `%s'. Type M-x twit to retry."
 	      (process-status proc))
 	     (setq twittering-account-authorization nil)))))))
-     (t
-      (message "Failed to load an authorized token from \"%s\"."
-	       twittering-private-info-file)
-      nil)))
    ((eq twittering-auth-method 'oauth)
     (let* ((scheme (if twittering-oauth-use-ssl
 		       "https"
@@ -7574,7 +7595,8 @@ entry in `twittering-edit-skeleton-alist' are performed.")
 (defun twittering-visit-timeline (&optional timeline-spec initial)
   (interactive)
   (cond
-   ((twittering-ensure-connection-method)
+   ((and (twittering-ensure-connection-method)
+	 (twittering-ensure-private-info))
     (twittering-initialize-global-variables-if-necessary)
     (twittering-verify-credentials)
     (let ((timeline-spec

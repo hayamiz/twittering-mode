@@ -48,6 +48,11 @@
 	only if necessary.
 	(twittering-start): bind `action' only if necessary.
 
+	* twittering-mode.el: Start timers only when an active timeline
+	buffer is opened.
+	(twittering-verify-credentials): do not invoke `twittering-start'.
+	(twittering-http-get-verify-credentials-sentinel): likewise.
+
 2011-06-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Revise the routine for the format specifier

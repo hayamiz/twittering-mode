@@ -4215,7 +4215,7 @@ If `twittering-password' is nil, read it from the minibuffer."
 
 If the account has been authorized already, return t.
 Otherwise, this function tries to authorize the account.
-If the authorization succeeded, invoke `twittering-start' and return t.
+If the authorization succeeded, return t.
 If the authorization failed, return nil."
   (cond
    ((twittering-account-authorized-p)
@@ -4297,7 +4297,6 @@ If the authorization failed, return nil."
 	  (setq twittering-oauth-access-token-alist token-alist)
 	  (setq twittering-username username)
 	  (setq twittering-account-authorization 'authorized)
-	  (twittering-start)
 	  (message "Authorization for the account \"%s\" succeeded."
 		   username)
 	  (when (and twittering-use-master-password
@@ -4340,7 +4339,6 @@ If the authorization failed, return nil."
 		   (twittering-capable-of-encryption-p)
 		   (not (file-exists-p twittering-private-info-file)))
 	  (twittering-save-private-info-with-guide))
-	(twittering-start)
 	;; Succeeded in authorizing the account.
 	t)
        (t
@@ -4413,7 +4411,6 @@ If the authorization failed, return nil."
        (t
 	(setq twittering-username username)))
       (setq twittering-account-authorization 'authorized)
-      (twittering-start)
       (message "Authorization for the account \"%s\" succeeded." username)
       nil)
      (t

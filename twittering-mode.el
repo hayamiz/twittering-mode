@@ -4213,6 +4213,9 @@ If `twittering-password' is nil, read it from the minibuffer."
 (defun twittering-verify-credentials ()
   "Verify the account.
 
+This function is an internal function, which should be called from
+`twittering-ensure-account-verification'.
+
 If the account has been authorized already, return t.
 Otherwise, this function tries to authorize the account.
 If the authorization succeeded, return t.
@@ -4221,8 +4224,11 @@ If the authorization failed, return nil."
    ((twittering-account-authorized-p)
     ;; The account has been authorized already.
     t)
-   ((twittering-account-authorization-queried-p)
-    ;; The account has not been authorized yet.
+   ((not (twittering-account-authorization-queried-p))
+    ;; This function must be invoked from
+    ;; `twittering-ensure-account-verification', which updates the variable
+    ;; `twittering-account-authorization' into the symbol `queried'.
+    (error "`twittering-verify-credentials' is invoked multiple times.")
     nil)
    ((and (memq twittering-auth-method '(oauth xauth))
 	 (or (null twittering-oauth-consumer-key)
@@ -4230,7 +4236,6 @@ If the authorization failed, return nil."
     (message "Consumer for OAuth is not specified.")
     nil)
    ((twittering-has-oauth-access-token-p)
-    (setq twittering-account-authorization 'queried)
     (let ((proc
 	     (twittering-call-api
 	      'verify-credentials
@@ -4243,7 +4248,6 @@ If the authorization failed, return nil."
 		(password . nil)))))
 	(cond
 	 ((null proc)
-	  (setq twittering-account-authorization nil)
 	  (message "Authorization failed. Type M-x twit to retry.")
 	  (setq twittering-oauth-access-token-alist nil)
 	  ;; Failed to authorize the account.
@@ -4264,11 +4268,10 @@ If the authorization failed, return nil."
 	     (twittering-account-authorization-queried-p)
 	     ;; Succeeded in authorizing the account.
 	     t
-	     ;; Display a message and reset the variable on timeout.
+	     ;; Display a message.
 	     (message
 	      "Status of Authorization process is `%s'. Type M-x twit to retry."
 	      (process-status proc))
-	     (setq twittering-account-authorization nil)
 	     ;; Failed to authorize the account.
 	     nil))))))
    ((eq twittering-auth-method 'oauth)
@@ -4296,7 +4299,6 @@ If the authorization failed, return nil."
 	(let ((username (cdr (assoc "screen_name" token-alist))))
 	  (setq twittering-oauth-access-token-alist token-alist)
 	  (setq twittering-username username)
-	  (setq twittering-account-authorization 'authorized)
 	  (message "Authorization for the account \"%s\" succeeded."
 		   username)
 	  (when (and twittering-use-master-password
@@ -4332,7 +4334,6 @@ If the authorization failed, return nil."
 	;; set `twittering-username' only if the account is valid.
 	(setq twittering-username (car account-info))
 	(setq twittering-oauth-access-token-alist token-alist)
-	(setq twittering-account-authorization 'authorized)
 	(message "Authorization for the account \"%s\" succeeded."
 		 (twittering-get-username))
 	(when (and twittering-use-master-password
@@ -4346,7 +4347,6 @@ If the authorization failed, return nil."
 	(message "Authorization via xAuth failed. Type M-x twit to retry.")
 	nil))))
    ((eq twittering-auth-method 'basic)
-    (setq twittering-account-authorization 'queried)
     (let* ((account-info (twittering-prepare-account-info))
 	   ;; Bind account information locally to ensure that
 	   ;; the variables are reset when the verification fails.
@@ -4362,7 +4362,6 @@ If the authorization failed, return nil."
 	       (password . ,(car account-info))))))
       (cond
        ((null proc)
-	(setq twittering-account-authorization nil)
 	(message "Authorization for the account \"%s\" failed. Type M-x twit to retry."
 		 (car account-info))
 	(setq twittering-username nil)
@@ -4385,11 +4384,10 @@ If the authorization failed, return nil."
 	   (twittering-account-authorization-queried-p)
 	   ;; Succeeded in authorizing the account.
 	   t
-	   ;; Display a message and reset the variable on timeout.
+	   ;; Display a message.
 	   (message
 	    "Status of Authorization process is `%s'. Type M-x twit to retry."
 	    (process-status proc))
-	   (setq twittering-account-authorization nil)
 	   ;; Failed to authorize the account.
 	   nil))))))
    (t
@@ -4434,6 +4432,33 @@ If the authorization failed, return nil."
     (message "Authorization failed. Type M-x twit to retry.")
     (setq twittering-username nil)
     (setq twittering-password nil)))
+
+(defun twittering-ensure-account-verification ()
+  "Ensure verification of an account.
+
+If an account has been already authorized, return t.
+If a query of authorization is being processed, return nil.
+
+Otherwise, this function tries to authorize an account by calling
+`twittering-verify-credentials'.
+If the authorization succeeded, return t.
+If the authorization failed, return nil."
+  (cond
+   ((twittering-account-authorized-p)
+    ;; The account has been already authorized.
+    t)
+   ((twittering-account-authorization-queried-p)
+    ;; The account has not been authorized yet.
+    nil)
+   (t
+    (setq twittering-account-authorization 'queried)
+    (let ((result nil))
+      (unwind-protect
+	  (setq result (twittering-verify-credentials))
+	(if result
+	    (setq twittering-account-authorization 'authorized)
+	  (setq twittering-account-authorization nil)))
+      result))))
 
 ;;;;
 ;;;; Status retrieval
@@ -7623,7 +7648,7 @@ entry in `twittering-edit-skeleton-alist' are performed.")
   (cond
    ((and (twittering-ensure-connection-method)
 	 (twittering-ensure-private-info)
-	 (twittering-verify-credentials))
+	 (twittering-ensure-account-verification))
     (let ((timeline-spec
 	   (or timeline-spec
 	       (twittering-read-timeline-spec-with-completion

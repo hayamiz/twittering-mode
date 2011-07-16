@@ -53,6 +53,21 @@
 	(twittering-verify-credentials): do not invoke `twittering-start'.
 	(twittering-http-get-verify-credentials-sentinel): likewise.
 
+	* twittering-mode.el: `twittering-account-authorization' must be
+	reset if `twittering-verify-credentials' exited non-locally.
+	(twittering-verify-credentials): do not manage the global variable
+	`twittering-account-authorization', which will be managed by the
+	new function `twittering-ensure-account-verification'.
+	`twittering-verify-credentials' raises an error if the function
+	`twittering-account-authorization-queried-p` returns non-nil.
+	(twittering-ensure-account-verification): new function. This
+	function can correctly reset the global variable
+	`twittering-account-authorization' if authorization is failed and
+	the function `twittering-verify-credentials' exits non-locally.
+	(twittering-visit-timeline): call
+	`twittering-ensure-account-verification' instead of
+	`twittering-verify-credentials'.
+
 2011-06-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Revise the routine for the format specifier

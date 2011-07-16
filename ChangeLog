@@ -2,6 +2,16 @@
 
 	* test/test-twittering-mode.el: Add tests for HMAC-SHA1.
 
+	* twittering-mode.el: Fix the function for HMAC-SHA1 so that it
+	always return a correct digest.
+	(twittering-sha1): new function. This function can return a
+	correct digest without regard to the current coding system.
+	For very long object, the function `sha1' uses an external program
+	and coding system for the program is not correctly specified.
+	Therefore, the result may depend on the current coding system.
+	The new function is an alternative without the above problem.
+	(twittering-hmac-sha1): use `twittering-sha1' instead of `sha1'.
+
 2011-06-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Revise the routine for the format specifier

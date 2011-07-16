@@ -2304,6 +2304,27 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
       (setq l (1+ l)))
     result))
 
+(defun twittering-sha1 (&rest args)
+  "Return the SHA1 (Secure Hash Algorithm) of an object.
+
+This is equivalent to the function `sha1' except that
+`coding-system-for-read' and `coding-system-for-write' are bound to the
+symbol `binary'.
+
+The function `sha1' uses an external program for large object. However,
+the coding system for transferring data from/to the program is not fixed,
+at least in the implementation distributed with GNU Emacs 21.4.1, 22.2.1
+and 23.2.1.
+Therefore, the result from the function `sha1' may depend on the current
+coding system.
+
+This function avoid the dependency by binding `coding-system-for-read' and
+`coding-system-for-write' to the symbol `binary'."
+  (require 'sha1)
+  (let ((coding-system-for-read 'binary)
+	(coding-system-for-write 'binary))
+    (apply 'sha1 args)))
+
 ;;;
 ;;; The below function is derived from `hmac-sha1' retrieved
 ;;; from http://www.emacswiki.org/emacs/HmacShaOne.
@@ -2380,7 +2401,7 @@ For keys and values that are already unibyte, the
 
   (let ((+hmac-sha1-block-size-bytes+ 64)) ; SHA-1 uses 512-bit blocks
     (when (< +hmac-sha1-block-size-bytes+ (length key))
-      (setq key (sha1 key nil nil t)))
+      (setq key (twittering-sha1 key nil nil t)))
 
     (let ((key-block (make-vector +hmac-sha1-block-size-bytes+ 0)))
       (dotimes (i (length key))
@@ -2403,10 +2424,10 @@ For keys and values that are already unibyte, the
 	  (setq opad (apply 'unibyte-string (mapcar 'identity opad)))
 	  (setq ipad (apply 'unibyte-string (mapcar 'identity ipad))))
 
-	(sha1 (concat opad
-		      (sha1 (concat ipad message)
-			    nil nil t))
-	      nil nil t)))))
+	(twittering-sha1 (concat opad
+				 (twittering-sha1 (concat ipad message)
+						  nil nil t))
+			 nil nil t)))))
 
 (defun twittering-oauth-auth-str (method base-url query-parameters oauth-parameters key)
   "Generate the value for HTTP Authorization header on OAuth.

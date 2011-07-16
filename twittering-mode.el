@@ -6677,13 +6677,12 @@ FUNC is called as (apply FUNC ARGS)."
 
 (defun twittering-start (&optional action)
   (interactive)
-  (if (null action)
-      (setq action #'twittering-update-active-buffers))
   (unless twittering-timer
-    (setq twittering-timer
-	  (run-at-time "0 sec"
-		       twittering-timer-interval
-		       #'twittering-timer-action action)))
+    (let ((action (or action #'twittering-update-active-buffers)))
+      (setq twittering-timer
+	    (run-at-time "0 sec"
+			 twittering-timer-interval
+			 #'twittering-timer-action action))))
   (unless twittering-timer-for-redisplaying
     (setq twittering-timer-for-redisplaying
 	  (twittering-run-repeatedly-on-idle

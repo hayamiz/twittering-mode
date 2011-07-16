@@ -44,6 +44,10 @@
 	(twittering-visit-timeline): open the timeline buffer only if
 	authorization succeeded.
 
+	* twittering-mode.el: In `twittering-start', bind a local variable
+	only if necessary.
+	(twittering-start): bind `action' only if necessary.
+
 2011-06-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Revise the routine for the format specifier

@@ -1,3 +1,7 @@
+2011-07-16  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* test/test-twittering-mode.el: Add tests for HMAC-SHA1.
+
 2011-05-21  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the message for dead process on basic

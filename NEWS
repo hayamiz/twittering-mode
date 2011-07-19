@@ -5,6 +5,16 @@
  2.0.x: XXXX-XX-XX
 ------------------
 
+### Important notice
+
+### Improvements
+* Another root CA certificate.
+  The root CA certificate `VeriSign Class 3 Public Primary CA - G2' is
+  also embedded in `twittering-mode.el'. It is used for verifying the
+  server `api.twitter.com'. The certificate `Equifax Secure
+  Certificate Authority', which has been embedded, is now used for
+  verifying the server `search.twitter.com'.
+
 ### Bug fixes
 * Fix of displaying a message of authorization.
 * Fix of the function for HMAC-SHA1.

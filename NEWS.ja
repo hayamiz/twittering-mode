@@ -5,6 +5,15 @@
  2.0.x: XXXX-XX-XX
 ------------------
 
+### 重要なお知らせ
+
+### 改良
+* CA証明書を追加
+  新たにRoot CA証明書`VeriSign Class 3 Public Primary CA - G2'を内蔵し
+  ました。この証明書は`api.twitter.com'のサーバ認証で参照されます。以
+  前から内蔵されている証明書`Equifax Secure Certificate Authority'は
+  `search.twitter.com'のサーバ認証でのみ参照されるようになりました。
+
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正
 * HMAC-SHA1の計算を修正

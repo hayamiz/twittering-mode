@@ -1,3 +1,9 @@
+2011-07-20  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix indentation of the function
+	`twittering-verify-credentials'.
+	(twittering-verify-credentials): fix indentation.
+
 2011-07-16  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* test/test-twittering-mode.el: Add tests for HMAC-SHA1.

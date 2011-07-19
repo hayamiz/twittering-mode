@@ -4237,43 +4237,43 @@ If the authorization failed, return nil."
     nil)
    ((twittering-has-oauth-access-token-p)
     (let ((proc
-	     (twittering-call-api
-	      'verify-credentials
-	      `((sentinel
-		 . twittering-http-get-verify-credentials-sentinel)
-		(clean-up-sentinel
-		 . twittering-http-get-verify-credentials-clean-up-sentinel))
-	      `((username . ,(cdr (assoc "screen_name"
-					 twittering-oauth-access-token-alist)))
-		(password . nil)))))
-	(cond
-	 ((null proc)
-	  (message "Authorization failed. Type M-x twit to retry.")
-	  (setq twittering-oauth-access-token-alist nil)
-	  ;; Failed to authorize the account.
-	  nil)
-	 (t
-	  ;; wait for verification to finish.
-	  (twittering-wait-while nil 0.1
-				 (and
-				  (twittering-account-authorization-queried-p)
-				  (twittering-process-alive-p proc)))
-	  (if (not (twittering-account-authorization-queried-p))
-	      ;; The query is completed.
-	      (twittering-account-authorized-p)
-	    ;; If the process has been dead, wait a moment because
-	    ;; Emacs may be in the middle of evaluating the sentinel.
-	    (twittering-wait-while
-	     10 0.1
-	     (twittering-account-authorization-queried-p)
-	     ;; Succeeded in authorizing the account.
-	     t
-	     ;; Display a message.
-	     (message
-	      "Status of Authorization process is `%s'. Type M-x twit to retry."
-	      (process-status proc))
-	     ;; Failed to authorize the account.
-	     nil))))))
+	   (twittering-call-api
+	    'verify-credentials
+	    `((sentinel
+	       . twittering-http-get-verify-credentials-sentinel)
+	      (clean-up-sentinel
+	       . twittering-http-get-verify-credentials-clean-up-sentinel))
+	    `((username . ,(cdr (assoc "screen_name"
+				       twittering-oauth-access-token-alist)))
+	      (password . nil)))))
+      (cond
+       ((null proc)
+	(message "Authorization failed. Type M-x twit to retry.")
+	(setq twittering-oauth-access-token-alist nil)
+	;; Failed to authorize the account.
+	nil)
+       (t
+	;; wait for verification to finish.
+	(twittering-wait-while nil 0.1
+			       (and
+				(twittering-account-authorization-queried-p)
+				(twittering-process-alive-p proc)))
+	(if (not (twittering-account-authorization-queried-p))
+	    ;; The query is completed.
+	    (twittering-account-authorized-p)
+	  ;; If the process has been dead, wait a moment because
+	  ;; Emacs may be in the middle of evaluating the sentinel.
+	  (twittering-wait-while
+	   10 0.1
+	   (twittering-account-authorization-queried-p)
+	   ;; Succeeded in authorizing the account.
+	   t
+	   ;; Display a message.
+	   (message
+	    "Status of Authorization process is `%s'. Type M-x twit to retry."
+	    (process-status proc))
+	   ;; Failed to authorize the account.
+	   nil))))))
    ((eq twittering-auth-method 'oauth)
     (let* ((scheme (if twittering-oauth-use-ssl
 		       "https"

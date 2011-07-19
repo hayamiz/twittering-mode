@@ -4429,7 +4429,14 @@ If the authorization failed, return nil."
   (when (and (memq status '(exit signal closed failed))
 	     (eq twittering-account-authorization 'queried))
     (setq twittering-account-authorization nil)
-    (message "Authorization failed. Type M-x twit to retry.")
+    (let ((exit-status (cond
+			((processp proc) (process-exit-status proc))
+			(t 0)))
+	  (command (process-command proc)))
+      (if (= 0 exit-status)
+	  (message "Authorization failed. Type M-x twit to retry.")
+	(message "Authorization failed: %s exited abnormally (exit-status=%s)."
+		 (car command) exit-status)))
     (setq twittering-username nil)
     (setq twittering-password nil)))
 

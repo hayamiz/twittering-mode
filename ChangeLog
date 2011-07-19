@@ -4,6 +4,11 @@
 	`twittering-verify-credentials'.
 	(twittering-verify-credentials): fix indentation.
 
+	* twittering-mode.el: Display exit status of the process for
+	authorization if it exited abnormally.
+	(twittering-http-get-verify-credentials-clean-up-sentinel):
+	display exit status of the process if it exited abnormally.
+
 2011-07-16  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* test/test-twittering-mode.el: Add tests for HMAC-SHA1.

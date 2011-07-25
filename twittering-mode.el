@@ -7024,13 +7024,15 @@ entry in `twittering-edit-skeleton-alist' are performed.")
 (defun twittering-ensure-whole-of-status-is-visible (&optional window)
   "Ensure that the whole of the tweet on the current point is visible."
   (interactive)
-  (let ((window (or window (selected-window))))
-    (with-current-buffer (window-buffer window)
-      (save-excursion
-	(let* ((next-head (or (twittering-get-next-status-head) (point-max)))
-	       (current-tail (max (1- next-head) (point-min))))
-	  (when (< (window-end window t) current-tail)
-	    (twittering-set-window-end window current-tail)))))))
+  (let* ((window (or window (selected-window)))
+	 (buffer (window-buffer window)))
+    (when (twittering-buffer-p buffer)
+      (with-current-buffer buffer
+	(save-excursion
+	  (let* ((next-head (or (twittering-get-next-status-head) (point-max)))
+		 (current-tail (max (1- next-head) (point-min))))
+	    (when (< (window-end window t) current-tail)
+	      (twittering-set-window-end window current-tail))))))))
 
 (defun twittering-update-status-from-pop-up-buffer (&optional init-str reply-to-id username spec)
   (interactive)

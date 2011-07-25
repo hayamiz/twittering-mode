@@ -26,6 +26,11 @@
   できていません。「お気に入り」を取得するAPIにユーザIDではなくユーザ
   名を指定するパラメータがないためです。
   Thanks to Makoto Fujiwara who reported this problem.
+* tweet編集バッファを開いた際の意図しないカーソル移動を解消
+  `twittering-mode'で管理されていないバッファから
+  `twittering-update-status-function'を呼び出して編集バッファを作ると
+  元のバッファでのカーソルが不必要に動かされてしまうバグを解消しました。
+  Thanks to mofigan who reported this problem.
 
  2.0.0: 2011-04-22
 ------------------

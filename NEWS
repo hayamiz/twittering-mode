@@ -27,6 +27,12 @@
   been fixed yet because the API for `favorites' has no parameters to
   directly specify a screen name not a user ID.
   Thanks to Makoto Fujiwara who reported this problem.
+* Fix of unintentional cursor motion on editing a tweet.
+  If the current buffer was not managed by `twittering-mode', the
+  cursor of the buffer was moved without intention by calling
+  `twittering-update-status-interactive' from the buffer. The bug has
+  been fixed.
+  Thanks to mofigan who reported this problem.
 
  2.0.0: 2011-04-22
 ------------------

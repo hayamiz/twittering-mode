@@ -9,6 +9,14 @@
 	prevents Twitter from confusing a username consisting of digits
 	with a user id.
 
+	* twittering-mode.el: Fix a bug that moves the cursor by calling
+	`twittering-update-status-interactive' from buffers which are not
+	managed by `twittering-mode'. Thanks to mofigan who reported this
+	problem.
+	(twittering-ensure-whole-of-status-is-visible): do not change
+	window configuration unless the given window is bound to a buffer
+	managed by `twittering-mode'.
+
 2011-07-20  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix indentation of the function

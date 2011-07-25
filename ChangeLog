@@ -1,3 +1,14 @@
+2011-07-25  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix the API call for `user_timeline' in
+	order to prevent Twitter from confusing a username consisting of
+	digits with a user id. Thanks to Makoto Fujiwara who reported this
+	problem.
+	(twittering-call-api): fix the API call for `user_timeline'. The
+	new implementation gives a username as a query parameter. This
+	prevents Twitter from confusing a username consisting of digits
+	with a user id.
+
 2011-07-20  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Embed another root CA certificate to follow

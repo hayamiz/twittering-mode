@@ -44,6 +44,12 @@
   Results from the function `twittering-hmac-sha1' might return
   incorrect digests depending on the current coding system. The
   problem has been fixed.
+* Fix of confusion of a username consisting of digits with a user ID.
+  The confusion when retrieving `user_timeline' has been fixed. But
+  the confusion when retrieving `favorites' for other users has not
+  been fixed yet because the API for `favorites' has no parameters to
+  directly specify a screen name not a user ID.
+  Thanks to Makoto Fujiwara who reported this problem.
 
  2.0.0: 2011-04-22
 ------------------

@@ -901,11 +901,13 @@ SCHEME must be \"http\" or \"https\"."
   "The full-path of the directory including the certificates authorizing
 a server certificate on SSL. The directory must be in \"hash format\".")
 
-(defvar twittering-ca-cert-alist
+(defconst twittering-ca-cert-alist
   '((;; Equifax Secure Certificate Authority
      ;; subject= /C=US/O=Equifax/OU=Equifax Secure Certificate Authority
      ;; SHA1 Fingerprint=D2:32:09:AD:23:D3:14:23:21:74:E4:0D:7F:9D:62:13:97:86:63:3A
-     "594f1775.0" . "-----BEGIN CERTIFICATE-----
+     ;; Retrieved from: https://www.geotrust.com/resources/root-certificates/index.html
+     ;; URL: https://www.geotrust.com/resources/root_certificates/certificates/Equifax_Secure_Certificate_Authority.cer
+     "-----BEGIN CERTIFICATE-----
 MIIDIDCCAomgAwIBAgIENd70zzANBgkqhkiG9w0BAQUFADBOMQswCQYDVQQGEwJV
 UzEQMA4GA1UEChMHRXF1aWZheDEtMCsGA1UECxMkRXF1aWZheCBTZWN1cmUgQ2Vy
 dGlmaWNhdGUgQXV0aG9yaXR5MB4XDTk4MDgyMjE2NDE1MVoXDTE4MDgyMjE2NDE1
@@ -924,11 +926,21 @@ A4GBAFjOKer89961zgK5F7WF0bnj4JXMJTENAKaSbn+2kmOeUJXRmm/kEd5jhW6Y
 7qj/WsjTVbJmcVfewCHrPSqnI0kBBIZCe/zuf6IWUrVnZ9NA2zsmWLIodz2uFHdh
 1voqZiegDfqnc1zqcPGUIWVEX/r87yloqaKHee9570+sB3c4
 -----END CERTIFICATE-----
-")
+"
+     ;; The hash by the older algorithm used by OpenSSL before 1.0.0.
+     ;; openssl x509 -subject_hash_old -noout -in cert/Equifax_Secure_Certificate_Authority.cer
+     "594f1775.0"
+
+     ;; The hash by the newer algorithm used by OpenSSL 1.0.0 and later.
+     ;; openssl x509 -subject_hash -noout -in cert/Equifax_Secure_Certificate_Authority.cer
+     "578d5c04.0"
+     )
     (;; VeriSign Class 3 Public Primary CA - G2
      ;; subject= /C=US/O=VeriSign, Inc./OU=Class 3 Public Primary Certification Authority - G2/OU=(c) 1998 VeriSign, Inc. - For authorized use only/OU=VeriSign Trust Network
      ;; SHA1 Fingerprint=85:37:1C:A6:E5:50:14:3D:CE:28:03:47:1B:DE:3A:09:E8:F8:77:0F
-     "72fa7371.0" . "-----BEGIN CERTIFICATE-----
+     ;; Retrieved from: https://www.verisign.com/support/roots.html
+     ;; URL: https://www.verisign.com/repository/roots/root-certificates/PCA-3G2.pem
+     "-----BEGIN CERTIFICATE-----
 MIIDAjCCAmsCEH3Z/gfPqB63EHln+6eJNMYwDQYJKoZIhvcNAQEFBQAwgcExCzAJ
 BgNVBAYTAlVTMRcwFQYDVQQKEw5WZXJpU2lnbiwgSW5jLjE8MDoGA1UECxMzQ2xh
 c3MgMyBQdWJsaWMgUHJpbWFyeSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eSAtIEcy
@@ -947,16 +959,26 @@ U01UbSuvDV1Ai2TT1+7eVmGSX6bEHRBhNtMsJzzoKQm5EWR0zLVznxxIqbxhAe7i
 F6YM40AIOw7n60RzKprxaZLvcRTDOaxxp5EJb+RxBrO6WVcmeQD2+A2iMzAo1KpY
 oJ2daZH9
 -----END CERTIFICATE-----
-")))
+"
+     ;; The hash by the older algorithm used by OpenSSL before 1.0.0.
+     ;; openssl x509 -subject_hash_old -noout -in cert/PCA-3G2.pem
+     "72fa7371.0"
+
+     ;; The hash by the newer algorithm used by OpenSSL 1.0.0 and later.
+     ;; openssl x509 -subject_hash -noout -in cert/PCA-3G2.pem
+     "1ec4d31a.0"
+     )))
 
 (defun twittering-delete-ca-cert ()
   (when (and twittering-cert-directory
 	     (file-exists-p twittering-cert-directory))
     (let ((default-directory twittering-cert-directory))
       (mapc (lambda (entry)
-	      (let ((filename (car entry)))
-		(when (file-exists-p filename)
-		  (delete-file filename))))
+	      (let ((filenames (cdr entry)))
+		(mapc (lambda (filename)
+			(when (file-exists-p filename)
+			  (delete-file filename)))
+		      filenames)))
 	    twittering-ca-cert-alist))
     (delete-directory twittering-cert-directory)
     (setq twittering-cert-directory nil)))
@@ -976,10 +998,12 @@ The certificate files are retrieved from
       (mapc
        (lambda (entry)
 	 (let ((default-directory ca-directory)
-	       (file (car entry))
-	       (data (cdr entry)))
-	   (with-temp-file file
-	     (insert data))))
+	       (data (car entry))
+	       (file-list (cdr entry)))
+	   (mapc (lambda (file)
+		   (with-temp-file file
+		     (insert data)))
+		 file-list)))
        twittering-ca-cert-alist)
       (setq twittering-cert-directory ca-directory)
       (add-hook 'kill-emacs-hook 'twittering-delete-ca-cert)))

@@ -897,18 +897,18 @@ SCHEME must be \"http\" or \"https\"."
 ;;;; CA certificate
 ;;;;
 
-(defvar twittering-cert-directory nil
-  "The full-path of the directory including the certificates authorizing
-a server certificate on SSL. The directory must be in \"hash format\".")
+(defvar twittering-cert-file nil
+  "The full-path of the file including the certificates authorizing
+servers on SSL.")
 
-(defconst twittering-ca-cert-alist
-  '((;; Equifax Secure Certificate Authority
-     ;; subject= /C=US/O=Equifax/OU=Equifax Secure Certificate Authority
-     ;; SHA1 Fingerprint=D2:32:09:AD:23:D3:14:23:21:74:E4:0D:7F:9D:62:13:97:86:63:3A
-     ;; Retrieved from: https://www.geotrust.com/resources/root-certificates/index.html
-     ;; URL: https://www.geotrust.com/resources/root_certificates/certificates/Equifax_Secure_Certificate_Authority.cer
-     ;; for www.googleapis.com
-     "-----BEGIN CERTIFICATE-----
+(defconst twittering-ca-cert-list
+  '(;; Equifax Secure Certificate Authority
+    ;; subject= /C=US/O=Equifax/OU=Equifax Secure Certificate Authority
+    ;; SHA1 Fingerprint=D2:32:09:AD:23:D3:14:23:21:74:E4:0D:7F:9D:62:13:97:86:63:3A
+    ;; Retrieved from: https://www.geotrust.com/resources/root-certificates/index.html
+    ;; URL: https://www.geotrust.com/resources/root_certificates/certificates/Equifax_Secure_Certificate_Authority.cer
+    ;; for www.googleapis.com
+    "-----BEGIN CERTIFICATE-----
 MIIDIDCCAomgAwIBAgIENd70zzANBgkqhkiG9w0BAQUFADBOMQswCQYDVQQGEwJV
 UzEQMA4GA1UEChMHRXF1aWZheDEtMCsGA1UECxMkRXF1aWZheCBTZWN1cmUgQ2Vy
 dGlmaWNhdGUgQXV0aG9yaXR5MB4XDTk4MDgyMjE2NDE1MVoXDTE4MDgyMjE2NDE1
@@ -928,21 +928,13 @@ A4GBAFjOKer89961zgK5F7WF0bnj4JXMJTENAKaSbn+2kmOeUJXRmm/kEd5jhW6Y
 1voqZiegDfqnc1zqcPGUIWVEX/r87yloqaKHee9570+sB3c4
 -----END CERTIFICATE-----
 "
-     ;; The hash by the older algorithm used by OpenSSL before 1.0.0.
-     ;; openssl x509 -subject_hash_old -noout -in cert/Equifax_Secure_Certificate_Authority.cer
-     "594f1775.0"
-
-     ;; The hash by the newer algorithm used by OpenSSL 1.0.0 and later.
-     ;; openssl x509 -subject_hash -noout -in cert/Equifax_Secure_Certificate_Authority.cer
-     "578d5c04.0"
-     )
-    (;; VeriSign Class 3 Public Primary CA - G2
-     ;; subject= /C=US/O=VeriSign, Inc./OU=Class 3 Public Primary Certification Authority - G2/OU=(c) 1998 VeriSign, Inc. - For authorized use only/OU=VeriSign Trust Network
-     ;; SHA1 Fingerprint=85:37:1C:A6:E5:50:14:3D:CE:28:03:47:1B:DE:3A:09:E8:F8:77:0F
-     ;; Retrieved from: https://www.verisign.com/support/roots.html
-     ;; URL: https://www.verisign.com/repository/roots/root-certificates/PCA-3G2.pem
-     ;; for api.twitter.com
-     "-----BEGIN CERTIFICATE-----
+    ;; VeriSign Class 3 Public Primary CA - G2
+    ;; subject= /C=US/O=VeriSign, Inc./OU=Class 3 Public Primary Certification Authority - G2/OU=(c) 1998 VeriSign, Inc. - For authorized use only/OU=VeriSign Trust Network
+    ;; SHA1 Fingerprint=85:37:1C:A6:E5:50:14:3D:CE:28:03:47:1B:DE:3A:09:E8:F8:77:0F
+    ;; Retrieved from: https://www.verisign.com/support/roots.html
+    ;; URL: https://www.verisign.com/repository/roots/root-certificates/PCA-3G2.pem
+    ;; for api.twitter.com
+    "-----BEGIN CERTIFICATE-----
 MIIDAjCCAmsCEH3Z/gfPqB63EHln+6eJNMYwDQYJKoZIhvcNAQEFBQAwgcExCzAJ
 BgNVBAYTAlVTMRcwFQYDVQQKEw5WZXJpU2lnbiwgSW5jLjE8MDoGA1UECxMzQ2xh
 c3MgMyBQdWJsaWMgUHJpbWFyeSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eSAtIEcy
@@ -962,21 +954,13 @@ F6YM40AIOw7n60RzKprxaZLvcRTDOaxxp5EJb+RxBrO6WVcmeQD2+A2iMzAo1KpY
 oJ2daZH9
 -----END CERTIFICATE-----
 "
-     ;; The hash by the older algorithm used by OpenSSL before 1.0.0.
-     ;; openssl x509 -subject_hash_old -noout -in cert/PCA-3G2.pem
-     "72fa7371.0"
-
-     ;; The hash by the newer algorithm used by OpenSSL 1.0.0 and later.
-     ;; openssl x509 -subject_hash -noout -in cert/PCA-3G2.pem
-     "1ec4d31a.0"
-     )
-    (;; GeoTrust Global CA
-     ;; subject= /C=US/O=GeoTrust Inc./CN=GeoTrust Global CA
-     ;; SHA1 Fingerprint=DE:28:F4:A4:FF:E5:B9:2F:A3:C5:03:D1:A3:49:A7:F9:96:2A:82:12
-     ;; Retrieved from: https://www.geotrust.com/resources/root-certificates/index.html
-     ;; URL: https://www.geotrust.com/resources/root_certificates/certificates/GeoTrust_Global_CA.cer
-     ;; for search.twitter.com
-     "-----BEGIN CERTIFICATE-----
+    ;; GeoTrust Global CA
+    ;; subject= /C=US/O=GeoTrust Inc./CN=GeoTrust Global CA
+    ;; SHA1 Fingerprint=DE:28:F4:A4:FF:E5:B9:2F:A3:C5:03:D1:A3:49:A7:F9:96:2A:82:12
+    ;; Retrieved from: https://www.geotrust.com/resources/root-certificates/index.html
+    ;; URL: https://www.geotrust.com/resources/root_certificates/certificates/GeoTrust_Global_CA.cer
+    ;; for search.twitter.com
+    "-----BEGIN CERTIFICATE-----
 MIIDVDCCAjygAwIBAgIDAjRWMA0GCSqGSIb3DQEBBQUAMEIxCzAJBgNVBAYTAlVT
 MRYwFAYDVQQKEw1HZW9UcnVzdCBJbmMuMRswGQYDVQQDExJHZW9UcnVzdCBHbG9i
 YWwgQ0EwHhcNMDIwNTIxMDQwMDAwWhcNMjIwNTIxMDQwMDAwWjBCMQswCQYDVQQG
@@ -996,51 +980,27 @@ PseKUgzbFbS9bZvlxrFUaKnjaZC2mqUPuLk/IH2uSrW4nOQdtqvmlKXBx4Ot2/Un
 hw4EbNX/3aBd7YdStysVAq45pmp06drE57xNNB6pXE0zX5IJL4hmXXeXxx12E6nV
 5fEWCRE11azbJHFwLJhWC9kXtNHjUStedejV0NxPNO3CBWaAocvmMw==
 -----END CERTIFICATE-----
-"
-     ;; The hash by the older algorithm used by OpenSSL before 1.0.0.
-     ;; openssl x509 -subject_hash_old -noout -in cert/GeoTrust_Global_CA.cer
-     "7999be0d.0"
-
-     ;; The hash by the newer algorithm used by OpenSSL 1.0.0 and later.
-     ;; openssl x509 -subject_hash -noout -in cert/GeoTrust_Global_CA.cer
-     "2c543cd1.0"
-     )))
+"))
 
 (defun twittering-delete-ca-cert ()
-  (when (and twittering-cert-directory
-	     (file-exists-p twittering-cert-directory))
-    (let ((default-directory twittering-cert-directory))
-      (mapc (lambda (entry)
-	      (let ((filenames (cdr entry)))
-		(mapc (lambda (filename)
-			(when (file-exists-p filename)
-			  (delete-file filename)))
-		      filenames)))
-	    twittering-ca-cert-alist))
-    (delete-directory twittering-cert-directory)
-    (setq twittering-cert-directory nil)))
+  (when (and twittering-cert-file
+	     (file-exists-p twittering-cert-file))
+    (delete-file twittering-cert-file))
+  (setq twittering-cert-file nil))
 
 (defun twittering-ensure-ca-cert ()
-  "Return a directory name including CA certificates.
+  "Return a full-path of the file including CA certificates.
 
 If it does not exist, create it. The directory includes root certificates
 in \"hash format\". In detail, see verify(1SSL)."
-  (unless twittering-cert-directory
+  (unless twittering-cert-file
     (let ((coding-system-for-write 'iso-safe)
-	  (ca-directory (make-temp-file "twmode-cacert" t)))
-      (mapc
-       (lambda (entry)
-	 (let ((default-directory ca-directory)
-	       (data (car entry))
-	       (file-list (cdr entry)))
-	   (mapc (lambda (file)
-		   (with-temp-file file
-		     (insert data)))
-		 file-list)))
-       twittering-ca-cert-alist)
-      (setq twittering-cert-directory ca-directory)
+	  (file (make-temp-file "twmode-cacert")))
+      (with-temp-file file
+	(apply 'insert twittering-ca-cert-list))
+      (setq twittering-cert-file file)
       (add-hook 'kill-emacs-hook 'twittering-delete-ca-cert)))
-  twittering-cert-directory)
+  twittering-cert-file)
 
 ;;;;
 ;;;; User agent
@@ -1329,9 +1289,8 @@ The parameter symbols are following:
   use-ssl: whether SSL is enabled or not.
   allow-insecure-server-cert: non-nil if an insecure server certificate is
     allowed on SSL.
-  cacert-directory-fullpath: the full-path of the directory including the
-    certificates authorizing a server certificate on SSL. The directory must
-    be in \"hash format\".
+  cacert-file-fullpath: the full-path of a file including the certificates
+    authorizing a server certificate on SSL. The file must be in PEM format.
   use-proxy: non-nil if using a proxy.
   proxy-server: a proxy server or nil.
   proxy-port: a port for connecting the proxy (integer) or nil.
@@ -1346,7 +1305,7 @@ The parameter symbols are following:
     `((use-ssl . ,use-ssl)
       (allow-insecure-server-cert
        . ,twittering-allow-insecure-server-cert)
-      (cacert-directory-fullpath
+      (cacert-file-fullpath
        . ,(when use-ssl (twittering-ensure-ca-cert)))
       (use-proxy . ,twittering-proxy-use)
       ,@(when twittering-proxy-use
@@ -1701,14 +1660,14 @@ The method to perform the request is determined from
 	 (use-ssl (cdr (assq 'use-ssl connection-info)))
 	 (allow-insecure-server-cert
 	  (cdr (assq 'allow-insecure-server-cert connection-info)))
-	 (cacert-directory-fullpath
-	  (cdr (assq 'cacert-directory-fullpath connection-info)))
-	 (cacert-directory-base
-	  (when cacert-directory-fullpath
-	    (file-name-directory cacert-directory-fullpath)))
-	 (cacert-directory-body
-	  (when cacert-directory-fullpath
-	    (file-name-nondirectory cacert-directory-fullpath)))
+	 (cacert-file-fullpath
+	  (cdr (assq 'cacert-file-fullpath connection-info)))
+	 (cacert-file-base-directory
+	  (when cacert-file-fullpath
+	    (file-name-directory cacert-file-fullpath)))
+	 (cacert-file-body
+	  (when cacert-file-fullpath
+	    (file-name-nondirectory cacert-file-fullpath)))
 	 (header-list
 	  `(,@header-list
 	    ;; Make `curl' remove the HTTP header field "Expect" for
@@ -1730,7 +1689,7 @@ The method to perform the request is determined from
 			(unless (string= (car pair) "Host")
 			  `("-H" ,(format "%s: %s" (car pair) (cdr pair)))))
 		      header-list))
-	    ,@(when use-ssl `("--capath" ,cacert-directory-body))
+	    ,@(when use-ssl `("--cacert" ,cacert-file-body))
 	    ,@(when (and use-ssl allow-insecure-server-cert)
 		`("--insecure"))
 	    ,@(when (and use-proxy proxy-server proxy-port)
@@ -1752,7 +1711,7 @@ The method to perform the request is determined from
 	   ;; With changing directory, `curl' on Windows can find the cert
 	   ;; file if you use Emacs on Cygwin.
 	   (if use-ssl
-	       cacert-directory-base
+	       cacert-file-base-directory
 	     default-directory)))
     (twittering-start-process-with-sentinel name buffer
 					    twittering-curl-program
@@ -1809,14 +1768,14 @@ The method to perform the request is determined from
 	 (use-ssl (cdr (assq 'use-ssl connection-info)))
 	 (allow-insecure-server-cert
 	  (cdr (assq 'allow-insecure-server-cert connection-info)))
-	 (cacert-directory-fullpath
-	  (cdr (assq 'cacert-directory-fullpath connection-info)))
-	 (cacert-directory-base
-	  (when cacert-directory-fullpath
-	    (file-name-directory cacert-directory-fullpath)))
-	 (cacert-directory-body
-	  (when cacert-directory-fullpath
-	    (file-name-nondirectory cacert-directory-fullpath)))
+	 (cacert-file-fullpath
+	  (cdr (assq 'cacert-file-fullpath connection-info)))
+	 (cacert-file-base-directory
+	  (when cacert-file-fullpath
+	    (file-name-directory cacert-file-fullpath)))
+	 (cacert-file-body
+	  (when cacert-file-fullpath
+	    (file-name-nondirectory cacert-file-fullpath)))
 	 (args
 	  `("--save-headers"
 	    "--quiet"
@@ -1828,7 +1787,7 @@ The method to perform the request is determined from
 			   (format "--header=%s: %s" (car pair) (cdr pair))))
 		       header-list))
 	    ,@(when use-ssl
-		`(,(format "--ca-directory=%s" cacert-directory-body)))
+		`(,(format "--ca-certificate=%s" cacert-file-body)))
 	    ,@(when (and use-ssl allow-insecure-server-cert)
 		`("--no-check-certificate"))
 	    ,@(cond
@@ -1854,7 +1813,7 @@ The method to perform the request is determined from
 	   ;; With changing directory, `wget' on Windows can find the cert
 	   ;; file if you use Emacs on Cygwin.
 	   (if use-ssl
-	       cacert-directory-base
+	       cacert-file-base-directory
 	     default-directory))
 	 (process-environment
 	  `(,@(when (and use-proxy proxy-server proxy-port)

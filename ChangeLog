@@ -15,6 +15,12 @@
 	used by OpenSSL before 1.0.0 and the other hash by the newer
 	algorithm used by OpenSSL 1.0.0 and later.
 
+	* twittering-mode.el: Embed a new root CA certificate to follow
+	an update of the server.
+	(twittering-ca-cert-alist): add a new root CA certificate,
+	`GeoTrust Global CA' in order to follow the update of the server
+	certificate of `search.twitter.com'.
+
 2011-07-25  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the API call for `user_timeline' in

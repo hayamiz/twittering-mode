@@ -907,6 +907,7 @@ a server certificate on SSL. The directory must be in \"hash format\".")
      ;; SHA1 Fingerprint=D2:32:09:AD:23:D3:14:23:21:74:E4:0D:7F:9D:62:13:97:86:63:3A
      ;; Retrieved from: https://www.geotrust.com/resources/root-certificates/index.html
      ;; URL: https://www.geotrust.com/resources/root_certificates/certificates/Equifax_Secure_Certificate_Authority.cer
+     ;; for www.googleapis.com
      "-----BEGIN CERTIFICATE-----
 MIIDIDCCAomgAwIBAgIENd70zzANBgkqhkiG9w0BAQUFADBOMQswCQYDVQQGEwJV
 UzEQMA4GA1UEChMHRXF1aWZheDEtMCsGA1UECxMkRXF1aWZheCBTZWN1cmUgQ2Vy
@@ -940,6 +941,7 @@ A4GBAFjOKer89961zgK5F7WF0bnj4JXMJTENAKaSbn+2kmOeUJXRmm/kEd5jhW6Y
      ;; SHA1 Fingerprint=85:37:1C:A6:E5:50:14:3D:CE:28:03:47:1B:DE:3A:09:E8:F8:77:0F
      ;; Retrieved from: https://www.verisign.com/support/roots.html
      ;; URL: https://www.verisign.com/repository/roots/root-certificates/PCA-3G2.pem
+     ;; for api.twitter.com
      "-----BEGIN CERTIFICATE-----
 MIIDAjCCAmsCEH3Z/gfPqB63EHln+6eJNMYwDQYJKoZIhvcNAQEFBQAwgcExCzAJ
 BgNVBAYTAlVTMRcwFQYDVQQKEw5WZXJpU2lnbiwgSW5jLjE8MDoGA1UECxMzQ2xh
@@ -967,6 +969,41 @@ oJ2daZH9
      ;; The hash by the newer algorithm used by OpenSSL 1.0.0 and later.
      ;; openssl x509 -subject_hash -noout -in cert/PCA-3G2.pem
      "1ec4d31a.0"
+     )
+    (;; GeoTrust Global CA
+     ;; subject= /C=US/O=GeoTrust Inc./CN=GeoTrust Global CA
+     ;; SHA1 Fingerprint=DE:28:F4:A4:FF:E5:B9:2F:A3:C5:03:D1:A3:49:A7:F9:96:2A:82:12
+     ;; Retrieved from: https://www.geotrust.com/resources/root-certificates/index.html
+     ;; URL: https://www.geotrust.com/resources/root_certificates/certificates/GeoTrust_Global_CA.cer
+     ;; for search.twitter.com
+     "-----BEGIN CERTIFICATE-----
+MIIDVDCCAjygAwIBAgIDAjRWMA0GCSqGSIb3DQEBBQUAMEIxCzAJBgNVBAYTAlVT
+MRYwFAYDVQQKEw1HZW9UcnVzdCBJbmMuMRswGQYDVQQDExJHZW9UcnVzdCBHbG9i
+YWwgQ0EwHhcNMDIwNTIxMDQwMDAwWhcNMjIwNTIxMDQwMDAwWjBCMQswCQYDVQQG
+EwJVUzEWMBQGA1UEChMNR2VvVHJ1c3QgSW5jLjEbMBkGA1UEAxMSR2VvVHJ1c3Qg
+R2xvYmFsIENBMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2swYYzD9
+9BcjGlZ+W988bDjkcbd4kdS8odhM+KhDtgPpTSEHCIjaWC9mOSm9BXiLnTjoBbdq
+fnGk5sRgprDvgOSJKA+eJdbtg/OtppHHmMlCGDUUna2YRpIuT8rxh0PBFpVXLVDv
+iS2Aelet8u5fa9IAjbkU+BQVNdnARqN7csiRv8lVK83Qlz6cJmTM386DGXHKTubU
+1XupGc1V3sjs0l44U+VcT4wt/lAjNvxm5suOpDkZALeVAjmRCw7+OC7RHQWa9k0+
+bw8HHa8sHo9gOeL6NlMTOdReJivbPagUvTLrGAMoUgRx5aszPeE4uwc2hGKceeoW
+MPRfwCvocWvk+QIDAQABo1MwUTAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBTA
+ephojYn7qwVkDBF9qn1luMrMTjAfBgNVHSMEGDAWgBTAephojYn7qwVkDBF9qn1l
+uMrMTjANBgkqhkiG9w0BAQUFAAOCAQEANeMpauUvXVSOKVCUn5kaFOSPeCpilKIn
+Z57QzxpeR+nBsqTP3UEaBU6bS+5Kb1VSsyShNwrrZHYqLizz/Tt1kL/6cdjHPTfS
+tQWVYrmm3ok9Nns4d0iXrKYgjy6myQzCsplFAMfOEVEiIuCl6rYVSAlk6l5PdPcF
+PseKUgzbFbS9bZvlxrFUaKnjaZC2mqUPuLk/IH2uSrW4nOQdtqvmlKXBx4Ot2/Un
+hw4EbNX/3aBd7YdStysVAq45pmp06drE57xNNB6pXE0zX5IJL4hmXXeXxx12E6nV
+5fEWCRE11azbJHFwLJhWC9kXtNHjUStedejV0NxPNO3CBWaAocvmMw==
+-----END CERTIFICATE-----
+"
+     ;; The hash by the older algorithm used by OpenSSL before 1.0.0.
+     ;; openssl x509 -subject_hash_old -noout -in cert/GeoTrust_Global_CA.cer
+     "7999be0d.0"
+
+     ;; The hash by the newer algorithm used by OpenSSL 1.0.0 and later.
+     ;; openssl x509 -subject_hash -noout -in cert/GeoTrust_Global_CA.cer
+     "2c543cd1.0"
      )))
 
 (defun twittering-delete-ca-cert ()
@@ -986,12 +1023,8 @@ oJ2daZH9
 (defun twittering-ensure-ca-cert ()
   "Return a directory name including CA certificates.
 
-If it does not exist, create it. The directory includes two root certificates
-in \"hash format\". In detail, see verify(1SSL).
-
-The certificate files are retrieved from
-`https://www.geotrust.com/resources/root_certificates/certificates/Equifax_Secure_Certificate_Authority.cer' and
-`https://www.verisign.com/repository/roots/root-certificates/PCA-3G2.pem'."
+If it does not exist, create it. The directory includes root certificates
+in \"hash format\". In detail, see verify(1SSL)."
   (unless twittering-cert-directory
     (let ((coding-system-for-write 'iso-safe)
 	  (ca-directory (make-temp-file "twmode-cacert" t)))

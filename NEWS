@@ -30,12 +30,13 @@
   `twittering-goto-previous-thing'. With a prefix argument by
   preceding "C-u", they ignore things except URIs explicitly written
   in a tweet.
-* Another root CA certificate.
-  The root CA certificate `VeriSign Class 3 Public Primary CA - G2' is
-  also embedded in `twittering-mode.el'. It is used for verifying the
-  server `api.twitter.com'. The certificate `Equifax Secure
+* Additional root CA certificates.
+  The root CA certificates `VeriSign Class 3 Public Primary CA - G2'
+  and `GeoTrust Global CA' are also embedded in `twittering-mode.el'.
+  They are used for verifying `api.twitter.com' and
+  `search.twitter.com', respectively. The certificate `Equifax Secure
   Certificate Authority', which has been embedded, is now used for
-  verifying the server `search.twitter.com'.
+  verifying the server `www.googleapis.com' when shortening a URI.
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

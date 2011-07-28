@@ -21,6 +21,27 @@
 	`GeoTrust Global CA' in order to follow the update of the server
 	certificate of `search.twitter.com'.
 
+	* twittering-mode.el: Output embedded certificates as a single
+	file instead of a directory including them. This avoids the
+	management of multiple hashes for each certificate.
+	(twittering-cert-file): new variable replacing
+	`twittering-cert-directory'.
+	(twittering-cert-directory): removed.
+	(twittering-ca-cert-list): new variable replacing
+	`twittering-ca-cert-alist'.
+	(twittering-ca-cert-alist): removed.
+	(twittering-delete-ca-cert): remove a single file including
+	multiple certificates.
+	(twittering-ensure-ca-cert): prepare a single file including
+	multiple certificates instead of a directory including multiple
+	files.
+	(twittering-make-connection-info): replace the parameter
+	`cacert-directory-fullpath' with `cacert-file-fullpath'.
+	(twittering-send-http-request-curl): use the option `--cacert'
+	instead of `--capath'.
+	(twittering-send-http-request-wget): use the option
+	`--ca-certificate' instead of `--ca-directory'.
+
 2011-07-25  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the API call for `user_timeline' in

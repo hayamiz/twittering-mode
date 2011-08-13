@@ -57,6 +57,10 @@
   `twittering-update-status-function'を呼び出して編集バッファを作ると
   元のバッファでのカーソルが不必要に動かされてしまうバグを解消しました。
   Thanks to mofigan who reported this problem.
+* `twittering-icon-storage-limit'がnilの場合のアイコン保存処理を修正
+  `twittering-icon-storage-limit'がnilの場合、アイコンが正しく保存でき
+  ていなかったのを修正しました。
+  Thanks to HufflepuffBR who reported this problem.
 
  2.0.0: 2011-04-22
 ------------------

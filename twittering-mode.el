@@ -5311,7 +5311,7 @@ image are displayed."
 	      (lambda (size hash)
 		(maphash (lambda (url properties)
 			   (unless (equal properties dummy-icon-properties)
-			     (setq result (cons (cons size url) result))))
+			     (setq result (cons (list size url) result))))
 			 hash))
 	      twittering-icon-prop-hash)
 	     result))

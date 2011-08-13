@@ -1,3 +1,11 @@
+2011-08-13  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Save icons correctly when
+	`twittering-icon-storage-limit' is nil. Thanks to HufflepuffBR who
+	reported this problem.
+	(twittering-save-icon-properties): fix the list representation of
+	stored data when `twittering-icon-storage-limit' is nil.
+
 2011-07-29  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: The hash by newer algorithm introduced in

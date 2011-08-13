@@ -34,6 +34,10 @@
   `twittering-update-status-interactive' from the buffer. The bug has
   been fixed.
   Thanks to mofigan who reported this problem.
+* Fix of storing icons when `twittering-icon-storage-limit' is nil.
+  Icons were not correctly saved if `twittering-icon-storage-limit'
+  was nil. The bug has been fixed.
+  Thanks to HufflepuffBR who reported this problem.
 
  2.0.0: 2011-04-22
 ------------------

@@ -158,12 +158,12 @@ To use 'bit.ly or 'j.mp, you have to configure `twittering-bitly-login' and
 			   reply)
 	 (match-string 1 reply))))
     (is.gd . "http://is.gd/create.php?format=simple&url=")
-    (migre.me . "http://migre.me/api.txt?url=")
     (j.mp twittering-make-http-request-for-bitly
 	  (lambda (service reply)
 	    (if (string-match "\n\\'" reply)
 		(substring reply 0 (match-beginning 0))
 	      reply)))
+    (migre.me . "http://migre.me/api.txt?url=")
     (tinyurl . "http://tinyurl.com/api-create.php?url=")
     (toly
      (lambda (service longurl)

@@ -35,6 +35,9 @@
   以前から内蔵されている証明書`Equifax Secure Certificate Authority'は
   URI短縮に用いる`www.googleapis.com'のサーバ認証でのみ参照されるよう
   になりました。
+* 新たな短縮URL生成サービスに対応
+  新たに`migre.me'に対応しました。下記のような設定で有効にできます。
+  (setq twittering-tinyurl-service 'migre.me) ;; for mig.re
 
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正

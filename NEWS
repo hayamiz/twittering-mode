@@ -37,6 +37,9 @@
   `search.twitter.com', respectively. The certificate `Equifax Secure
   Certificate Authority', which has been embedded, is now used for
   verifying the server `www.googleapis.com' when shortening a URI.
+* Support for new URL shortening services.
+  You can use `migre.me' as URL shortening service by the following.
+  (setq twittering-tinyurl-service 'migre.me) ;; for mig.re
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

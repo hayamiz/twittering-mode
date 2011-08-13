@@ -1,3 +1,8 @@
+2011-08-13  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Add `migre.me' as a URL shortening serivce.
+	(twittering-tinyurl-services-map): add an entry for `migre.me'.
+
 2011-07-29  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: The hash by newer algorithm introduced in

@@ -3335,6 +3335,7 @@ Before calling this, you have to configure `twittering-bitly-login' and
 ;;; - (public): public timeline.
 ;;; - (replies): replies.
 ;;; - (retweeted_by_me): retweets posted by the authenticating user.
+;;; - (retweeted_by_user): retweets posted by the user.
 ;;; - (retweeted_to_me): retweets posted by the authenticating user's friends.
 ;;; - (retweeted_to_user USER): retweets posted to the user.
 ;;; - (retweets_of_me):
@@ -3366,6 +3367,7 @@ Before calling this, you have to configure `twittering-bitly-login' and
 ;;; PUBLIC ::= ":public"
 ;;; REPLIES ::= ":replies" | "@"
 ;;; RETWEETED_BY_ME ::= ":retweeted_by_me"
+;;; RETWEETED_BY_USER ::= ":retweeted_by_user/" USER
 ;;; RETWEETED_TO_ME ::= ":retweeted_to_me"
 ;;; RETWEETED_TO_USER ::= ":retweeted_to_user/" USER
 ;;; RETWEETS_OF_ME ::= ":retweets_of_me"
@@ -3410,6 +3412,7 @@ If SHORTEN is non-nil, the abbreviated expression will be used."
      ((eq type 'public) ":public")
      ((eq type 'replies) (if shorten "@" ":replies"))
      ((eq type 'retweeted_by_me) ":retweeted_by_me")
+     ((eq type 'retweeted_by_user) (concat ":retweeted_by_user/" (car value)))
      ((eq type 'retweeted_to_me) ":retweeted_to_me")
      ((eq type 'retweeted_to_user) (concat ":retweeted_to_user/" (car value)))
      ((eq type 'retweets_of_me) ":retweets_of_me")
@@ -3490,6 +3493,10 @@ Return cons of the spec and the rest string."
 	    (let ((rest (substring str (match-end 0))))
 	      `((favorites ,(match-string 1 str)) . ,rest))
 	  `((favorites) . ,following)))
+       ((string-match "^:retweeted_by_user/\\([a-zA-Z0-9_-]+\\)" str)
+	(let ((user (match-string 1 str))
+	      (rest (substring str (match-end 0))))
+	  `((retweeted_by_user ,user) . ,rest)))
        ((string-match "^:retweeted_to_user/\\([a-zA-Z0-9_-]+\\)" str)
 	(let ((user (match-string 1 str))
 	      (rest (substring str (match-end 0))))
@@ -3592,7 +3599,8 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 		direct_messages direct_messages_sent
 		favorites friends home mentions public replies
 		search
-		retweeted_by_me retweeted_to_me retweeted_to_user
+		retweeted_by_me retweeted_by_user
+		retweeted_to_me retweeted_to_user
 		retweets_of_me))
 	(type (car spec)))
     (memq type primary-spec-types)))
@@ -4085,6 +4093,12 @@ block-and-report-as-spammer -- Block a user and report him or her as a spammer.
 	    (cond
 	     ((eq spec-type 'favorites)
 	      `(,@(when page `(("page" . ,page)))))
+	     ((eq spec-type 'retweeted_by_user)
+	      (let ((username (elt spec 1)))
+		`(("count" . ,number-str)
+		  ,@(when max_id `(("max_id" . ,max_id)))
+		  ("screen_name" . ,username)
+		  ,@(when since_id `(("since_id" . ,since_id))))))
 	     ((eq spec-type 'retweeted_to_user)
 	      (let ((username (elt spec 1)))
 		`(("count" . ,number-str)
@@ -4140,6 +4154,8 @@ block-and-report-as-spammer -- Block a user and report him or her as a spammer.
 		(if user
 		    (twittering-api-path "favorites/" user)
 		  (twittering-api-path "favorites"))))
+	     ((eq spec-type 'retweeted_by_user)
+	      (twittering-api-path "statuses/retweeted_by_user"))
 	     ((eq spec-type 'retweeted_to_user)
 	      (twittering-api-path "statuses/retweeted_to_user"))
 	     ((eq spec-type 'search)
@@ -7607,7 +7623,7 @@ entry in `twittering-edit-skeleton-alist' are performed.")
 		  '(":direct_messages" ":direct_messages_sent"
 		    ":favorites" ":friends"
 		    ":home" ":mentions" ":public" ":replies"
-		    ":retweeted_by_me"
+		    ":retweeted_by_me" ":retweeted_by_user/"
 		    ":retweeted_to_me" ":retweeted_to_user/"
 		    ":retweets_of_me")
 		  (mapcar (lambda (cell)

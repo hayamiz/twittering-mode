@@ -38,9 +38,11 @@
 * 新たな短縮URL生成サービスに対応
   新たに`migre.me'に対応しました。下記のような設定で有効にできます。
   (setq twittering-tinyurl-service 'migre.me) ;; for mig.re
-* 特定ユーザ宛retweetのtimelineに対応
-  特定ユーザのhome timelineに届くretweetを集めたtimeline,
-  ":retweeted_to_user/USER"に対応しました。
+* 指定したユーザ関連のretweetを集めたtimelineに対応
+  新しく":retweeted_by_user/USER", ":retweeted_to_user/USER"の2種類の
+  timelineに対応しました。前者は指定したユーザUSERが投稿したretweetを
+  集めたtimelineで、後者は指定したユーザのhome timelineに届くretweetを
+  集めたtimelineです。
 
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正

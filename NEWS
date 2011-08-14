@@ -40,10 +40,11 @@
 * Support for new URL shortening services.
   You can use `migre.me' as URL shortening service by the following.
   (setq twittering-tinyurl-service 'migre.me) ;; for mig.re
-* Support for retweeted_to_user timeline.
-  ":retweeted_to_user/USER" is added as a new timeline spec. It
-  consists of retweets that will be sent to the home timeline of the
-  user.
+* Support for retweeted_by_user and retweeted_to_user timeline.
+  ":retweeted_by_user/USER" and ":retweeted_to_user/USER" are added as
+  a new timeline specs. The former consists of retweets posted by the
+  user and the latter consists of retweets that will be sent to the
+  home timeline of the user.
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

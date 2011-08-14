@@ -4,6 +4,17 @@
 	(twittering-call-api): use the current API for retrieving a list
 	timeline.
 
+	* twittering-mode.el: Support ":retweeted_to_user/USER" timeline.
+	(twittering-timeline-spec-to-string): support `retweeted_to_user'
+	timeline.
+	(twittering-extract-timeline-spec): support a string like
+	":retweeted_to_user/USER" as a `retweeted_by_user' timeline.
+	(twittering-timeline-spec-primary-p): add `retweeted_to_user'
+	as a primary timeline.
+	(twittering-call-api): support `retweeted_to_user' timeline.
+	(twittering-read-timeline-spec-with-completion): add
+	":retweeted_to_user/" as a candidate.
+
 2011-08-13  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Add `migre.me' as a URL shortening serivce.

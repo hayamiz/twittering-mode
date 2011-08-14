@@ -4085,7 +4085,11 @@ block-and-report-as-spammer -- Block a user and report him or her as a spammer.
 		    `(("q" . ,word)
 		      ("rpp" . ,number-str)))
 		   ((eq spec-type 'list)
-		    `(("per_page" . ,number-str)))
+		    (let ((username (elt spec 1))
+			  (list-name (elt spec 2)))
+		      `(("per_page" . ,number-str)
+			("slug" . ,list-name)
+			("owner_screen_name" . ,username))))
 		   ((eq spec-type 'user)
 		    (let ((username (elt spec 1)))
 		      `(("count" . ,number-str)
@@ -4116,9 +4120,7 @@ block-and-report-as-spammer -- Block a user and report him or her as a spammer.
 	   (method
 	    (cond
 	     ((eq spec-type 'list)
-	      (let ((username (elt spec 1))
-		    (list-name (elt spec 2)))
-		(twittering-api-path username "/lists/" list-name "/statuses")))
+	      (twittering-api-path "lists/statuses"))
 	     ((eq spec-type 'favorites)
 	      (let ((user (elt spec 1)))
 		(if user

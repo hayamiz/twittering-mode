@@ -5365,7 +5365,9 @@ image are displayed."
 		      (properties
 		       (gethash url
 				(gethash size twittering-icon-prop-hash))))
-		 (insert (format "(%d " size))
+		 (insert (if size
+			     (format "(%d " size)
+			   "(nil "))
 		 (prin1 url (current-buffer))
 		 (insert " ")
 		 (prin1 properties (current-buffer))

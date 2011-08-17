@@ -1,3 +1,10 @@
+2011-08-18  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Display the requested URI if a HTTP request
+	has failed.
+	(twittering-send-http-request): display the requested method and
+	URI if the request has failed.
+
 2011-08-17  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Correctly store icons when

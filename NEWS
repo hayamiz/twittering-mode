@@ -51,6 +51,12 @@
   help/configuration API periodically. The default period is 1 day.
   You can configure the interval of updating the length by the
   variable `twittering-service-configuration-update-interval'.
+* Ad-hoc support for non-ASCII hashtags.
+  Non-ASCII hashtags are decorated and you can visit its timeline by
+  `v'. Note that the rule of detecting hashtags may be looser than
+  that of the Twitter web UI. Problems have not been found yet, but a
+  string considered as a hashtag in twittering-mode may not be treated
+  as a hashtag in the Twitter web UI.
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

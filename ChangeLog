@@ -28,6 +28,12 @@
 	(twittering-edit-post-status): likewise.
 	(twittering-show-minibuffer-length): likewise.
 
+	* twittering-mode.el: Ad-hoc support for non-ASCII hashtags.
+	(twittering-extract-timeline-spec): support non-ASCII hashtags by
+	an ad-hoc way.
+	(twittering-make-fontified-tweet-text): likewise.
+	(twittering-edit-skeleton-inherit-hashtags): likewise.
+
 2011-08-18  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Display the requested URI if a HTTP request

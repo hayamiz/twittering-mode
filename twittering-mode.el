@@ -3480,7 +3480,7 @@ Return cons of the spec and the rest string."
     `((home) . ,(substring str (match-end 0))))
    ((string-match (concat "^" twittering-regexp-atmark) str)
     `((replies) . ,(substring str (match-end 0))))
-   ((string-match (concat "^" twittering-regexp-hash "\\([a-zA-Z0-9_-]+\\)")
+   ((string-match (concat "^" twittering-regexp-hash "\\([[:alpha:]0-9_-]+\\)")
 		  str)
     (let* ((tag (match-string 1 str))
 	   (rest (substring str (match-end 0))))
@@ -5916,7 +5916,7 @@ following symbols;
 	  'identity
 	  (list
 	   ;; hashtag
-	   (concat regexp-hash "\\([a-zA-Z0-9_-]+\\)")
+	   (concat regexp-hash "\\([[:alpha:]0-9_-]+\\)")
 	   ;; @USER/LIST
 	   (concat regexp-atmark
 		   "\\(\\([a-zA-Z0-9_-]+\\)/\\([a-zA-Z0-9_-]+\\)\\)")
@@ -7300,7 +7300,7 @@ entry in `twittering-edit-skeleton-alist' are performed.")
 	   (hashtags
 	    (twittering-extract-matched-substring-all
 	     (concat twittering-regexp-hash
-		     "\\([a-zA-Z0-9_-]+\\)")
+		     "\\([[:alpha:]0-9_-]+\\)")
 	     text))
 	   (footer
 	    (mapconcat (lambda (tag) (concat "#" tag))
@@ -7313,7 +7313,7 @@ entry in `twittering-edit-skeleton-alist' are performed.")
 	     current-spec))
 	   (hashtag-list
 	    (twittering-extract-matched-substring-all
-	     (concat "\\(" twittering-regexp-hash "[a-zA-Z0-9_-]+\\)")
+	     (concat "\\(" twittering-regexp-hash "[[:alpha:]0-9_-]+\\)")
 	     query-string)))
       (when hashtag-list
 	(let ((footer (mapconcat 'identity hashtag-list " ")))

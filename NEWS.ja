@@ -43,6 +43,12 @@
   timelineに対応しました。前者は指定したユーザUSERが投稿したretweetを
   集めたtimelineで、後者は指定したユーザのhome timelineに届くretweetを
   集めたtimelineです。
+* 文字数カウント時にt.coでの短縮を考慮
+  tweetを編集する際に、t.coでのURI変換を考慮した文字数を表示するように
+  なりました。変換後の文字数はhelp/configuration APIを通じて定期的に更
+  新されます。デフォルトの更新間隔は1日ですが、変数
+  `twittering-service-configuration-update-interval'で変更することもで
+  きます。
 
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正

@@ -7381,17 +7381,60 @@ entry in `twittering-edit-skeleton-alist' are performed.")
     (define-key km (kbd "M-p") 'twittering-edit-previous-history)
     (define-key km (kbd "<f4>") 'twittering-edit-replace-at-point)))
 
+(defun twittering-effective-length (str &optional short-length-http short-length-https)
+  "Return the effective length of STR with taking account of shortening URIs.
+
+The returned length is calculated with taking account of shortening URIs
+if `twittering-service-method' is the symbol `twitter'.
+It is assumed that a URI via HTTP will be converted into a URI consisting of
+SHORT-LENGTH-HTTP characters.
+It is assumed that a URI via HTTPS will be converted into a URI consisting of
+SHORT-LENGTH-HTTPS characters.
+
+If SHORT-LENGTH-HTTP is nil, the value of
+ (twittering-get-service-configuration 'short_url_length) is used instead.
+If SHORT-LENGTH-HTTPS is nil, the value of
+ (twittering-get-service-configuration 'short_url_length_https) is used
+instead."
+  (cond
+   ((eq twittering-service-method 'twitter)
+    (let ((regexp "\\(?:^\\|[[:space:]]\\)\\(http\\(s\\)?://[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+\\)")
+	  (short-length-http
+	   (or short-length-http
+	       (twittering-get-service-configuration 'short_url_length)))
+	  (short-length-https
+	   (or short-length-https
+	       (twittering-get-service-configuration 'short_url_length_https)))
+	  (rest str)
+	  (pos 0)
+	  (len 0))
+      (save-match-data
+	(while (string-match regexp str pos)
+	  (let ((beg (match-beginning 1))
+		(end (match-end 1))
+		(short-len (if (match-beginning 2)
+			       short-length-https
+			     short-length-http)))
+	    (let ((additional-length
+		   (+ (- beg pos) (min short-len (- end beg)))))
+	      (setq len (+ len additional-length))
+	      (setq pos end)))))
+      (+ len (- (length str) pos))))
+   (t
+    (length str))))
+
 (defun twittering-edit-length-check (&optional beg end len)
   (let* ((status (twittering-edit-extract-status))
 	 (sign-str (twittering-sign-string))
 	 (maxlen (- 140 (length sign-str)))
-	 (length (length status)))
+	 (length (twittering-effective-length status)))
     (setq mode-name
 	  (format "twmode-status-edit[%d/%d/140]" length maxlen))
     (force-mode-line-update)
     (unless twittering-disable-overlay-on-too-long-string
       (if (< maxlen length)
-	  (move-overlay twittering-warning-overlay (1+ maxlen) (1+ length))
+	  (move-overlay twittering-warning-overlay
+			(- (point-max) (- length maxlen)) (point-max))
 	(move-overlay twittering-warning-overlay 1 1)))))
 
 (defun twittering-edit-extract-status ()
@@ -7485,7 +7528,7 @@ entry in `twittering-edit-skeleton-alist' are performed.")
     (cond
      ((not (twittering-status-not-blank-p status))
       (message "Empty tweet!"))
-     ((< 140 (length status))
+     ((< 140 (twittering-effective-length status))
       (message "Tweet is too long!"))
      ((or (not twittering-request-confirmation-on-posting)
 	  (y-or-n-p "Send this tweet? "))
@@ -7569,7 +7612,8 @@ entry in `twittering-edit-skeleton-alist' are performed.")
     (if (and transient-mark-mode deactivate-mark)
 	(deactivate-mark))
     (let* ((deactivate-mark deactivate-mark)
-	   (status-len (- (buffer-size) (minibuffer-prompt-width)))
+	   (status-len (- (twittering-effective-length (buffer-string))
+			  (minibuffer-prompt-width)))
 	   (sign-len (length (twittering-sign-string)))
 	   (mes (if (< 0 sign-len)
 		    (format "%d=%d+%d"

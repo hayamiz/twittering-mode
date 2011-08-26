@@ -20,6 +20,14 @@
 	(twittering-update-active-buffers): invoke
 	`twittering-update-service-configuration'.
 
+	* twittering-mode.el: Count characters with considering the t.co
+	link wrapper.
+	(twittering-effective-length): new function.
+	(twittering-edit-length-check): check the length with
+	`twittering-effective-length'.
+	(twittering-edit-post-status): likewise.
+	(twittering-show-minibuffer-length): likewise.
+
 2011-08-18  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Display the requested URI if a HTTP request

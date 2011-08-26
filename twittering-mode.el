@@ -4077,7 +4077,14 @@ block-and-report-as-spammer -- Block a user and report him or her as a spammer.
     user-id -- the user-id that will be blocked.
     username -- the username who will be blocked.
   This command requires either of the above key. If both are given, `user-id'
-  will be used in REST API."
+  will be used in REST API.
+get-service-configuration -- Get the configuration of the server.
+  Valid key symbols in ARGS-ALIST:
+    sentinel -- the sentinel that processes retrieved strings. This is used
+      as an argument SENTINEL of `twittering-send-http-request'.
+    clean-up-sentinel -- (optional) the clean-up sentinel that post-processes
+      the buffer associated to the process. This is used as an argument
+      CLEAN-UP-SENTINEL of `twittering-send-http-request'."
   (cond
    ((eq command 'retrieve-timeline)
     ;; Retrieve a timeline.
@@ -4286,8 +4293,89 @@ block-and-report-as-spammer -- Block a user and report him or her as a spammer.
       (twittering-http-post twittering-api-host
 			    (twittering-api-path "report_spam")
 			    parameters nil additional-info)))
+   ((eq command 'get-service-configuration)
+    (let ((request
+	   (twittering-make-http-request-from-uri
+	    "GET" nil
+	    (concat (if twittering-use-ssl
+			"https"
+		      "http")
+		    "://" twittering-api-host
+		    "/" (twittering-api-path "help/configuration.xml"))))
+	  (additional-info nil)
+	  (sentinel (cdr (assq 'sentinel args-alist)))
+	  (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
+      (twittering-send-http-request request additional-info
+				    sentinel clean-up-sentinel)))
    (t
     nil)))
+
+;;;;
+;;;; Service configuration
+;;;;
+
+(defconst twittering-service-configuration-default
+  '((short_url_length . 19)
+    (short_url_length_https . 20))
+  "Default value of `twittering-service-configuration'.")
+(defvar twittering-service-configuration nil
+  "Current server configuration.")
+(defvar twittering-service-configuration-queried nil)
+(defvar twittering-service-configuration-update-interval 86400
+  "*Interval of updating `twittering-service-configuration'.")
+
+(defun twittering-get-service-configuration (entry)
+  (let ((pair (assq entry twittering-service-configuration)))
+    (if (null pair)
+	(cdr (assq entry twittering-service-configuration-default))
+      (cdr pair))))
+
+(defun twittering-update-service-configuration (&optional ignore-time)
+  "Update `twittering-service-configuration' if necessary."
+  (when (and
+	 (eq twittering-service-method 'twitter)
+	 (null twittering-service-configuration-queried)
+	 (or ignore-time
+	     (let ((current (twittering-get-service-configuration 'time))
+		   (interval
+		    (seconds-to-time
+		     twittering-service-configuration-update-interval)))
+	       (if (null current)
+		   t
+		 ;; If time passed more than `interval',
+		 ;; update the configuration.
+		 (time-less-p interval (time-since current))))))
+    (setq twittering-service-configuration-queried t)
+    (twittering-call-api
+     'get-service-configuration
+     '((sentinel . twittering-update-service-configuration-sentinel)
+       (clean-up-sentinel
+	. twittering-update-service-configuration-clean-up-sentinel)))))
+
+(defun twittering-update-service-configuration-sentinel (proc status connection-info header-info)
+  (let ((status-line (cdr (assq 'status-line header-info)))
+	(status-code (cdr (assq 'status-code header-info))))
+    (case-string
+     status-code
+     (("200")
+      (let* ((xml (twittering-xml-parse-region (point-min) (point-max)))
+	     (conf-alist (cddr (assq 'configuration xml)))
+	     (entries '(short_url_length short_url_length_https)))
+	(setq twittering-service-configuration
+	      `((time . ,(current-time))
+		,@(mapcar (lambda (entry)
+			    (let ((value (elt (assq entry conf-alist) 2)))
+			      (cons entry (string-to-number value))))
+			  entries)))
+	(setq twittering-service-configuration-queried nil)
+	nil))
+     (t
+      (setq twittering-service-configuration-queried nil)
+      (format "Response: %s" status-line)))))
+
+(defun twittering-update-service-configuration-clean-up-sentinel (proc status connection-info)
+  (when (not (twittering-process-alive-p proc))
+    (setq twittering-service-configuration-queried nil)))
 
 ;;;;
 ;;;; Account authorization
@@ -6855,6 +6943,7 @@ FUNC is called as (apply FUNC ARGS)."
   "Invoke `twittering-get-and-render-timeline' for each active buffer
 managed by `twittering-mode'."
   (when (twittering-account-authorized-p)
+    (twittering-update-service-configuration)
     (let ((buffer-list (twittering-get-active-buffer-list)))
       (mapc (lambda (buffer)
 	      (with-current-buffer buffer

@@ -4,6 +4,22 @@
 	(twittering-call-api): retrieve a list timeline with native
 	retweets.
 
+	* twittering-mode.el: Update the service configuration with the
+	'help/configuration' API periodically.
+	(twittering-call-api): add `get-service-configuration' as a new
+	command.
+	(twittering-service-configuration-default): new constant.
+	(twittering-service-configuration): new variable.
+	(twittering-service-configuration-queried): new variable.
+	(twittering-service-configuration-update-interval): new variable.
+	(twittering-get-service-configuration): new function.
+	(twittering-update-service-configuration): new function.
+	(twittering-update-service-configuration-sentinel): new function.
+	(twittering-update-service-configuration-clean-up-sentinel): new
+	function.
+	(twittering-update-active-buffers): invoke
+	`twittering-update-service-configuration'.
+
 2011-08-18  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Display the requested URI if a HTTP request

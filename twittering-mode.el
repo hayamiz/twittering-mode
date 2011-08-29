@@ -164,6 +164,11 @@ To use 'bit.ly or 'j.mp, you have to configure `twittering-bitly-login' and
 		(substring reply 0 (match-beginning 0))
 	      reply)))
     (migre.me . "http://migre.me/api.txt?url=")
+    (va.mu . "http://va.mu/api/create?url=")
+    (cai.nu . "http://caiu.nu/_shared/API.php?type=string&url=")
+    (miud.in . "http://miud.in/api-create.php?url=")
+    (vai.la . "http://vai.la/link/api/?url=")
+    (pra.la . "http://pra.la/api?url=")
     (tinyurl . "http://tinyurl.com/api-create.php?url=")
     (toly
      (lambda (service longurl)
@@ -171,6 +176,7 @@ To use 'bit.ly or 'j.mp, you have to configure `twittering-bitly-login' and
 	"POST" nil
 	"http://to.ly/api.php"
 	(concat "longurl=" (twittering-percent-encode longurl))))))
+
   "Alist of URL shortening services.
 The key is a symbol specifying the service.
 The value is a string or a list consisting of two elements at most.

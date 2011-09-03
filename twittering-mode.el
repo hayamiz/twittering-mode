@@ -5992,7 +5992,10 @@ following symbols;
 		      'face 'twittering-uri-face)))))
 		(beg (car range-and-properties))
 		(end (cadr range-and-properties))
-		(properties (cddr range-and-properties)))
+		(properties
+		 `(,@(cddr range-and-properties)
+		   front-sticky nil
+		   rear-nonsticky t)))
 	   (add-text-properties beg end properties str)
 	   (setq pos end)))
        str)))

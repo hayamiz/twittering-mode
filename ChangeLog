@@ -27,6 +27,11 @@
 	(twittering-normalize-raw-status): correct indices in entities so
 	that they mean the position in the decoded text.
 
+	* twittering-mode.el: Suppress redundant decoding.
+	(twittering-normalize-raw-status): decode entities with
+	`twittering-decode-entities-after-parsing-xml'.
+	(twittering-decode-entities-after-parsing-xml): new function.
+
 2011-08-27  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: A list timeline includes native retweets.

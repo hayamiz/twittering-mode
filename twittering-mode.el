@@ -4113,16 +4113,19 @@ get-service-configuration -- Get the configuration of the server.
 	   (parameters
 	    (cond
 	     ((eq spec-type 'favorites)
-	      `(,@(when page `(("page" . ,page)))))
+	      `(("include_entities" . "true")
+		,@(when page `(("page" . ,page)))))
 	     ((eq spec-type 'retweeted_by_user)
 	      (let ((username (elt spec 1)))
 		`(("count" . ,number-str)
 		  ,@(when max_id `(("max_id" . ,max_id)))
+		  ("include_entities" . "true")
 		  ("screen_name" . ,username)
 		  ,@(when since_id `(("since_id" . ,since_id))))))
 	     ((eq spec-type 'retweeted_to_user)
 	      (let ((username (elt spec 1)))
 		`(("count" . ,number-str)
+		  ("include_entities" . "true")
 		  ,@(when max_id `(("max_id" . ,max_id)))
 		  ("screen_name" . ,username)
 		  ,@(when since_id `(("since_id" . ,since_id))))))
@@ -4136,20 +4139,31 @@ get-service-configuration -- Get the configuration of the server.
 		   ((eq spec-type 'list)
 		    (let ((username (elt spec 1))
 			  (list-name (elt spec 2)))
-		      `(("include_rts" . "true")
+		      `(("include_entities" . "true")
+			("include_rts" . "true")
 			("owner_screen_name" . ,username)
 			("per_page" . ,number-str)
 			("slug" . ,list-name))))
 		   ((eq spec-type 'user)
 		    (let ((username (elt spec 1)))
 		      `(("count" . ,number-str)
+			("include_entities" . "true")
 			("include_rts" . "true")
 			("screen_name" . ,username))))
 		   ((memq spec-type '(friends mentions public))
-		    `(("count" . ,number-str)
+		    `(("include_entities" . "true")
+		      ("count" . ,number-str)
 		      ("include_rts" . "true")))
 		   (t
-		    `(("count" . ,number-str))))))))
+		    ;; direct_messages
+		    ;; direct_messages_sent
+		    ;; home
+		    ;; replies
+		    ;; retweeted_by_me
+		    ;; retweeted_to_me
+		    ;; retweets_of_me
+		    `(("include_entities" . "true")
+		      ("count" . ,number-str))))))))
 	   (format (if (eq spec-type 'search)
 		       "atom"
 		     "xml"))
@@ -4821,6 +4835,82 @@ If the authorization failed, return nil."
 	       (in-reply-to-status-id in_reply_to_status_id t)
 	       (text text t)
 	       ))
+	  ;; Entities.
+	  ,(let ((entity-data (cddr (assq 'entities status-data))))
+	     (list
+	      'entity
+	      ;; hashtags
+	      (cons
+	       'hashtags
+	       (remove nil
+		       (mapcar
+			(lambda (entry)
+			  (when (and (consp entry)
+				     (eq 'hashtag (car entry)))
+			    (let* ((data (cdr entry))
+				   (start-str (cdr (assq 'start (car data))))
+				   (end-str (cdr (assq 'end (car data))))
+				   (start (if (stringp start-str)
+					      (string-to-number start-str)
+					    0))
+				   (end (if (stringp end-str)
+					    (string-to-number end-str)
+					  0))
+				   )
+			      `((start . ,start)
+				(end . ,end)
+				(text . ,(cdr (assq 'end (car data))))))))
+			(assq 'hashtags entity-data))))
+	      ;; mentions
+	      (cons
+	       'mentions
+	       (remove nil
+		       (mapcar
+			(lambda (entry)
+			  (when (and (consp entry)
+				     (eq 'user_mention (car entry)))
+			    (let* ((data (cdr entry))
+				   (start-str (cdr (assq 'start (car data))))
+				   (end-str (cdr (assq 'end (car data))))
+				   (start (if (stringp start-str)
+					      (string-to-number start-str)
+					    0))
+				   (end (if (stringp end-str)
+					    (string-to-number end-str)
+					  0)))
+			      `((start . ,start)
+				(end . ,end)
+				(id . ,(elt (assq 'id data) 2))
+				(screen-name
+				 . ,(elt (assq 'screen_name data) 2))
+				(name
+				 . ,(elt (assq 'name data) 2))))))
+			(assq 'user_mentions entity-data))))
+	      ;; urls
+	      (cons
+	       'urls
+	       (remove nil
+		       (mapcar
+			(lambda (entry)
+			  (when (and (consp entry)
+				     (eq 'url (car entry)))
+			    (let* ((data (cdr entry))
+				   (start-str (cdr (assq 'start (car data))))
+				   (end-str (cdr (assq 'end (car data))))
+				   (start (if (stringp start-str)
+					      (string-to-number start-str)
+					    0))
+				   (end (if (stringp end-str)
+					    (string-to-number end-str)
+					  0)))
+			      `((start . ,start)
+				(end . ,end)
+				(url . ,(elt (assq 'url data) 2))
+				(display-url
+				 . ,(elt (assq 'display_url data) 2))
+				(expanded-url
+				 . ,(elt (assq 'expanded_url data) 2))))))
+			(assq 'urls entity-data))))))
 	  ;; Source.
 	  ,@(let ((source (twittering-decode-html-entities
 			   (assq-get 'source status-data))))
@@ -4874,7 +4964,8 @@ If the authorization failed, return nil."
 			  (favorited nil "false")
 			  (recipient_screen_name
 			   nil ,(caddr (assq 'recipient_screen_name c-node)))
-			  (user nil ,@(cdddr (assq 'sender c-node)))))
+			  (user nil ,@(cdddr (assq 'sender c-node)))
+			  (entities nil ,@(cdddr (assq 'entities c-node)))))
 	       (remove nil
 		       (mapcar
 			(lambda (node)
@@ -5932,6 +6023,11 @@ following symbols;
 		(end (match-end 0))
 		(range-and-properties
 		 (cond
+		  ((get-text-property beg 'face str)
+		   ;; The matched substring has been already fontified.
+		   ;; The fontification with entities must fontify the
+		   ;; head of the matched string.
+		   nil)
 		  ((match-string 1 str)
 		   ;; hashtag
 		   (let* ((hashtag (match-string 1 str))
@@ -5990,15 +6086,95 @@ following symbols;
 		      'uri uri
 		      'uri-origin 'explicit-uri-in-tweet
 		      'face 'twittering-uri-face)))))
-		(beg (car range-and-properties))
-		(end (cadr range-and-properties))
+		(beg (if range-and-properties
+			 (car range-and-properties)
+		       beg))
+		(end (if range-and-properties
+			 (cadr range-and-properties)
+		       end))
 		(properties
 		 `(,@(cddr range-and-properties)
 		   front-sticky nil
 		   rear-nonsticky t)))
-	   (add-text-properties beg end properties str)
+	   (when range-and-properties
+	     (add-text-properties beg end properties str))
 	   (setq pos end)))
        str)))
+
+(eval-and-compile
+  (defsubst twittering-make-fontified-tweet-text-with-entity (status)
+    (let* ((text (copy-sequence (cdr (assq 'text status))))
+	   (text-length (length text))
+	   (entities (cdr (assq 'entity status))))
+      ;; hashtags
+      (mapc (lambda (hashtag)
+	      (let* ((start (cdr (assq 'start hashtag)))
+		     (end (min (cdr (assq 'end hashtag)) text-length))
+		     (tag (cdr (assq 'text hashtag)))
+		     (spec-string
+		      (twittering-make-hashtag-timeline-spec-string-direct tag)))
+		(set-text-properties
+		 start end
+		 `(mouse-face
+		   highlight
+		   keymap ,twittering-mode-on-uri-map
+		   uri ,(twittering-get-search-url (concat "#" tag))
+		   goto-spec ,spec-string
+		   face twittering-username-face
+		   front-sticky nil
+		   rear-nonsticky t)
+		 text)))
+	    (cdr (assq 'hashtags entities)))
+      ;; mentions
+      (mapc (lambda (mention)
+	      (let ((start (cdr (assq 'start mention)))
+		    (end (min (cdr (assq 'end mention)) text-length))
+		    (screen-name (cdr (assq 'screen-name mention))))
+		(set-text-properties
+		 start end
+		 `(mouse-face
+		   highlight
+		   keymap ,twittering-mode-on-uri-map
+		   uri ,(twittering-get-status-url screen-name)
+		   screen-name-in-text ,screen-name
+		   goto-spec
+		   ,(twittering-make-user-timeline-spec-direct screen-name)
+		   face twittering-uri-face
+		   front-sticky nil
+		   rear-nonsticky t)
+		 text)))
+	    (cdr (assq 'mentions entities)))
+      ;; urls
+      (let ((offset 0))
+	(mapc (lambda (url-info)
+		(let* ((text-length (length text))
+		       (start (cdr (assq 'start url-info)))
+		       (end (cdr (assq 'end url-info)))
+		       (url (cdr (assq 'url url-info)))
+		       (expanded-url
+			;; If the `url' is short and not wrapped,
+			;; `expanded-url' is nil.
+			(or (cdr (assq 'expanded-url url-info))
+			    url))
+		       (replacement
+			(propertize
+			 expanded-url
+			 'mouse-face 'highlight
+			 'keymap twittering-mode-on-uri-map
+			 'uri url
+			 'uri-origin 'explicit-uri-in-tweet
+			 'face 'twittering-uri-face
+			 'front-sticky nil
+			 'rear-nonsticky t)))
+		  (setq text
+			(concat
+			 (substring text 0 (min (+ offset start) text-length))
+			 replacement
+			 (substring text (min (+ offset end) text-length))))
+		  (setq offset
+			(+ offset (- (length expanded-url) (- end start))))))
+	      (cdr (assq 'urls entities))))
+      text)))
 
 (defun twittering-generate-format-table (status-sym prefix-sym)
   `(("%" . "%")
@@ -6075,11 +6251,11 @@ following symbols;
       (cdr (assq 'user-screen-name ,status-sym)) ,status-sym))
     ("T" .
      ,(twittering-make-fontified-tweet-text
-       `(cdr (assq 'text ,status-sym))
+       `(twittering-make-fontified-tweet-text-with-entity ,status-sym)
        twittering-regexp-hash twittering-regexp-atmark))
     ("t" .
      ,(twittering-make-fontified-tweet-text
-       `(cdr (assq 'text ,status-sym))
+       `(twittering-make-fontified-tweet-text-with-entity ,status-sym)
        twittering-regexp-hash twittering-regexp-atmark))
     ("u" . (cdr (assq 'user-url ,status-sym)))))
 

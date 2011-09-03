@@ -7,6 +7,19 @@
 	(twittering-make-fontified-tweet-text): make the properties
 	non-sticky for the both direction.
 
+	* twittering-mode.el: Render a link wrapped by the t.co service as
+	the original URL.
+	(twittering-call-api): call APIs with the option
+	`include_entities=true' if possible.
+	(twittering-normalize-raw-status): extract entities.
+	(twittering-xmltree-to-status): extract entities of direct
+	messages.
+	(twittering-make-fontified-tweet-text): do not fontify a region if
+	it has been already fontified.
+	(twittering-make-fontified-tweet-text-with-entity): new function.
+	(twittering-generate-format-table): try to fontify the text with
+	entities first.
+
 2011-08-27  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: A list timeline includes native retweets.

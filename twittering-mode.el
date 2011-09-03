@@ -3349,7 +3349,7 @@ Before calling this, you have to configure `twittering-bitly-login' and
 ;;; - (public): public timeline.
 ;;; - (replies): replies.
 ;;; - (retweeted_by_me): retweets posted by the authenticating user.
-;;; - (retweeted_by_user): retweets posted by the user.
+;;; - (retweeted_by_user USER): retweets posted by the user.
 ;;; - (retweeted_to_me): retweets posted by the authenticating user's friends.
 ;;; - (retweeted_to_user USER): retweets posted to the user.
 ;;; - (retweets_of_me):

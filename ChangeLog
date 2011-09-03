@@ -20,6 +20,13 @@
 	(twittering-generate-format-table): try to fontify the text with
 	entities first.
 
+	* twittering-mode.el: Fix indices in entities of a timeline
+	retrieved as XML.
+	(twittering-make-gap-list): new function.
+	(twittering-get-gap): new function.
+	(twittering-normalize-raw-status): correct indices in entities so
+	that they mean the position in the decoded text.
+
 2011-08-27  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: A list timeline includes native retweets.

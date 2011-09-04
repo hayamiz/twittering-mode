@@ -1,3 +1,17 @@
+2011-09-04  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Remove stickiness of text properties.
+	(twittering-make-string-with-user-name-property): add front-sticky
+	and rear-nonsticky property to STR for removing stickiness.
+	(twittering-make-string-with-source-property): likewise.
+	(twittering-make-string-with-uri-property): likewise.
+	(twittering-generate-format-table): add front-sticky and
+	rear-nonsticky property to the string for "%r" in order to remove
+	stickiness.
+	(twittering-generate-formater-for-first-spec): add front-sticky
+	and rear-nonsticky property to the string for "%@" in order to
+	remove stickiness.
+
 2011-09-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix a comment.

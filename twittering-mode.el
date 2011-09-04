@@ -6045,7 +6045,9 @@ following symbols;
 		      'uri uri
 		      'screen-name-in-text user-screen-name
 		      'goto-spec spec
-		      'face 'twittering-username-face))
+		      'face 'twittering-username-face
+		      'front-sticky nil
+		      'rear-nonsticky t))
       ""))
 
   (defsubst twittering-make-string-with-source-property (str status)
@@ -6056,7 +6058,9 @@ following symbols;
 		      'keymap twittering-mode-on-uri-map
 		      'uri uri
 		      'face 'twittering-uri-face
-		      'source str))
+		      'source str
+		      'front-sticky nil
+		      'rear-nonsticky t))
       ""))
 
   (defsubst twittering-make-string-with-uri-property (str status)
@@ -6073,7 +6077,9 @@ following symbols;
 		      'mouse-face 'highlight
 		      'keymap twittering-mode-on-uri-map
 		      'uri uri
-		      'face 'twittering-uri-face))
+		      'face 'twittering-uri-face
+		      'front-sticky nil
+		      'rear-nonsticky t))
       "")))
 
 (defun twittering-make-fontified-tweet-text (str-expr regexp-hash regexp-atmark)
@@ -6310,7 +6316,9 @@ following symbols;
 	      (properties
 	       (list 'mouse-face 'highlight 'face 'twittering-uri-face
 		     'keymap twittering-mode-on-uri-map
-		     'uri url)))
+		     'uri url
+		     'front-sticky nil
+		     'rear-nonsticky t)))
 	 (when (and str url)
 	   (concat " " (apply 'propertize str properties))))))
     ("R" .
@@ -6364,7 +6372,9 @@ following symbols;
 		   (properties
 		    (list 'mouse-face 'highlight 'face 'twittering-uri-face
 			  'keymap twittering-mode-on-uri-map
-			  'uri url)))
+			  'uri url
+			  'front-sticky nil
+			  'rear-nonsticky t)))
 	      (twittering-make-passed-time-string
 	       nil nil created-at ,time-format properties))
 	    . ,rest)))

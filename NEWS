@@ -58,10 +58,13 @@
   string considered as a hashtag in twittering-mode may not be treated
   as a hashtag in the Twitter web UI.
 * Rendering the t.co wrapped link as the original URL.
-  If a tweet includes a link wrapped by the t.co service, it is
-  rendered as the original URL. But the link will be opened as the
-  wrapped URL when you invoke `twittering-enter' (bound to `C-m' in
-  default).
+  If a tweet on a timeline except a search timeline includes a link
+  wrapped by the t.co service, it is rendered as the original URL. But
+  the link will be opened as the wrapped URL when you invoke
+  `twittering-enter' (bound to `C-m' in default). On a search
+  timeline, it is rendered as a URL wrapped by the t.co service
+  because the search API of Twitter does not provide additional
+  information (entities) of tweets.
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

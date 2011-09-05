@@ -1,3 +1,10 @@
+2011-09-05  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix extraction of hashtags from a XML
+	response.
+	(twittering-normalize-raw-status): Fix extraction of hashtags from
+	a XML response.
+
 2011-09-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Remove stickiness of text properties.

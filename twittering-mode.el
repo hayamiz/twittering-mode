@@ -7357,6 +7357,25 @@ been initialized yet."
        (t
 	(setq twittering-use-icon-storage nil)
 	(error "Disabled icon-storage because it failed to load jka-compr."))))
+    (cond
+     ((and
+       (boundp 'twittering-sign-simple-string)
+       twittering-sign-simple-string
+       (or (not (boundp 'twittering-sign-string-function))
+	   (null twittering-sign-string-function))
+       (eq twittering-edit-skeleton 'none)
+       (or (null twittering-edit-skeleton-footer)
+	   (string= twittering-edit-skeleton-footer "")))
+      ;; Configure `twittering-edit-skeleton' as an alternative of
+      ;; `twittering-sign-simple-string'.
+      (twittering-edit-skeleton-change-footer
+       (format " [%s]" twittering-sign-simple-string))
+      (setq twittering-edit-skeleton 'footer)
+      (message "Warning: `twittering-sign-simple-string' is obsolete. Use `twittering-edit-skeleton-footer' instead."))
+     ((or (boundp 'twittering-sign-simple-string)
+	  (boundp 'twittering-sign-string-function))
+      (message "Warning: `twittering-sign-simple-string' and `twittering-sign-string-function' are obsolete. Use the new feature `twittering-edit-skeleton'.")
+      ))
     (setq twittering-initialized t)))
 
 (defun twittering-mode-setup (spec-string)
@@ -7407,23 +7426,6 @@ been initialized yet."
     (twittering-visit-timeline (car timeline-spec-list))
     (when (twittering-account-authorized-p)
       (mapc 'twittering-visit-timeline (cdr timeline-spec-list)))))
-
-;;;;
-;;;; Sign
-;;;;
-
-(defvar twittering-sign-simple-string nil)
-(defvar twittering-sign-string-function 'twittering-sign-string-default-function)
-
-(defun twittering-sign-string-default-function ()
-  "Append sign string to tweet."
-  (if twittering-sign-simple-string
-      (format " [%s]" twittering-sign-simple-string)
-    ""))
-
-(defun twittering-sign-string ()
-  "Return Tweet sign string."
-  (funcall twittering-sign-string-function))
 
 ;;;;
 ;;;; Edit mode skeleton
@@ -7689,11 +7691,10 @@ instead."
 
 (defun twittering-edit-length-check (&optional beg end len)
   (let* ((status (twittering-edit-extract-status))
-	 (sign-str (twittering-sign-string))
-	 (maxlen (- 140 (length sign-str)))
+	 (maxlen 140)
 	 (length (twittering-effective-length status)))
     (setq mode-name
-	  (format "twmode-status-edit[%d/%d/140]" length maxlen))
+	  (format "twmode-status-edit[%d/%d]" length maxlen))
     (force-mode-line-update)
     (unless twittering-disable-overlay-on-too-long-string
       (if (< maxlen length)
@@ -7878,11 +7879,7 @@ instead."
     (let* ((deactivate-mark deactivate-mark)
 	   (status-len (- (twittering-effective-length (buffer-string))
 			  (minibuffer-prompt-width)))
-	   (sign-len (length (twittering-sign-string)))
-	   (mes (if (< 0 sign-len)
-		    (format "%d=%d+%d"
-			    (+ status-len sign-len) status-len sign-len)
-		  (format "%d" status-len))))
+	   (mes (format "%d" status-len)))
       (if (<= 23 emacs-major-version)
 	  (minibuffer-message mes) ;; Emacs23 or later
 	(minibuffer-message (concat " (" mes ")")))
@@ -7925,10 +7922,6 @@ instead."
 	     (twittering-edit-skeleton-insert tweet-type reply-to-id
 					      current-spec))
 	   `(,(buffer-string) . ,(point))))
-	(sign-str (if (twittering-timeline-spec-is-direct-messages-p
-		       tweet-type-as-spec)
-		      nil
-		    (twittering-sign-string)))
 	(not-posted-p t)
 	(prompt "status: ")
 	(map minibuffer-local-map)
@@ -7940,8 +7933,8 @@ instead."
     (unwind-protect
 	(while not-posted-p
 	  (setq status (read-from-minibuffer prompt status map nil 'twittering-tweet-history nil t))
-	  (let ((status-with-sign (concat status sign-str)))
-	    (if (< 140 (length status-with-sign))
+	  (let ((status status))
+	    (if (< 140 (length status))
 		(setq prompt "status (too long): ")
 	      (setq prompt "status: ")
 	      (when (twittering-status-not-blank-p status)
@@ -7954,7 +7947,7 @@ instead."
 					     (status . ,status)))
 		    (message "No username specified")))
 		 (t
-		  (let ((parameters `(("status" . ,status-with-sign)))
+		  (let ((parameters `(("status" . ,status)))
 			(as-reply
 			 (and reply-to-id
 			      username
@@ -7965,7 +7958,7 @@ instead."
 		    ;; status begins with @username.
 		    (twittering-call-api
 		     'update-status
-		     `((status . ,status-with-sign)
+		     `((status . ,status)
 		       ,@(when as-reply
 			   `((in-reply-to-status-id
 			      . ,(format "%s" reply-to-id))))))

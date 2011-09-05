@@ -5,6 +5,23 @@
 	(twittering-normalize-raw-status): Fix extraction of hashtags from
 	a XML response.
 
+	* twittering-mode.el: The sign string feature is obsolete. The
+	feature based on the function `twittering-sign-string-function'
+	and the variable `twittering-sign-simple-string' is removed. The
+	edit skeleton feature can be used as its alternative.
+	(twittering-initialize-global-variables-if-necessary): display a
+	warning about obsolete sign string feature. The function also
+	translates the configuration of obsolete sign string into that of
+	edit skeleton if possible.
+	(twittering-sign-simple-string): removed.
+	(twittering-sign-string-function): removed.
+	(twittering-sign-string-default-function): removed.
+	(twittering-sign-string): removed.
+	(twittering-edit-length-check): do not use the obsolete function
+	`twittering-sign-string'.
+	(twittering-show-minibuffer-length): likewise.
+	(twittering-update-status-from-minibuffer): likewise.
+
 2011-09-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Remove stickiness of text properties.

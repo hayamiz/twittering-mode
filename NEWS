@@ -6,6 +6,15 @@
 ------------------
 
 ### Important notice
+* Obsolete implicit sign string feature.
+  The function `twittering-sign-string-function' and the variable
+  `twittering-sign-simple-string' are now obsolete. The `edit
+  skeleton' feature can be used as an alternative. For example,
+  the configuration
+  (setq twittering-sign-simple-string "footer")
+  is equivalent to the following one;
+  (setq twittering-edit-skeleton-footer " [footer]")
+  (setq twittering-edit-skeleton 'footer)
 
 ### Improvements
 * Edit skeleton according to the current timeline.

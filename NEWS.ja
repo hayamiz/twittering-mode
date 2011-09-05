@@ -6,6 +6,15 @@
 ------------------
 
 ### 重要なお知らせ
+* 暗黙に署名を付加する機能の廃止
+  関数`twittering-sign-string-function'と変数
+  `twittering-sign-simple-string'の機能は廃止されました。同様の機能は
+  `edit skeleton'で設定できますので、こちらを使ってください。
+  例えば以前までの設定
+  (setq twittering-sign-simple-string "footer")
+  は、以下の設定で置き換えられます。
+  (setq twittering-edit-skeleton-footer " [footer]")
+  (setq twittering-edit-skeleton 'footer)
 
 ### 改良
 * 現在のtimelineに応じたedit skeleton

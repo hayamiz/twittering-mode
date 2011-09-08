@@ -1,3 +1,75 @@
+2011-09-05  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix extraction of hashtags from a XML
+	response.
+	(twittering-normalize-raw-status): Fix extraction of hashtags from
+	a XML response.
+
+	* twittering-mode.el: The sign string feature is obsolete. The
+	feature based on the function `twittering-sign-string-function'
+	and the variable `twittering-sign-simple-string' is removed. The
+	edit skeleton feature can be used as its alternative.
+	(twittering-initialize-global-variables-if-necessary): display a
+	warning about obsolete sign string feature. The function also
+	translates the configuration of obsolete sign string into that of
+	edit skeleton if possible.
+	(twittering-sign-simple-string): removed.
+	(twittering-sign-string-function): removed.
+	(twittering-sign-string-default-function): removed.
+	(twittering-sign-string): removed.
+	(twittering-edit-length-check): do not use the obsolete function
+	`twittering-sign-string'.
+	(twittering-show-minibuffer-length): likewise.
+	(twittering-update-status-from-minibuffer): likewise.
+
+2011-09-04  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Remove stickiness of text properties.
+	(twittering-make-string-with-user-name-property): add front-sticky
+	and rear-nonsticky property to STR for removing stickiness.
+	(twittering-make-string-with-source-property): likewise.
+	(twittering-make-string-with-uri-property): likewise.
+	(twittering-generate-format-table): add front-sticky and
+	rear-nonsticky property to the string for "%r" in order to remove
+	stickiness.
+	(twittering-generate-formater-for-first-spec): add front-sticky
+	and rear-nonsticky property to the string for "%@" in order to
+	remove stickiness.
+
+2011-09-03  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix a comment.
+
+	* twittering-mode.el: The properties for hashtags, mentions and
+	URIs are non-sticky.
+	(twittering-make-fontified-tweet-text): make the properties
+	non-sticky for the both direction.
+
+	* twittering-mode.el: Render a link wrapped by the t.co service as
+	the original URL.
+	(twittering-call-api): call APIs with the option
+	`include_entities=true' if possible.
+	(twittering-normalize-raw-status): extract entities.
+	(twittering-xmltree-to-status): extract entities of direct
+	messages.
+	(twittering-make-fontified-tweet-text): do not fontify a region if
+	it has been already fontified.
+	(twittering-make-fontified-tweet-text-with-entity): new function.
+	(twittering-generate-format-table): try to fontify the text with
+	entities first.
+
+	* twittering-mode.el: Fix indices in entities of a timeline
+	retrieved as XML.
+	(twittering-make-gap-list): new function.
+	(twittering-get-gap): new function.
+	(twittering-normalize-raw-status): correct indices in entities so
+	that they mean the position in the decoded text.
+
+	* twittering-mode.el: Suppress redundant decoding.
+	(twittering-normalize-raw-status): decode entities with
+	`twittering-decode-entities-after-parsing-xml'.
+	(twittering-decode-entities-after-parsing-xml): new function.
+
 2011-08-27  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: A list timeline includes native retweets.

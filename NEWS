@@ -110,6 +110,12 @@
   `twittering-retweet-format'.
   Note that it is inserted before the edit skeleton specified by
   `twittering-edit-skeleton' is performed.
+* Tweet type of edit skeleton for an organic retweet.
+  The symbol `organic-retweet' is added as a tweet type specifying the
+  type of the tweet being edited, which is referred by edit skeleton.
+  You can define an edit skeleton that is performed only for organic
+  retweets. Note that edit skeletons cannot refer to the tweet being
+  retweeted in the current implementation.
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

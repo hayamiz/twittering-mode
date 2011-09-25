@@ -489,7 +489,7 @@ The first argument INIT-STR is nil or an initial text to be edited.
 REPLY-TO-ID and USERNAME are an ID and a user-screen-name of a tweet to
 which you are going to reply. If the tweet is not a reply, they are nil.
 TWEET-TYPE is a symbol specifying a type of a tweet being edited. It must
-be one of 'direct-message, 'normal and 'reply.
+be one of 'direct-message, 'normal, 'organic-retweet and 'reply.
 CURRENT-SPEC means on which timeline the function is called.
 
 Twittering-mode provides two functions for updating status:
@@ -7470,13 +7470,13 @@ current context matches with PRED.
 PRED is nil, a symbol or a function.
 If PRED is nil, the value is unconditionally performed.
 If PRED is a symbol, the value is performed only when it equals to the
-type of the tweet being edited. The type is one of 'normal, 'reply and
-'direct-message.
+type of the tweet being edited. The type is one of 'direct-message, 'normal,
+'organic-retweet and 'reply.
 If PRED is a function, the value is performed only when the predicate
 function PRED returns non-nil. PRED is invoked with three arguments
 TWEET-TYPE, IN-REPLY-TO-ID and CURRENT-SPEC.
-TWEET-TYPE is a symbol, which is one of 'normal, 'reply, and 'direct-message,
-specifying which type of tweet will be edited.
+TWEET-TYPE is a symbol, which is one of 'direct-message, 'normal,
+'organic-retweet and 'reply, specifying which type of tweet will be edited.
 If the tweet will not be edited as a reply, IN-REPLY-TO-ID is nil.
 If the tweet will be edited as a reply, IN-REPLY-TO-ID is a string specifying
 the replied tweet.
@@ -8299,8 +8299,9 @@ skeleton to be inserted with `skeleton-insert'.
 REPLY-TO-ID and USERNAME are an ID and a user-screen-name of a tweet to
 which you are going to reply. If the tweet is not a reply, they are nil.
 TWEET-TYPE is a symbol meaning the type of the tweet being edited. It must
-be one of 'direct-message, 'normal and 'reply. If TWEET-TYPE is nil, it is
-equivalent to 'normal, which means that a tweet is edited as a normal tweet.
+be one of 'direct-message, 'normal, 'organic-retweet and 'reply.
+If TWEET-TYPE is nil, it is equivalent to 'normal, which means that a tweet
+is edited as a normal tweet.
 If IGNORE-CURRENT-SPEC is non-nil, the timeline spec of the current buffer
 is sent to the function specified by `twittering-update-status-function'.
 
@@ -8452,7 +8453,8 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
 		   (if (stringp element)
 		       (twittering-format-string element prefix replace-table)
 		     element))
-		 skeleton-with-format-string))
+		 skeleton-with-format-string)
+	 nil nil 'organic-retweet)
 	))))
 
 (defun twittering-native-retweet ()

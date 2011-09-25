@@ -108,6 +108,11 @@
   この変数`twittering-retweet-format'による初期文字列の挿入後に変数
   `twittering-edit-skeleton'で指定されたedit skeletonが適用される点に
   注意してください。
+* edit skeleton用に非公式ReTweetを示すシンボルを追加
+  edit skeletonにおける編集中tweetの種別を表現するシンボルに
+  `organic-retweet'が追加されました。非公式ReTweetにのみ適用されるedit
+  skeletonを定義できます。但し、現在の実装ではedit skeleton側から非公
+  式ReTweetされようとしているtweetの内容を参照することはできません。
 
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正

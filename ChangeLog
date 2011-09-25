@@ -46,6 +46,15 @@
 	(twittering-retweet-format): modify the initial value so that the
 	cursor will be placed previous to the initial string.
 
+	* twittering-mode.el: The symbol `organic-retweet' is added as a
+	tweet type referred by edit skeleton.
+	(twittering-update-status-function): update docstring.
+	(twittering-edit-skeleton-alist): likewise.
+	(twittering-update-status): likewise.
+	(twittering-organic-retweet): invoke `twittering-update-status'
+	with the tweet type symbol `organic-retweet' as the explicit
+	fourth argument.
+
 2011-09-05  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix extraction of hashtags from a XML

@@ -71,6 +71,9 @@
   ク上で`twittering-enter'(デフォルトでは`C-m')を実行した場合は短縮URL
   経由で開かれます。Twitterのsearch APIではtweetに付随する情報が取得で
   きないため、search timeline上では短縮されたURLとして描画されます。
+* mentionのみからなるtweetの投稿
+  ポップアップバッファからであれば、mentionのみからなるtweetも投稿でき
+  るようになりました。
 
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正

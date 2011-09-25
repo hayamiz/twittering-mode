@@ -1,3 +1,10 @@
+2011-09-25  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Users can post a tweet consisting of only
+	mentions from the pop-up buffer.
+	(twittering-edit-post-status): check a tweet with a simple regexp
+	instead of `twittering-status-not-blank-p'.
+
 2011-09-05  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix extraction of hashtags from a XML

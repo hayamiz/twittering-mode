@@ -7791,7 +7791,7 @@ instead."
 	(username (nth 1 twittering-reply-recipient))
 	(spec (nth 2 twittering-reply-recipient)))
     (cond
-     ((not (twittering-status-not-blank-p status))
+     ((string-match "\\` *\\'" status)
       (message "Empty tweet!"))
      ((< 140 (twittering-effective-length status))
       (message "Tweet is too long!"))

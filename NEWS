@@ -74,6 +74,9 @@
   timeline, it is rendered as a URL wrapped by the t.co service
   because the search API of Twitter does not provide additional
   information (entities) of tweets.
+* Posting a tweet consiting of mentions from pop-up buffer.
+  From pop-up buffer, you can post a tweet consisting of
+  mentions.
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

@@ -96,6 +96,20 @@
   Since the Emacs LISP program `windows.el' written by HIROSE Yuuji
   implicitly loads `revive.el' if possible, you should also take care
   of the order of loading `windows.el' and the configuration.
+* Skeleton for initializing an organic retweet.
+  You can use a skeleton as the variable `twittering-retweet-format'
+  for initializing an organic retweet. This means that you can also
+  specify the initial cursor position. Strings included in the
+  skeleton are converted with the below replacement table and then the
+  skeleton is inserted with `skeleton-insert'.
+  The replacement table is as follows.
+    %s: screen_name
+    %t: text
+    %%: %
+  This is equivalent to the previous rule applied for
+  `twittering-retweet-format'.
+  Note that it is inserted before the edit skeleton specified by
+  `twittering-edit-skeleton' is performed.
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

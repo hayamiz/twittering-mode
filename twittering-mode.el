@@ -351,9 +351,22 @@ Items:
 ")
 
 (defvar twittering-retweet-format "RT: %t (via @%s)"
-  "Format string for retweet.
+  "*A format string or a skeleton for retweet.
+If the value is a string, it means a format string for generating an initial
+string of a retweet. The format string is converted with the below replacement
+table. And then, the cursor is placed on the next of the initial string.
+It is equivalent to the skeleton '(nil STRING _).
+Note that this string is inserted before the edit skeleton specified by
+`twittering-edit-skeleton' is performed.
 
-Items:
+If the value is a list, it is treated as a skeleton used with
+`skeleton-insert'. The strings included in the list are converted with the
+following replacement table. And then, the list with converted strings is
+inserted by `skeleton-insert'.
+Note that this skeleton is performed before the edit skeleton specified by
+`twittering-edit-skeleton' is performed.
+
+Replacement table:
  %s - screen_name
  %t - text
  %% - %
@@ -7747,7 +7760,7 @@ instead."
 	    (when (< (window-end window t) current-tail)
 	      (twittering-set-window-end window current-tail))))))))
 
-(defun twittering-update-status-from-pop-up-buffer (&optional init-str reply-to-id username tweet-type current-spec)
+(defun twittering-update-status-from-pop-up-buffer (&optional init-string-or-skeleton reply-to-id username tweet-type current-spec)
   (interactive)
   (let ((buf (generate-new-buffer twittering-edit-buffer)))
     (setq twittering-pre-edit-window-configuration
@@ -7761,12 +7774,18 @@ instead."
     (twittering-edit-setup-help username tweet-type)
     (if (eq tweet-type 'direct-message)
 	(message "C-c C-c to send, C-c C-k to cancel")
-      (and (null init-str)
+      (and (null init-string-or-skeleton)
 	   twittering-current-hashtag
-	   (setq init-str (format " #%s " twittering-current-hashtag)))
+	   (setq init-string-or-skeleton
+		 (format " #%s " twittering-current-hashtag)))
       (message "C-c C-c to post, C-c C-k to cancel"))
-    (when init-str
-      (insert init-str)
+    (when init-string-or-skeleton
+      (require 'skeleton)
+      (cond
+       ((stringp init-string-or-skeleton)
+	(insert init-string-or-skeleton))
+       ((listp init-string-or-skeleton)
+	(skeleton-insert init-string-or-skeleton)))
       (set-buffer-modified-p nil))
     (make-local-variable 'twittering-reply-recipient)
     (setq twittering-reply-recipient
@@ -7892,15 +7911,21 @@ instead."
       (re-search-forward "\\`[[:space:]]*@[a-zA-Z0-9_-]+\\([[:space:]]+@[a-zA-Z0-9_-]+\\)*" nil t)
       (re-search-forward "[^[:space:]]" nil t))))
 
-(defun twittering-update-status-from-minibuffer (&optional init-str reply-to-id username tweet-type current-spec)
+(defun twittering-update-status-from-minibuffer (&optional init-string-or-skeleton reply-to-id username tweet-type current-spec)
   (and (not (eq tweet-type 'direct-message))
-       (null init-str)
+       (null init-string-or-skeleton)
        twittering-current-hashtag
-       (setq init-str (format " #%s " twittering-current-hashtag)))
+       (setq init-string-or-skeleton
+	     (format " #%s " twittering-current-hashtag)))
   (let ((status
 	 (with-temp-buffer
-	   (when init-str
-	     (insert init-str))
+	   (when init-string-or-skeleton
+	     (require 'skeleton)
+	     (cond
+	      ((stringp init-string-or-skeleton)
+	       (insert init-string-or-skeleton))
+	      ((listp init-string-or-skeleton)
+	       (skeleton-insert init-string-or-skeleton))))
 	   (twittering-edit-skeleton-insert tweet-type reply-to-id
 					    current-spec)
 	   `(,(buffer-string) . ,(point))))
@@ -8267,9 +8292,10 @@ instead."
 
 ;;;; Commands for posting a status
 
-(defun twittering-update-status (&optional init-str reply-to-id username tweet-type ignore-current-spec)
+(defun twittering-update-status (&optional init-string-or-skeleton reply-to-id username tweet-type ignore-current-spec)
   "Post a tweet.
-The first argument INIT-STR is nil or an initial text to be edited.
+The first argument INIT-STRING-OR-SKELETON is nil, an initial text or a
+skeleton to be inserted with `skeleton-insert'.
 REPLY-TO-ID and USERNAME are an ID and a user-screen-name of a tweet to
 which you are going to reply. If the tweet is not a reply, they are nil.
 TWEET-TYPE is a symbol meaning the type of the tweet being edited. It must
@@ -8282,7 +8308,8 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
   (let ((current-spec (unless ignore-current-spec
 			(twittering-current-timeline-spec)))
 	(tweet-type (or tweet-type 'normal)))
-    (funcall twittering-update-status-function init-str reply-to-id username
+    (funcall twittering-update-status-function init-string-or-skeleton
+	     reply-to-id username
 	     tweet-type current-spec)))
 
 (defun twittering-update-status-interactive ()
@@ -8395,8 +8422,16 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
 	(text (get-text-property (point) 'text))
 	(id (get-text-property (point) 'id))
 	(retweet-time (current-time))
-	(format-str (or twittering-retweet-format
-			"RT: %t (via @%s)")))
+	(skeleton-with-format-string
+	 (cond
+	  ((null twittering-retweet-format)
+	   '(nil _ " RT: %t (via @%s)"))
+	  ((stringp twittering-retweet-format)
+	   `(nil ,twittering-retweet-format _))
+	  ((listp twittering-retweet-format)
+	   twittering-retweet-format)
+	  (t
+	   nil))))
     (when username
       (let ((prefix "%")
 	    (replace-table
@@ -8413,7 +8448,11 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
 	       ))
 	    )
 	(twittering-update-status
-	 (twittering-format-string format-str prefix replace-table))
+	 (mapcar (lambda (element)
+		   (if (stringp element)
+		       (twittering-format-string element prefix replace-table)
+		     element))
+		 skeleton-with-format-string))
 	))))
 
 (defun twittering-native-retweet ()

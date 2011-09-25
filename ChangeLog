@@ -31,6 +31,16 @@
 	(twittering-enter): invoke `twittering-update-status' with a
 	tweet-type symbol instead of a timeline spec.
 
+	* twittering-mode.el: A skeleton can be used as
+	`twittering-retweet-format'.
+	(twittering-retweet-format): update docstring.
+	(twittering-update-status-from-pop-up-buffer): accept a skeleton
+	as the first argument.
+	(twittering-update-status-from-minibuffer): likewise.
+	(twittering-update-status): likewise.
+	(twittering-organic-retweet): invoke `twittering-update-status'
+	with a skeleton for generating an initial string.
+
 2011-09-05  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix extraction of hashtags from a XML

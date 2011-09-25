@@ -93,6 +93,21 @@
   また、同じくHIROSE Yuujiさん作のEmacs LISPプログラム`windows.el'は
   `revive.el'を暗黙にloadしますので、`windows.el'をloadするタイミング
   にも注意してください。
+* skeletonによる非公式ReTweetの初期文字列設定
+  非公式ReTweetを編集する際の初期文字列を指定する変数
+  `twittering-retweet-format'にskeletonを指定できるようになりました。
+  文字列に加えて編集開始時のカーソル位置も指定できます。skeletonに含ま
+  れる文字列を下記の対応表によって変換してから、関数`skeleton-insert'
+  で挿入します。
+  対応表は以下の通りです。
+    %s: screen_name
+    %t: text
+    %%: %
+  この表は従来から`twittering-retweet-format'に適用されていた規則と同
+  じです。
+  この変数`twittering-retweet-format'による初期文字列の挿入後に変数
+  `twittering-edit-skeleton'で指定されたedit skeletonが適用される点に
+  注意してください。
 
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正

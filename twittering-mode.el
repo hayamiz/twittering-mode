@@ -350,7 +350,7 @@ Items:
  %# - id
 ")
 
-(defvar twittering-retweet-format "RT: %t (via @%s)"
+(defvar twittering-retweet-format '(nil _ " RT: %t (via @%s)")
   "*A format string or a skeleton for retweet.
 If the value is a string, it means a format string for generating an initial
 string of a retweet. The format string is converted with the below replacement

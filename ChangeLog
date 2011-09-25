@@ -41,6 +41,11 @@
 	(twittering-organic-retweet): invoke `twittering-update-status'
 	with a skeleton for generating an initial string.
 
+	* twittering-mode.el: In default, the cursor is placed on the head
+	when editing an organic retweet.
+	(twittering-retweet-format): modify the initial value so that the
+	cursor will be placed previous to the initial string.
+
 2011-09-05  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix extraction of hashtags from a XML

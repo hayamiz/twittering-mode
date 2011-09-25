@@ -471,14 +471,12 @@ which is a lambda expression without being compiled.")
 (defvar twittering-update-status-function
   'twittering-update-status-from-pop-up-buffer
   "The function used to posting a tweet. It takes 5 arguments,
-INIT-STR, REPLY-TO-ID, USERNAME, TWEET-TYPE-AS-SPEC, CURRENT-SPEC.
+INIT-STR, REPLY-TO-ID, USERNAME, TWEET-TYPE, CURRENT-SPEC.
 The first argument INIT-STR is nil or an initial text to be edited.
 REPLY-TO-ID and USERNAME are an ID and a user-screen-name of a tweet to
 which you are going to reply. If the tweet is not a reply, they are nil.
-TWEET-TYPE-AS-SPEC is a timeline spec specifying a type of a tweet being
-edited. Now, only `(direct-messages)' and nil are available as
-TWEET-TYPE-AS-SPEC. If TWEET-TYPE-AS-SPEC is nil, it means that a tweet is
-edited as a normal tweet.
+TWEET-TYPE is a symbol specifying a type of a tweet being edited. It must
+be one of 'direct-message, 'normal and 'reply.
 CURRENT-SPEC means on which timeline the function is called.
 
 Twittering-mode provides two functions for updating status:
@@ -7707,8 +7705,8 @@ instead."
       (buffer-substring-no-properties (point-min) (point-max))
     ""))
 
-(defun twittering-edit-setup-help (&optional username spec)
-  (let* ((item (if (twittering-timeline-spec-is-direct-messages-p spec)
+(defun twittering-edit-setup-help (&optional username tweet-type)
+  (let* ((item (if (eq tweet-type 'direct-message)
 		   (format "a direct message to %s" username)
 		 "a tweet"))
 	 (help-str (format (substitute-command-keys "Keymap:
@@ -7749,7 +7747,7 @@ instead."
 	    (when (< (window-end window t) current-tail)
 	      (twittering-set-window-end window current-tail))))))))
 
-(defun twittering-update-status-from-pop-up-buffer (&optional init-str reply-to-id username tweet-type-as-spec current-spec)
+(defun twittering-update-status-from-pop-up-buffer (&optional init-str reply-to-id username tweet-type current-spec)
   (interactive)
   (let ((buf (generate-new-buffer twittering-edit-buffer)))
     (setq twittering-pre-edit-window-configuration
@@ -7760,8 +7758,8 @@ instead."
       (pop-to-buffer buf)
       (twittering-ensure-whole-of-status-is-visible win))
     (twittering-edit-mode)
-    (twittering-edit-setup-help username tweet-type-as-spec)
-    (if (twittering-timeline-spec-is-direct-messages-p tweet-type-as-spec)
+    (twittering-edit-setup-help username tweet-type)
+    (if (eq tweet-type 'direct-message)
 	(message "C-c C-c to send, C-c C-k to cancel")
       (and (null init-str)
 	   twittering-current-hashtag
@@ -7772,17 +7770,10 @@ instead."
       (set-buffer-modified-p nil))
     (make-local-variable 'twittering-reply-recipient)
     (setq twittering-reply-recipient
-	  `(,reply-to-id ,username ,tweet-type-as-spec))
-    (let ((tweet-type
-	   (cond
-	    ((twittering-timeline-spec-is-direct-messages-p tweet-type-as-spec)
-	     'direct-message)
-	    (reply-to-id
-	     'reply)
-	    (t
-	     'normal))))
-      (twittering-edit-skeleton-insert tweet-type reply-to-id
-				       current-spec))))
+	  `(,reply-to-id ,username ,(when (eq tweet-type 'direct-message)
+				      '(direct_messages))))
+    (twittering-edit-skeleton-insert tweet-type reply-to-id
+				     current-spec)))
 
 (defun twittering-edit-post-status ()
   (interactive)
@@ -7901,8 +7892,8 @@ instead."
       (re-search-forward "\\`[[:space:]]*@[a-zA-Z0-9_-]+\\([[:space:]]+@[a-zA-Z0-9_-]+\\)*" nil t)
       (re-search-forward "[^[:space:]]" nil t))))
 
-(defun twittering-update-status-from-minibuffer (&optional init-str reply-to-id username tweet-type-as-spec current-spec)
-  (and (not (twittering-timeline-spec-is-direct-messages-p tweet-type-as-spec))
+(defun twittering-update-status-from-minibuffer (&optional init-str reply-to-id username tweet-type current-spec)
+  (and (not (eq tweet-type 'direct-message))
        (null init-str)
        twittering-current-hashtag
        (setq init-str (format " #%s " twittering-current-hashtag)))
@@ -7910,17 +7901,8 @@ instead."
 	 (with-temp-buffer
 	   (when init-str
 	     (insert init-str))
-	   (let ((tweet-type
-		  (cond
-		   ((twittering-timeline-spec-is-direct-messages-p
-		     tweet-type-as-spec)
-		    'direct-message)
-		   (reply-to-id
-		    'reply)
-		   (t
-		    'normal))))
-	     (twittering-edit-skeleton-insert tweet-type reply-to-id
-					      current-spec))
+	   (twittering-edit-skeleton-insert tweet-type reply-to-id
+					    current-spec)
 	   `(,(buffer-string) . ,(point))))
 	(not-posted-p t)
 	(prompt "status: ")
@@ -7939,8 +7921,7 @@ instead."
 	      (setq prompt "status: ")
 	      (when (twittering-status-not-blank-p status)
 		(cond
-		 ((twittering-timeline-spec-is-direct-messages-p
-		   tweet-type-as-spec)
+		 ((eq tweet-type 'direct-message)
 		  (if username
 		      (twittering-call-api 'send-direct-message
 					   `((username . ,username)
@@ -8286,23 +8267,23 @@ instead."
 
 ;;;; Commands for posting a status
 
-(defun twittering-update-status (&optional init-str reply-to-id username tweet-type-as-spec ignore-current-spec)
+(defun twittering-update-status (&optional init-str reply-to-id username tweet-type ignore-current-spec)
   "Post a tweet.
 The first argument INIT-STR is nil or an initial text to be edited.
 REPLY-TO-ID and USERNAME are an ID and a user-screen-name of a tweet to
 which you are going to reply. If the tweet is not a reply, they are nil.
-TWEET-TYPE-AS-SPEC is a timeline spec specifying a type of a tweet being
-edited. Now, only `(direct-messages)' and nil are available as
-TWEET-TYPE-AS-SPEC. If TWEET-TYPE-AS-SPEC is nil, it means that a tweet is
-edited as a normal tweet.
+TWEET-TYPE is a symbol meaning the type of the tweet being edited. It must
+be one of 'direct-message, 'normal and 'reply. If TWEET-TYPE is nil, it is
+equivalent to 'normal, which means that a tweet is edited as a normal tweet.
 If IGNORE-CURRENT-SPEC is non-nil, the timeline spec of the current buffer
 is sent to the function specified by `twittering-update-status-function'.
 
 How to edit a tweet is determined by `twittering-update-status-funcion'."
   (let ((current-spec (unless ignore-current-spec
-			(twittering-current-timeline-spec))))
+			(twittering-current-timeline-spec)))
+	(tweet-type (or tweet-type 'normal)))
     (funcall twittering-update-status-function init-str reply-to-id username
-	     tweet-type-as-spec current-spec)))
+	     tweet-type current-spec)))
 
 (defun twittering-update-status-interactive ()
   (interactive)
@@ -8348,7 +8329,7 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
 		   'twittering-user-history)))
     (if (string= "" username)
 	(message "No user selected")
-      (twittering-update-status nil nil username '(direct_messages)))))
+      (twittering-update-status nil nil username 'direct-message))))
 
 (defun twittering-reply-to-user ()
   (interactive)
@@ -8472,26 +8453,29 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
 
 (defun twittering-enter ()
   (interactive)
-  (let ((username (get-text-property (point) 'username))
-	(id (twittering-get-id-at (point)))
-	(uri (get-text-property (point) 'uri))
-	(spec (get-text-property (point) 'source-spec))
-	(screen-name-in-text
-	 (get-text-property (point) 'screen-name-in-text)))
+  (let* ((username (get-text-property (point) 'username))
+	 (id (twittering-get-id-at (point)))
+	 (uri (get-text-property (point) 'uri))
+	 (tweet-type
+	  (cond
+	   ((twittering-timeline-spec-is-direct-messages-p
+	     (get-text-property (point) 'source-spec))
+	    'direct-message)
+	   (t
+	    'reply)))
+	 (screen-name-in-text
+	  (get-text-property (point) 'screen-name-in-text))
+	 (initial-str
+	  (when (and (not (eq tweet-type 'direct-message))
+		     (or screen-name-in-text username))
+	    (concat "@" (or screen-name-in-text username) " "))))
     (cond (screen-name-in-text
-	   (twittering-update-status
-	    (if (twittering-timeline-spec-is-direct-messages-p spec)
-		nil
-	      (concat "@" screen-name-in-text " "))
-	    id screen-name-in-text spec))
+	   (twittering-update-status initial-str
+				     id screen-name-in-text tweet-type))
 	  (uri
 	   (browse-url uri))
 	  (username
-	   (twittering-update-status
-	    (if (twittering-timeline-spec-is-direct-messages-p spec)
-		nil
-	      (concat "@" username " "))
-	    id username spec)))))
+	   (twittering-update-status initial-str id username tweet-type)))))
 
 (defun twittering-view-user-page ()
   (interactive)

@@ -5,6 +5,14 @@
 	(twittering-edit-post-status): check a tweet with a simple regexp
 	instead of `twittering-status-not-blank-p'.
 
+	* twittering-mode.el: Add functions for `revive.el'.
+	(twittering-revive:prop-get-value): new macro defined only when
+	compiling `twittering-mode.el'.
+	(twittering-revive:twittering): new function for restoring a
+	timeline buffer with `revive.el'.
+	(twittering-setup-revive): new function configuring `revive.el'
+	for restoring a timeline buffer.
+
 2011-09-05  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix extraction of hashtags from a XML

@@ -74,6 +74,25 @@
 * mentionのみからなるtweetの投稿
   ポップアップバッファからであれば、mentionのみからなるtweetも投稿でき
   るようになりました。
+* `revive.el'によるtimelineバッファの復元
+  HIROSE Yuujiさん作のEmacs LISPプログラム`revive.el'でtimelineバッファ
+  を復元できるようになりました。設定方法には下記の2通りがあります。
+  1. 手動登録
+    (add-to-list 'revive:major-mode-command-alist-private
+                 '(twittering-mode . twittering-revive:twittering))
+    (add-to-list 'revive:save-variables-local-private
+                 '(twittering-mode twittering-timeline-spec-string))
+    (require 'revive)
+  2. 関数を使っての自動登録 (revive.el 2.19用)
+    (require 'revive)
+    (twittering-setup-revive)
+  上記設定で、手動登録の`(add-to-list ...)'の部分は`revive.el'をloadす
+  る前に評価する必要がある点に注意してください。また逆に自動登録の場合
+  は`revive.el'をloadした後で`(twittering-setup-revive)'を評価する必要
+  があります。
+  また、同じくHIROSE Yuujiさん作のEmacs LISPプログラム`windows.el'は
+  `revive.el'を暗黙にloadしますので、`windows.el'をloadするタイミング
+  にも注意してください。
 
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正

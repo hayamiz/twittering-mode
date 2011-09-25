@@ -8979,6 +8979,65 @@ and a tweet is pointed, the URI to the tweet is insteadly pushed."
   (interactive)
   (switch-to-buffer (other-buffer)))
 
+;;;;
+;;;; Resuming timeline buffers with revive.el
+;;;;
+(eval-when-compile
+  (if (require 'revive nil t)
+      (defmacro twittering-revive:prop-get-value (x y)
+	(macroexpand-all `(revive:prop-get-value ,x ,y)))
+    ;; If `revive.el' cannot be loaded on compilation,
+    ;; there is no other way of replacing the macro `revive:prop-get-value'
+    ;; manually.
+    ;; The current implementation assumes the `revive.el' 2.19.
+    (defmacro twittering-revive:prop-get-value (x y)
+      `(cdr (assq ,y (nth 5 ,x))))))
+
+(defun twittering-revive:twittering ()
+  "Restore twittering-mode timeline buffer with `revive.el'.
+The Emacs LISP program `revive.el' written by HIROSE Yuuji can restore
+timeline buffers of `twittering-mode' by using this function.
+There are two ways of configurations as follows;
+1.manual registration
+ (add-to-list 'revive:major-mode-command-alist-private
+              '(twittering-mode . twittering-revive:twittering))
+ (add-to-list 'revive:save-variables-local-private
+              '(twittering-mode twittering-timeline-spec-string))
+ (require 'revive)
+
+2.automatic registration (for revive.el 2.19)
+ (require 'revive)
+ (twittering-setup-revive)
+
+Note that (add-to-list ...) of the manual configuration must be evaluated
+before loading `revive.el' and (twittering-setup-revive) of the automatic one
+must be evaluated after loading `revive.el'.
+Since the Emacs LISP program `windows.el' written by HIROSE Yuuji
+implicitly loads `revive.el' if possible, you should also take care
+of the order of `windows.el' and the configuration."
+  (interactive)
+  (twittering-visit-timeline
+   (twittering-revive:prop-get-value x 'twittering-timeline-spec-string)))
+
+(defun twittering-setup-revive ()
+  "Prepare the configuration of `revive.el' for twittering-mode.
+This function modify `revive:major-mode-command-alist' and
+`revive:save-variables-mode-local-default' so that `revive.el' can restore
+the timeline buffers of twittering-mode.
+
+This function must be invoked after loading `revive.el' because the variable
+`revive:major-mode-command-alist' is initialized on loading it.
+Note that the current implementation assumes `revive.el' 2.19 ."
+  (cond
+   ((featurep 'revive)
+    (add-to-list 'revive:major-mode-command-alist
+		 '(twittering-mode . twittering-revive:twittering) t)
+    (add-to-list 'revive:save-variables-mode-local-default
+		 '(twittering-mode twittering-timeline-spec-string) t))
+   (t
+    (error "`revive' has not been loaded yet")
+    nil)))
+
 ;;;###autoload
 (defun twit ()
   "Start twittering-mode."

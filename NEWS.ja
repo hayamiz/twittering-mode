@@ -71,6 +71,48 @@
   ク上で`twittering-enter'(デフォルトでは`C-m')を実行した場合は短縮URL
   経由で開かれます。Twitterのsearch APIではtweetに付随する情報が取得で
   きないため、search timeline上では短縮されたURLとして描画されます。
+* mentionのみからなるtweetの投稿
+  ポップアップバッファからであれば、mentionのみからなるtweetも投稿でき
+  るようになりました。
+* `revive.el'によるtimelineバッファの復元
+  HIROSE Yuujiさん作のEmacs LISPプログラム`revive.el'でtimelineバッファ
+  を復元できるようになりました。設定方法には下記の2通りがあります。
+  1. 手動登録
+    (add-to-list 'revive:major-mode-command-alist-private
+                 '(twittering-mode . twittering-revive:twittering))
+    (add-to-list 'revive:save-variables-local-private
+                 '(twittering-mode twittering-timeline-spec-string))
+    (require 'revive)
+  2. 関数を使っての自動登録 (revive.el 2.19用)
+    (require 'revive)
+    (twittering-setup-revive)
+  上記設定で、手動登録の`(add-to-list ...)'の部分は`revive.el'をloadす
+  る前に評価する必要がある点に注意してください。また逆に自動登録の場合
+  は`revive.el'をloadした後で`(twittering-setup-revive)'を評価する必要
+  があります。
+  また、同じくHIROSE Yuujiさん作のEmacs LISPプログラム`windows.el'は
+  `revive.el'を暗黙にloadしますので、`windows.el'をloadするタイミング
+  にも注意してください。
+* skeletonによる非公式ReTweetの初期文字列設定
+  非公式ReTweetを編集する際の初期文字列を指定する変数
+  `twittering-retweet-format'にskeletonを指定できるようになりました。
+  文字列に加えて編集開始時のカーソル位置も指定できます。skeletonに含ま
+  れる文字列を下記の対応表によって変換してから、関数`skeleton-insert'
+  で挿入します。
+  対応表は以下の通りです。
+    %s: screen_name
+    %t: text
+    %%: %
+  この表は従来から`twittering-retweet-format'に適用されていた規則と同
+  じです。
+  この変数`twittering-retweet-format'による初期文字列の挿入後に変数
+  `twittering-edit-skeleton'で指定されたedit skeletonが適用される点に
+  注意してください。
+* edit skeleton用に非公式ReTweetを示すシンボルを追加
+  edit skeletonにおける編集中tweetの種別を表現するシンボルに
+  `organic-retweet'が追加されました。非公式ReTweetにのみ適用されるedit
+  skeletonを定義できます。但し、現在の実装ではedit skeleton側から非公
+  式ReTweetされようとしているtweetの内容を参照することはできません。
 
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正

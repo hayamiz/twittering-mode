@@ -1,3 +1,60 @@
+2011-09-25  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Users can post a tweet consisting of only
+	mentions from the pop-up buffer.
+	(twittering-edit-post-status): check a tweet with a simple regexp
+	instead of `twittering-status-not-blank-p'.
+
+	* twittering-mode.el: Add functions for `revive.el'.
+	(twittering-revive:prop-get-value): new macro defined only when
+	compiling `twittering-mode.el'.
+	(twittering-revive:twittering): new function for restoring a
+	timeline buffer with `revive.el'.
+	(twittering-setup-revive): new function configuring `revive.el'
+	for restoring a timeline buffer.
+
+	* twittering-mode.el: `twittering-update-status' receives a
+	tweet-type symbol instead of a timeline spec. It replaces a
+	timeline spec representing whether the tweet beingedited is a
+	direct message or not.
+	(twittering-update-status-function): update docstring.
+	(twittering-edit-setup-help): receive a tweet-type symbol as the
+	second argument instead of a timeline spec.
+	(twittering-update-status-from-pop-up-buffer): receive a
+	tweet-type symbol as the fourth argument instead of a timeline
+	spec.
+	(twittering-update-status-from-minibuffer): likewise.
+	(twittering-update-status): likewise.
+	(twittering-direct-message): invoke `twittering-update-status'
+	with a tweet-type symbol `direct-message' instead of a timeline
+	spec.
+	(twittering-enter): invoke `twittering-update-status' with a
+	tweet-type symbol instead of a timeline spec.
+
+	* twittering-mode.el: A skeleton can be used as
+	`twittering-retweet-format'.
+	(twittering-retweet-format): update docstring.
+	(twittering-update-status-from-pop-up-buffer): accept a skeleton
+	as the first argument.
+	(twittering-update-status-from-minibuffer): likewise.
+	(twittering-update-status): likewise.
+	(twittering-organic-retweet): invoke `twittering-update-status'
+	with a skeleton for generating an initial string.
+
+	* twittering-mode.el: In default, the cursor is placed on the head
+	when editing an organic retweet.
+	(twittering-retweet-format): modify the initial value so that the
+	cursor will be placed previous to the initial string.
+
+	* twittering-mode.el: The symbol `organic-retweet' is added as a
+	tweet type referred by edit skeleton.
+	(twittering-update-status-function): update docstring.
+	(twittering-edit-skeleton-alist): likewise.
+	(twittering-update-status): likewise.
+	(twittering-organic-retweet): invoke `twittering-update-status'
+	with the tweet type symbol `organic-retweet' as the explicit
+	fourth argument.
+
 2011-09-05  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix extraction of hashtags from a XML

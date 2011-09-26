@@ -74,6 +74,48 @@
   timeline, it is rendered as a URL wrapped by the t.co service
   because the search API of Twitter does not provide additional
   information (entities) of tweets.
+* Posting a tweet consiting of mentions from pop-up buffer.
+  From pop-up buffer, you can post a tweet consisting of
+  mentions.
+* Restoring timeline buffers with `revive.el' by HIROSE Yuuji.
+  Timeline buffers can be restored with the Emacs LISP program
+  `revive.el' written by HIROSE Yuuji. There are two types of
+  configuration.
+  1. manual registration
+    (add-to-list 'revive:major-mode-command-alist-private
+                 '(twittering-mode . twittering-revive:twittering))
+    (add-to-list 'revive:save-variables-local-private
+                 '(twittering-mode twittering-timeline-spec-string))
+    (require 'revive)
+  2. automatic registration (for revive.el 2.19)
+    (require 'revive)
+    (twittering-setup-revive)
+  Note that `(add-to-list ...)' of the manual configuration must be
+  evaluated before loading `revive.el' and `(twittering-setup-revive)'
+  of the automatic one must be evaluated after loading `revive.el'.
+  Since the Emacs LISP program `windows.el' written by HIROSE Yuuji
+  implicitly loads `revive.el' if possible, you should also take care
+  of the order of loading `windows.el' and the configuration.
+* Skeleton for initializing an organic retweet.
+  You can use a skeleton as the variable `twittering-retweet-format'
+  for initializing an organic retweet. This means that you can also
+  specify the initial cursor position. Strings included in the
+  skeleton are converted with the below replacement table and then the
+  skeleton is inserted with `skeleton-insert'.
+  The replacement table is as follows.
+    %s: screen_name
+    %t: text
+    %%: %
+  This is equivalent to the previous rule applied for
+  `twittering-retweet-format'.
+  Note that it is inserted before the edit skeleton specified by
+  `twittering-edit-skeleton' is performed.
+* Tweet type of edit skeleton for an organic retweet.
+  The symbol `organic-retweet' is added as a tweet type specifying the
+  type of the tweet being edited, which is referred by edit skeleton.
+  You can define an edit skeleton that is performed only for organic
+  retweets. Note that edit skeletons cannot refer to the tweet being
+  retweeted in the current implementation.
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

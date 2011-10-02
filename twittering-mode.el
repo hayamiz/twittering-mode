@@ -8042,17 +8042,31 @@ instead."
 		  (mapcar (lambda (cell)
 			    (concat "$" (car cell) (if (listp (cdr cell)) "()" "")))
 			  twittering-timeline-spec-alias)))
+	 (spec-with-username
+	  '((":favorites/" . "Whose favorites: ")
+	    (":retweeted_by_user/" . "Who has retweeted? ")
+	    (":retweeted_to_user/" . "Who has received the retweets? ")))
+	 (regexp-spec-with-username
+	  (concat "\\`\\("
+		  (mapconcat (lambda (entry) (car entry))
+			     spec-with-username "\\|")
+		  "\\)\\'"))
 	 (spec-string (twittering-completing-read prompt dummy-hist
 						  nil nil initial 'dummy-hist))
 	 (spec-string
 	  (cond
-	   ((string-match "^:favorites/$" spec-string)
-	    (let ((username
-		   (twittering-read-username-with-completion
-		    "Whose favorites: " ""
-		    (twittering-get-usernames-from-timeline))))
+	   ((string-match regexp-spec-with-username spec-string)
+	    (let* ((spec-and-prompt
+		    (assoc (match-string 1 spec-string)
+			   spec-with-username))
+		   (prefix (car spec-and-prompt))
+		   (prompt (cdr spec-and-prompt))
+		   (username
+		    (twittering-read-username-with-completion
+		     prompt ""
+		     (twittering-get-usernames-from-timeline))))
 	      (if username
-		  (concat ":favorites/" username)
+		  (concat prefix username)
 		nil)))
 	   ((string-match "^\\([a-zA-Z0-9_-]+\\)/$" spec-string)
 	    (let* ((username (match-string 1 spec-string))

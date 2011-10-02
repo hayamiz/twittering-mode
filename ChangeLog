@@ -1,3 +1,11 @@
+2011-10-03  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Allow users to supplement a username for
+	timeline specs with a following username afterward.
+	(twittering-read-timeline-spec-with-completion): allow users to
+	supplement a username for timeline specs with a following username
+	afterward.
+
 2011-09-25  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Users can post a tweet consisting of only

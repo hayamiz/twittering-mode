@@ -13,6 +13,11 @@
 	bound to `twittering-user-history' if the given spec is a user
 	timeline.
 
+	* twittering-mode.el: Fix the macro
+	`twittering-revive:prop-get-value'.
+	(twittering-revive:prop-get-value): use `macroexpand' instead of
+	`macroexpand-all'.
+
 2011-09-25  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Users can post a tweet consisting of only

@@ -9033,7 +9033,7 @@ and a tweet is pointed, the URI to the tweet is insteadly pushed."
 (eval-when-compile
   (if (require 'revive nil t)
       (defmacro twittering-revive:prop-get-value (x y)
-	(macroexpand-all `(revive:prop-get-value ,x ,y)))
+	(macroexpand `(revive:prop-get-value ,x ,y)))
     ;; If `revive.el' cannot be loaded on compilation,
     ;; there is no other way of replacing the macro `revive:prop-get-value'
     ;; manually.

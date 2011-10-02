@@ -3630,6 +3630,10 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 	(type (car spec)))
     (memq type primary-spec-types)))
 
+(defun twittering-timeline-spec-is-user-p (spec)
+  "Return non-nil if SPEC is a user timeline."
+  (and (consp spec) (eq 'user (car spec))))
+
 (defun twittering-timeline-spec-is-direct-messages-p (spec)
   "Return non-nil if SPEC is a timeline spec which is related of
 direct_messages."
@@ -4704,7 +4708,12 @@ If the authorization failed, return nil."
 (defun twittering-add-timeline-history (spec-string)
   (when (or (null twittering-timeline-history)
 	    (not (string= spec-string (car twittering-timeline-history))))
-    (twittering-add-to-history 'twittering-timeline-history spec-string)))
+    (twittering-add-to-history 'twittering-timeline-history spec-string))
+  (let ((spec (twittering-string-to-timeline-spec spec-string)))
+    (when (and (twittering-timeline-spec-is-user-p spec)
+	       (or (null twittering-user-history)
+		   (not (string= spec-string (car twittering-user-history)))))
+      (twittering-add-to-history 'twittering-user-history (cadr spec)))))
 
 (defun twittering-atom-xmltree-to-status-datum (atom-xml-entry)
   (let ((id-str (car (cddr (assq 'id atom-xml-entry))))

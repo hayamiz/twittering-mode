@@ -6,6 +6,13 @@
 	supplement a username for timeline specs with a following username
 	afterward.
 
+	* twittering-mode.el: Add a username to the variable
+	`twittering-user-history' after retrieving a user timeline.
+	(twittering-timeline-spec-is-user-p): new function.
+	(twittering-add-timeline-history): add a username to the history
+	bound to `twittering-user-history' if the given spec is a user
+	timeline.
+
 2011-09-25  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Users can post a tweet consisting of only

@@ -2092,6 +2092,7 @@ The method to perform the request is determined from
     ))
 
 (defun twittering-add-application-header-to-http-request (request)
+  (twittering-initialize-global-variables-if-necessary)
   (let* ((method (cdr (assq 'method request)))
 	 (auth-str
 	  (cond
@@ -2101,6 +2102,10 @@ The method to perform the request is determined from
 		     (concat (twittering-get-username)
 			     ":" (twittering-get-password)))))
 	   ((memq twittering-auth-method '(oauth xauth))
+	    (unless (twittering-account-authorized-p)
+	      (twittering-ensure-connection-method)
+	      (twittering-ensure-private-info)
+	      (twittering-ensure-account-verification))
 	    (let ((access-token
 		   (cdr (assoc "oauth_token"
 			       twittering-oauth-access-token-alist)))

@@ -52,6 +52,9 @@
   timelineに対応しました。前者は指定したユーザUSERが投稿したretweetを
   集めたtimelineで、後者は指定したユーザのhome timelineに届くretweetを
   集めたtimelineです。
+  `twittering-visit-timeline'(デフォルトでは"V"にbindされています)で指
+  定する際には":retweeted_by_user/"もしくは":retweeted_to_user/"と入力
+  してEnterを入力すると、続けて補完機能付きでユーザ名を入力できます。
 * 文字数カウント時にt.coでの短縮を考慮
   tweetを編集する際に、t.coでのURI変換を考慮した文字数を表示するように
   なりました。変換後の文字数はhelp/configuration APIを通じて定期的に更

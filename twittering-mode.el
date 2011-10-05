@@ -3636,6 +3636,10 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 	(type (car spec)))
     (memq type primary-spec-types)))
 
+(defun twittering-timeline-spec-is-user-p (spec)
+  "Return non-nil if SPEC is a user timeline."
+  (and (consp spec) (eq 'user (car spec))))
+
 (defun twittering-timeline-spec-is-direct-messages-p (spec)
   "Return non-nil if SPEC is a timeline spec which is related of
 direct_messages."
@@ -4710,7 +4714,12 @@ If the authorization failed, return nil."
 (defun twittering-add-timeline-history (spec-string)
   (when (or (null twittering-timeline-history)
 	    (not (string= spec-string (car twittering-timeline-history))))
-    (twittering-add-to-history 'twittering-timeline-history spec-string)))
+    (twittering-add-to-history 'twittering-timeline-history spec-string))
+  (let ((spec (twittering-string-to-timeline-spec spec-string)))
+    (when (and (twittering-timeline-spec-is-user-p spec)
+	       (or (null twittering-user-history)
+		   (not (string= spec-string (car twittering-user-history)))))
+      (twittering-add-to-history 'twittering-user-history (cadr spec)))))
 
 (defun twittering-atom-xmltree-to-status-datum (atom-xml-entry)
   (let ((id-str (car (cddr (assq 'id atom-xml-entry))))
@@ -8048,17 +8057,31 @@ instead."
 		  (mapcar (lambda (cell)
 			    (concat "$" (car cell) (if (listp (cdr cell)) "()" "")))
 			  twittering-timeline-spec-alias)))
+	 (spec-with-username
+	  '((":favorites/" . "Whose favorites: ")
+	    (":retweeted_by_user/" . "Who has retweeted? ")
+	    (":retweeted_to_user/" . "Who has received the retweets? ")))
+	 (regexp-spec-with-username
+	  (concat "\\`\\("
+		  (mapconcat (lambda (entry) (car entry))
+			     spec-with-username "\\|")
+		  "\\)\\'"))
 	 (spec-string (twittering-completing-read prompt dummy-hist
 						  nil nil initial 'dummy-hist))
 	 (spec-string
 	  (cond
-	   ((string-match "^:favorites/$" spec-string)
-	    (let ((username
-		   (twittering-read-username-with-completion
-		    "Whose favorites: " ""
-		    (twittering-get-usernames-from-timeline))))
+	   ((string-match regexp-spec-with-username spec-string)
+	    (let* ((spec-and-prompt
+		    (assoc (match-string 1 spec-string)
+			   spec-with-username))
+		   (prefix (car spec-and-prompt))
+		   (prompt (cdr spec-and-prompt))
+		   (username
+		    (twittering-read-username-with-completion
+		     prompt ""
+		     (twittering-get-usernames-from-timeline))))
 	      (if username
-		  (concat ":favorites/" username)
+		  (concat prefix username)
 		nil)))
 	   ((string-match "^\\([a-zA-Z0-9_-]+\\)/$" spec-string)
 	    (let* ((username (match-string 1 spec-string))
@@ -9016,7 +9039,7 @@ and a tweet is pointed, the URI to the tweet is insteadly pushed."
 (eval-when-compile
   (if (require 'revive nil t)
       (defmacro twittering-revive:prop-get-value (x y)
-	(macroexpand-all `(revive:prop-get-value ,x ,y)))
+	(macroexpand `(revive:prop-get-value ,x ,y)))
     ;; If `revive.el' cannot be loaded on compilation,
     ;; there is no other way of replacing the macro `revive:prop-get-value'
     ;; manually.

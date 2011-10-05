@@ -54,6 +54,9 @@
   a new timeline specs. The former consists of retweets posted by the
   user and the latter consists of retweets that will be sent to the
   home timeline of the user.
+  After specifying ":retweeted_by_user/" or ":retweeted_to_user/" for
+  `twittering-visit-timeline', which is bound to "V" in default, you
+  can supplement a username with referring the username history.
 * Counting characters with considering the t.co link wrapper.
   When editing a tweet, the t.co link wrapper will be taken into
   account. The length of wrapped URIs is retrieved with

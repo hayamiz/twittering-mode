@@ -1429,14 +1429,18 @@ If TABLE is nil, `twittering-connection-type-table' is used in place of TABLE.
 					   order table))
 	 (func (cdr (assq 'send-http-request connection-info)))
 	 (temp-buffer (generate-new-buffer "*twmode-http-buffer*")))
-    (when (and func (functionp func))
+    (cond
+     ((and func (functionp func))
       (funcall func "*twmode-generic*" temp-buffer
 	       connection-info
 	       (when (and sentinel (functionp sentinel))
 		 (lexical-let ((sentinel sentinel)
 			       (connection-info connection-info))
 		   (lambda (proc status)
-		     (apply sentinel proc status connection-info nil))))))))
+		     (apply sentinel proc status connection-info nil))))))
+     (t
+      (error "No valid connection method is found")
+      nil))))
 
 (defun twittering-send-http-request (request additional-info func &optional clean-up-func)
   "Send a HTTP request and return a subprocess object for the connection.

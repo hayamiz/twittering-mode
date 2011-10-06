@@ -27,6 +27,11 @@
 	(twittering-visit-timeline): use the new function
 	`twittering-ensure-preparation-for-api-invocation'.
 
+	* twittering-mode.el: Signal an error when no valid connection
+	method is found on sending a HTTP request.
+	(twittering-send-http-request-internal): signal an error when no
+	valid connection method is found.
+
 2011-10-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Allow users to supplement a username for

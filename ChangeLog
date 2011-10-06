@@ -6,6 +6,13 @@
 	(twittering-read-timeline-spec-with-completion): fix the argument
 	of the function `twittering-read-username-with-completion'.
 
+	* twittering-mode.el: Search the content-type header from a HTTP
+	response in a case-insensitive way according to RFC2616. Thanks to
+	luozengbin who reported the bug.
+	(twittering-http-get-default-sentinel): fix the check of the
+	content-type header of a HTTP response. The content-type is now
+	searched in a case-insensitive way according to RFC2616.
+
 2011-10-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Allow users to supplement a username for

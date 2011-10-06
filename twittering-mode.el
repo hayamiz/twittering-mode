@@ -2177,8 +2177,21 @@ the server when the HTTP status code equals to 400 or 403."
       ;; UTF-8 because `twittering-http-application-headers' specifies
       ;; utf-8 as one of acceptable charset.
       ;; For the present, only UTF-8 is taken into account.
-      (let* ((content-type (cdr (assoc "Content-Type" header-info)))
-	     (parameters (cdr (split-string content-type ";")))
+      (let* ((content-type
+	      ;; According to RFC2616, field name of a HTTP header is
+	      ;; case-insensitive.
+	      (car
+	       (remove
+		nil
+		(mapcar (lambda (entry)
+			  (when (and (stringp (car entry))
+				     (let ((case-fold-search t))
+				       (string-match "\\`content-type\\'"
+						     (car entry))))
+			    (cdr entry)))
+			header-info))))
+	     (parameters (when (stringp content-type)
+			   (cdr (split-string content-type ";"))))
 	     (regexp "^[[:space:]]*charset=utf-8[[:space:]]*$")
 	     (encoded-with-utf-8
 	      (let ((case-fold-search t))

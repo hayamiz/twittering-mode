@@ -2107,6 +2107,9 @@ The method to perform the request is determined from
 		  (access-token-secret
 		   (cdr (assoc "oauth_token_secret"
 			       twittering-oauth-access-token-alist))))
+	      (unless (and (stringp access-token)
+			   (stringp access-token-secret))
+		(error "OAuth token has not been prepared. Call `twittering-ensure-preparation-for-api-invocation' in advance"))
 	      (twittering-oauth-auth-str-access
 	       method
 	       (cdr (assq 'uri-without-query request))
@@ -7461,6 +7464,31 @@ been initialized yet."
       (mapc 'twittering-visit-timeline (cdr timeline-spec-list)))))
 
 ;;;;
+;;;; Preparation for invoking APIs
+;;;;
+
+(defun twittering-api-invocation-is-ready-p ()
+  "Return non-nil if the preparation for invoking APIs has been completed."
+  (and
+   ;; The global variables are initialized.
+   twittering-initialized
+   ;; A connection method is prepared.
+   (let ((use-ssl (or twittering-use-ssl twittering-oauth-use-ssl)))
+     (twittering-lookup-connection-type use-ssl))
+   ;; The account has been already authorized.
+   (twittering-account-authorized-p)))
+
+(defun twittering-ensure-preparation-for-api-invocation ()
+  "Ensure prerequisites for invoking APIs. Return non-nil in success.
+If prerequisites has been already satisifed, just return non-nil.
+If prerequisites are not satisfied, this function try to satisfy them.
+Then, return non-nil if they has been satisfied and return nil otherwise."
+  (twittering-initialize-global-variables-if-necessary)
+  (and (twittering-ensure-connection-method)
+       (twittering-ensure-private-info)
+       (twittering-ensure-account-verification)))
+
+;;;;
 ;;;; Edit mode skeleton
 ;;;;
 
@@ -8206,11 +8234,8 @@ instead."
 ;;;; Commands for visiting a timeline
 (defun twittering-visit-timeline (&optional timeline-spec initial)
   (interactive)
-  (twittering-initialize-global-variables-if-necessary)
   (cond
-   ((and (twittering-ensure-connection-method)
-	 (twittering-ensure-private-info)
-	 (twittering-ensure-account-verification))
+   ((twittering-ensure-preparation-for-api-invocation)
     (let ((timeline-spec
 	   (or timeline-spec
 	       (twittering-read-timeline-spec-with-completion

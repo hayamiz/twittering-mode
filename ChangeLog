@@ -13,6 +13,20 @@
 	content-type header of a HTTP response. The content-type is now
 	searched in a case-insensitive way according to RFC2616.
 
+	* twittering-mode.el: Add new functions related to preparation for
+	invoking APIs.
+	(twittering-add-application-header-to-http-request): confirm the
+	existence of OAuth token.
+	(twittering-api-invocation-is-ready-p): new function for checking
+	whether prerequisites for invoking APIs have been prepared without
+	side effects. Strictly speaking, this function may have a side
+	effect because the function `twittering-lookup-connection-type'
+	may change some variables.
+	(twittering-ensure-preparation-for-api-invocation): new function
+	for ensuring prerequisites for invoking APIs.
+	(twittering-visit-timeline): use the new function
+	`twittering-ensure-preparation-for-api-invocation'.
+
 2011-10-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Allow users to supplement a username for

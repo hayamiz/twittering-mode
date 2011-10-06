@@ -8073,7 +8073,7 @@ instead."
 		   (username
 		    (twittering-read-username-with-completion
 		     prompt ""
-		     (twittering-get-usernames-from-timeline))))
+		     'twittering-user-history)))
 	      (if username
 		  (concat prefix username)
 		nil)))

@@ -1,3 +1,11 @@
+2011-10-07  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix the argument of the function
+	`twittering-read-username-with-completion'. Thanks to Akira
+	Tamamori who reported a problem caused by the bug.
+	(twittering-read-timeline-spec-with-completion): fix the argument
+	of the function `twittering-read-username-with-completion'.
+
 2011-10-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Allow users to supplement a username for

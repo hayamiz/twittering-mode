@@ -1428,7 +1428,11 @@ If TABLE is nil, `twittering-connection-type-table' is used in place of TABLE.
 	  (twittering-make-connection-info request additional-info
 					   order table))
 	 (func (cdr (assq 'send-http-request connection-info)))
-	 (temp-buffer (generate-new-buffer "*twmode-http-buffer*")))
+	 (temp-buffer (generate-new-buffer "*twmode-http-buffer*"))
+	 ;; Bind `default-directory' to the temporary directory
+	 ;; because it is possible that the directory pointed by
+	 ;; `default-directory' has been already removed.
+	 (default-directory temporary-file-directory))
     (cond
      ((and func (functionp func))
       (funcall func "*twmode-generic*" temp-buffer
@@ -1711,7 +1715,11 @@ The method to perform the request is determined from
     (unless twittering-curl-program-https-capability
       (with-temp-buffer
 	(let ((coding-system-for-read 'iso-safe)
-	      (coding-system-for-write 'iso-safe))
+	      (coding-system-for-write 'iso-safe)
+	      ;; Bind `default-directory' to the temporary directory
+	      ;; because it is possible that the directory pointed by
+	      ;; `default-directory' has been already removed.
+	      (default-directory temporary-file-directory))
 	  (call-process twittering-curl-program
 			nil (current-buffer) nil
 			"--version")
@@ -2434,7 +2442,11 @@ This function avoid the dependency by binding `coding-system-for-read' and
 `coding-system-for-write' to the symbol `binary'."
   (require 'sha1)
   (let ((coding-system-for-read 'binary)
-	(coding-system-for-write 'binary))
+	(coding-system-for-write 'binary)
+	;; Bind `default-directory' to the temporary directory
+	;; because it is possible that the directory pointed by
+	;; `default-directory' has been already removed.
+	(default-directory temporary-file-directory))
     (apply 'sha1 args)))
 
 ;;;
@@ -2933,7 +2945,11 @@ like following:
 (defun twittering-read-from-encrypted-file (file)
   (cond
    ((require 'epa nil t)
-    (let ((context (epg-make-context epa-protocol)))
+    (let ((context (epg-make-context epa-protocol))
+	  ;; Bind `default-directory' to the temporary directory
+	  ;; because it is possible that the directory pointed by
+	  ;; `default-directory' has been already removed.
+	  (default-directory temporary-file-directory))
       (epg-context-set-passphrase-callback
        context #'epa-passphrase-callback-function)
       (epg-context-set-progress-callback
@@ -2952,7 +2968,11 @@ like following:
 	    (alpaca-regex-suffix ".*")
 	    (coding-system-for-read 'binary)
 	    (coding-system-for-write 'binary)
-	    (temp-buffer (current-buffer)))
+	    (temp-buffer (current-buffer))
+	    ;; Bind `default-directory' to the temporary directory
+	    ;; because it is possible that the directory pointed by
+	    ;; `default-directory' has been already removed.
+	    (default-directory temporary-file-directory))
 	(insert-file-contents-literally file)
 	(set-buffer-modified-p nil)
 	(condition-case nil
@@ -2973,7 +2993,11 @@ like following:
 (defun twittering-write-and-encrypt (file str)
   (cond
    ((require 'epg nil t)
-    (let ((context (epg-make-context epa-protocol)))
+    (let ((context (epg-make-context epa-protocol))
+	  ;; Bind `default-directory' to the temporary directory
+	  ;; because it is possible that the directory pointed by
+	  ;; `default-directory' has been already removed.
+	  (default-directory temporary-file-directory))
       (epg-context-set-passphrase-callback
        context #'epa-passphrase-callback-function)
       (epg-context-set-progress-callback
@@ -3007,7 +3031,11 @@ like following:
     (with-temp-buffer
       (let ((buffer-file-name file)
 	    (coding-system-for-read 'binary)
-	    (coding-system-for-write 'binary))
+	    (coding-system-for-write 'binary)
+	    ;; Bind `default-directory' to the temporary directory
+	    ;; because it is possible that the directory pointed by
+	    ;; `default-directory' has been already removed.
+	    (default-directory temporary-file-directory))
 	(insert str)
 	(condition-case nil
 	    (if (alpaca-save-buffer)
@@ -5507,7 +5535,11 @@ return nil."
     (buffer-disable-undo)
     (let ((coding-system-for-read 'binary)
 	  (coding-system-for-write 'binary)
-	  (require-final-newline nil))
+	  (require-final-newline nil)
+	  ;; Bind `default-directory' to the temporary directory
+	  ;; because it is possible that the directory pointed by
+	  ;; `default-directory' has been already removed.
+	  (default-directory temporary-file-directory))
       (insert image-data)
       (let* ((args
 	      `(,@(when (<= emacs-major-version 22)
@@ -5659,7 +5691,11 @@ image are displayed."
 	      twittering-icon-prop-hash)
 	     result))
 	  (t
-	   (reverse twittering-icon-storage-recent-icons)))))
+	   (reverse twittering-icon-storage-recent-icons))))
+	;; Bind `default-directory' to the temporary directory
+	;; because it is possible that the directory pointed by
+	;; `default-directory' has been already removed.
+	(default-directory temporary-file-directory))
     (when (require 'jka-compr nil t)
       (with-auto-compression-mode
 	(let ((coding-system-for-write 'binary))
@@ -5686,6 +5722,10 @@ image are displayed."
 
 (defun twittering-load-icon-properties (&optional filename)
   (let* ((filename (or filename twittering-icon-storage-file))
+	 ;; Bind `default-directory' to the temporary directory
+	 ;; because it is possible that the directory pointed by
+	 ;; `default-directory' has been already removed.
+	 (default-directory temporary-file-directory)
 	 (data
 	  (with-temp-buffer
 	    (condition-case err
@@ -7381,7 +7421,11 @@ been initialized yet."
 	  (setq twittering-use-convert nil)
 	(with-temp-buffer
 	  (let ((coding-system-for-read 'iso-safe)
-		(coding-system-for-write 'iso-safe))
+		(coding-system-for-write 'iso-safe)
+		;; Bind `default-directory' to the temporary directory
+		;; because it is possible that the directory pointed by
+		;; `default-directory' has been already removed.
+		(default-directory temporary-file-directory))
 	    (call-process twittering-convert-program nil (current-buffer) nil
 			  "-version")
 	    (goto-char (point-min))

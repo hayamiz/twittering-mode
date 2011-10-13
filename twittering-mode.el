@@ -1434,15 +1434,23 @@ If TABLE is nil, `twittering-connection-type-table' is used in place of TABLE.
 	  (twittering-make-connection-info request additional-info
 					   order table))
 	 (func (cdr (assq 'send-http-request connection-info)))
-	 (temp-buffer (generate-new-buffer "*twmode-http-buffer*")))
-    (when (and func (functionp func))
+	 (temp-buffer (generate-new-buffer "*twmode-http-buffer*"))
+	 ;; Bind `default-directory' to the temporary directory
+	 ;; because it is possible that the directory pointed by
+	 ;; `default-directory' has been already removed.
+	 (default-directory temporary-file-directory))
+    (cond
+     ((and func (functionp func))
       (funcall func "*twmode-generic*" temp-buffer
 	       connection-info
 	       (when (and sentinel (functionp sentinel))
 		 (lexical-let ((sentinel sentinel)
 			       (connection-info connection-info))
 		   (lambda (proc status)
-		     (apply sentinel proc status connection-info nil))))))))
+		     (apply sentinel proc status connection-info nil))))))
+     (t
+      (error "No valid connection method is found")
+      nil))))
 
 (defun twittering-send-http-request (request additional-info func &optional clean-up-func)
   "Send a HTTP request and return a subprocess object for the connection.
@@ -1713,7 +1721,11 @@ The method to perform the request is determined from
     (unless twittering-curl-program-https-capability
       (with-temp-buffer
 	(let ((coding-system-for-read 'iso-safe)
-	      (coding-system-for-write 'iso-safe))
+	      (coding-system-for-write 'iso-safe)
+	      ;; Bind `default-directory' to the temporary directory
+	      ;; because it is possible that the directory pointed by
+	      ;; `default-directory' has been already removed.
+	      (default-directory temporary-file-directory))
 	  (call-process twittering-curl-program
 			nil (current-buffer) nil
 			"--version")
@@ -2113,6 +2125,9 @@ The method to perform the request is determined from
 		  (access-token-secret
 		   (cdr (assoc "oauth_token_secret"
 			       twittering-oauth-access-token-alist))))
+	      (unless (and (stringp access-token)
+			   (stringp access-token-secret))
+		(error "OAuth token has not been prepared. Call `twittering-ensure-preparation-for-api-invocation' in advance"))
 	      (twittering-oauth-auth-str-access
 	       method
 	       (cdr (assq 'uri-without-query request))
@@ -2183,8 +2198,21 @@ the server when the HTTP status code equals to 400 or 403."
       ;; UTF-8 because `twittering-http-application-headers' specifies
       ;; utf-8 as one of acceptable charset.
       ;; For the present, only UTF-8 is taken into account.
-      (let* ((content-type (cdr (assoc "Content-Type" header-info)))
-	     (parameters (cdr (split-string content-type ";")))
+      (let* ((content-type
+	      ;; According to RFC2616, field name of a HTTP header is
+	      ;; case-insensitive.
+	      (car
+	       (remove
+		nil
+		(mapcar (lambda (entry)
+			  (when (and (stringp (car entry))
+				     (let ((case-fold-search t))
+				       (string-match "\\`content-type\\'"
+						     (car entry))))
+			    (cdr entry)))
+			header-info))))
+	     (parameters (when (stringp content-type)
+			   (cdr (split-string content-type ";"))))
 	     (regexp "^[[:space:]]*charset=utf-8[[:space:]]*$")
 	     (encoded-with-utf-8
 	      (let ((case-fold-search t))
@@ -2420,7 +2448,11 @@ This function avoid the dependency by binding `coding-system-for-read' and
 `coding-system-for-write' to the symbol `binary'."
   (require 'sha1)
   (let ((coding-system-for-read 'binary)
-	(coding-system-for-write 'binary))
+	(coding-system-for-write 'binary)
+	;; Bind `default-directory' to the temporary directory
+	;; because it is possible that the directory pointed by
+	;; `default-directory' has been already removed.
+	(default-directory temporary-file-directory))
     (apply 'sha1 args)))
 
 ;;;
@@ -2919,7 +2951,11 @@ like following:
 (defun twittering-read-from-encrypted-file (file)
   (cond
    ((require 'epa nil t)
-    (let ((context (epg-make-context epa-protocol)))
+    (let ((context (epg-make-context epa-protocol))
+	  ;; Bind `default-directory' to the temporary directory
+	  ;; because it is possible that the directory pointed by
+	  ;; `default-directory' has been already removed.
+	  (default-directory temporary-file-directory))
       (epg-context-set-passphrase-callback
        context #'epa-passphrase-callback-function)
       (epg-context-set-progress-callback
@@ -2938,7 +2974,11 @@ like following:
 	    (alpaca-regex-suffix ".*")
 	    (coding-system-for-read 'binary)
 	    (coding-system-for-write 'binary)
-	    (temp-buffer (current-buffer)))
+	    (temp-buffer (current-buffer))
+	    ;; Bind `default-directory' to the temporary directory
+	    ;; because it is possible that the directory pointed by
+	    ;; `default-directory' has been already removed.
+	    (default-directory temporary-file-directory))
 	(insert-file-contents-literally file)
 	(set-buffer-modified-p nil)
 	(condition-case nil
@@ -2959,7 +2999,11 @@ like following:
 (defun twittering-write-and-encrypt (file str)
   (cond
    ((require 'epg nil t)
-    (let ((context (epg-make-context epa-protocol)))
+    (let ((context (epg-make-context epa-protocol))
+	  ;; Bind `default-directory' to the temporary directory
+	  ;; because it is possible that the directory pointed by
+	  ;; `default-directory' has been already removed.
+	  (default-directory temporary-file-directory))
       (epg-context-set-passphrase-callback
        context #'epa-passphrase-callback-function)
       (epg-context-set-progress-callback
@@ -2993,7 +3037,11 @@ like following:
     (with-temp-buffer
       (let ((buffer-file-name file)
 	    (coding-system-for-read 'binary)
-	    (coding-system-for-write 'binary))
+	    (coding-system-for-write 'binary)
+	    ;; Bind `default-directory' to the temporary directory
+	    ;; because it is possible that the directory pointed by
+	    ;; `default-directory' has been already removed.
+	    (default-directory temporary-file-directory))
 	(insert str)
 	(condition-case nil
 	    (if (alpaca-save-buffer)
@@ -5493,7 +5541,11 @@ return nil."
     (buffer-disable-undo)
     (let ((coding-system-for-read 'binary)
 	  (coding-system-for-write 'binary)
-	  (require-final-newline nil))
+	  (require-final-newline nil)
+	  ;; Bind `default-directory' to the temporary directory
+	  ;; because it is possible that the directory pointed by
+	  ;; `default-directory' has been already removed.
+	  (default-directory temporary-file-directory))
       (insert image-data)
       (let* ((args
 	      `(,@(when (<= emacs-major-version 22)
@@ -5645,7 +5697,11 @@ image are displayed."
 	      twittering-icon-prop-hash)
 	     result))
 	  (t
-	   (reverse twittering-icon-storage-recent-icons)))))
+	   (reverse twittering-icon-storage-recent-icons))))
+	;; Bind `default-directory' to the temporary directory
+	;; because it is possible that the directory pointed by
+	;; `default-directory' has been already removed.
+	(default-directory temporary-file-directory))
     (when (require 'jka-compr nil t)
       (with-auto-compression-mode
 	(let ((coding-system-for-write 'binary))
@@ -5672,6 +5728,10 @@ image are displayed."
 
 (defun twittering-load-icon-properties (&optional filename)
   (let* ((filename (or filename twittering-icon-storage-file))
+	 ;; Bind `default-directory' to the temporary directory
+	 ;; because it is possible that the directory pointed by
+	 ;; `default-directory' has been already removed.
+	 (default-directory temporary-file-directory)
 	 (data
 	  (with-temp-buffer
 	    (condition-case err
@@ -7367,7 +7427,11 @@ been initialized yet."
 	  (setq twittering-use-convert nil)
 	(with-temp-buffer
 	  (let ((coding-system-for-read 'iso-safe)
-		(coding-system-for-write 'iso-safe))
+		(coding-system-for-write 'iso-safe)
+		;; Bind `default-directory' to the temporary directory
+		;; because it is possible that the directory pointed by
+		;; `default-directory' has been already removed.
+		(default-directory temporary-file-directory))
 	    (call-process twittering-convert-program nil (current-buffer) nil
 			  "-version")
 	    (goto-char (point-min))
@@ -7452,6 +7516,31 @@ been initialized yet."
     (twittering-visit-timeline (car timeline-spec-list))
     (when (twittering-account-authorized-p)
       (mapc 'twittering-visit-timeline (cdr timeline-spec-list)))))
+
+;;;;
+;;;; Preparation for invoking APIs
+;;;;
+
+(defun twittering-api-invocation-is-ready-p ()
+  "Return non-nil if the preparation for invoking APIs has been completed."
+  (and
+   ;; The global variables are initialized.
+   twittering-initialized
+   ;; A connection method is prepared.
+   (let ((use-ssl (or twittering-use-ssl twittering-oauth-use-ssl)))
+     (twittering-lookup-connection-type use-ssl))
+   ;; The account has been already authorized.
+   (twittering-account-authorized-p)))
+
+(defun twittering-ensure-preparation-for-api-invocation ()
+  "Ensure prerequisites for invoking APIs. Return non-nil in success.
+If prerequisites has been already satisifed, just return non-nil.
+If prerequisites are not satisfied, this function try to satisfy them.
+Then, return non-nil if they has been satisfied and return nil otherwise."
+  (twittering-initialize-global-variables-if-necessary)
+  (and (twittering-ensure-connection-method)
+       (twittering-ensure-private-info)
+       (twittering-ensure-account-verification)))
 
 ;;;;
 ;;;; Edit mode skeleton
@@ -8079,7 +8168,7 @@ instead."
 		   (username
 		    (twittering-read-username-with-completion
 		     prompt ""
-		     (twittering-get-usernames-from-timeline))))
+		     'twittering-user-history)))
 	      (if username
 		  (concat prefix username)
 		nil)))
@@ -8199,11 +8288,8 @@ instead."
 ;;;; Commands for visiting a timeline
 (defun twittering-visit-timeline (&optional timeline-spec initial)
   (interactive)
-  (twittering-initialize-global-variables-if-necessary)
   (cond
-   ((and (twittering-ensure-connection-method)
-	 (twittering-ensure-private-info)
-	 (twittering-ensure-account-verification))
+   ((twittering-ensure-preparation-for-api-invocation)
     (let ((timeline-spec
 	   (or timeline-spec
 	       (twittering-read-timeline-spec-with-completion

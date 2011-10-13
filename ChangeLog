@@ -1,3 +1,56 @@
+2011-10-09  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Bind `default-directory' to the temporary
+	directory to avoid problems caused by executing programs on
+	a removed directory. Thanks to tomykaira who reported the problem.
+	(twittering-send-http-request-internal): locally bind the variable
+	`default-directory' to the temporary directory in order to prevent
+	Emacs from executing an external program in the invalid condition
+	where `default-directory' points to a directory which has been
+	already removed.
+	(twittering-start-http-session-curl-https-p): likewise.
+	(twittering-sha1): likewise.
+	(twittering-read-from-encrypted-file): likewise.
+	(twittering-write-and-encrypt): likewise.
+	(twittering-convert-image-data): likewise.
+	(twittering-save-icon-properties): likewise.
+	(twittering-load-icon-properties): likewise.
+	(twittering-initialize-global-variables-if-necessary): likewise.
+
+2011-10-07  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix the argument of the function
+	`twittering-read-username-with-completion'. Thanks to Akira
+	Tamamori who reported a problem caused by the bug.
+	(twittering-read-timeline-spec-with-completion): fix the argument
+	of the function `twittering-read-username-with-completion'.
+
+	* twittering-mode.el: Search the content-type header from a HTTP
+	response in a case-insensitive way according to RFC2616. Thanks to
+	luozengbin who reported the bug.
+	(twittering-http-get-default-sentinel): fix the check of the
+	content-type header of a HTTP response. The content-type is now
+	searched in a case-insensitive way according to RFC2616.
+
+	* twittering-mode.el: Add new functions related to preparation for
+	invoking APIs.
+	(twittering-add-application-header-to-http-request): confirm the
+	existence of OAuth token.
+	(twittering-api-invocation-is-ready-p): new function for checking
+	whether prerequisites for invoking APIs have been prepared without
+	side effects. Strictly speaking, this function may have a side
+	effect because the function `twittering-lookup-connection-type'
+	may change some variables.
+	(twittering-ensure-preparation-for-api-invocation): new function
+	for ensuring prerequisites for invoking APIs.
+	(twittering-visit-timeline): use the new function
+	`twittering-ensure-preparation-for-api-invocation'.
+
+	* twittering-mode.el: Signal an error when no valid connection
+	method is found on sending a HTTP request.
+	(twittering-send-http-request-internal): signal an error when no
+	valid connection method is found.
+
 2011-10-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Allow users to supplement a username for

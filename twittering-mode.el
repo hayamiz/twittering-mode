@@ -4518,20 +4518,20 @@ If the authorization failed, return nil."
     (message "Consumer for OAuth is not specified.")
     nil)
    ((twittering-has-oauth-access-token-p)
-    (let ((proc
-	   (twittering-call-api
-	    'verify-credentials
-	    `((sentinel
-	       . twittering-http-get-verify-credentials-sentinel)
-	      (clean-up-sentinel
-	       . twittering-http-get-verify-credentials-clean-up-sentinel))
-	    `((username . ,(cdr (assoc "screen_name"
-				       twittering-oauth-access-token-alist)))
-	      (password . nil)))))
+    (let* ((username (cdr (assoc "screen_name"
+				 twittering-oauth-access-token-alist)))
+	   (proc
+	    (twittering-call-api
+	     'verify-credentials
+	     `((sentinel
+		. twittering-http-get-verify-credentials-sentinel)
+	       (clean-up-sentinel
+		. twittering-http-get-verify-credentials-clean-up-sentinel))
+	     `((username . ,username)
+	       (password . nil)))))
       (cond
        ((null proc)
-	(message "Authorization failed. Type M-x twit to retry.")
-	(setq twittering-oauth-access-token-alist nil)
+	(message "Process invocation for authorizing \"%s\" failed." username)
 	;; Failed to authorize the account.
 	nil)
        (t
@@ -4644,10 +4644,8 @@ If the authorization failed, return nil."
 	       (password . ,(car account-info))))))
       (cond
        ((null proc)
-	(message "Authorization for the account \"%s\" failed. Type M-x twit to retry."
+	(message "Process invocation for authorizing \"%s\" failed."
 		 (car account-info))
-	(setq twittering-username nil)
-	(setq twittering-password nil)
 	;; Failed to authorize the account.
 	nil)
        (t
@@ -4693,10 +4691,10 @@ If the authorization failed, return nil."
       (setq twittering-account-authorization 'authorized)
       (message "Authorization for the account \"%s\" succeeded." username)
       nil)
-     (t
+     (("401")
       (setq twittering-account-authorization nil)
       (let ((error-mes
-	     (format "Authorization for the account \"%s\" failed. Type M-x twit to retry."
+	     (format "Authorization for the account \"%s\" failed. Type M-x twit to retry with correct information."
 		     username)))
 	(cond
 	 ((memq twittering-auth-method '(oauth xauth))
@@ -4704,6 +4702,13 @@ If the authorization failed, return nil."
 	 ((eq twittering-auth-method 'basic)
 	  (setq twittering-username nil)
 	  (setq twittering-password nil)))
+	(message "%s" error-mes)
+	nil))
+     (t
+      (setq twittering-account-authorization nil)
+      (let ((error-mes
+	     (format "Authorization for the account \"%s\" failed due to \"%s\"."
+		     username status-line)))
 	(message "%s" error-mes)
 	nil)))))
 

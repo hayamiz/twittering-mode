@@ -76,24 +76,6 @@
     ((process-environment
       '("http_proxy=http://proxy1.example.com:8080/"))))))
 
-(defcase test-sign-string nil nil
-  (setq twittering-sign-simple-string nil)
-  (test-assert-string-equal ""
-    (twittering-sign-string))
-
-  (setq twittering-sign-simple-string "")
-  (test-assert-string-equal " []"
-    (twittering-sign-string))
-
-  (setq twittering-sign-simple-string "foo")
-  (test-assert-string-equal " [foo]"
-    (twittering-sign-string))
-
-  (setq twittering-sign-string-function (lambda () "foo"))
-  (test-assert-string-equal "foo"
-    (twittering-sign-string))
-  )
-
 (defcase test-user-agent nil nil
   (test-assert-string-equal (format "Emacs/%d.%d Twittering-mode/%s"
 				    emacs-major-version

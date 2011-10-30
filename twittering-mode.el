@@ -6646,7 +6646,7 @@ In the case, BASE-ID means the ID of the descendant."
 	      (funcall format-func base-id)
 	      (funcall format-func id)))
      (t
-      (format "O:%s" (funcall format-func id))))))
+      (format "O:%s:8" (funcall format-func id))))))
 
 (defun twittering-make-field-properties (status &optional rendered-as)
   (let* ((base-id (cdr (assq 'ancestor-of rendered-as)))

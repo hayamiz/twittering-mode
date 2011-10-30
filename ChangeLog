@@ -5,6 +5,12 @@
 	`twittering-sign-simple-string'.
 	(test-sign-string): removed.
 
+	* twittering-mode.el: A tweet has a greater field ID than that of
+	its ancestor tweets. The order of field IDs matches with the order
+	in which tweets should be rendered.
+	(twittering-make-field-id): attach a greater field ID to normal
+	tweets than its ancestor tweets.
+
 2011-10-23  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Keep the private information unless the

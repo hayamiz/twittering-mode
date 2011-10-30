@@ -3526,7 +3526,7 @@ Return cons of the spec and the rest string."
    ((null str)
     (error "STR is nil")
     nil)
-   ((string-match "^\\([a-zA-Z0-9_-]+\\)/\\([a-zA-Z0-9_-]+\\)" str)
+   ((string-match "^\\([a-zA-Z0-9_-]+\\)/\\([[:word:]_-]+\\)" str)
     (let ((user (match-string 1 str))
 	  (listname (match-string 2 str))
 	  (rest (substring str (match-end 0))))

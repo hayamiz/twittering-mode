@@ -116,6 +116,7 @@
   `organic-retweet'が追加されました。非公式ReTweetにのみ適用されるedit
   skeletonを定義できます。但し、現在の実装ではedit skeleton側から非公
   式ReTweetされようとしているtweetの内容を参照することはできません。
+* 非ASCII文字を含むリスト名に対応
 
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正

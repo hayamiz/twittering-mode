@@ -1,3 +1,4 @@
+;;; -*- coding: utf-8 -*-
 
 (when (and (> 22 emacs-major-version)
 	   (require 'url-methods nil t))
@@ -278,6 +279,15 @@
   (test-assert-equal
    (test-restore-timeline-spec
     "#tag" '(search "#tag") '(search "#tag"))
+   '(t t))
+
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ;; "リスト" consists of U+256A, U+2539 and U+2548.
+    ;; They should be supported by raw Emacs21.
+    "USER/non-ASCIIリスト"
+    '(list "USER" "non-ASCIIリスト")
+    '(list "USER" "non-ASCIIリスト"))
    '(t t))
   )
 

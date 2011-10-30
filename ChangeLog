@@ -11,6 +11,12 @@
 	(twittering-make-field-id): attach a greater field ID to normal
 	tweets than its ancestor tweets.
 
+	* twittering-mode.el: Use a common macro for rendering a status.
+	(twittering-render-a-field): new macro for rendering a status.
+	(twittering-render-timeline): use `twittering-render-a-field'.
+	(twittering-show-replied-statuses): use
+	`twittering-render-a-field'.
+
 2011-10-23  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Keep the private information unless the

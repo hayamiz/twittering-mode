@@ -1,3 +1,39 @@
+2011-10-30  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* test/test-twittering-mode.el: Remove obsolete tests of the
+	obsolete feature related to `twittering-sign-string-function' and
+	`twittering-sign-simple-string'.
+	(test-sign-string): removed.
+
+	* twittering-mode.el: A tweet has a greater field ID than that of
+	its ancestor tweets. The order of field IDs matches with the order
+	in which tweets should be rendered.
+	(twittering-make-field-id): attach a greater field ID to normal
+	tweets than its ancestor tweets.
+
+	* twittering-mode.el: Use a common macro for rendering a status.
+	(twittering-render-a-field): new macro for rendering a status.
+	(twittering-render-timeline): use `twittering-render-a-field'.
+	(twittering-show-replied-statuses): use
+	`twittering-render-a-field'.
+
+	* twittering-mode.el: Accept list names including non-ASCII
+	characters.
+	(twittering-extract-timeline-spec): accept list names including
+	non-ASCII characters.
+	* test/test-twittering-mode.el (timeline-spec): add a test for a
+	list name including non-ASCII characters.
+
+2011-10-23  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Keep the private information unless the
+	server explicitly informs that it is invalid.
+	(twittering-verify-credentials): display the reason of
+	authorization failure.
+	(twittering-http-get-verify-credentials-sentinel): keep the
+	private information for authorization unless the server returns
+	401(Unauthorized) as the HTTP response status code.
+
 2011-10-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Bind `default-directory' to the temporary

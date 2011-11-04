@@ -1,3 +1,4 @@
+;;; -*- coding: utf-8 -*-
 
 (when (and (> 22 emacs-major-version)
 	   (require 'url-methods nil t))
@@ -75,24 +76,6 @@
    (test-setup-proxy
     ((process-environment
       '("http_proxy=http://proxy1.example.com:8080/"))))))
-
-(defcase test-sign-string nil nil
-  (setq twittering-sign-simple-string nil)
-  (test-assert-string-equal ""
-    (twittering-sign-string))
-
-  (setq twittering-sign-simple-string "")
-  (test-assert-string-equal " []"
-    (twittering-sign-string))
-
-  (setq twittering-sign-simple-string "foo")
-  (test-assert-string-equal " [foo]"
-    (twittering-sign-string))
-
-  (setq twittering-sign-string-function (lambda () "foo"))
-  (test-assert-string-equal "foo"
-    (twittering-sign-string))
-  )
 
 (defcase test-user-agent nil nil
   (test-assert-string-equal (format "Emacs/%d.%d Twittering-mode/%s"
@@ -296,6 +279,15 @@
   (test-assert-equal
    (test-restore-timeline-spec
     "#tag" '(search "#tag") '(search "#tag"))
+   '(t t))
+
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ;; "リスト" consists of U+256A, U+2539 and U+2548.
+    ;; They should be supported by raw Emacs21.
+    "USER/non-ASCIIリスト"
+    '(list "USER" "non-ASCIIリスト")
+    '(list "USER" "non-ASCIIリスト"))
    '(t t))
   )
 

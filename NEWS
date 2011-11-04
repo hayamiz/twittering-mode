@@ -119,6 +119,7 @@
   You can define an edit skeleton that is performed only for organic
   retweets. Note that edit skeletons cannot refer to the tweet being
   retweeted in the current implementation.
+* Support for list names including non-ASCII characters.
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

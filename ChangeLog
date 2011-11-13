@@ -1,3 +1,18 @@
+2011-11-13  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix the bug that unconditionally adds
+	`emacs21' and `url-emacs21' into `load-path' on byte-compilation.
+	On byte-compilation, the directories `emacs21' and `url-emacs21',
+	which are included in the repository of twittering-mode, were
+	unconditionally added into `load-path'. Due to this bug, some
+	macros were embedded as obsolete definitions for Emacs21 in the
+	result of byte-compilation. Some functions in the result cause
+	errors on Emacs 22 or later because the obsolete definitions
+	conflict with Emacs newer than 21. On Emacs 22 or later, the
+	directories are no longer added to `load-path' on
+	byte-compilation.
+	Thanks to HKey who has discovered the bug.
+
 2011-10-30  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* test/test-twittering-mode.el: Remove obsolete tests of the

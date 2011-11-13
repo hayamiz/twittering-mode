@@ -46,8 +46,11 @@
 (eval-when-compile (require 'cl))
 (require 'xml)
 (require 'parse-time)
-(when (> 22 emacs-major-version)
-  (eval-and-compile
+
+(eval-and-compile
+  ;; On byte-compilation, Emacs21 requires loading the libraries
+  ;; distributed with twittering-mode.el for macros defined in them.
+  (when (> 22 emacs-major-version)
     (setq load-path
 	  (append (mapcar (lambda (dir)
 			    (expand-file-name
@@ -57,7 +60,9 @@
 				     ".")
 			       ".")))
 			  '("url-emacs21" "emacs21"))
-		  load-path)))
+		  load-path))))
+
+(when (> 22 emacs-major-version)
   (and (require 'un-define nil t)
        ;; the explicitly require 'unicode to update a workaround with
        ;; navi2ch. see a comment of `twittering-ucs-to-char' for more

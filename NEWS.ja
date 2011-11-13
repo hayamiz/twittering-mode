@@ -141,6 +141,15 @@
   がnilの場合に、アイコンが正しく保存できていなかったのを修正しました。
   Thanks to HufflepuffBR who reported this problem about the former
   variable `twittering-icon-storage-limit'.
+* byte-compile時、`load-path'に無条件でパスが追加される問題を解消
+  twittering-modeのrepositoryに含まれているディレクトリ`emacs21',
+  `url-emacs21'がbyte-compile時に無条件で`load-path'に加えられており、
+  byte-compile時にいくつかのマクロがEmacs21用の古い定義として取り込ま
+  れていました。古い定義は22以降のEmacs上で使うことができませんので
+  byte-compileによって正しく動作しないファイルが生成される状態になって
+  いました。そこでbyte-compile時にもEmacs 22以降ではパスが追加されない
+  よう変更して、この問題を解消しました。
+  Thanks to HKey who has discovered the bug.
 
  2.0.0: 2011-04-22
 ------------------

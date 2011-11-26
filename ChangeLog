@@ -56,6 +56,11 @@
 	(twittering-json-object-to-a-status-base): new function.
 	(twittering-json-object-to-a-status-on-search): new function.
 
+	* twittering-mode.el: Retrieve tweets as the JSON format if
+	possible.
+	(twittering-get-and-render-timeline): retrieve tweets as the JSON
+	format if possible.
+
 2011-11-13  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the bug that unconditionally adds

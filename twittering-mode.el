@@ -7167,6 +7167,8 @@ This function returns the position where the next status should be inserted."
 	     (args
 	      `((timeline-spec . ,spec)
 		(timeline-spec-string . ,spec-string)
+		(format . ,(when (require 'json nil t)
+			     'json))
 		,@(cond
 		   (id `((max_id . ,id)))
 		   (since_id `((since_id . ,since_id)))

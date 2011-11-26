@@ -2222,16 +2222,21 @@ the server when the HTTP status code equals to 400 or 403."
 	  (decode-coding-region (point-min) (point-max) 'utf-8)))
       (let* ((spec (cdr (assq 'timeline-spec connection-info)))
 	     (spec-string (cdr (assq 'timeline-spec-string connection-info)))
+	     (format (cdr (assq 'format connection-info)))
 	     (statuses
-	      (let ((xmltree
-		     (twittering-xml-parse-region (point-min) (point-max))))
-		(cond
-		 ((null xmltree)
-		  nil)
-		 ((eq 'search (car spec))
-		  (twittering-atom-xmltree-to-status xmltree))
-		 (t
-		  (twittering-xmltree-to-status xmltree))))))
+	      (cond
+	       ((eq format 'xml)
+		(let ((xmltree
+		       (twittering-xml-parse-region (point-min) (point-max))))
+		  (when xmltree
+		    (twittering-xmltree-to-status xmltree))))
+	       ((eq format 'atom)
+		(let ((xmltree
+		       (twittering-xml-parse-region (point-min) (point-max))))
+		  (when xmltree
+		    (twittering-atom-xmltree-to-status xmltree))))
+	       (t
+		nil))))
 	(when statuses
 	  (let ((new-statuses
 		 (twittering-add-statuses-to-timeline-data statuses spec))
@@ -4065,6 +4070,7 @@ retrieve-timeline -- Retrieve a timeline.
   Valid key symbols in ARGS-ALIST:
     timeline-spec -- the timeline spec to be retrieved.
     timeline-spec-string -- the string representation of the timeline spec.
+    format -- (optional) the symbol specifying the format.
     number -- (optional) how many tweets are retrieved. It must be an integer.
       If nil, `twittering-number-of-tweets-on-retrieval' is used instead.
       The maximum for search timeline is 100, and that for other timelines is
@@ -4235,9 +4241,16 @@ get-service-configuration -- Get the configuration of the server.
 		    ;; retweets_of_me
 		    `(("include_entities" . "true")
 		      ("count" . ,number-str))))))))
-	   (format (if (eq spec-type 'search)
-		       "atom"
-		     "xml"))
+	   (format
+	    (let ((format (cdr (assq 'format args-alist))))
+	      (cond
+	       ((and format (symbolp format))
+		format)
+	       ((eq spec-type 'search)
+		'atom)
+	       (t
+		'xml))))
+	   (format-str (symbol-name format))
 	   (simple-spec-list
 	    '((direct_messages . "direct_messages")
 	      (direct_messages_sent . "direct_messages/sent")
@@ -4271,9 +4284,10 @@ get-service-configuration -- Get the configuration of the server.
 	      (twittering-api-path (cdr (assq spec-type simple-spec-list))))
 	     (t nil)))
 	   (sentinel (cdr (assq 'sentinel args-alist)))
-	   (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
+	   (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist)))
+	   (additional-info `(,@additional-info (format . ,format))))
       (if (and host method)
-	  (twittering-http-get host method parameters format
+	  (twittering-http-get host method parameters format-str
 			       additional-info sentinel clean-up-sentinel)
 	(error "Invalid timeline spec"))))
    ((eq command 'get-list-index)

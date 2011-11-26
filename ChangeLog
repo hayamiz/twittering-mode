@@ -40,6 +40,14 @@
 	(twittering-call-api): receive `sentinel' as an argument for
 	the command `retrieve-timeline'.
 
+	* twittering-mode.el: `twittering-call-api' receives `format' as
+	an argument for the command `retrieve-timeline'.
+	(twittering-http-get-default-sentinel): refer to `format' in
+	`connection-info' for parsing the retrieved content.
+	(twittering-call-api): receive `format' as an argument for the
+	command `retrieve-timeline'. The `format' is automatically added
+	to the last of `additional-info' for `twittering-http-get'.
+
 2011-11-13  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the bug that unconditionally adds

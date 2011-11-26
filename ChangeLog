@@ -35,6 +35,11 @@
 	* test/fixture/timeline-data.el: Update data to follow the change
 	of internal representation of a tweet.
 
+	* twittering-mode.el: `twittering-call-api' receives `sentinel' as
+	an argument for the command `retrieve-timeline'.
+	(twittering-call-api): receive `sentinel' as an argument for
+	the command `retrieve-timeline'.
+
 2011-11-13  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the bug that unconditionally adds

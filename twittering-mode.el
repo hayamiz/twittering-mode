@@ -4072,6 +4072,10 @@ retrieve-timeline -- Retrieve a timeline.
       If the given number exceeds the maximum, the maximum is used instead.
     max_id -- (optional) the maximum ID of retrieved tweets.
     since_id -- (optional) the minimum ID of retrieved tweets.
+    sentinel -- (optional) the sentinel that processes the buffer consisting
+      of retrieved data.. This is used as an argument SENTINEL of
+      `twittering-send-http-request' via `twittering-http-get'.
+      If nil, `twittering-http-get-default-sentinel' is used.
     clean-up-sentinel -- (optional) the clean-up sentinel that post-processes
       the buffer associated to the process. This is used as an argument
       CLEAN-UP-SENTINEL of `twittering-send-http-request' via
@@ -4266,10 +4270,11 @@ get-service-configuration -- Get the configuration of the server.
 	     ((assq spec-type simple-spec-list)
 	      (twittering-api-path (cdr (assq spec-type simple-spec-list))))
 	     (t nil)))
+	   (sentinel (cdr (assq 'sentinel args-alist)))
 	   (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
       (if (and host method)
 	  (twittering-http-get host method parameters format
-			       additional-info nil clean-up-sentinel)
+			       additional-info sentinel clean-up-sentinel)
 	(error "Invalid timeline spec"))))
    ((eq command 'get-list-index)
     ;; Get list names.

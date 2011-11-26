@@ -69,11 +69,11 @@
   twittering-mode上でハッシュタグと見なされる文字列がTwitterのweb UIで
   はハッシュタグとは見なされない恐れはあります。
 * t.coで短縮されたリンクを短縮前のURLで表示
-  search timeline以外のtimeline上ではTwitter公式のt.coサービスで短縮さ
-  れたリンクが短縮前のURLとして描画されるようになりました。但し、リン
-  ク上で`twittering-enter'(デフォルトでは`C-m')を実行した場合は短縮URL
-  経由で開かれます。Twitterのsearch APIではtweetに付随する情報が取得で
-  きないため、search timeline上では短縮されたURLとして描画されます。
+  Twitter公式のt.coサービスで短縮されたリンクが短縮前のURLとして描画さ
+  れるようになりました。但し`json.el'が利用不可の場合はsearch timeline
+  上ではt.coで生成されたURLがそのまま描画されます。また、リンク上で
+  `twittering-enter'(デフォルトでは`C-m')を実行した場合は短縮URL経由で
+  開かれます
 * mentionのみからなるtweetの投稿
   ポップアップバッファからであれば、mentionのみからなるtweetも投稿でき
   るようになりました。

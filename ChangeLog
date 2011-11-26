@@ -61,6 +61,11 @@
 	(twittering-get-and-render-timeline): retrieve tweets as the JSON
 	format if possible.
 
+	* twittering-mode.el: Render a link wrapped by the t.co service as
+	the original URL on a search timeline if possible. This requires
+	`json.el'.
+	(twittering-call-api): retrieve a search timeline with entities.
+
 2011-11-13  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the bug that unconditionally adds

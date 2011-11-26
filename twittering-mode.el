@@ -4222,8 +4222,10 @@ get-service-configuration -- Get the configuration of the server.
 		,@(when since_id `(("since_id" . ,since_id)))
 		,@(cond
 		   ((eq spec-type 'search)
-		    `(("q" . ,word)
-		      ("rpp" . ,number-str)))
+		    `(("include_entities" . "true")
+		      ("q" . ,word)
+		      ("rpp" . ,number-str)
+		      ("with_twitter_user_id". "true")))
 		   ((eq spec-type 'list)
 		    (let ((username (elt spec 1))
 			  (list-name (elt spec 2)))

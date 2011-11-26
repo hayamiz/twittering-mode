@@ -366,11 +366,21 @@
     (test-assert-string-equal ""
       (format-status status "%p"))
 
-    (test-assert-string-equal "created at Wed Dec 09 00:44:57 +0000 2009"
-      (format-status status "created at %c"))
+    (test-assert-string-equal
+     "created at Wed Dec 09 00:44:57 +0000 2009"
+     (let ((tz (current-time-zone)))
+       (set-time-zone-rule t)
+       (prog1
+	   (format-status status "created at %c")
+	 (set-time-zone-rule (cddr tz)))))
 
-    (test-assert-string-equal "created at 2009/12/09 09:44:57"
-      (format-status status "created at %C{%Y/%m/%d %H:%M:%S}"))
+    (test-assert-string-equal
+     "created at 2009/12/09 09:44:57"
+     (let ((tz (current-time-zone)))
+       (set-time-zone-rule "JST-9")
+       (prog1
+	   (format-status status "created at %C{%Y/%m/%d %H:%M:%S}")
+	 (set-time-zone-rule (cddr tz)))))
 
     ;; (test-assert-string-equal "09:44 午前 12月 09, 2009"
     ;;   (format-status status "%@"))

@@ -20,6 +20,21 @@
 	* test/fixture/timeline-data.el: Update data to follow the change
 	of internal representation of a tweet.
 
+	* twittering-mode.el: Store the tweet parameter `created-at' as
+	Emacs internal time representation. This avoids parsing a time
+	string whenever a tweet is re-rendered.
+	(twittering-atom-xmltree-to-status-datum): store `created-at' as
+	Emacs internal time representation.
+	(twittering-normalize-raw-status): likewise.
+	(twittering-created-at-to-seconds): removed.
+	(twittering-generate-format-table): use the parameters
+	`created-at' as Emacs internal time representation.
+	(twittering-generate-formater-for-first-spec): likewise.
+	* test/test-twittering-mode.el: Update tests to follow the change
+	of internal representation of a tweet.
+	* test/fixture/timeline-data.el: Update data to follow the change
+	of internal representation of a tweet.
+
 2011-11-13  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the bug that unconditionally adds

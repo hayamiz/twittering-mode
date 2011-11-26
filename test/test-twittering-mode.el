@@ -359,10 +359,10 @@
 
     (test-assert-string-equal ""
       (format-status status "%p"))
-    (setcdr (assoc 'user-protected status) "true")
+    (setcdr (assoc 'user-protected status) t)
     (test-assert-string-equal "[x]"
       (format-status status "%p"))
-    (setcdr (assoc 'user-protected status) "false")
+    (setcdr (assoc 'user-protected status) nil)
     (test-assert-string-equal ""
       (format-status status "%p"))
 
@@ -378,13 +378,13 @@
     (test-assert-string-equal "Help protect and support Free Software and the GNU Project by joining the Free Software Foundation! http://www.fsf.org/join?referrer=7019"
       (format-status status "%T"))
 
-    (setcdr (assoc 'truncated status) "false")
+    (setcdr (assoc 'truncated status) nil)
     (test-assert-string-equal ""
       (format-status status "%'"))
-    (setcdr (assoc 'truncated status) "true")
+    (setcdr (assoc 'truncated status) t)
     (test-assert-string-equal "..."
       (format-status status "%'"))
-    (setcdr (assoc 'truncated status) "false")
+    (setcdr (assoc 'truncated status) nil)
 
     (test-assert-string-equal "web"
       (format-status status "%f"))

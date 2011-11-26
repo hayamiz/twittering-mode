@@ -8,6 +8,18 @@
 	property attached tweets interferes with the cursor motion based
 	on logical lines.
 
+	* twittering-mode.el: Store the tweet parameters, `truncated' and
+	`user-protected', as boolean parameters.
+	(twittering-normalize-raw-status): store the `truncated' and
+	`user-protected' parameters as boolean parameters.
+	(twittering-generate-format-table): use the `truncated' and
+	`user-protected' parameters as boolean.
+	(twittering-organic-retweet): likewise.
+	* test/test-twittering-mode.el: Update tests to follow the change
+	of internal representation of a tweet.
+	* test/fixture/timeline-data.el: Update data to follow the change
+	of internal representation of a tweet.
+
 2011-11-13  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the bug that unconditionally adds

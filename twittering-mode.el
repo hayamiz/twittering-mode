@@ -7496,6 +7496,11 @@ been initialized yet."
   (make-local-variable 'font-lock-global-modes)
   (setq font-lock-global-modes '(not twittering-mode))
 
+  ;; Prevent the field property attached to tweets from interfering
+  ;; the cursor motion based on logical lines.
+  (make-local-variable 'inhibit-field-text-motion)
+  (setq inhibit-field-text-motion t)
+
   (make-local-variable 'twittering-timeline-spec)
   (make-local-variable 'twittering-timeline-spec-string)
   (make-local-variable 'twittering-active-mode)

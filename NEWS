@@ -49,6 +49,12 @@
   newer than 21. On Emacs 22 or later, the directories are no longer
   added to `load-path' on byte-compilation. The bug has been fixed.
   Thanks to HKey who has discovered the bug.
+* Fix of the strange motion of the cursor.
+  The cursor motion based on logical lines had caused non-intuitive
+  behavior by interfering text property attaced to tweets. The problem
+  did not appear when the motion was based on display line. The bug
+  has been fixed.
+  Thanks to lemit who reported the problem.
 
  2.0.0: 2011-04-22
 ------------------

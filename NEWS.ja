@@ -47,6 +47,11 @@
   いました。そこでbyte-compile時にもEmacs 22以降ではパスが追加されない
   よう変更して、この問題を解消しました。
   Thanks to HKey who has discovered the bug.
+* カーソル移動がおかしくなる問題を解消
+  tweetに割り当てたtext propertyが干渉して、twittering-modeのbuffer内
+  での論理行単位のカーソル移動がおかしくなっていました。この問題を解消
+  しました。
+  Thanks to lemit who reported the problem.
 
  2.0.0: 2011-04-22
 ------------------

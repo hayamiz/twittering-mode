@@ -1,3 +1,13 @@
+2011-11-26  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix the strange behavior on moving the
+	cursor according to logical lines. Thanks to lemit who reported
+	the problem.
+	(twittering-mode-setup): bind `inhibit-field-text-motion' to
+	non-nil as a buffer-local variable. If it is nil, the field
+	property attached tweets interferes with the cursor motion based
+	on logical lines.
+
 2011-11-13  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the bug that unconditionally adds

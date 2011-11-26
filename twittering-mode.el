@@ -2225,6 +2225,17 @@ the server when the HTTP status code equals to 400 or 403."
 	     (format (cdr (assq 'format connection-info)))
 	     (statuses
 	      (cond
+	       ((eq format 'json)
+		(let ((json-array (json-read)))
+		  (cond
+		   ((null json-array)
+		    nil)
+		   ((eq (car spec) 'search)
+		    (mapcar 'twittering-json-object-to-a-status-on-search
+			    (cdr (assq 'results json-array))))
+		   (t
+		    (mapcar 'twittering-json-object-to-a-status
+			    json-array)))))
 	       ((eq format 'xml)
 		(let ((xmltree
 		       (twittering-xml-parse-region (point-min) (point-max))))
@@ -5197,6 +5208,205 @@ references. This function decodes them."
 	(list-push (substring encoded-str cursor) result)
 	(apply 'concat (nreverse result)))
     ""))
+
+;; JSON
+(defun twittering-extract-common-element-from-json (json-object)
+  "Extract common parameters of a tweet from JSON-OBJECT.
+Return an alist including text, created_at and entities, which are common
+to JSON objects from ordinary timeline and search timeline."
+  (let* ((encoded-text (cdr (assq 'text json-object)))
+	 (text
+	  (twittering-decode-entities-after-parsing-xml encoded-text))
+	 (gap-list (twittering-make-gap-list text))
+	 (entities (cdr (assq 'entities json-object)))
+	 (urls (cdr (assq 'urls entities)))
+	 (hashtags (cdr (assq 'hashtags entities)))
+	 (mentions (cdr (assq 'user_mentions entities))))
+    `((text . ,text)
+      (created-at
+       . ,(apply 'encode-time
+		 (parse-time-string (cdr (assq 'created_at json-object)))))
+      (entity
+       (hashtags . ,(mapcar (lambda (entry)
+			      (let* ((indices (cdr (assq 'indices entry)))
+				     (start (elt indices 0))
+				     (end (elt indices 1))
+				     (gap
+				      (twittering-get-gap start gap-list)))
+				`((start . ,(- start gap))
+				  (end . ,(- end gap))
+				  (text . ,(cdr (assq 'text entry))))))
+			    hashtags))
+       (mentions . ,(mapcar (lambda (entry)
+			      (let* ((indices (cdr (assq 'indices entry)))
+				     (start (elt indices 0))
+				     (end (elt indices 1))
+				     (gap
+				      (twittering-get-gap start gap-list)))
+				`((start . ,(- start gap))
+				  (end . ,(- end gap))
+				  (id . ,(cdr (assq 'id_str entry)))
+				  (name . ,(cdr (assq 'name entry)))
+				  (screen-name
+				   . ,(cdr (assq 'screen_name entry))))))
+			    mentions))
+       (urls . ,(mapcar (lambda (entry)
+			  (let* ((indices (cdr (assq 'indices entry)))
+				 (start (elt indices 0))
+				 (end (elt indices 1))
+				 (gap (twittering-get-gap start gap-list)))
+			    `((start . ,(- start gap))
+			      (end . ,(- end gap))
+			      (url . ,(cdr (assq 'url entry)))
+			      (display-url
+			       . ,(cdr (assq 'display_url entry)))
+			      (expanded-url
+			       . ,(cdr (assq 'expanded_url entry))))))
+			urls))))))
+
+(defun twittering-json-object-to-a-status (json-object)
+  "Convert JSON-OBJECT representing a tweet into an alist representation.
+JSON-OBJECT must originate in an ordinary timeline, not a search timeline.
+To convert a JSON object from a search timeline, use
+`twittering-json-object-to-a-status-on-search'."
+  (let* ((raw-retweeted-status (cdr (assq 'retweeted_status json-object))))
+    (cond
+     (raw-retweeted-status
+      (let ((retweeted-status
+	     (twittering-json-object-to-a-status-base raw-retweeted-status))
+	    (retweeting-status
+	     (twittering-json-object-to-a-status-base json-object))
+	    (items-overwritten-by-retweet
+	     '(id)))
+	`(,@(mapcar
+	     (lambda (entry)
+	       (let ((sym (car entry))
+		     (value (cdr entry)))
+		 (if (memq sym items-overwritten-by-retweet)
+		     (let ((value-on-retweet
+			    (cdr (assq sym retweeting-status))))
+		       ;; Replace the value in `retweeted-status' with
+		       ;; that in `retweeting-status'.
+		       `(,sym . ,value-on-retweet))
+		   `(,sym . ,value))))
+	     retweeted-status)
+	  ,@(mapcar
+	     (lambda (entry)
+	       (let ((sym (car entry))
+		     (value (cdr entry)))
+		 `(,(intern (concat "retweeted-" (symbol-name sym)))
+		   . ,value)))
+	     retweeted-status)
+	  ,@(mapcar
+	     (lambda (entry)
+	       (let ((sym (car entry))
+		     (value (cdr entry)))
+		 `(,(intern (concat "retweeting-" (symbol-name sym)))
+		   . ,value)))
+	     retweeting-status))))
+     (t
+      (twittering-json-object-to-a-status-base json-object)))))
+
+(defun twittering-json-object-to-a-status-base (json-object)
+  (let ((user-data (cdr (assq 'user json-object))))
+    `(,@(twittering-extract-common-element-from-json json-object)
+      ,@(let ((symbol-table
+	       '((id_str . id)
+		 (in_reply_to_screen_name . in-reply-to-screen-name)
+		 (in_reply_to_status_id_str . in-reply-to-status-id)
+		 (recipient_screen_name . recipient-screen-name))))
+	  (remove nil
+		  (mapcar
+		   (lambda (entry)
+		     (let* ((sym (car entry))
+			    (value (cdr entry))
+			    (dest (cdr (assq sym symbol-table))))
+		       (cond
+			(dest
+			 (when value
+			   `(,dest . ,value)))
+			((memq sym '(favorited truncated))
+			 `(,sym . ,(if (eq value :json-false)
+				       nil
+				     t))))))
+		   json-object)))
+      ;; source
+      ,@(let ((source (cdr (assq 'source json-object))))
+	  (if (and source
+		   (string-match "<a href=\"\\(.*?\\)\".*?>\\(.*\\)</a>"
+				 source))
+	      (let ((uri (match-string-no-properties 1 source))
+		    (caption (match-string-no-properties 2 source)))
+		`((source . ,caption)
+		  (source-uri . ,uri)))
+	    `((source . ,source)
+	      (source-uri . ""))))
+      ;; user data
+      ,@(let ((symbol-table
+	       '((id_str . user-id)
+		 (profile_image_url . user-profile-image-url)
+		 (url . user-url)
+		 (protected . user-protected)
+		 (name . user-name)
+		 (screen_name . user-screen-name)
+		 (location . user-location)
+		 (description . user-description))))
+	  (remove nil
+		  (mapcar (lambda (entry)
+			    (let* ((sym (car entry))
+				   (value (cdr entry))
+				   (value
+				    (cond
+				     ((eq sym 'protected)
+				      (if (eq value :json-false)
+					  nil
+					t))
+				     ((eq value :json-false)
+				      nil)
+				     (t
+				      value))))
+			      (when value
+				(let ((dest (cdr (assq sym symbol-table))))
+				  (when dest
+				    `(,dest . ,value))))))
+			  user-data))))))
+
+(defun twittering-json-object-to-a-status-on-search (json-object)
+  "Convert JSON-OBJECT representing a tweet into an alist representation.
+JSON-OBJECT must originate in a search timeline.
+To convert a JSON object from other timelines, use
+`twittering-json-object-to-a-status'."
+  `(,@(twittering-extract-common-element-from-json json-object)
+    ,@(let ((symbol-table
+	     '((id_str . id)
+	       (to_user . recipient-screen-name)
+	       ;; user data
+	       (from_user_id_str . user-id)
+	       (profile_image_url . user-profile-image-url)
+	       (from_user_name . user-name)
+	       (from_user . user-screen-name))))
+	  (remove nil
+		  (mapcar
+		   (lambda (entry)
+		     (let* ((sym (car entry))
+			    (value (cdr entry))
+			    (dest (cdr (assq sym symbol-table))))
+		       (when (and dest value)
+			 `(,dest . ,value))))
+		   json-object)))
+    ;; source
+    ,@(let ((source
+	       (twittering-decode-html-entities
+		(cdr (assq 'source json-object)))))
+	  (if (and source
+		   (string-match "<a href=\"\\(.*?\\)\".*?>\\(.*\\)</a>"
+				 source))
+	      (let ((uri (match-string-no-properties 1 source))
+		    (caption (match-string-no-properties 2 source)))
+		`((source . ,caption)
+		  (source-uri . ,uri)))
+	    `((source . ,source)
+	      (source-uri . ""))))))
 
 ;;;;
 ;;;; List info retrieval

@@ -48,6 +48,14 @@
 	command `retrieve-timeline'. The `format' is automatically added
 	to the last of `additional-info' for `twittering-http-get'.
 
+	* twittering-mode.el: Support retrieval of tweets as the JSON
+	format.
+	(twittering-http-get-default-sentinel): support the JSON format.
+	(twittering-extract-common-element-from-json): new function.
+	(twittering-json-object-to-a-status): new function.
+	(twittering-json-object-to-a-status-base): new function.
+	(twittering-json-object-to-a-status-on-search): new function.
+
 2011-11-13  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the bug that unconditionally adds

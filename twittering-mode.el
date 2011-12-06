@@ -2233,6 +2233,10 @@ the server when the HTTP status code equals to 400 or 403."
 		   ((eq (car spec) 'search)
 		    (mapcar 'twittering-json-object-to-a-status-on-search
 			    (cdr (assq 'results json-array))))
+		   ((twittering-timeline-spec-is-direct-messages-p spec)
+		    (mapcar
+		     'twittering-json-object-to-a-status-on-direct-messages
+		     json-array))
 		   (t
 		    (mapcar 'twittering-json-object-to-a-status
 			    json-array)))))
@@ -5405,6 +5409,52 @@ To convert a JSON object from other timelines, use
 		  (source-uri . ,uri)))
 	    `((source . ,source)
 	      (source-uri . ""))))))
+
+(defun twittering-json-object-to-a-status-on-direct-messages (json-object)
+  "Convert JSON-OBJECT representing a tweet into an alist representation.
+JSON-OBJECT must originate in timelines related to direct messages.
+To convert a JSON object from other timelines, use
+`twittering-json-object-to-a-status'."
+  `(,@(twittering-extract-common-element-from-json json-object)
+    ,@(let ((symbol-table
+	     '((id_str . id)
+	       (recipient_screen_name . recipient-screen-name))))
+	(remove nil
+		  (mapcar
+		   (lambda (entry)
+		     (let* ((sym (car entry))
+			    (value (cdr entry))
+			    (dest (cdr (assq sym symbol-table))))
+		       (when (and dest value)
+			 `(,dest . ,value))))
+		   json-object)))
+    ;; sender
+    ,@(let ((symbol-table
+	     '((id_str . user-id)
+	       (name . user-name)
+	       (profile_image_url . user-profile-image-url)
+	       (protected . user-protected)
+	       (screen_name . user-screen-name))))
+	(remove nil
+		(mapcar
+		 (lambda (entry)
+		   (let* ((sym (car entry))
+			  (value (cdr entry))
+			  (value
+			   (cond
+			    ((eq sym 'protected)
+			     (if (eq value :json-false)
+				 nil
+			       t))
+			    ((eq value :json-false)
+			     nil)
+			    (t
+			     value))))
+		     (when value
+		       (let ((dest (cdr (assq sym symbol-table))))
+			 (when dest
+			   `(,dest . ,value))))))
+		 (cdr (assq 'sender json-object)))))))
 
 ;;;;
 ;;;; List info retrieval

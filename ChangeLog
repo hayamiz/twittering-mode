@@ -5,6 +5,14 @@
 	(twittering-json-object-to-a-status-base): rearrange codes for
 	interpreting a JSON object.
 
+	* twittering-mode.el: Fix the interpretation of JSON objects for
+	direct messages. Thanks to Alexis who reported the problem.
+	(twittering-http-get-default-sentinel): use
+	`twittering-json-object-to-a-status-on-direct-messages' for
+	timelines related to direct messages.
+	(twittering-json-object-to-a-status-on-direct-messages): new
+	function.
+
 2011-11-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the strange behavior on moving the

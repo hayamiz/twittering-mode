@@ -1,3 +1,10 @@
+2011-12-07  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Rearrange some codes for interpreting a JSON
+	object.
+	(twittering-json-object-to-a-status-base): rearrange codes for
+	interpreting a JSON object.
+
 2011-11-26  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the strange behavior on moving the

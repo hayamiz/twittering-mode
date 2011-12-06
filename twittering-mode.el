@@ -5313,24 +5313,25 @@ To convert a JSON object from a search timeline, use
   (let ((user-data (cdr (assq 'user json-object))))
     `(,@(twittering-extract-common-element-from-json json-object)
       ,@(let ((symbol-table
-	       '((id_str . id)
+	       '((favorited . favorited)
+		 (id_str . id)
 		 (in_reply_to_screen_name . in-reply-to-screen-name)
 		 (in_reply_to_status_id_str . in-reply-to-status-id)
-		 (recipient_screen_name . recipient-screen-name))))
+		 (recipient_screen_name . recipient-screen-name)
+		 (truncated . truncated))))
 	  (remove nil
 		  (mapcar
 		   (lambda (entry)
 		     (let* ((sym (car entry))
 			    (value (cdr entry))
+			    (value
+			     (if (and (memq sym '(favorited truncated))
+				      (eq value :json-false))
+				 nil
+			       value))
 			    (dest (cdr (assq sym symbol-table))))
-		       (cond
-			(dest
-			 (when value
-			   `(,dest . ,value)))
-			((memq sym '(favorited truncated))
-			 `(,sym . ,(if (eq value :json-false)
-				       nil
-				     t))))))
+		       (when (and dest value)
+			 `(,dest . ,value))))
 		   json-object)))
       ;; source
       ,@(let ((source (cdr (assq 'source json-object))))
@@ -5358,15 +5359,10 @@ To convert a JSON object from a search timeline, use
 			    (let* ((sym (car entry))
 				   (value (cdr entry))
 				   (value
-				    (cond
-				     ((eq sym 'protected)
-				      (if (eq value :json-false)
-					  nil
-					t))
-				     ((eq value :json-false)
-				      nil)
-				     (t
-				      value))))
+				    (if (and (eq sym 'protected)
+					     (eq value :json-false))
+					nil
+				      value)))
 			      (when value
 				(let ((dest (cdr (assq sym symbol-table))))
 				  (when dest

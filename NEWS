@@ -118,6 +118,11 @@
   retweets. Note that edit skeletons cannot refer to the tweet being
   retweeted in the current implementation.
 * Support for list names including non-ASCII characters.
+* Display of replied tweets on a search timeline.
+  If `json.el' is available, twittering-mode can retrieve an ID which
+  a tweet on a search timeline replies to. If so, replied tweets can
+  be displayed by `twittering-toggle-show-replied-statuses' bound to
+  "r" in default.
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

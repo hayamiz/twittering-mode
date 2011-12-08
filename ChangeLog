@@ -1,3 +1,13 @@
+2011-12-09  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Retrieve an ID of a tweet replied by a
+	tweet on a search timeline. You can display replied tweets on a
+	search timeline if they have been retrieved. This is available
+	only when tweets are retrieved as the JSON format.
+	(twittering-json-object-to-a-status-on-search): extract the
+	"in_reply_to_status_id_str" field, which Twitter begins to serve
+	recently.
+
 2011-12-07  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Rearrange some codes for interpreting a JSON

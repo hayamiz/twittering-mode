@@ -5381,7 +5381,8 @@ To convert a JSON object from other timelines, use
   `(,@(twittering-extract-common-element-from-json json-object)
     ,@(let ((symbol-table
 	     '((id_str . id)
-	       (to_user . recipient-screen-name)
+	       (to_user . in-reply-to-screen-name)
+	       (in_reply_to_status_id_str . in-reply-to-status-id)
 	       ;; user data
 	       (from_user_id_str . user-id)
 	       (profile_image_url . user-profile-image-url)

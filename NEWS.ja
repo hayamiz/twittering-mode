@@ -117,6 +117,11 @@
   skeletonを定義できます。但し、現在の実装ではedit skeleton側から非公
   式ReTweetされようとしているtweetの内容を参照することはできません。
 * 非ASCII文字を含むリスト名に対応
+* search timeline上での返信先tweetの表示
+  `json.el'が使用可能な場合には、search timelineにおいても返信先tweet
+  のIDが取得できるようになりました。`json.el'が使用可能であれば関数
+  `twittering-toggle-show-replied-statuses'(デフォルトでは"r"にbindさ
+  れています)を呼び出すことで返信先tweetを表示できます。
 
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正

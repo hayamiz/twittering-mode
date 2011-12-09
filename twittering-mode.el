@@ -2226,7 +2226,7 @@ the server when the HTTP status code equals to 400 or 403."
 	     (statuses
 	      (cond
 	       ((eq format 'json)
-		(let ((json-array (json-read)))
+		(let ((json-array (twittering-json-read)))
 		  (cond
 		   ((null json-array)
 		    nil)
@@ -3262,6 +3262,32 @@ exiting abnormally by decoding unknown numeric character reference."
 	    (apply 'xml-parse-region args)
 	  (error
 	   (message "Failed to parse the retrieved XML.")
+	   nil))
+      (ad-disable-advice 'decode-char 'after
+			 'twittering-add-fail-over-to-decode-char)
+      (if activated
+	  (ad-activate 'decode-char)
+	(ad-deactivate 'decode-char)))))
+
+;;;;
+;;;; JSON parser with a fallback character
+;;;;
+
+(defun twittering-json-read (&rest args)
+  "Wrapped `json-read' in order to avoid decoding errors.
+`json-read' is called after activating the advice
+`twittering-add-fail-over-to-decode-char'.
+This prevents `json-read' from exiting abnormally by decoding an unknown
+numeric character reference."
+  (let ((activated (ad-is-active 'decode-char)))
+    (ad-enable-advice
+     'decode-char 'after 'twittering-add-fail-over-to-decode-char)
+    (ad-activate 'decode-char)
+    (unwind-protect
+	(condition-case err
+	    (apply 'json-read args)
+	  (error
+	   (message "Failed to parse the retrieved JSON.")
 	   nil))
       (ad-disable-advice 'decode-char 'after
 			 'twittering-add-fail-over-to-decode-char)

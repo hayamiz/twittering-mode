@@ -858,7 +858,11 @@ defined in Emacs21."
 (defgroup twittering-mode nil
   "Twit from Emacs"
   :group 'twittering-mode)
-(defvar twittering-debug-mode nil)
+
+(defcustom twittering-debug-mode nil
+  "Enable debug mode"
+  :group 'twittering-mode
+  :type 'boolean)
 (defvar twittering-debug-buffer "*debug*")
 
 (defun twittering-get-or-generate-buffer (buffer)

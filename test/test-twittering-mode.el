@@ -712,3 +712,61 @@
       oauth-params))
    "OAuth oauth_nonce=\"oElnnMTQIZvqvlfXM56aBLAf5noGD0AQR3Fmi7Q6Y\",oauth_signature_method=\"HMAC-SHA1\",oauth_timestamp=\"1272325550\",oauth_consumer_key=\"GDdmIQH6jhtmLUypg82g\",oauth_token=\"819797-Jxq8aYUDRmykzVKrgoLhXSq67TEa5ruc4GJC2rWimw\",oauth_version=\"1.0\",oauth_signature=\"yOahq5m0YjDDjfjxHaXEsW9D%2BX0%3D\"")
   )
+
+(defun find-least-unsupported-code-point (from to)
+  (let ((n from)
+        (c nil))
+    (while (and (<= n to)
+		(decode-char 'ucs n))
+      (setq n (1+ n)))
+    (when (<= n to)
+      n)))
+
+(defun encode-char-for-json (code-point)
+  ;; According to RFC4627 http://www.ietf.org/rfc/rfc4627 ,
+  ;; characters in the Basic Multilingual Plane (U+0000
+  ;; through U+FFFF) are escaped as
+  ;; "a six-character sequence: a reverse solidus, followed
+  ;;  by the lowercase letter u, followed by four hexadecimal
+  ;;  digits that encode the character's code point."
+  ;; "To escape an extended character that is not in the Basic
+  ;;  Multilingual Plane, the character is represented as a
+  ;;  twelve-character sequence, encoding the UTF-16 surrogate
+  ;;  pair."
+  (cond
+   ((< code-point #xFFFF)
+    (format "\\u%04X" code-point))
+   (t
+    ;; a character not in the Basic Multilingual Plane
+    (let* ((c (decode-char 'ucs unsupported-code-point))
+	   (str (encode-coding-char c 'utf-16be)))
+      (apply 'format "\\u%02X%02X\\u%02X%02X"
+	     (string-to-list str))))))
+
+(defun test-read-json-with-unsupported-code-point ()
+  (let ((unsupported-code-point
+	 (or (find-least-unsupported-code-point #x0000 #xD7FF)
+	     (find-least-unsupported-code-point #xE000 #x10FFFF))))
+    (cond
+     ((null unsupported-code-point)
+      t)
+     (t
+      (let* ((str (encode-char-for-json unsupported-code-point))
+	     (quoted-str (concat "\"" str "\""))
+	     (result (with-temp-buffer
+		       (insert quoted-str)
+		       (goto-char (point-min))
+		       (condition-case err
+			   (twittering-json-read)
+			 (error
+			  nil)))))
+	(if (and result
+		 (stringp result)
+		 (string= result
+			  (string twittering-unicode-replacement-char)))
+	    t
+	  (format "failed to decode %s!" quoted-str)))))))
+
+(when (require 'json nil t)
+  (defcase test-json-read nil nil
+    (test-assert-eq t (test-read-json-with-unsupported-code-point))))

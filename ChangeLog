@@ -8,6 +8,9 @@
 	* test/test-twittering-mode.el: Add a test for parsing JSON with a
 	character unsupported by Emacs.
 
+	* test/test-twittering-mode.el: Add a test for parsing XML with a
+	character unsupported by Emacs.
+
 2011-12-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Retrieve an ID of a tweet replied by a

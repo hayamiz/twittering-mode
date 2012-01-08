@@ -16,6 +16,11 @@
 	(twittering-read-from-encrypted-file): confirm that FILE is
 	readable.
 
+	* twittering-mode.el: Expand a path before invoking the function
+	`epg-decrypt-file'.
+	(twittering-read-from-encrypted-file): expand FILE before invoking
+	`epg-decrypt-file'.
+
 2011-12-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Retrieve an ID of a tweet replied by a

@@ -2992,7 +2992,12 @@ This function requires `epa' or `alpaca' library."
 	     (format "Decrypting %s..." (file-name-nondirectory file))))
       (message "Decrypting %s..." (file-name-nondirectory file))
       (condition-case err
-	  (epg-decrypt-file context file nil)
+	  (let ((full-path (expand-file-name file)))
+	    ;; `epg-decrypt-file' included in EasyPG 1.0.0, which is
+	    ;; distributed with Emacs 23.2, requires the expanded full path
+	    ;; as the argument CIPHER. This is because CIPHER is directly
+	    ;; used as an argument of the command `gpg'.
+	    (epg-decrypt-file context full-path nil))
 	(error
 	 (message "%s" (cdr err))
 	 nil))))

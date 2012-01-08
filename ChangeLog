@@ -1,3 +1,10 @@
+2012-01-08  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Explicitly signal an error when
+	twittering-mode fails to retrieve a request token.
+	(twittering-oauth-get-access-token): signal an error when
+	twittering-mode fails to retrieve a request token.
+
 2011-12-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Retrieve an ID of a tweet replied by a

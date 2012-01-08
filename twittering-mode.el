@@ -2844,7 +2844,8 @@ like following:
 	   "\n"
 	   "  Input the PIN code "
 	   (propertize "at the below minibuffer." 'face 'bold))))
-    (when request-token-alist
+    (cond
+     (request-token-alist
       (with-temp-buffer
 	(switch-to-buffer (current-buffer))
 	(let* ((str-height (length (split-string str "\n")))
@@ -2866,7 +2867,10 @@ like following:
 	    (twittering-oauth-exchange-request-token
 	     access-token-url
 	     consumer-key consumer-secret
-	     request-token request-token-secret verifier)))))))
+	     request-token request-token-secret verifier)))))
+     (t
+      (error "Failed to retrieve a request token")
+      nil))))
 
 (defun twittering-xauth-get-access-token (access-token-url consumer-key consumer-secret username password)
   (let ((auth-str

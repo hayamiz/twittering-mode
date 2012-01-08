@@ -11,6 +11,11 @@
 	* test/test-twittering-mode.el: Add a test for parsing XML with a
 	character unsupported by Emacs.
 
+	* twittering-mode.el: Confirm that a file is readable before
+	decrypting it.
+	(twittering-read-from-encrypted-file): confirm that FILE is
+	readable.
+
 2011-12-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Retrieve an ID of a tweet replied by a

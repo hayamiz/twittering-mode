@@ -2971,7 +2971,13 @@ like following:
   (require 'epa nil t)
   (require 'alpaca nil t))
 (defun twittering-read-from-encrypted-file (file)
+  "Decrypt contents from FILE and return them.
+Read encrypted contents from FILE and return the decrypted contents.
+This function requires `epa' or `alpaca' library."
   (cond
+   ((not (file-readable-p file))
+    (error "Failed to read %s" file)
+    nil)
    ((require 'epa nil t)
     (let ((context (epg-make-context epa-protocol))
 	  ;; Bind `default-directory' to the temporary directory

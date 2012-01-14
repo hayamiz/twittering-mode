@@ -1,3 +1,11 @@
+2012-01-14  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Do not record the edit buffer in the list of
+	recently selected ones. Thanks to tdkn who reported the behavior
+	related to the list.
+	(twittering-update-status-from-pop-up-buffer): do not put the
+	buffer at the front of the list of recently selected ones.
+
 2012-01-08  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Explicitly signal an error when

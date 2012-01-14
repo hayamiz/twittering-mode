@@ -6364,7 +6364,6 @@ static char * unplugged_xpm[] = {
   (defsubst twittering-make-common-properties (status)
     "Generate a property list that tweets should have irrespective of format."
     (apply 'append
-	   `(field ,(twittering-make-field-id status))
 	   (mapcar (lambda (entry)
 		     (let ((prop-sym (if (consp entry) (car entry) entry))
 			   (status-sym (if (consp entry) (cdr entry) entry)))
@@ -7116,7 +7115,7 @@ This function returns the position where the next status should be inserted."
 		 next-pos)
 	     nil)))
      (unless (twittering-field-id= field-id (get-text-property pos 'field))
-       (let ((formatted-status ,generator)
+       (let ((formatted-status (propertize ,generator 'field ,field-id))
 	     (separator "\n"))
 	 (goto-char pos)
 	 (if (eq pos (point-max))

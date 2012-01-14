@@ -6,6 +6,11 @@
 	(twittering-update-status-from-pop-up-buffer): do not put the
 	buffer at the front of the list of recently selected ones.
 
+	* twittering-mode.el: Add a field property to a tweet on the
+	function `twittering-render-a-field'.
+	(twittering-make-common-properties): Do not add a field property.
+	(twittering-render-a-field): add a field property.
+
 2012-01-08  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Explicitly signal an error when

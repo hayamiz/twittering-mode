@@ -64,6 +64,17 @@
 	* test/test-twittering-mode.el: Remove tests related to the
 	scroll-mode.
 
+	* twittering-mode.el: Remove invalid timeline specs from the
+	history after the failure of the retrieval.
+	(twittering-http-get-default-sentinel): remove the specified
+	timeline spec string from the history after it becomes clear that
+	the spec is invalid.
+	(twittering-remove-timeline-spec-string-from-history): new
+	function.
+	(twittering-get-managed-buffer): add the requested timeline spec
+	string to the history. It may be removed from the history after if
+	it is invalid.
+
 2012-01-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Do not record the edit buffer in the list of

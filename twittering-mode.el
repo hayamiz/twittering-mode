@@ -2274,10 +2274,16 @@ the server when the HTTP status code equals to 400 or 403."
 	    ;; retrieved all un-retrieved statuses.
 	    (when (and new-statuses buffer)
 	      (twittering-render-timeline buffer t new-statuses))))
-	(twittering-add-timeline-history spec-string)
 	(if twittering-notify-successful-http-get
 	    (format "Fetching %s.  Success." spec-string)
 	  nil)))
+     (("404")
+      ;; The requested resource does not exist.
+      (let ((spec-string (cdr (assq 'timeline-spec-string connection-info))))
+	;; Remove the invalid spec from history.
+	(twittering-remove-timeline-spec-string-from-history spec-string))
+      (format "Response: %s"
+	      (twittering-get-error-message header-info (current-buffer))))
      (t
       (format "Response: %s"
 	      (twittering-get-error-message header-info (current-buffer)))))))
@@ -4861,6 +4867,16 @@ If the authorization failed, return nil."
 		   (not (string= spec-string (car twittering-user-history)))))
       (twittering-add-to-history 'twittering-user-history (cadr spec)))))
 
+(defun twittering-remove-timeline-spec-string-from-history (spec-string)
+  (setq twittering-timeline-history
+	(remove nil
+		(mapcar
+		 (lambda (str)
+		   (if (twittering-equal-string-as-timeline spec-string str)
+		       nil
+		     str))
+		 twittering-timeline-history))))
+
 (defun twittering-atom-xmltree-to-status-datum (atom-xml-entry)
   (let* ((id-str (car (cddr (assq 'id atom-xml-entry))))
 	 (time-str (car (cddr (assq 'updated atom-xml-entry))))
@@ -5745,6 +5761,7 @@ SPEC may be a timeline spec or a timeline spec string."
       (error "\"%s\" is invalid as a timeline spec"
 	     (or spec-string original-spec)))
     (set-text-properties 0 (length spec-string) nil spec-string)
+    (twittering-add-timeline-history spec-string)
     (let ((buffer (twittering-get-buffer-from-spec spec)))
       (if buffer
 	  (progn

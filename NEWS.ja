@@ -147,6 +147,13 @@
   tweetを除外したtimelineは下記のtimeline specで指定できます。
   ":exclude-if/(lambda (tweet) (string-match \"WORD\" (cdr (assq 'text
   tweet))))/:home"
+* merge timelineに対応
+  新しく"(SPEC1+SPEC2)"や"(SPEC1+SPEC2+SPEC3)"といった形式のtimelineに
+  対応しました。merge timelineは指定したtimelineのtweetを全て含む
+  timelineです。任意のtimeline specを構成要素にできます。例えば、
+  "(:direct_messages+:direct_messages_sent)"というtimeline specを使え
+  ばこれまでに送ったり受け取ったりしたdirect messageの全てをひとつのバッ
+  ファに表示できます。
 
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正

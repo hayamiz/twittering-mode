@@ -97,6 +97,14 @@
 	* test/test-twittering-mode.el: Add tests for the timeline spec
 	":exclude-if/FUNC/SPEC".
 
+	* twittering-mode.el: Support merge timelines.
+	(twittering-timeline-spec-composite-p): support the merge timeline
+	spec.
+	(twittering-get-base-timeline-specs): likewise.
+	(twittering-generate-composite-timeline): likewise.
+	(twittering-current-timeline-referring-id-table): likewise.
+	(twittering-current-timeline-data): likewise.
+
 2012-01-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Do not record the edit buffer in the list of

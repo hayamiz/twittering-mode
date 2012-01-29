@@ -3816,7 +3816,7 @@ Return nil if SPEC-STR is invalid as a timeline spec."
   "Return non-nil if SPEC is a composite timeline spec.
 `composite' means that the spec depends on other timelines."
   (let ((composite-spec-types
-	 '(exclude-if))
+	 '(exclude-if merge))
 	(type (car spec)))
     (memq type composite-spec-types)))
 
@@ -3874,6 +3874,8 @@ The result timelines may be a composite timeline."
       `(,spec))
      ((eq type 'exclude-if)
       `(,(elt spec 2)))
+     ((eq type 'merge)
+      (cdr spec))
      (t
       nil))))
 
@@ -3909,6 +3911,24 @@ If SPEC is a primary timeline and does not equal BASE-SPEC, return nil."
 			  (unless (funcall func status)
 			    status))
 			direct-base-statuses))))
+     ((eq type 'merge)
+      (sort
+       (apply 'append
+	      (mapcar (lambda (direct-base-spec)
+			;; `copy-sequence' is required because `sort'
+			;; modifies the appended list that may include
+			;; `base-statuses' as a tail.
+			;; `base-statuses' may refer to the original list
+			;; which already retrieved tweets are registered
+			;; with. It must not be modified.
+			(copy-sequence
+			 (twittering-generate-composite-timeline
+			  direct-base-spec base-spec base-statuses)))
+		      (twittering-get-base-timeline-specs spec)))
+       (lambda (status1 status2)
+	 (let ((id1 (cdr (assq 'id status1)))
+	       (id2 (cdr (assq 'id status2))))
+	   (twittering-status-id< id2 id1)))))
      (t
       nil))))
 
@@ -3933,6 +3953,15 @@ referring the former ID."
      ((eq type 'exclude-if)
       (let ((base-spec (car (twittering-get-base-timeline-specs spec))))
 	(elt (gethash base-spec twittering-timeline-data-table) 1)))
+     ((eq 'merge (car spec))
+      ;; Use the first non-nil table instead of merging the all tables
+      ;; because it may take a long time to merge them.
+      (car
+       (remove
+	nil
+	(mapcar (lambda (base-spec)
+		  (elt (gethash base-spec twittering-timeline-data-table) 1))
+		(twittering-get-base-timeline-specs spec)))))
      (t
       (elt (gethash spec twittering-timeline-data-table) 1)))))
 
@@ -3942,7 +3971,7 @@ referring the former ID."
     (cond
      ((null spec)
       nil)
-     ((eq type 'exclude-if)
+     ((memq type '(exclude-if merge))
       (let ((primary-base-specs
 	     (twittering-get-primary-base-timeline-specs spec)))
 	(sort

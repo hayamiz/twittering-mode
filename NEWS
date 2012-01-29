@@ -151,6 +151,14 @@
   tweets including "WORD" from the home  timeline by the following
   timeline spec; ":exclude-if/(lambda (tweet) (string-match \"WORD\"
   (cdr (assq 'text tweet))))/:home".
+* Support for merge timelines.
+  Merge timelines such as "(SPEC1+SPEC2)" or "(SPEC1+SPEC2+SPEC3)" and
+  so on, are added as new timeline specs. The merge timeline consists
+  of all tweets in the specified timelines. You can specify any
+  timeline spec for constituents. For example, you can see all direct
+  messages, which you have sent or received, on a buffer by the
+  following timeline spec;
+  "(:direct_messages+:direct_messages_sent)".
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

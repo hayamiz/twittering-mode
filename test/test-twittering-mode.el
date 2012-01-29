@@ -105,22 +105,6 @@
   (test-assert-ok twittering-icon-mode)
   )
 
-(defcase test-scroll-mode nil nil
-  (setq twittering-scroll-mode nil)
-  (twittering-scroll-mode)
-  (test-assert-ok twittering-scroll-mode)
-  (twittering-scroll-mode)
-  (test-assert-ok (not twittering-scroll-mode))
-  (twittering-scroll-mode nil)
-  (test-assert-ok twittering-scroll-mode)
-  (twittering-scroll-mode t)
-  (test-assert-ok twittering-scroll-mode)
-  (twittering-scroll-mode 1)
-  (test-assert-ok twittering-scroll-mode)
-  (twittering-scroll-mode -1)
-  (test-assert-ok (not twittering-scroll-mode)))
-  
-
 (defcase test-percent-encode nil nil
   (test-assert-string-equal "Rinko"
     (twittering-percent-encode "Rinko"))

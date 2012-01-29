@@ -15,6 +15,11 @@
   is equivalent to the following one;
   (setq twittering-edit-skeleton-footer " [footer]")
   (setq twittering-edit-skeleton 'footer)
+* Obsolete variable `twittering-scroll-mode'
+  The variable `twittering-scroll-mode' is obsolete. The current
+  version of twittering-mode always behaves as the previous version
+  does on scroll-mode. To track the latest tweet, put the cursor on
+  the header or footer that is rendered on the latest end.
 
 ### Improvements
 * Edit skeleton according to the current timeline.
@@ -130,9 +135,8 @@
   the timeline buffer will be extended by retrieving more tweets
   according to whether the cursor is placed on the latest end or
   oldest one.
-  When the variable `twittering-scroll-mode' is non-nil, you can track
-  the latest tweet by putting the cursor on the latest side of the
-  header and footer.
+  You can track the latest tweet by putting the cursor on the latest
+  side of the header and footer.
   You can customize the header and footer strings with the variables
   `twittering-timeline-header' and `twittering-timeline-footer',
   respectively. Their face can also be customized with the variables

@@ -49,6 +49,21 @@
 	(twittering-initialize-global-variables-if-necessary): initialize
 	the faces for the header and footer.
 
+	* twittering-mode.el: The current version of twittering-mode
+	always behaves as the previous version does on scroll-mode. The
+	variable `twittering-scroll-mode' is obsolete.
+	(twittering-scroll-mode): removed.
+	(twittering-mode-line-buffer-identification): ignore the obsolete
+	variable `twittering-scroll-mode'.
+	(twittering-render-timeline): remove expressions for restoring
+	positions on non-scroll-mode.
+	(twittering-mode-map): do not bind "s" to the function
+	`twittering-scroll-mode'.
+	(twittering-mode-setup): do not call `make-local-variable' for the
+	variable `twittering-scroll-mode'.
+	* test/test-twittering-mode.el: Remove tests related to the
+	scroll-mode.
+
 2012-01-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Do not record the edit buffer in the list of

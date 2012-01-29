@@ -15,6 +15,11 @@
   は、以下の設定で置き換えられます。
   (setq twittering-edit-skeleton-footer " [footer]")
   (setq twittering-edit-skeleton 'footer)
+* 変数`twittering-scroll-mode'の廃止
+  変数`twittering-scroll-mode'は廃止されました。現在の版は、過去の版で
+  scroll-modeが有効であったときのように振舞います。最新のtweetに追従す
+  るには、timelineバッファの最新側のヘッダもしくはフッタ上にカーソルを
+  置いてください。
 
 ### 改良
 * 現在のtimelineに応じたedit skeleton
@@ -127,9 +132,8 @@
   はtweetとは独立の特別な行として描画されます。ヘッダやフッタ上でEnter
   キーを押す(もしくは`twittering-enter'を実行する)と、それがtimelineの
   時系列で最新の側か過去の側かに応じてtweetを取得して描画します。
-  また、変数`twittering-scroll-mode'がnilでない状態で、ヘッダとフッタの
-  内の最新側にカーソルを置いておくと、常にカーソル行の近くに最新tweet
-  を描画するようにできます。
+  また、ヘッダとフッタの内の最新側にカーソルを置いておくと、常にカーソ
+  ル行の近くに最新tweetを描画するようにできます。
   ヘッダ、フッタとして表示される文字列は、`twittering-timeline-header'、
   `twittering-timeline-footer'という変数で変更できます。また、表示する
   際のfaceは`twittering-timeline-header-face'と

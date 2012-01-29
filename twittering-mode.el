@@ -304,7 +304,6 @@ to get the number of new tweets received when this hook is run.")
 Do not modify this variable directly. Use `twittering-activate-buffer',
 `twittering-deactivate-buffer', `twittering-toggle-activate-buffer' or
 `twittering-set-active-flag-for-buffer'.")
-(defvar twittering-scroll-mode nil)
 
 (defvar twittering-jojo-mode nil)
 (defvar twittering-reverse-mode nil
@@ -6355,7 +6354,6 @@ static char * unplugged_xpm[] = {
 	   ,@(when twittering-jojo-mode '("jojo"))
 	   ,@(when twittering-icon-mode '("icon"))
 	   ,@(when twittering-reverse-mode '("reverse"))
-	   ,@(when twittering-scroll-mode '("scroll"))
 	   ,@(when twittering-proxy-use '("proxy")))))
     (concat active-mode-indicator
 	    (when twittering-display-remaining
@@ -7210,7 +7208,6 @@ This function returns the position where the next status should be inserted."
 		      (cons (window-point window) window))
 		    window-list))
 	   (original-pos (point))
-	   (original-buf-end (point-max))
 	   (buffer-read-only nil))
       (twittering-update-status-format)
       (twittering-update-mode-line)
@@ -7299,25 +7296,6 @@ This function returns the position where the next status should be inserted."
 	       window-list)
 	    ;; Move the buffer position if the buffer is invisible.
 	    (goto-char dest))))
-       ((not twittering-scroll-mode)
-	;; After additional insertion, the current position exists
-	;; on the same status.
-	;; Go to the original position.
-	(if point-window-list
-	    (mapc (lambda (pair)
-		    (let* ((point (car pair))
-			   (window (cdr pair))
-			   (dest (if twittering-reverse-mode
-				     (- (point-max)
-					(- original-buf-end point))
-				   point)))
-		      (set-window-point window dest)))
-		  point-window-list)
-	  ;; Move the buffer position if the buffer is invisible.
-	  (goto-char (if twittering-reverse-mode
-			 (- (point-max)
-			    (- original-buf-end original-pos))
-		       original-pos))))
        ))
     ))
 
@@ -7776,7 +7754,6 @@ managed by `twittering-mode'."
       (define-key km (kbd "H") 'twittering-goto-first-status)
       (define-key km (kbd "i") 'twittering-icon-mode)
       (define-key km (kbd "r") 'twittering-toggle-show-replied-statuses)
-      (define-key km (kbd "s") 'twittering-scroll-mode)
       (define-key km (kbd "t") 'twittering-toggle-proxy)
       (define-key km (kbd "C-c C-p") 'twittering-toggle-proxy)
       (define-key km (kbd "q") 'twittering-kill-buffer)
@@ -7930,7 +7907,6 @@ been initialized yet."
   (make-local-variable 'twittering-icon-mode)
   (make-local-variable 'twittering-jojo-mode)
   (make-local-variable 'twittering-reverse-mode)
-  (make-local-variable 'twittering-scroll-mode)
 
   (setq twittering-timeline-spec-string spec-string)
   (setq twittering-timeline-spec
@@ -8649,16 +8625,6 @@ instead."
 ;;;;
 
 ;;;; Commands for changing modes
-(defun twittering-scroll-mode (&optional arg)
-  (interactive "P")
-  (let ((prev-mode twittering-scroll-mode))
-    (setq twittering-scroll-mode
-	  (if (null arg)
-	      (not twittering-scroll-mode)
-	    (< 0 (prefix-numeric-value arg))))
-    (unless (eq prev-mode twittering-scroll-mode)
-      (twittering-update-mode-line))))
-
 (defun twittering-jojo-mode (&optional arg)
   (interactive "P")
   (let ((prev-mode twittering-jojo-mode))

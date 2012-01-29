@@ -38,6 +38,17 @@
 	before instruction for updating the timeline.
 	(twittering-goto-previous-status): likewise.
 
+	* twittering-mode.el: Add variables for customizing the header and
+	footer.
+	(twittering-timeline-header-face): new variable.
+	(twittering-timeline-footer-face): new variable.
+	(twittering-timeline-header): new variable.
+	(twittering-timeline-footer): new variable.
+	(twittering-render-timeline): render the header and footer
+	according to the customization variables.
+	(twittering-initialize-global-variables-if-necessary): initialize
+	the faces for the header and footer.
+
 2012-01-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Do not record the edit buffer in the list of

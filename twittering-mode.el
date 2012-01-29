@@ -529,6 +529,21 @@ StatusNet Service.")
 	       (search-url . twittering-get-search-url-statusnet)))
   "A list of alist of service methods.")
 
+(defvar twittering-timeline-header-face 'twittering-timeline-header-face
+  "*Face for the header on `twittering-mode'.
+The face is used for rendering `twittering-timeline-header'.")
+(defvar twittering-timeline-footer-face 'twittering-timeline-footer-face
+  "*Face for the footer on `twittering-mode'.
+The face is used for rendering `twittering-timeline-footer'.")
+(defvar twittering-timeline-header "-- Press Enter here to update --\n"
+  "*Timeline header string on `twittering-mode'.
+The string is rendered on the beginning of a `twittering-mode' buffer.
+Its face is specified by `twittering-timeline-header-face'.")
+(defvar twittering-timeline-footer "-- Press Enter here to update --"
+  "*Timeline footer string on `twittering-mode'.
+The string is rendered on the end of a `twittering-mode' buffer.
+Its face is specified by `twittering-timeline-footer-face'.")
+
 ;;;;
 ;;;; Macro and small utility function
 ;;;;
@@ -7222,11 +7237,24 @@ This function returns the position where the next status should be inserted."
 		      latest-id)))
 	      (setq
 	       pos
-	       (progn
-		 (twittering-render-a-field
-		  (point-min) footer-id "-- Press Enter here to update --" t)
-		 (twittering-render-a-field
-		  (point-min) header-id "-- Press Enter here to update --"))
+	       (let ((footer
+		      ;; To avoid adding a face to newlines.
+		      (mapconcat
+		       (lambda (substr)
+			 (propertize substr
+				     'face twittering-timeline-footer-face))
+		       (split-string (or twittering-timeline-footer "") "\n")
+		       "\n"))
+		     (header
+		      ;; To avoid adding a face to newlines.
+		      (mapconcat
+		       (lambda (substr)
+			 (propertize substr
+				     'face twittering-timeline-header-face))
+		       (split-string (or twittering-timeline-header "") "\n")
+		       "\n")))
+		 (twittering-render-a-field (point-min) footer-id footer t)
+		 (twittering-render-a-field (point-min) header-id header t))
 	       )))
 	   (t
 	    (setq pos (twittering-get-first-status-head))))
@@ -7816,6 +7844,18 @@ been initialized yet."
 		       'bold)))))
       "" :group 'faces)
     (defface twittering-uri-face `((t (:underline t))) "" :group 'faces)
+    (defface twittering-timeline-header-face
+      `((t ,(face-attr-construct
+	     (if (facep 'font-lock-preprocessor-face)
+		 'font-lock-preprocessor-face
+	       'bold))))
+      "Timeline header on twittering-mode" :group 'faces)
+    (defface twittering-timeline-footer-face
+      `((t ,(face-attr-construct
+	     (if (facep 'font-lock-preprocessor-face)
+		 'font-lock-preprocessor-face
+	       'bold))))
+      "Timeline footer on twittering-mode" :group 'faces)
     (twittering-update-status-format)
     (when twittering-use-convert
       (if (null twittering-convert-program)

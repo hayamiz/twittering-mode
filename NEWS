@@ -133,6 +133,11 @@
   When the variable `twittering-scroll-mode' is non-nil, you can track
   the latest tweet by putting the cursor on the latest side of the
   header and footer.
+  You can customize the header and footer strings with the variables
+  `twittering-timeline-header' and `twittering-timeline-footer',
+  respectively. Their face can also be customized with the variables
+  `twittering-timeline-header-face' and
+  `twittering-timeline-footer-face'.
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

@@ -130,6 +130,10 @@
   また、変数`twittering-scroll-mode'がnilでない状態で、ヘッダとフッタの
   内の最新側にカーソルを置いておくと、常にカーソル行の近くに最新tweet
   を描画するようにできます。
+  ヘッダ、フッタとして表示される文字列は、`twittering-timeline-header'、
+  `twittering-timeline-footer'という変数で変更できます。また、表示する
+  際のfaceは`twittering-timeline-header-face'と
+  `twittering-timeline-footer-face'で変更できます。
 
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正

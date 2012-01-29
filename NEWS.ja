@@ -138,6 +138,15 @@
   `twittering-timeline-footer'という変数で変更できます。また、表示する
   際のfaceは`twittering-timeline-header-face'と
   `twittering-timeline-footer-face'で変更できます。
+* exclude-if timelineに対応
+  新しく":exclude-if/FUNC/SPEC"というtimelineに対応しました。この
+  timelineはSPECで表されるものとほぼ同じですが、関数FUNCがnon-nilを返
+  すようなtweetは除外されている点が異なります。関数FUNCはひとつのtweet
+  に対応した連想リストをひとつ受け取るλ式で指定します。SPECには任意の
+  timeline specを指定できます。例えば、home timelineから"WORD"を含む
+  tweetを除外したtimelineは下記のtimeline specで指定できます。
+  ":exclude-if/(lambda (tweet) (string-match \"WORD\" (cdr (assq 'text
+  tweet))))/:home"
 
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正

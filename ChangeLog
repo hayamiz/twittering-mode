@@ -75,6 +75,28 @@
 	string to the history. It may be removed from the history after if
 	it is invalid.
 
+	* twittering-mode.el: Support ":exclude-if/FUNC/SPEC" timelines.
+	(twittering-http-get-default-sentinel): remove timeline spec
+	strings depending the invalid spec.
+	(twittering-timeline-spec-to-string): support the new timeline
+	spec ":exclude-if/FUNC/SPEC".
+	(twittering-extract-timeline-spec): likewise.
+	(twittering-timeline-spec-composite-p): new function.
+	(twittering-timeline-spec-depending-on-p): new function.
+	(twittering-get-base-timeline-specs): new function.
+	(twittering-get-primary-base-timeline-specs): new function.
+	(twittering-generate-composite-timeline): new function.
+	(twittering-current-timeline-referring-id-table): support the new
+	timeline spec ":exclude-if/FUNC/SPEC".
+	(twittering-current-timeline-data): likewise.
+	(twittering-add-statuses-to-timeline-data): update composite
+	timelines that depend on the primary timeline.
+	(twittering-get-and-render-timeline): add new arguments SPEC and
+	SPEC-STRING to retrieve timelines that have no buffers but
+	constitute some composite timelines.
+	* test/test-twittering-mode.el: Add tests for the timeline spec
+	":exclude-if/FUNC/SPEC".
+
 2012-01-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Do not record the edit buffer in the list of

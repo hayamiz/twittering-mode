@@ -239,6 +239,37 @@
 
   (test-assert-equal
    (test-restore-timeline-spec
+    ":exclude-if/(lambda (x) t)/:home"
+    '(exclude-if (lambda (x) t) (home))
+    '(exclude-if (lambda (x) t) (home)))
+   '(t t))
+
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ":exclude-if/(lambda (tweet) (string-match \"test\\\\.\" (cdr (assq 'text tweet))))/@"
+    '(exclude-if (lambda (tweet)
+		   (string-match "test\\." (cdr (assq 'text tweet))))
+		 (replies))
+    '(exclude-if (lambda (tweet)
+		   (string-match "test\\." (cdr (assq 'text tweet))))
+		 (replies)))
+   '(t t))
+
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ":exclude-if/(lambda (tweet) (string-match \"\\\\\\\\\" (cdr (assq 'text tweet))))/:exclude-if/(lambda (tw) (assq 'retweeting-id tw))/user/mylist"
+    '(exclude-if (lambda (tweet)
+		   (string-match "\\\\" (cdr (assq 'text tweet))))
+		 (exclude-if (lambda (tw) (assq 'retweeting-id tw))
+			     (list "user" "mylist")))
+    '(exclude-if (lambda (tweet)
+		   (string-match "\\\\" (cdr (assq 'text tweet))))
+		 (exclude-if (lambda (tw) (assq 'retweeting-id tw))
+			     (list "user" "mylist"))))
+   '(t t))
+
+  (test-assert-equal
+   (test-restore-timeline-spec
     ":retweeted_by_me" '(retweeted_by_me)  '(retweeted_by_me))
    '(t t))
   (test-assert-equal

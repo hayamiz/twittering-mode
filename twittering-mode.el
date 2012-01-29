@@ -2279,9 +2279,18 @@ the server when the HTTP status code equals to 400 or 403."
 	  nil)))
      (("404")
       ;; The requested resource does not exist.
-      (let ((spec-string (cdr (assq 'timeline-spec-string connection-info))))
-	;; Remove the invalid spec from history.
-	(twittering-remove-timeline-spec-string-from-history spec-string))
+      (let ((spec (cdr (assq 'timeline-spec connection-info)))
+	    (spec-string (cdr (assq 'timeline-spec-string connection-info))))
+	;; Remove specs related to the invalid spec from history.
+	(mapc
+	 (lambda (buffer)
+	   (let ((other-spec (twittering-get-timeline-spec-for-buffer buffer))
+		 (other-spec-string
+		  (twittering-get-timeline-spec-string-for-buffer buffer)))
+	     (when (twittering-timeline-spec-depending-on-p other-spec spec)
+	       (twittering-remove-timeline-spec-string-from-history
+		other-spec-string))))
+	 (twittering-get-buffer-list)))
       (format "Response: %s"
 	      (twittering-get-error-message header-info (current-buffer))))
      (t
@@ -3498,6 +3507,10 @@ Before calling this, you have to configure `twittering-bitly-login' and
 ;;;     tweets of the authenticated user that have been retweeted by others.
 ;;;
 ;;; - (search STRING): the result of searching with query STRING.
+;;; - (exclude-if FUNC SPEC):
+;;;     the same timeline as SPEC, except that it does not include tweets
+;;;     that FUNC returns non-nil for.
+;;;
 ;;; - (merge SPEC1 SPEC2 ...): result of merging timelines SPEC1 SPEC2 ...
 ;;; - (filter REGEXP SPEC): timeline filtered with REGEXP.
 ;;;
@@ -3530,6 +3543,10 @@ Before calling this, you have to configure `twittering-bitly-login' and
 ;;;
 ;;; SEARCH ::= ":search/" QUERY_STRING "/"
 ;;; QUERY_STRING ::= any string, where "/" is escaped by a backslash.
+;;;
+;;; EXCLUDE-IF ::= ":exclude-if/" FUNC "/" SPEC
+;;; FUNC ::= LAMBDA EXPRESSION
+;;;
 ;;; MERGE ::= "(" MERGED_SPECS ")"
 ;;; MERGED_SPECS ::= SPEC | SPEC "+" MERGED_SPECS
 ;;; FILTER ::= ":filter/" REGEXP "/" SPEC
@@ -3578,6 +3595,12 @@ If SHORTEN is non-nil, the abbreviated expression will be used."
 		(replace-regexp-in-string "/" "\\/" query nil t)
 		"/")))
      ;; composite
+     ((eq type 'exclude-if)
+      (let ((func (car value))
+	    (spec (cadr value))
+	    (print-level nil))
+	(concat ":exclude-if/" (prin1-to-string func) "/"
+		(twittering-timeline-spec-to-string spec))))
      ((eq type 'filter)
       (let ((regexp (car value))
 	    (spec (cadr value)))
@@ -3668,6 +3691,34 @@ Return cons of the spec and the rest string."
 		  `((search ,query) . ,rest)
 		(error "\"%s\" has no valid regexp" str)
 		nil))))
+       ((string= type "exclude-if")
+	(let ((result-pair
+	       (when (string-match "^:exclude-if/" str)
+		 (condition-case err
+		     (read-from-string str (match-end 0))
+		   (error
+		    nil)))))
+	  (if result-pair
+	      (let ((func (car result-pair))
+		    (pos (cdr result-pair)))
+		(cond
+		 ((not (functionp func))
+		  (error "\"%s\" has an invalid function" str)
+		  nil)
+		 ((<= (length str) (1+ pos))
+		  (error "\"%s\" has no timeline spec" str)
+		  nil)
+		 ((not (char-equal ?/ (aref str pos)))
+		  (error "\"%s\" has no delimiter" str)
+		  nil)
+		 (t
+		  (let* ((pair (twittering-extract-timeline-spec
+				(substring str (1+ pos)) unresolved-aliases))
+			 (spec (car pair))
+			 (rest (cdr pair)))
+		    `((exclude-if ,func ,spec) . ,rest)))))
+	    (error "\"%s\" has an invalid function" str)
+	    nil)))
        ((string= type "filter")
 	(if (string-match "^:filter/\\(\\(.*?[^\\]\\)??\\(\\\\\\\\\\)*\\)??/"
 			  str)
@@ -3761,6 +3812,29 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 	(type (car spec)))
     (memq type primary-spec-types)))
 
+(defun twittering-timeline-spec-composite-p (spec)
+  "Return non-nil if SPEC is a composite timeline spec.
+`composite' means that the spec depends on other timelines."
+  (let ((composite-spec-types
+	 '(exclude-if))
+	(type (car spec)))
+    (memq type composite-spec-types)))
+
+(defun twittering-timeline-spec-depending-on-p (spec base-spec)
+  "Return non-nil if SPEC depends on BASE-SPEC."
+  (cond
+   ((twittering-timeline-spec-primary-p spec)
+    (equal spec base-spec))
+   ((equal spec base-spec)
+    t)
+   (t
+    (remove
+     nil
+     (mapcar
+      (lambda (direct-base-spec)
+	(twittering-timeline-spec-depending-on-p direct-base-spec base-spec))
+      (twittering-get-base-timeline-specs spec))))))
+
 (defun twittering-timeline-spec-is-user-p (spec)
   "Return non-nil if SPEC is a user timeline."
   (and (consp spec) (eq 'user (car spec))))
@@ -3790,6 +3864,54 @@ If SPEC is not a search timeline spec, return nil."
 	(equal spec1 spec2))
     nil))
 
+(defun twittering-get-base-timeline-specs (spec)
+  "Return the timeline specs on which the timeline SPEC depends.
+If SPEC is primary, returns a list consisting of itself.
+The result timelines may be a composite timeline."
+  (let ((type (car spec)))
+    (cond
+     ((twittering-timeline-spec-primary-p spec)
+      `(,spec))
+     ((eq type 'exclude-if)
+      `(,(elt spec 2)))
+     (t
+      nil))))
+
+(defun twittering-get-primary-base-timeline-specs (spec)
+  "Return the primary timeline specs on which the timeline SPEC depends.
+If SPEC is primary, returns a list consisting of itself.
+The result timelines are primary."
+  (if (twittering-timeline-spec-primary-p spec)
+      `(,spec)
+    (apply 'append
+	   (mapcar 'twittering-get-primary-base-timeline-specs
+		   (twittering-get-base-timeline-specs spec)))))
+
+(defun twittering-generate-composite-timeline (spec base-spec base-statuses)
+  "Generate statuses for the timeline SPEC from BASE-STATUSES.
+BASE-STATUSES must originate from the BASE-SPEC timeline.
+If SPEC is a primary timeline and equals BASE-SPEC, just return BASE-STATUSES.
+If SPEC is a primary timeline and does not equal BASE-SPEC, return nil."
+  (let ((type (car spec)))
+    (cond
+     ((twittering-timeline-spec-primary-p spec)
+      (if (equal spec base-spec)
+	  base-statuses
+	nil))
+     ((eq type 'exclude-if)
+      (let* ((direct-base (car (twittering-get-base-timeline-specs spec)))
+	     (direct-base-statuses
+	      (twittering-generate-composite-timeline direct-base
+						      base-spec base-statuses))
+	     (func (elt spec 1)))
+	(remove nil
+		(mapcar (lambda (status)
+			  (unless (funcall func status)
+			    status))
+			direct-base-statuses))))
+     (t
+      nil))))
+
 ;;;;
 ;;;; Retrieved statuses (timeline data)
 ;;;;
@@ -3803,16 +3925,48 @@ If SPEC is not a search timeline spec, return nil."
 (defun twittering-current-timeline-referring-id-table (&optional spec)
   "Return the hash from a ID to the ID of the first observed status
 referring the former ID."
-  (let ((spec (or spec (twittering-current-timeline-spec))))
-    (if spec
-	(elt (gethash spec twittering-timeline-data-table) 1)
-      nil)))
+  (let* ((spec (or spec (twittering-current-timeline-spec)))
+	 (type (car spec)))
+    (cond
+     ((null spec)
+      nil)
+     ((eq type 'exclude-if)
+      (let ((base-spec (car (twittering-get-base-timeline-specs spec))))
+	(elt (gethash base-spec twittering-timeline-data-table) 1)))
+     (t
+      (elt (gethash spec twittering-timeline-data-table) 1)))))
 
 (defun twittering-current-timeline-data (&optional spec)
-  (let ((spec (or spec (twittering-current-timeline-spec))))
-    (if spec
-	(elt (gethash spec twittering-timeline-data-table) 2)
-      nil)))
+  (let* ((spec (or spec (twittering-current-timeline-spec)))
+	 (type (car spec)))
+    (cond
+     ((null spec)
+      nil)
+     ((eq type 'exclude-if)
+      (let ((primary-base-specs
+	     (twittering-get-primary-base-timeline-specs spec)))
+	(sort
+	 (apply
+	  'append
+	  (mapcar
+	   (lambda (primary-spec)
+	     ;; `copy-sequence' is required to prevent `sort'
+	     ;; from modifying lists of statuses in the database
+	     ;; `twittering-timeline-data-table'.
+	     ;; The result of `twittering-generate-composite-timeline'
+	     ;; may include a list in the database. If so, the simply
+	     ;; appended list include it as a tail.
+	     (copy-sequence
+	      (twittering-generate-composite-timeline
+	       spec
+	       primary-spec (twittering-current-timeline-data primary-spec))))
+	   primary-base-specs))
+	 (lambda (status1 status2)
+	   (let ((id1 (cdr (assq 'id status1)))
+		 (id2 (cdr (assq 'id status2))))
+	     (twittering-status-id< id2 id1))))))
+     (t
+      (elt (gethash spec twittering-timeline-data-table) 2)))))
 
 (defun twittering-remove-timeline-data (&optional spec)
   (let ((spec (or spec (twittering-current-timeline-spec))))
@@ -3940,6 +4094,23 @@ Statuses are stored in ascending-order with respect to their IDs."
 	      (twittering-new-tweets-statuses new-statuses)
 	      (twittering-new-tweets-count (length new-statuses)))
 	  (run-hooks 'twittering-new-tweets-hook))
+	;; Update timelines derived from SPEC.
+	(mapc
+	 (lambda (buffer)
+	   (let ((other-spec (twittering-get-timeline-spec-for-buffer buffer)))
+	     (when (and
+		    (twittering-timeline-spec-composite-p other-spec)
+		    (twittering-timeline-spec-depending-on-p other-spec spec))
+	       (let* ((twittering-new-tweets-spec other-spec)
+		      (twittering-new-tweets-statuses
+		       (twittering-generate-composite-timeline
+			other-spec spec new-statuses))
+		      (twittering-new-tweets-count
+		       (length twittering-new-tweets-statuses)))
+		 (twittering-render-timeline buffer t
+					     twittering-new-tweets-statuses)
+		 (run-hooks 'twittering-new-tweets-hook)))))
+	 (twittering-get-buffer-list))
 	new-statuses))))
 
 ;;;;
@@ -7316,9 +7487,10 @@ This function returns the position where the next status should be inserted."
        ))
     ))
 
-(defun twittering-get-and-render-timeline (&optional noninteractive id)
-  (let ((spec (twittering-current-timeline-spec))
-	(spec-string (twittering-current-timeline-spec-string)))
+(defun twittering-get-and-render-timeline (&optional noninteractive id spec spec-string)
+  (let ((spec (or spec (twittering-current-timeline-spec)))
+	(spec-string
+	 (or spec-string (twittering-current-timeline-spec-string))))
     (cond
      ((not (twittering-account-authorized-p))
       ;; ignore any requests if the account has not been authorized.
@@ -7354,6 +7526,17 @@ This function returns the position where the next status should be inserted."
 	      (twittering-call-api 'retrieve-timeline args additional-info)))
 	(when proc
 	  (twittering-register-process proc spec spec-string))))
+     ((twittering-timeline-spec-composite-p spec)
+      (mapc
+       (lambda (spec)
+	 (let* ((buffer (twittering-get-buffer-from-spec spec))
+		(spec-string
+		 (if buffer
+		     (twittering-get-timeline-spec-string-for-buffer buffer)
+		   (twittering-timeline-spec-to-string spec))))
+	   (twittering-get-and-render-timeline noninteractive id
+					       spec spec-string)))
+       (twittering-get-base-timeline-specs spec)))
      (t
       (let ((type (car spec)))
 	(error "%s has not been supported yet" type))))))

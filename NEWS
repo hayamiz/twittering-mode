@@ -142,6 +142,15 @@
   respectively. Their face can also be customized with the variables
   `twittering-timeline-header-face' and
   `twittering-timeline-footer-face'.
+* Support for exclude-if timelines.
+  ":exclude-if/FUNC/SPEC" is added as a new timeline spec. The
+  timeline equals SPEC, except that it does not include tweets that
+  the function FUNC returns non-nil for. FUNC is a lambda expression
+  that receives an alist corresponding to a tweet as an argument. You
+  can specify any timeline spec for SPEC. For example, you can ignore
+  tweets including "WORD" from the home  timeline by the following
+  timeline spec; ":exclude-if/(lambda (tweet) (string-match \"WORD\"
+  (cdr (assq 'text tweet))))/:home".
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

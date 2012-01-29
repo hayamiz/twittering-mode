@@ -9,6 +9,12 @@
 	path. Since "alpaca.el" uses the `buffer-file-name' as the prefix
 	of the temporary file, it must be a full path.
 
+	* twittering-mode.el: Add a new argument of the function
+	`twittering-render-a-field' for rendering a tweet without a
+	separator.
+	(twittering-render-a-field): add a new argument for rendering a
+	tweet without a separator.
+
 2012-01-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Do not record the edit buffer in the list of

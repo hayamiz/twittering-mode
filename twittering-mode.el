@@ -6985,6 +6985,34 @@ In the case, BASE-ID means the ID of the descendant."
 (defun twittering-make-field-properties-of-popped-ancestors (status base-id)
   (twittering-make-field-properties status `((ancestor-of . ,base-id))))
 
+(defun twittering-make-field-id-of-timeline-oldest-end (spec-string)
+  "Return the field ID for the oldest end.
+This is given to a special field, header or footer, which does not correspond
+to a tweet.
+It must be less than IDs made by `twittering-make-field-id' for any other
+normal fields in the meaning of `twittering-field-id<'."
+  (format "H:%s" spec-string))
+
+(defun twittering-make-field-id-of-timeline-latest-end (spec-string)
+  "Return the field ID for the oldest end.
+This is given to a special field, header or footer, which does not correspond
+to a tweet.
+It must be greater than IDs made by `twittering-make-field-id' for any other
+normal fields in the meaning of `twittering-field-id<'."
+  (format "U:%s" spec-string))
+
+(defun twittering-field-id-is-timeline-oldest-end (field-id)
+  "Return non-nil if FIELD-ID corresponds to the oldest end field.
+Return non-nil if FIELD-ID is made by
+`twittering-make-field-id-of-timeline-oldest-end'."
+  (and (stringp field-id) (string= (substring field-id 0 2) "H:")))
+
+(defun twittering-field-id-is-timeline-latest-end (field-id)
+  "Return non-nil if FIELD-ID corresponds to the latest end field.
+Return non-nil if FIELD-ID is made by
+`twittering-make-field-id-of-timeline-latest-end'."
+  (and (stringp field-id) (string= (substring field-id 0 2) "U:")))
+
 (defun twittering-rendered-as-ancestor-status-p (&optional pos)
   "Return non-nil if the status at POS is rendered as an ancestor.
 Ancestor statuses are rendered by `twittering-show-replied-statuses'."
@@ -7172,11 +7200,36 @@ This function returns the position where the next status should be inserted."
       (twittering-update-status-format)
       (twittering-update-mode-line)
       (save-excursion
-	(when rendering-entire
-	  (erase-buffer))
-	(let ((pos (if rendering-entire
-		       (point-min)
-		     (twittering-get-first-status-head))))
+	(let ((pos (point-min))
+	      (spec-string
+	       (twittering-get-timeline-spec-string-for-buffer buffer)))
+	  (cond
+	   (rendering-entire
+	    (erase-buffer)
+	    (let* ((latest-id
+		    (twittering-make-field-id-of-timeline-latest-end
+		     spec-string))
+		   (oldest-id
+		    (twittering-make-field-id-of-timeline-oldest-end
+		     spec-string))
+		   (footer-id
+		    (if twittering-reverse-mode
+			latest-id
+		      oldest-id))
+		   (header-id
+		    (if twittering-reverse-mode
+			oldest-id
+		      latest-id)))
+	      (setq
+	       pos
+	       (progn
+		 (twittering-render-a-field
+		  (point-min) footer-id "-- Press Enter here to update --" t)
+		 (twittering-render-a-field
+		  (point-min) header-id "-- Press Enter here to update --"))
+	       )))
+	   (t
+	    (setq pos (twittering-get-first-status-head))))
 	  (mapc
 	   (lambda (status)
 	     (setq pos
@@ -7202,8 +7255,12 @@ This function returns the position where the next status should be inserted."
        (rendering-entire
 	;; Go to the latest status of buffer after full insertion.
 	(let ((dest (if twittering-reverse-mode
-			(point-max)
-		      (point-min))))
+			(or (twittering-get-last-normal-field-head)
+			    (twittering-get-last-status-head)
+			    (point-max))
+		      (or (twittering-get-first-normal-field-head)
+			  (twittering-get-first-status-head)
+			  (point-min)))))
 	  (if window-list
 	      (mapc
 	       (lambda (window)
@@ -7687,7 +7744,7 @@ managed by `twittering-mode'."
       (define-key km (kbd "M-v") 'twittering-scroll-down)
       (define-key km (kbd "SPC") 'twittering-scroll-up)
       (define-key km (kbd "C-v") 'twittering-scroll-up)
-      (define-key km (kbd "G") 'end-of-buffer)
+      (define-key km (kbd "G") 'twittering-goto-last-status)
       (define-key km (kbd "H") 'twittering-goto-first-status)
       (define-key km (kbd "i") 'twittering-icon-mode)
       (define-key km (kbd "r") 'twittering-toggle-show-replied-statuses)
@@ -8967,14 +9024,32 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
 	 (initial-str
 	  (when (and (not (eq tweet-type 'direct-message))
 		     (or screen-name-in-text username))
-	    (concat "@" (or screen-name-in-text username) " "))))
-    (cond (screen-name-in-text
-	   (twittering-update-status initial-str
-				     id screen-name-in-text tweet-type))
-	  (uri
-	   (browse-url uri))
-	  (username
-	   (twittering-update-status initial-str id username tweet-type)))))
+	    (concat "@" (or screen-name-in-text username) " ")))
+	 (field-id (get-text-property (point) 'field))
+	 (is-latest-end (twittering-field-id-is-timeline-latest-end field-id))
+	 (is-oldest-end (twittering-field-id-is-timeline-oldest-end field-id)))
+    (cond
+     (is-latest-end
+      (message "Get more of the recent timeline...")
+      (if twittering-reverse-mode
+	  (twittering-goto-last-normal-field)
+	(twittering-goto-first-normal-field))
+      (twittering-get-and-render-timeline))
+     (is-oldest-end
+      (let* ((oldest-status (car (last (twittering-current-timeline-data))))
+	     (oldest-id (cdr (assq 'id oldest-status))))
+	(message "Get more of the previous timeline...")
+	(if twittering-reverse-mode
+	    (twittering-goto-first-normal-field)
+	  (twittering-goto-last-normal-field))
+	(twittering-get-and-render-timeline nil oldest-id)))
+     (screen-name-in-text
+      (twittering-update-status initial-str
+				id screen-name-in-text tweet-type))
+     (uri
+      (browse-url uri))
+     (username
+      (twittering-update-status initial-str id username tweet-type)))))
 
 (defun twittering-view-user-page ()
   (interactive)
@@ -9170,6 +9245,57 @@ Return nil if no statuses are rendered."
       (point-min)
     (twittering-get-next-status-head (point-min))))
 
+(defun twittering-goto-last-status ()
+  "Go to the last status."
+  (interactive)
+  (goto-char (or (twittering-get-last-status-head)
+		 (point-min))))
+
+(defun twittering-get-last-status-head ()
+  "Return the head position of the last status in the current buffer.
+Return nil if no statuses are rendered."
+  (if (get-text-property (point-max) 'field)
+      (point-max)
+    (twittering-get-previous-status-head (point-max))))
+
+(defun twittering-goto-first-normal-field ()
+  "Go to the first normal field.
+A normal field is a field corresponding to a tweet."
+  (interactive)
+  (goto-char (or (twittering-get-first-normal-field-head)
+		 (point-min))))
+
+(defun twittering-goto-last-normal-field ()
+  "Go to the last normal field.
+A normal field is a field corresponding to a tweet."
+  (interactive)
+  (goto-char (or (twittering-get-last-normal-field-head)
+		 (point-max))))
+
+(defun twittering-get-first-normal-field-head ()
+  "Return the head position of the first normal field in the current buffer.
+A normal field is a field corresponding to a tweet.
+Return nil if no statuses are rendered."
+  (let ((pos (twittering-get-first-status-head)))
+    (while (and pos
+		(< pos (point-max))
+		(null (get-text-property pos 'id)))
+      (setq pos (twittering-get-next-status-head pos)))
+    (when (and pos (< pos (point-max)) (get-text-property pos 'id))
+      pos)))
+
+(defun twittering-get-last-normal-field-head ()
+  "Return the head position of the last normal field in the current buffer.
+A normal field is a field corresponding to a tweet.
+Return nil if no statuses are rendered."
+  (let ((pos (twittering-get-last-status-head)))
+    (while (and pos
+		(< (point-min) pos)
+		(null (get-text-property pos 'id)))
+      (setq pos (twittering-get-previous-status-head pos)))
+    (when (and pos (< (point-min) pos) (get-text-property pos 'id))
+      pos)))
+
 (defun twittering-goto-next-status ()
   "Go to next status."
   (interactive)
@@ -9180,17 +9306,18 @@ Return nil if no statuses are rendered."
      (twittering-reverse-mode
       (message "The latest status."))
      (t
-      (let ((id (or (get-text-property (point) 'id)
-		    (let ((prev (twittering-get-previous-status-head)))
-		      (when prev
-			(get-text-property prev 'id)))))
-	    (spec-type (car (twittering-current-timeline-spec))))
+      (let* ((oldest-status (car (last (twittering-current-timeline-data))))
+	     (oldest-id (cdr (assq 'id oldest-status)))
+	     (spec-type (car (twittering-current-timeline-spec))))
 	(cond
 	 ((eq spec-type 'favorites)
 	  (message "Backward retrieval of favorites is not supported yet."))
-	 (id
+	 (oldest-id
 	  (message "Get more of the previous timeline...")
-	  (twittering-get-and-render-timeline nil id))))))))
+	  ;; Here, the cursor points to the footer field or the end of
+	  ;; the buffer. It should be moved backward to a normal tweet.
+	  (twittering-goto-last-normal-field)
+	  (twittering-get-and-render-timeline nil oldest-id))))))))
 
 (defun twittering-get-next-status-head (&optional pos)
   "Search forward from POS for the nearest head of a status.
@@ -9226,17 +9353,18 @@ Otherwise, return a positive integer greater than POS."
      (prev-pos
       (goto-char prev-pos))
      (twittering-reverse-mode
-      (let ((id (or (get-text-property (point) 'id)
-		    (let ((next (twittering-get-next-status-head)))
-		      (when next
-			(get-text-property next 'id)))))
-	    (spec-type (car (twittering-current-timeline-spec))))
+      (let* ((oldest-status (car (last (twittering-current-timeline-data))))
+	     (oldest-id (cdr (assq 'id oldest-status)))
+	     (spec-type (car (twittering-current-timeline-spec))))
 	(cond
 	 ((eq spec-type 'favorites)
 	  (message "Backward retrieval of favorites is not supported yet."))
-	 (id
+	 (oldest-id
 	  (message "Get more of the previous timeline...")
-	  (twittering-get-and-render-timeline nil id)))))
+	  ;; Here, the cursor points to the header field.
+	  ;; It should be moved forward to a normal tweet.
+	  (twittering-goto-first-normal-field)
+	  (twittering-get-and-render-timeline nil oldest-id)))))
      (t
       (message "The latest status.")))))
 

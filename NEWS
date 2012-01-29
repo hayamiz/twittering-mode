@@ -123,6 +123,16 @@
   a tweet on a search timeline replies to. If so, replied tweets can
   be displayed by `twittering-toggle-show-replied-statuses' bound to
   "r" in default.
+* Header and footer on a timeline buffer.
+  On a timeline buffer, the header and footer are rendered. They are
+  special field and do not correspond to tweets. If you press the
+  enter key (or invoking `twittering-enter') on the header or footer,
+  the timeline buffer will be extended by retrieving more tweets
+  according to whether the cursor is placed on the latest end or
+  oldest one.
+  When the variable `twittering-scroll-mode' is non-nil, you can track
+  the latest tweet by putting the cursor on the latest side of the
+  header and footer.
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

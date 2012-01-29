@@ -15,6 +15,29 @@
 	(twittering-render-a-field): add a new argument for rendering a
 	tweet without a separator.
 
+	* twittering-mode.el: Render the header and footer line.
+	(twittering-make-field-id-of-timeline-oldest-end): new function.
+	(twittering-make-field-id-of-timeline-latest-end): new function.
+	(twittering-field-id-is-timeline-oldest-end): new function.
+	(twittering-field-id-is-timeline-latest-end): new function.
+	(twittering-render-timeline): render the header and footer on
+	rendering the whole of the buffer. In that case, the function now
+	moves the cursor to the normal field not to the header nor
+	footer.
+	(twittering-mode-map): bind "G" to `twittering-goto-last-status'
+	instead of `end-of-buffer'.
+	(twittering-enter): update the timeline when the function is
+	invoked on the header or footer.
+	(twittering-goto-last-status): new function.
+	(twittering-get-last-status-head): new function.
+	(twittering-goto-first-normal-field): new function.
+	(twittering-goto-last-normal-field): new function.
+	(twittering-get-first-normal-field-head): new function.
+	(twittering-get-last-normal-field-head): new function.
+	(twittering-goto-next-status): move the cursor to the normal field
+	before instruction for updating the timeline.
+	(twittering-goto-previous-status): likewise.
+
 2012-01-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Do not record the edit buffer in the list of

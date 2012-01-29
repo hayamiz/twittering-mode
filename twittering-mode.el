@@ -3001,7 +3001,7 @@ This function requires `epa' or `alpaca' library."
 	 nil))))
    ((require 'alpaca nil t)
     (with-temp-buffer
-      (let ((buffer-file-name file)
+      (let ((buffer-file-name (expand-file-name file))
 	    (alpaca-regex-suffix ".*")
 	    (coding-system-for-read 'binary)
 	    (coding-system-for-write 'binary)

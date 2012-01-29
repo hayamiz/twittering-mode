@@ -3,6 +3,12 @@
 	* twittering-mode.el: Follow the header conventions. Thanks to
 	Jonas Bernoulli who reported the nonfulfillment.
 
+	* twittering-mode.el: Expand a path before calling the function
+	`alpaca-after-find-file'.
+	(twittering-read-from-encrypted-file): expand FILE into a full
+	path. Since "alpaca.el" uses the `buffer-file-name' as the prefix
+	of the temporary file, it must be a full path.
+
 2012-01-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Do not record the edit buffer in the list of

@@ -1,13 +1,11 @@
-;;; -*- indent-tabs-mode: t; tab-width: 8 -*-
-;;;
 ;;; twittering-mode.el --- Major mode for Twitter
 
 ;; Copyright (C) 2007, 2009, 2010 Yuto Hayamizu.
 ;;               2008 Tsuyoshi CHO
 
 ;; Author: Y. Hayamizu <y.hayamizu@gmail.com>
-;;         Tsuyoshi CHO <Tsuyoshi.CHO+develop@Gmail.com>
-;;         Alberto Garcia  <agarcia@igalia.com>
+;;	Tsuyoshi CHO <Tsuyoshi.CHO+develop@Gmail.com>
+;;	Alberto Garcia <agarcia@igalia.com>
 ;; Created: Sep 4, 2007
 ;; Version: HEAD
 ;; Identity: $Id$
@@ -9526,6 +9524,11 @@ Note that the current implementation assumes `revive.el' 2.19 ."
   "Start twittering-mode."
   (interactive)
   (twittering-mode))
+
+;; Local Variables:
+;; indent-tabs-mode: t
+;; tab-width: 8
+;; End:
 
 (provide 'twittering-mode)
 ;;; twittering.el ends here

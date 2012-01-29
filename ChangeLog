@@ -1,3 +1,8 @@
+2012-01-29  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Follow the header conventions. Thanks to
+	Jonas Bernoulli who reported the nonfulfillment.
+
 2012-01-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Do not record the edit buffer in the list of

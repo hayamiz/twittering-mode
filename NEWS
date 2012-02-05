@@ -172,6 +172,11 @@
   `twittering-rendered-new-tweets-spec-string' can be used as the
   timeline spec and the timeline spec string. For detail, see the
   docstring of the new hook variable.
+* New hook invoked after initializing global variables.
+  A new hook variable `twittering-mode-init-hook' is added. The hook
+  is invoked after initializing global variables. Unlike
+  `twittering-mode-hook', which is invoked every time a buffer is
+  generated for twittering-mode, the new hook invoked only once.
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

@@ -78,6 +78,14 @@
 	`twittering-new-tweets-rendered-hook' instead of
 	`twittering-new-tweets-hook'.
 
+	* twittering-mode.el: Add a new hook `twittering-mode-init-hook'.
+	The new hook is invoked after initializing global variables.
+	(twittering-mode-init-hook): new hook invoked after initializing
+	global variables.
+	(twittering-mode-hook): add a docstring.
+	(twittering-initialize-global-variables-if-necessary): invoke
+	hooks specified by `twittering-mode-init-hook'.
+
 2012-01-29  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Follow the header conventions. Thanks to

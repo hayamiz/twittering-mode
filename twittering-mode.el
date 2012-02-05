@@ -284,6 +284,12 @@ directly. Use `twittering-current-timeline-spec-string' or
 (defvar twittering-server-info-alist nil
   "Alist of server information.")
 
+
+(defvar twittering-mode-init-hook nil
+  "*Hook run after initializing global variables for `twittering-mode'.")
+(defvar twittering-mode-hook nil
+  "*Hook run every time a buffer is initialized as a twittering-mode buffer.")
+
 (defvar twittering-new-tweets-count 0
   "Number of new tweets when `twittering-new-tweets-hook' is run.")
 (defvar twittering-new-tweets-spec nil
@@ -8136,9 +8142,6 @@ managed by `twittering-mode'."
 ;;;; Initialization
 ;;;;
 
-(defvar twittering-mode-hook nil
-  "Twittering-mode hook.")
-
 (defvar twittering-initialized nil)
 (defvar twittering-mode-syntax-table nil "")
 
@@ -8217,6 +8220,7 @@ been initialized yet."
 	  (boundp 'twittering-sign-string-function))
       (message "Warning: `twittering-sign-simple-string' and `twittering-sign-string-function' are obsolete. Use the new feature `twittering-edit-skeleton'.")
       ))
+    (run-hooks 'twittering-mode-init-hook)
     (setq twittering-initialized t)))
 
 (defun twittering-mode-setup (spec-string)

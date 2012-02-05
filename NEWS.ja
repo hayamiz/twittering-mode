@@ -168,6 +168,11 @@
   `twittering-rendered-new-tweets-spec-string'という変数で参照できます。
   詳細は`twittering-new-tweets-rendered-hook'のdocstringを参照してくだ
   さい。
+* 大域変数初期化時に実行される新しいhookの追加
+  新しいhook変数`twittering-mode-init-hook'を追加しました。このhookは
+  大域変数を初期化した後に実行されます。twittering-mode用のbufferを作
+  成するたびに実行される`twittering-mode-hook'とは異なり、新しいhookは
+  一度しか実行されません。
 
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正

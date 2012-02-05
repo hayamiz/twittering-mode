@@ -41,6 +41,10 @@
 	(twittering-render-timeline): show replied statuses only if the
 	status is rendered.
 
+	* twittering-mode.el: Add a docstring for
+	`twittering-render-timeline'.
+	(twittering-render-timeline): add a docstring.
+
 2012-01-29  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Follow the header conventions. Thanks to

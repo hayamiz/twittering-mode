@@ -7442,6 +7442,13 @@ Return non-nil if the status is rendered. Otherwise, return nil."
 	 t))))
 
 (defun twittering-render-timeline (buffer &optional additional timeline-data keep-point)
+  "Render statuses for BUFFER.
+If ADDITIONAL is nil, statuses are rendered after erasing all of BUFFER.
+TIMELINE-DATA specifies a list of statuses being rendered.
+If TIMELINE-DATA is nil, the return value of `twittering-current-timeline-data'
+is used instead.
+If KEEP-POINT is non-nil, positions on buffers bound to the same timeline
+will be restored after rendering statuses."
   (with-current-buffer buffer
     (let* ((spec (twittering-get-timeline-spec-for-buffer buffer))
 	   (referring-id-table

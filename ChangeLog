@@ -23,6 +23,11 @@
 	(twittering-delete-status): do not delete the specified status
 	here.
 
+	* twittering-mode.el: `twittering-render-a-field' moves the
+	cursor even if the given status is not rendered.
+	(twittering-render-a-field): move the cursor even if the given
+	status is not rendered.
+
 2012-01-29  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Follow the header conventions. Thanks to

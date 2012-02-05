@@ -7425,23 +7425,19 @@ This function returns the position where the next status should be inserted."
 		 (setq pos (or next-pos (point-max)))
 		 next-pos)
 	     nil)))
+     (goto-char pos)
      (unless (twittering-field-id= field-id (get-text-property pos 'field))
        (let ((formatted-status (propertize ,generator 'field ,field-id))
 	     (separator (if ,without-separator
 			    ""
 			  "\n")))
-	 (goto-char pos)
 	 (if (eq pos (point-max))
 	     ;; Use `insert' only if no statuses are rendered on the below.
 	     (insert formatted-status separator)
 	   ;; Use `insert-before-markers' in order to keep
 	   ;; which status is pointed by each marker.
-	   (insert-before-markers formatted-status separator))
-	 ;; Now, `pos' points the head of the status.
-	 ;; It must be moved to the current point
-	 ;; in order to skip the status inserted just now.
-	 (setq pos (point))))
-     pos))
+	   (insert-before-markers formatted-status separator))))
+     (point)))
 
 (defun twittering-render-timeline (buffer &optional additional timeline-data keep-point)
   (with-current-buffer buffer

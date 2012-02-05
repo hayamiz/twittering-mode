@@ -159,6 +159,19 @@
   messages, which you have sent or received, on a buffer by the
   following timeline spec;
   "(:direct_messages+:direct_messages_sent)".
+* New hook invoked when rendering tweets.
+  A new hook variable `twittering-new-tweets-rendered-hook' is
+  added. The hook is invoked when new tweets are rendered. It is not
+  invoked when rendering tweets that are retrieved formerly. Since the
+  existing hook `twittering-new-tweets-hook' is invoked for each
+  successful retrieval of tweets, it may be invoked for tweets that
+  are not rendered in composite timelines such as exclude-if and merge
+  timelines. The new hook works well for composite timelines.
+  In the new hook, you can use `twittering-rendered-new-tweets' as a
+  list of new tweets. `twittering-rendered-new-tweets-spec' and
+  `twittering-rendered-new-tweets-spec-string' can be used as the
+  timeline spec and the timeline spec string. For detail, see the
+  docstring of the new hook variable.
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

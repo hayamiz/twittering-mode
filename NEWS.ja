@@ -154,6 +154,20 @@
   "(:direct_messages+:direct_messages_sent)"というtimeline specを使え
   ばこれまでに送ったり受け取ったりしたdirect messageの全てをひとつのバッ
   ファに表示できます。
+* tweet描画時に実行される新しいhookの追加
+  新しいhook変数`twittering-new-tweets-rendered-hook'を追加しました。
+  このhookは実際に新しいtweetを描画したときに実行されます。以前に取得
+  したtweetを再描画する際には実行されません。既存のhook変数
+  `twittering-new-tweets-hook'はtweetの取得に成功するたびに実行される
+  ので、exclude-if timelineやmerge timelineのような複合timelineに含ま
+  れる実際には描画されないtweetについてもhookを実行します。新しいhook
+  は複合timelineについてもうまく動作します。
+  hook内では、`twittering-rendered-new-tweets'という変数で描画された
+  tweetのリストを参照できます。他にも描画されたtimelineを表すtimeline
+  specとtimeline spec文字列を`twittering-rendered-new-tweets-spec'と
+  `twittering-rendered-new-tweets-spec-string'という変数で参照できます。
+  詳細は`twittering-new-tweets-rendered-hook'のdocstringを参照してくだ
+  さい。
 
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正

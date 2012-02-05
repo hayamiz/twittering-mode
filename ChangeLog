@@ -56,6 +56,19 @@
 	(twittering-toggle-reverse-mode): likewise.
 	(twittering-erase-old-statuses): likewise.
 
+	* twittering-mode.el: Add a new hook
+	`twittering-new-tweets-rendered-hook'.
+	(twittering-rendered-new-tweets-spec): new variable.
+	(twittering-rendered-new-tweets-spec-string): new variable.
+	(twittering-rendered-new-tweets): new variable.
+	(twittering-new-tweets-rendered-hook): new hook.
+	(twittering-http-get-default-sentinel): call
+	`twittering-render-timeline' with non-nil INVOKE-HOOK.
+	(twittering-add-statuses-to-timeline-data): likewise.
+	(twittering-render-timeline): add a new argument INVOKE-HOOK.
+	(twittering-rerender-timeline-all): call
+	`twittering-render-timeline' with nil INVOKE-HOOK.
+
 2012-01-29  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Follow the header conventions. Thanks to

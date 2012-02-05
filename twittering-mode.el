@@ -299,6 +299,37 @@ directly. Use `twittering-current-timeline-spec-string' or
 You can read `twittering-new-tweets-count' or `twittering-new-tweets-spec'
 to get the number of new tweets received when this hook is run.")
 
+(defvar twittering-rendered-new-tweets-spec nil
+  "A timeline spec of newly rendered tweets.
+This variable is bound when invoking hooks registered with
+`twittering-new-tweets-rendered-hook'.")
+
+(defvar twittering-rendered-new-tweets-spec-string nil
+  "A timeline spec string of newly rendered tweets.
+This variable is bound when invoking hooks registered with
+`twittering-new-tweets-rendered-hook'.")
+
+(defvar twittering-rendered-new-tweets nil
+  "A list of newly rendered tweets.
+Hooks registered with `twittering-new-tweets-rendered-hook' can use this
+variable as a list of rendered tweets. Each tweet is represented as an alist.
+You can refer to a property of a tweet alist as
+ (cdr (assq PROPERTY-SYMBOL TWEET-ALIST)).
+Valid symbols are following; id, text, user-name, user-screen-name, user-id,
+ source, source-uri.
+In the list, tweets are placed in order of time. The car of the list is the
+latest one, and the last is the oldest one.")
+
+(defvar twittering-new-tweets-rendered-hook nil
+  "*Hook run when new tweets are rendered.
+Hooks can refer to the timeline spec and timeline spec string as
+`twittering-rendered-new-tweets-spec' and
+`twittering-rendered-new-tweets-spec-string', repectively.
+Hooks can also use the local variable `twittering-rendered-new-tweets' as a
+list of rendered tweets.
+For the detail of the representation of tweets, see the variable
+`twittering-rendered-new-tweets'.")
+
 (defvar twittering-active-mode nil
   "Non-nil if new statuses should be retrieved periodically.
 Do not modify this variable directly. Use `twittering-activate-buffer',
@@ -2278,7 +2309,7 @@ the server when the HTTP status code equals to 400 or 403."
 	    ;; xmltree with HTTP status-code is "200" when we
 	    ;; retrieved all un-retrieved statuses.
 	    (when (and new-statuses buffer)
-	      (twittering-render-timeline buffer new-statuses))))
+	      (twittering-render-timeline buffer new-statuses t))))
 	(if twittering-notify-successful-http-get
 	    (format "Fetching %s.  Success." spec-string)
 	  nil)))
@@ -4191,7 +4222,7 @@ Statuses are stored in ascending-order with respect to their IDs."
 		      (twittering-new-tweets-count
 		       (length twittering-new-tweets-statuses)))
 		 (twittering-render-timeline buffer
-					     twittering-new-tweets-statuses)
+					     twittering-new-tweets-statuses t)
 		 (run-hooks 'twittering-new-tweets-hook)))))
 	 (twittering-get-buffer-list))
 	new-statuses))))
@@ -7441,9 +7472,11 @@ Return non-nil if the status is rendered. Otherwise, return nil."
 	   (insert-before-markers formatted-status separator))
 	 t))))
 
-(defun twittering-render-timeline (buffer timeline-data &optional keep-point)
+(defun twittering-render-timeline (buffer timeline-data &optional invoke-hook keep-point)
   "Render statuses for BUFFER.
 TIMELINE-DATA is a list of statuses being rendered.
+If INVOKE-HOOK is non-nil and one or more tweets are rendered, run hooks
+specified by `twittering-new-tweets-rendered-hook'.
 If KEEP-POINT is nil and BUFFER is empty, this function moves cursor positions
 to the latest status."
   (with-current-buffer buffer
@@ -7520,16 +7553,27 @@ to the latest status."
 	   (t
 	    (setq pos (twittering-get-first-status-head))))
 	  (goto-char pos)
-	  (mapc
-	   (lambda (status)
-	     (cond
-	      ((twittering-render-a-field (point)
-					  (twittering-make-field-id status)
-					  (twittering-format-status status))
-	       (when twittering-default-show-replied-tweets
-		 (twittering-show-replied-statuses
-		  twittering-default-show-replied-tweets)))))
-	   timeline-data)))
+	  (let* ((rendered-tweets
+		  (remove nil
+			  (mapcar
+			   (lambda (status)
+			     (when (twittering-render-a-field
+				    (point)
+				    (twittering-make-field-id status)
+				    (twittering-format-status status))
+			       (when twittering-default-show-replied-tweets
+				 (twittering-show-replied-statuses
+				  twittering-default-show-replied-tweets))
+			       status))
+			   timeline-data)))
+		 (twittering-rendered-new-tweets
+		  (if twittering-reverse-mode
+		      (nreverse rendered-tweets)
+		    rendered-tweets))
+		 (twittering-rendered-new-tweets-spec spec)
+		 (twittering-rendered-new-tweets-spec-string spec-string))
+	    (when (and invoke-hook twittering-rendered-new-tweets)
+	      (run-hooks 'twittering-new-tweets-rendered-hook)))))
       (debug-print (current-buffer))
       (cond
        ((and (not keep-point) rendering-entire)
@@ -7569,7 +7613,7 @@ will be restored after rendering statuses."
       (let ((buffer-read-only nil))
 	(erase-buffer))
       (twittering-render-timeline
-       (current-buffer) (twittering-current-timeline-data) restore-point)
+       (current-buffer) (twittering-current-timeline-data) nil restore-point)
       (when restore-point
 	;; Restore points.
 	(mapc (lambda (pair)

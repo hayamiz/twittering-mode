@@ -7523,13 +7523,12 @@ This function returns the position where the next status should be inserted."
 	       )))
 	   (t
 	    (setq pos (twittering-get-first-status-head))))
+	  (goto-char pos)
 	  (mapc
 	   (lambda (status)
-	     (setq pos
-		   (twittering-render-a-field
-		    pos
-		    (twittering-make-field-id status)
-		    (twittering-format-status status)))
+	     (twittering-render-a-field (point)
+					(twittering-make-field-id status)
+					(twittering-format-status status))
 	     (when twittering-default-show-replied-tweets
 	       (twittering-show-replied-statuses
 		twittering-default-show-replied-tweets)))
@@ -7744,20 +7743,20 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 		(prefix "  ")
 		(buffer-read-only nil))
 	    (save-excursion
+	      (goto-char pos)
 	      (mapc
 	       (lambda (status)
-		 (setq pos
-		       (twittering-render-a-field
-			pos
-			(twittering-make-field-id status base-id)
-			(let ((formatted-status
-			       (twittering-format-status status prefix))
-			      (field-properties
-			       (twittering-make-field-properties-of-popped-ancestors
-				status base-id)))
-			  (add-text-properties 0 (length formatted-status)
-					       field-properties formatted-status)
-			  formatted-status))))
+		 (twittering-render-a-field
+		  (point)
+		  (twittering-make-field-id status base-id)
+		  (let ((formatted-status
+			 (twittering-format-status status prefix))
+			(field-properties
+			 (twittering-make-field-properties-of-popped-ancestors
+			  status base-id)))
+		    (add-text-properties 0 (length formatted-status)
+					 field-properties formatted-status)
+		    formatted-status)))
 	       statuses)
 	      t))
 	(when interactive

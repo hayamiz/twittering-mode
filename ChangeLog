@@ -28,6 +28,12 @@
 	(twittering-render-a-field): move the cursor even if the given
 	status is not rendered.
 
+	* twittering-mode.el: Do not use the return value of the function
+	`twittering-render-a-field'.
+	(twittering-render-timeline): do not use the return value of
+	`twittering-render-a-field'.
+	(twittering-show-replied-statuses): likewise.
+
 2012-01-29  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Follow the header conventions. Thanks to

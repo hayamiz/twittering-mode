@@ -1,3 +1,11 @@
+2012-02-06  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Delete a specified status from composite
+	timeline buffers.
+	(twittering-get-dependent-timeline-specs): new function.
+	(twittering-delete-status-from-data-table): delete the given
+	status from buffers bound to composite timelines.
+
 2012-01-29  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Follow the header conventions. Thanks to

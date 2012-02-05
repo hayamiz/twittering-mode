@@ -3889,6 +3889,27 @@ The result timelines are primary."
 	   (mapcar 'twittering-get-primary-base-timeline-specs
 		   (twittering-get-base-timeline-specs spec)))))
 
+(defun twittering-get-dependent-timeline-specs (base-spec)
+  "Return a list of timeline specs that depend on BASE-SPEC.
+If BASE-SPEC is a primary timeline spec, the return value consists of
+BASE-SPEC and composite timeline specs that depend on BASE-SPEC and are
+bound to a live buffer.
+If BASE-SPEC is a composite timeline spec, the return value consists of
+composite timeline specs that depend on BASE-SPEC and are bound to a live
+buffer."
+  (twittering-remove-duplicates
+   `(;; BASE-SPEC may not be bound to a live buffer.
+     ,@(when (twittering-timeline-spec-primary-p base-spec)
+	 `(,base-spec))
+     ,@(remove
+	nil
+	(mapcar
+	 (lambda (spec)
+	   (when (twittering-timeline-spec-depending-on-p spec base-spec)
+	     spec))
+	 (mapcar 'twittering-get-timeline-spec-for-buffer
+		 (twittering-get-buffer-list)))))))
+
 (defun twittering-generate-composite-timeline (spec base-spec base-statuses)
   "Generate statuses for the timeline SPEC from BASE-STATUSES.
 BASE-STATUSES must originate from the BASE-SPEC timeline.
@@ -4035,10 +4056,8 @@ referring the former ID."
 		       modified-spec)))))
      twittering-timeline-data-table)
     (mapc
-     (lambda (data)
-       (let* ((spec (car data))
-	      (buffer (twittering-get-buffer-from-spec spec)))
-	 (puthash spec (cdr data) twittering-timeline-data-table)
+     (lambda (spec)
+       (let ((buffer (twittering-get-buffer-from-spec spec)))
 	 (when (buffer-live-p buffer)
 	   (with-current-buffer buffer
 	     (save-excursion
@@ -4051,7 +4070,17 @@ referring the former ID."
 		      (delete-region beg separator-pos)
 		      (goto-char beg))))
 		buffer))))))
-     modified-spec)))
+     (twittering-remove-duplicates
+      (apply 'append
+	     (mapcar
+	      (lambda (data)
+		(let ((spec (car data)))
+		  ;; Update the entry for `spec' in
+		  ;; `twittering-timeline-data-table' with the new
+		  ;; timeline-data that does not include `status'.
+		  (puthash spec (cdr data) twittering-timeline-data-table)
+		  (twittering-get-dependent-timeline-specs spec)))
+	      modified-spec))))))
 
 (defun twittering-get-replied-statuses (id &optional count)
   "Return a list of replied statuses starting from the status specified by ID.

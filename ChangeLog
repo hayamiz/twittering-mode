@@ -34,6 +34,13 @@
 	`twittering-render-a-field'.
 	(twittering-show-replied-statuses): likewise.
 
+	* twittering-mode.el: `twittering-render-a-field' returns nil if
+	the status is not rendered.
+	(twittering-render-a-field): return nil if the status is not
+	rendered.
+	(twittering-render-timeline): show replied statuses only if the
+	status is rendered.
+
 2012-01-29  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Follow the header conventions. Thanks to

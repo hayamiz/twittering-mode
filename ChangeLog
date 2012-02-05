@@ -6,6 +6,14 @@
 	(twittering-delete-status-from-data-table): delete the given
 	status from buffers bound to composite timelines.
 
+	* twittering-mode.el: Decode a HTTP response body before invoking
+	a sentinel.
+	(twittering-decode-response-body): new function.
+	(twittering-send-http-request): decode the response body by
+	`twittering-decode-response-body' before invoking the sentinel.
+	(twittering-http-get-default-sentinel): do not decode the response
+	body here.
+
 2012-01-29  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Follow the header conventions. Thanks to

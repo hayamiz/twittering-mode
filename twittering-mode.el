@@ -2278,7 +2278,7 @@ the server when the HTTP status code equals to 400 or 403."
 	    ;; xmltree with HTTP status-code is "200" when we
 	    ;; retrieved all un-retrieved statuses.
 	    (when (and new-statuses buffer)
-	      (twittering-render-timeline buffer t new-statuses))))
+	      (twittering-render-timeline buffer new-statuses))))
 	(if twittering-notify-successful-http-get
 	    (format "Fetching %s.  Success." spec-string)
 	  nil)))
@@ -4190,7 +4190,7 @@ Statuses are stored in ascending-order with respect to their IDs."
 			other-spec spec new-statuses))
 		      (twittering-new-tweets-count
 		       (length twittering-new-tweets-statuses)))
-		 (twittering-render-timeline buffer t
+		 (twittering-render-timeline buffer
 					     twittering-new-tweets-statuses)
 		 (run-hooks 'twittering-new-tweets-hook)))))
 	 (twittering-get-buffer-list))
@@ -6021,14 +6021,14 @@ SPEC may be a timeline spec or a timeline spec string."
       (if buffer
 	  (progn
 	    (twittering-replace-spec-string-for-buffer buffer spec-string)
-	    (twittering-render-timeline buffer t)
+	    (twittering-update-mode-line)
 	    buffer)
 	(let ((buffer (generate-new-buffer spec-string))
 	      (start-timer (null twittering-buffer-info-list)))
 	  (add-to-list 'twittering-buffer-info-list buffer t)
 	  (with-current-buffer buffer
 	    (twittering-mode-setup spec-string)
-	    (twittering-render-timeline buffer)
+	    (twittering-rerender-timeline-all buffer)
 	    (when (twittering-account-authorized-p)
 	      (when start-timer
 		;; If `buffer' is the first managed buffer,
@@ -6063,7 +6063,7 @@ icon mode; otherwise, turn off icon mode."
 	    (< 0 (prefix-numeric-value arg))))
     (unless (eq prev-mode twittering-icon-mode)
       (twittering-update-mode-line)
-      (twittering-render-timeline (current-buffer) nil nil t))))
+      (twittering-rerender-timeline-all (current-buffer) t))))
 
 (defvar twittering-icon-prop-hash (make-hash-table :test 'equal)
   "Hash table for storing display properties of icon. The key is the size of
@@ -7441,20 +7441,15 @@ Return non-nil if the status is rendered. Otherwise, return nil."
 	   (insert-before-markers formatted-status separator))
 	 t))))
 
-(defun twittering-render-timeline (buffer &optional additional timeline-data keep-point)
+(defun twittering-render-timeline (buffer timeline-data &optional keep-point)
   "Render statuses for BUFFER.
-If ADDITIONAL is nil, statuses are rendered after erasing all of BUFFER.
-TIMELINE-DATA specifies a list of statuses being rendered.
-If TIMELINE-DATA is nil, the return value of `twittering-current-timeline-data'
-is used instead.
-If KEEP-POINT is non-nil, positions on buffers bound to the same timeline
-will be restored after rendering statuses."
+TIMELINE-DATA is a list of statuses being rendered.
+If KEEP-POINT is nil and BUFFER is empty, this function moves cursor positions
+to the latest status."
   (with-current-buffer buffer
     (let* ((spec (twittering-get-timeline-spec-for-buffer buffer))
 	   (referring-id-table
 	    (twittering-current-timeline-referring-id-table spec))
-	   (timeline-data (or timeline-data
-			      (twittering-current-timeline-data spec)))
 	   (timeline-data
 	    ;; Collect visible statuses.
 	    (remove nil
@@ -7477,14 +7472,7 @@ will be restored after rendering statuses."
 	   (timeline-data (if twittering-reverse-mode
 			      (reverse timeline-data)
 			    timeline-data))
-	   (empty (null (twittering-get-first-status-head)))
-	   (rendering-entire (or empty (not additional)))
-	   (window-list (get-buffer-window-list (current-buffer) nil t))
-	   (point-window-list
-	    (mapcar (lambda (window)
-		      (cons (window-point window) window))
-		    window-list))
-	   (original-pos (point))
+	   (rendering-entire (null (twittering-get-first-status-head)))
 	   (buffer-read-only nil))
       (twittering-update-status-format)
       (twittering-update-mode-line)
@@ -7494,7 +7482,6 @@ will be restored after rendering statuses."
 	       (twittering-get-timeline-spec-string-for-buffer buffer)))
 	  (cond
 	   (rendering-entire
-	    (erase-buffer)
 	    (let* ((latest-id
 		    (twittering-make-field-id-of-timeline-latest-end
 		     spec-string))
@@ -7545,16 +7532,7 @@ will be restored after rendering statuses."
 	   timeline-data)))
       (debug-print (current-buffer))
       (cond
-       (keep-point
-	;; Restore points.
-	(mapc (lambda (pair)
-		(let* ((point (car pair))
-		       (window (cdr pair))
-		       (dest (max (point-max) point)))
-		  (set-window-point window dest)))
-	      point-window-list)
-	(goto-char original-pos))
-       (rendering-entire
+       ((and (not keep-point) rendering-entire)
 	;; Go to the latest status of buffer after full insertion.
 	(let ((dest (if twittering-reverse-mode
 			(or (twittering-get-last-normal-field-head)
@@ -7562,7 +7540,8 @@ will be restored after rendering statuses."
 			    (point-max))
 		      (or (twittering-get-first-normal-field-head)
 			  (twittering-get-first-status-head)
-			  (point-min)))))
+			  (point-min))))
+	      (window-list (get-buffer-window-list (current-buffer) nil t)))
 	  (if window-list
 	      (mapc
 	       (lambda (window)
@@ -7575,6 +7554,31 @@ will be restored after rendering statuses."
 	    (goto-char dest))))
        ))
     ))
+
+(defun twittering-rerender-timeline-all (buffer &optional restore-point)
+  "Re-render statuses on BUFFER after clearing BUFFER.
+If RESTORE-POINT is non-nil, positions on buffers bound to the same timeline
+will be restored after rendering statuses."
+  (with-current-buffer buffer
+    (let* ((window-list (get-buffer-window-list (current-buffer) nil t))
+	   (point-window-list
+	    (mapcar (lambda (window)
+		      (cons (window-point window) window))
+		    window-list))
+	   (original-pos (point)))
+      (let ((buffer-read-only nil))
+	(erase-buffer))
+      (twittering-render-timeline
+       (current-buffer) (twittering-current-timeline-data) restore-point)
+      (when restore-point
+	;; Restore points.
+	(mapc (lambda (pair)
+		(let* ((point (car pair))
+		       (window (cdr pair))
+		       (dest (max (point-max) point)))
+		  (set-window-point window dest)))
+	      point-window-list)
+	(goto-char original-pos)))))
 
 (defun twittering-get-and-render-timeline (&optional noninteractive id spec spec-string)
   (let ((spec (or spec (twittering-current-timeline-spec)))
@@ -8939,7 +8943,7 @@ instead."
 	    (< 0 (prefix-numeric-value arg))))
     (unless (eq prev-mode twittering-reverse-mode)
       (twittering-update-mode-line)
-      (twittering-render-timeline (current-buffer)))))
+      (twittering-rerender-timeline-all (current-buffer)))))
 
 (defun twittering-set-current-hashtag (&optional tag)
   (interactive)
@@ -9485,7 +9489,7 @@ The user is also blocked."
   (when (twittering-buffer-p)
     (let ((spec (twittering-current-timeline-spec)))
       (twittering-remove-timeline-data spec) ;; clear current timeline.
-      (twittering-render-timeline (current-buffer) nil) ;; clear buffer.
+      (twittering-rerender-timeline-all (current-buffer)) ;; clear buffer.
       (twittering-get-and-render-timeline))))
 
 ;;;; Cursor motion

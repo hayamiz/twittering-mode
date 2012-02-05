@@ -45,6 +45,17 @@
 	`twittering-render-timeline'.
 	(twittering-render-timeline): add a docstring.
 
+	* twittering-mode.el: Add `twittering-rerender-timeline-all' that
+	re-renders tweets after clearing the buffer.
+	(twittering-render-timeline): modify arguments.
+	(twittering-rerender-timeline-all): new function.
+	(twittering-get-managed-buffer): replace the invocation of the
+	function `twittering-render-timeline' with that of the function
+	`twittering-rerender-timeline-all'.
+	(twittering-icon-mode): likewise.
+	(twittering-toggle-reverse-mode): likewise.
+	(twittering-erase-old-statuses): likewise.
+
 2012-01-29  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Follow the header conventions. Thanks to

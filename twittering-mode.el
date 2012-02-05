@@ -7912,10 +7912,11 @@ means the number of statuses retrieved after the last visiting of the buffer.")
 
 (defun twittering-update-unread-status-info ()
   "Update `twittering-unread-status-info' with new tweets."
-  (let* ((buffer (twittering-get-buffer-from-spec twittering-new-tweets-spec))
+  (let* ((buffer (twittering-get-buffer-from-spec
+		  twittering-rendered-new-tweets-spec))
 	 (current (or (cadr (assq buffer twittering-unread-status-info)) 0))
-	 (result (+ current twittering-new-tweets-count)))
-    (when (and buffer (not (eq buffer (current-buffer))))
+	 (result (+ current (length twittering-rendered-new-tweets))))
+    (when buffer
       (twittering-set-number-of-unread buffer result))))
 
 (defun twittering-enable-unread-status-notifier ()
@@ -7924,7 +7925,8 @@ means the number of statuses retrieved after the last visiting of the buffer.")
   (setq twittering-unread-status-info
 	(mapcar (lambda (buffer) `(,buffer ,0))
 		(twittering-get-buffer-list)))
-  (add-hook 'twittering-new-tweets-hook 'twittering-update-unread-status-info)
+  (add-hook 'twittering-new-tweets-rendered-hook
+	    'twittering-update-unread-status-info)
   (add-hook 'post-command-hook
 	    'twittering-reset-unread-status-info-if-necessary)
   (add-to-list 'global-mode-string

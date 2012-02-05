@@ -69,6 +69,15 @@
 	(twittering-rerender-timeline-all): call
 	`twittering-render-timeline' with nil INVOKE-HOOK.
 
+	* twittering-mode.el: Unread status notifier uses the new hook
+	invoked when rendering tweets. This corrects the number of unread
+	statuses on composite timelines.
+	(twittering-update-unread-status-info): modified for use in
+	`twittering-new-tweets-rendered-hook'.
+	(twittering-enable-unread-status-notifier): use
+	`twittering-new-tweets-rendered-hook' instead of
+	`twittering-new-tweets-hook'.
+
 2012-01-29  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Follow the header conventions. Thanks to

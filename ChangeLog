@@ -14,6 +14,15 @@
 	(twittering-http-get-default-sentinel): do not decode the response
 	body here.
 
+	* twittering-mode.el: Delete a status after the successful
+	response for the `destroy-status' API is received.
+	(twittering-http-post-destroy-status-sentinel): new function.
+	(twittering-call-api): use the new function
+	`twittering-http-post-destroy-status-sentinel' as the sentinel of
+	`twittering-http-post' for the command `destroy-status'.
+	(twittering-delete-status): do not delete the specified status
+	here.
+
 2012-01-29  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Follow the header conventions. Thanks to

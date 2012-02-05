@@ -2382,6 +2382,26 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
       (format "Response: %s"
 	      (twittering-get-error-message header-info (current-buffer)))))))
 
+(defun twittering-http-post-destroy-status-sentinel (proc status connection-info header-info)
+  "A sentinel for deleting a status invoked via `twittering-call-api'."
+  (let ((status-line (cdr (assq 'status-line header-info)))
+	(status-code (cdr (assq 'status-code header-info))))
+    (case-string
+     status-code
+     (("200")
+      (let* ((xml (twittering-xml-parse-region (point-min) (point-max)))
+	     (id (elt (assq 'id (assq 'status xml)) 2))
+	     (text (elt (assq 'text (assq 'status xml)) 2)))
+	(cond
+	 (id
+	  (twittering-delete-status-from-data-table id)
+	  (format "Deleting \"%s\". Success." text))
+	 (t
+	  "Failure: the response for deletion could not be parsed."))))
+     (t
+      (format "Response: %s"
+	      (twittering-get-error-message header-info (current-buffer)))))))
+
 ;;;;
 ;;;; OAuth
 ;;;;
@@ -4660,7 +4680,8 @@ get-service-configuration -- Get the configuration of the server.
     (let ((id (cdr (assq 'id args-alist))))
       (twittering-http-post twittering-api-host
 			    (twittering-api-path "statuses/destroy/" id)
-			    nil nil additional-info)))
+			    nil nil additional-info
+			    'twittering-http-post-destroy-status-sentinel)))
    ((eq command 'retweet)
     ;; Post a retweet.
     (let ((id (cdr (assq 'id args-alist))))
@@ -9181,8 +9202,7 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
      ((not id)
       (message "No status selected"))
      ((y-or-n-p mes)
-      (twittering-call-api 'destroy-status `((id . ,id)))
-      (twittering-delete-status-from-data-table id))
+      (twittering-call-api 'destroy-status `((id . ,id))))
      (t
       (message "Request canceled")))))
 

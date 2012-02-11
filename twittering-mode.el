@@ -3829,11 +3829,12 @@ Return cons of the spec and the rest string."
 	  (setq rest next-rest)))
       (if (and rest (string-match "^)" rest))
 	  (let ((spec-list
-		 (apply 'append
-			(mapcar (lambda (x) (if (eq 'merge (car x))
-						(cdr x)
-					      (list x)))
-				(reverse result)))))
+		 (twittering-remove-duplicates
+		  (apply 'append
+			 (mapcar (lambda (x) (if (eq 'merge (car x))
+						 (cdr x)
+					       (list x)))
+				 (reverse result))))))
 	    (if (= 1 (length spec-list))
 		`(,(car spec-list) . ,(substring rest 1))
 	      `((merge ,@spec-list) . ,(substring rest 1))))

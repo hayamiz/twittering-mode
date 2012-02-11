@@ -7,6 +7,12 @@
 	(twittering-edit-setup-help): set an after-string property of the
 	overlay for the help and give high priority to the overlay.
 
+	* twittering-mode.el: Remove duplicates in a merge timeline spec.
+	(twittering-extract-timeline-spec): remove duplicates in a list of
+	timeline specs in a merge timeline spec.
+	* test/test-twittering-mode.el: Add a test of reducing duplicates
+	in a merge timeline spec.
+
 2012-02-06  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Delete a specified status from composite

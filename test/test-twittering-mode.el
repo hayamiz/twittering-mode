@@ -210,6 +210,14 @@
 	    (public)))
    '(t t))
 
+  ;; Duplicates in a merge timeline are removed.
+  (test-assert-equal
+   (test-restore-timeline-spec
+    "(ABC+user/mylist+user/mylist+ABC)"
+    '(merge (user "ABC") (list "user" "mylist"))
+    '(merge (user "ABC") (list "user" "mylist")))
+   '(t t))
+
   (test-assert-equal
    (test-restore-timeline-spec
     ":filter/ABC/user/mylist"

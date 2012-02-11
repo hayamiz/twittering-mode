@@ -13,6 +13,13 @@
 	* test/test-twittering-mode.el: Add a test of reducing duplicates
 	in a merge timeline spec.
 
+	* twittering-mode.el: Remove duplicates in the list of primary
+	base timeline specs.
+	(twittering-get-primary-base-timeline-specs): remove duplicates in
+	the list of primary base timeline specs.
+	* test/test-twittering-mode.el: Add a test of dependence of
+	composite timeline specs.
+
 2012-02-06  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Delete a specified status from composite

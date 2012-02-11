@@ -3948,9 +3948,10 @@ If SPEC is primary, returns a list consisting of itself.
 The result timelines are primary."
   (if (twittering-timeline-spec-primary-p spec)
       `(,spec)
-    (apply 'append
-	   (mapcar 'twittering-get-primary-base-timeline-specs
-		   (twittering-get-base-timeline-specs spec)))))
+    (twittering-remove-duplicates
+     (apply 'append
+	    (mapcar 'twittering-get-primary-base-timeline-specs
+		    (twittering-get-base-timeline-specs spec))))))
 
 (defun twittering-get-dependent-timeline-specs (base-spec)
   "Return a list of timeline specs that depend on BASE-SPEC.

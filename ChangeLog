@@ -30,6 +30,13 @@
 	another field. The function previously returned the head of the
 	previous field.
 
+	* twittering-mode.el: Fix the behavior of `twittering-get-id-at'
+	on the head of the footer.
+	(twittering-get-id-at): use `twittering-get-current-status-head'
+	instead of `twittering-get-previous-status-head'. On the head of
+	the footer, the former returns the head of the footer and the
+	latter returns the head of the status followed by the footer.
+
 2012-02-06  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Delete a specified status from composite

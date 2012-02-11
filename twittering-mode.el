@@ -9553,7 +9553,7 @@ the ID of the status rendered before the separator. The default value of POS
 is `(point)'."
   (let ((pos (or pos (point))))
     (or (get-text-property pos 'id)
-	(let ((prev (or (twittering-get-previous-status-head pos)
+	(let ((prev (or (twittering-get-current-status-head pos)
 			(point-min))))
 	  (and prev (get-text-property prev 'id))))))
 

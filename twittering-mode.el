@@ -3607,7 +3607,7 @@ Before calling this, you have to configure `twittering-bitly-login' and
 ;;; QUERY_STRING ::= any string, where "/" is escaped by a backslash.
 ;;;
 ;;; EXCLUDE-IF ::= ":exclude-if/" FUNC "/" SPEC
-;;; FUNC ::= LAMBDA EXPRESSION
+;;; FUNC ::= LAMBDA EXPRESSION | SYMBOL
 ;;;
 ;;; MERGE ::= "(" MERGED_SPECS ")"
 ;;; MERGED_SPECS ::= SPEC | SPEC "+" MERGED_SPECS
@@ -3755,11 +3755,14 @@ Return cons of the spec and the rest string."
 		nil))))
        ((string= type "exclude-if")
 	(let ((result-pair
-	       (when (string-match "^:exclude-if/" str)
+	       (cond
+		((string-match "^:exclude-if/\\([^(/]+\\)/" str)
+		 `(,(intern (match-string 1 str)) . ,(match-end 1)))
+		((string-match "^:exclude-if/" str)
 		 (condition-case err
 		     (read-from-string str (match-end 0))
 		   (error
-		    nil)))))
+		    nil))))))
 	  (if result-pair
 	      (let ((func (car result-pair))
 		    (pos (cdr result-pair)))

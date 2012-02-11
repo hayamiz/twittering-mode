@@ -145,8 +145,10 @@
 * Support for exclude-if timelines.
   ":exclude-if/FUNC/SPEC" is added as a new timeline spec. The
   timeline equals SPEC, except that it does not include tweets that
-  the function FUNC returns non-nil for. FUNC is a lambda expression
-  that receives an alist corresponding to a tweet as an argument. You
+  the function FUNC returns non-nil for. FUNC must be a function that
+  receives an alist corresponding to a tweet as an argument. A lambda
+  expression and a symbol bound to a function are valid as FUNC. But a
+  symbol name must not include two special characters, "(" or "/". You
   can specify any timeline spec for SPEC. For example, you can ignore
   tweets including "WORD" from the home  timeline by the following
   timeline spec; ":exclude-if/(lambda (tweet) (string-match \"WORD\"

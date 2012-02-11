@@ -1,3 +1,12 @@
+2012-02-12  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Accept a symbol as FUNC of a composite
+	timeline spec ":exclude-if/FUNC/SPEC".
+	(twittering-extract-timeline-spec): accept a symbol as FUNC of
+	a composite timeline spec ":exclude-if/FUNC/SPEC".
+	* test/test-twittering-mode.el: Add a test of an exclude-if
+	timeline spec with a symbol as FUNC.
+
 2012-02-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Use an after-string property instead of

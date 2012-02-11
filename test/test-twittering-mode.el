@@ -178,6 +178,9 @@
 	    normalized-spec)
      (equal normalized-spec spec-from-str))))
 
+(defun test-exclude-if-function (status)
+  (string-match "test" (cdr (assq 'text status))))
+
 (defcase timeline-spec nil nil
   (test-assert-equal
    (test-restore-timeline-spec
@@ -243,6 +246,13 @@
     ":filter/\\\\/user/mylist"
     '(filter "\\\\" (list "user" "mylist"))
     '(filter "\\\\" (list "user" "mylist")))
+   '(t t))
+
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ":exclude-if/test-exclude-if-function/:home"
+    '(exclude-if test-exclude-if-function (home))
+    '(exclude-if test-exclude-if-function (home)))
    '(t t))
 
   (test-assert-equal

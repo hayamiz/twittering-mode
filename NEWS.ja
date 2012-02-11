@@ -141,8 +141,10 @@
 * exclude-if timelineに対応
   新しく":exclude-if/FUNC/SPEC"というtimelineに対応しました。この
   timelineはSPECで表されるものとほぼ同じですが、関数FUNCがnon-nilを返
-  すようなtweetは除外されている点が異なります。関数FUNCはひとつのtweet
-  に対応した連想リストをひとつ受け取るλ式で指定します。SPECには任意の
+  すようなtweetは除外されている点が異なります。FUNCはひとつのtweetに対
+  応した連想リストをひとつ受け取る関数でなければなりません。FUNCとして
+  はλ式もしくは関数に対応するシンボルが指定できます。但しシンボルで指
+  定する場合、名前に"("や"/"を含むものは指定できません。SPECには任意の
   timeline specを指定できます。例えば、home timelineから"WORD"を含む
   tweetを除外したtimelineは下記のtimeline specで指定できます。
   ":exclude-if/(lambda (tweet) (string-match \"WORD\" (cdr (assq 'text

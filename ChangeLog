@@ -20,6 +20,16 @@
 	* test/test-twittering-mode.el: Add a test of dependence of
 	composite timeline specs.
 
+	* twittering-mode.el: Fix the behavior of the function
+	`twittering-get-current-status-head' for the position following
+	the header. Thanks to lemit who reported the problem.
+	The previous one made `twittering-replied-statuses-visible-p'
+	return an incorrect value on the position following the header.
+	(twittering-get-current-status-head): fix the behavior when POS
+	points to the beginning of a field and also points to the end of
+	another field. The function previously returned the head of the
+	previous field.
+
 2012-02-06  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Delete a specified status from composite

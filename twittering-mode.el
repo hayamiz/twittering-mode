@@ -9565,7 +9565,8 @@ by the separator.
 Return POS if no statuses are rendered."
   (let* ((pos (or pos (point)))
 	 (field-id (get-text-property pos 'field))
-	 (head (field-beginning pos)))
+	 ;; Find the beginning of the field regardless of stickiness.
+	 (head (field-beginning pos t)))
     (cond
      ((null field-id)
       ;; A separator is rendered at `pos'.
@@ -9575,10 +9576,15 @@ Return POS if no statuses are rendered."
 	  head
 	;; In the case that `pos' points to a character of the separator,
 	;; but not to the head of the separator.
-	(field-beginning head)))
+	(field-beginning head t)))
      ((null (get-text-property head 'field))
       ;; When `head' points to a separator, `pos' points to the head
       ;; of a status.
+      pos)
+     ((not (twittering-field-id= field-id (get-text-property head 'field)))
+      ;; When `pos' points to the beginning of the field and it also
+      ;; points to the end of the previous field, `head' points to the
+      ;; head of the previous status.
       pos)
      (t
       head))))

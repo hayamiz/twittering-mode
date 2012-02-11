@@ -1,3 +1,12 @@
+2012-02-11  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Use an after-string property instead of
+	a before-string property to show the help on an edit buffer.
+	Thanks to irie who discoverd the problem and wrote a suitable
+	code.
+	(twittering-edit-setup-help): set an after-string property of the
+	overlay for the help and give high priority to the overlay.
+
 2012-02-06  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Delete a specified status from composite

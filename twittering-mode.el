@@ -8599,7 +8599,8 @@ instead."
 	      (make-overlay 1 1 nil nil nil))))
     (add-text-properties 0 (length help-str) '(face font-lock-comment-face)
 			 help-str)
-    (overlay-put help-overlay 'before-string help-str)
+    (overlay-put help-overlay 'after-string help-str)
+    (overlay-put help-overlay 'priority 1000)
     (setq twittering-help-overlay help-overlay)))
 
 (defun twittering-edit-close ()

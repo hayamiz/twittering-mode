@@ -8497,6 +8497,8 @@ entry in `twittering-edit-skeleton-alist' are performed.")
 (defvar twittering-edit-local-history nil)
 (defvar twittering-edit-local-history-idx nil)
 (defvar twittering-help-overlay nil)
+(defvar twittering-help-overlay-priority 1000
+  "*Priority of the help overlay in edit mode of `twittering-mode'.")
 (defvar twittering-warning-overlay nil)
 
 (define-derived-mode twittering-edit-mode text-mode "twmode-status-edit"
@@ -8605,7 +8607,7 @@ instead."
     (add-text-properties 0 (length help-str) '(face font-lock-comment-face)
 			 help-str)
     (overlay-put help-overlay 'after-string help-str)
-    (overlay-put help-overlay 'priority 1000)
+    (overlay-put help-overlay 'priority twittering-help-overlay-priority)
     (setq twittering-help-overlay help-overlay)))
 
 (defun twittering-edit-close ()

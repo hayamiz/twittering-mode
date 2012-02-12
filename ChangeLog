@@ -7,6 +7,12 @@
 	* test/test-twittering-mode.el: Add a test of an exclude-if
 	timeline spec with a symbol as FUNC.
 
+	* twittering-mode.el: Give the help overlay a priority specified
+	by `twittering-help-overlay-priority'.
+	(twittering-help-overlay-priority): new variable.
+	(twittering-edit-setup-help): give the overlay a priority
+	specified by `twittering-help-overlay-priority'.
+
 2012-02-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Use an after-string property instead of

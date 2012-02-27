@@ -122,6 +122,13 @@
 	(twittering-edit-toggle-reply): new function, which toggles
 	whether the tweet being edited will be sent as a reply or not.
 
+	* twittering-mode.el: Confirm that the edited message should be
+	sent as a normal tweet when it has been edited as a reply but it
+	does not include a mention to the cited user.
+	(twittering-edit-post-status): confirm that the edited message
+	should be sent as a normal tweet when it has been edited as a
+	reply but it does not include a mention to the cited user.
+
 2012-02-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Accept a symbol as FUNC of a composite

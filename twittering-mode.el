@@ -8745,7 +8745,13 @@ Pairs of a key symbol and an associated value are following:
       (message "Empty tweet!"))
      ((< 140 (twittering-effective-length status))
       (message "Tweet is too long!"))
-     ((or (not twittering-request-confirmation-on-posting)
+     ((or (and (eq tweet-type 'reply)
+	       (or (string-match (concat "@" cited-username
+					 "\\(?:[\n\r \t]+\\)*")
+				 status)
+		   (y-or-n-p
+		    "Send this tweet without mentions as a normal tweet (not a reply)? ")))
+	  (not twittering-request-confirmation-on-posting)
 	  (y-or-n-p "Send this tweet? "))
       (setq twittering-edit-history
 	    (cons status twittering-edit-history))
@@ -8756,15 +8762,10 @@ Pairs of a key symbol and an associated value are following:
 				 `((username . ,direct-message-recipient)
 				   (status . ,status)))
 	  (message "No username specified")))
-       ((and (eq tweet-type 'reply)
-	     ;; Add in_reply_to_status_id only when a posting status
-	     ;; begins with @cited-username.
-	     (string-match (concat "@" cited-username "\\(?:[\n\r \t]+\\)*")
-			   status))
-	(twittering-call-api
-	 'update-status
-	 `((status . ,status)
-	   (in-reply-to-status-id . ,cited-id))))
+       ((eq tweet-type 'reply)
+	(twittering-call-api 'update-status
+			     `((status . ,status)
+			       (in-reply-to-status-id . ,cited-id))))
        (t
 	(twittering-call-api 'update-status `((status . ,status)))))
       (twittering-edit-close))

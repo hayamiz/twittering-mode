@@ -1,3 +1,15 @@
+2012-02-28  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix the function
+	`twittering-current-timeline-referring-id-table'. There was the
+	possibility that the function returns nil for a composite timeline
+	spec. This made native retweets disappear on the composite
+	timeline. Thanks to Boots_of_Lead who reported the bug.
+	(twittering-current-timeline-referring-id-table): for a composite
+	timeline spec, return the table of the first primary base spec
+	with a non-nil referring table. This function previously returned
+	the first direct base timeline spec, which might be nil.
+
 2012-02-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Accept a symbol as FUNC of a composite

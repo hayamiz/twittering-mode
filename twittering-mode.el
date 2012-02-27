@@ -4038,10 +4038,7 @@ referring the former ID."
     (cond
      ((null spec)
       nil)
-     ((eq type 'exclude-if)
-      (let ((base-spec (car (twittering-get-base-timeline-specs spec))))
-	(elt (gethash base-spec twittering-timeline-data-table) 1)))
-     ((eq 'merge (car spec))
+     ((memq type '(exclude-if merge))
       ;; Use the first non-nil table instead of merging the all tables
       ;; because it may take a long time to merge them.
       (car
@@ -4049,7 +4046,7 @@ referring the former ID."
 	nil
 	(mapcar (lambda (base-spec)
 		  (elt (gethash base-spec twittering-timeline-data-table) 1))
-		(twittering-get-base-timeline-specs spec)))))
+		(twittering-get-primary-base-timeline-specs spec)))))
      (t
       (elt (gethash spec twittering-timeline-data-table) 1)))))
 

@@ -10,6 +10,11 @@
 	with a non-nil referring table. This function previously returned
 	the first direct base timeline spec, which might be nil.
 
+	* twittering-mode.el: Add an explanation to the docstring of
+	`twittering-new-tweets-rendered-hook'.
+	(twittering-new-tweets-rendered-hook): add an explanation to the
+	docstring.
+
 2012-02-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Accept a symbol as FUNC of a composite

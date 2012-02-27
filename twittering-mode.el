@@ -328,7 +328,9 @@ latest one, and the last is the oldest one.")
 
 (defvar twittering-new-tweets-rendered-hook nil
   "*Hook run when new tweets are rendered.
-Hooks can refer to the timeline spec and timeline spec string as
+When the registered functions are called, the current buffer is the buffer
+that the new tweets are just rendered on.
+The functions can refer to the timeline spec and timeline spec string as
 `twittering-rendered-new-tweets-spec' and
 `twittering-rendered-new-tweets-spec-string', repectively.
 Hooks can also use the local variable `twittering-rendered-new-tweets' as a

@@ -407,10 +407,11 @@ Note that this skeleton is performed before the edit skeleton specified by
 `twittering-edit-skeleton' is performed.
 
 Replacement table:
- %s - screen_name
- %t - text
- %% - %
-")
+ %s - The screen-name of the cited tweet.
+ %t - The text of the cited tweet.
+ %u - The URL of the cited tweet.
+ %# - The ID of the cited tweet.
+ %% - % itself.")
 
 (defvar twittering-fill-column nil
   "*The fill-column used for \"%FILL{...}\" in `twittering-status-format'.
@@ -4239,6 +4240,17 @@ Statuses are stored in ascending-order with respect to their IDs."
 (defun twittering-get-status-url (username &optional id)
   "Generate a URL of a user or a specific status."
   (let ((func
+	 (cdr (assq
+	       'status-url
+	       (assq twittering-service-method
+		     twittering-service-method-table)))))
+    (funcall func username id)))
+
+(defun twittering-get-status-url-from-alist (status)
+  "Generate a URL of a tweet specified by an alist STATUS."
+  (let ((username (cdr (assq 'user-screen-name status)))
+	(id (cdr (assq 'id status)))
+	(func
 	 (cdr (assq
 	       'status-url
 	       (assq twittering-service-method
@@ -9376,30 +9388,31 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
 (defun twittering-organic-retweet ()
   (interactive)
   (let* ((id (twittering-get-id-at))
-	 (status (twittering-find-status (twittering-get-id-at))))
-    (when (cdr (assq 'user-protected status))
-      (error "Cannot retweet protected tweets.")))
-  (let ((username (get-text-property (point) 'username))
-	(text (get-text-property (point) 'text))
-	(id (get-text-property (point) 'id))
-	(retweet-time (current-time))
-	(skeleton-with-format-string
-	 (cond
-	  ((null twittering-retweet-format)
-	   '(nil _ " RT: %t (via @%s)"))
-	  ((stringp twittering-retweet-format)
-	   `(nil ,twittering-retweet-format _))
-	  ((listp twittering-retweet-format)
-	   twittering-retweet-format)
-	  (t
-	   nil))))
-    (when username
+	 (status (twittering-find-status id))
+	 (username (cdr (assq 'user-screen-name status)))
+	 (text (cdr (assq 'text status)))
+	 (retweet-time (current-time))
+	 (skeleton-with-format-string
+	  (cond
+	   ((null twittering-retweet-format)
+	    '(nil _ " RT: %t (via @%s)"))
+	   ((stringp twittering-retweet-format)
+	    `(nil ,twittering-retweet-format _))
+	   ((listp twittering-retweet-format)
+	    twittering-retweet-format)
+	   (t
+	    nil))))
+    (cond
+     ((cdr (assq 'user-protected status))
+      (error "Cannot retweet protected tweets."))
+     (username
       (let ((prefix "%")
 	    (replace-table
 	     `(("%" . "%")
 	       ("s" . ,username)
 	       ("t" . ,text)
 	       ("#" . ,id)
+	       ("u" . ,(twittering-get-status-url-from-alist status))
 	       ("C{\\([^}]*\\)}" .
 		(lambda (context)
 		  (let ((str (cdr (assq 'following-string context)))
@@ -9415,7 +9428,7 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
 		     element))
 		 skeleton-with-format-string)
 	 id nil 'organic-retweet)
-	))))
+	)))))
 
 (defun twittering-native-retweet ()
   (interactive)

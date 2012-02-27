@@ -129,6 +129,14 @@
 	should be sent as a normal tweet when it has been edited as a
 	reply but it does not include a mention to the cited user.
 
+	* twittering-mode.el: Support a new format specifier "%u" for
+	`twittering-retweet-format'. It is replaced with the URL of the
+	cited tweet.
+	(twittering-retweet-format): update the docstring.
+	(twittering-get-status-url-from-alist): new function.
+	(twittering-organic-retweet): support a new format specifier
+	"%u".
+
 2012-02-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Accept a symbol as FUNC of a composite

@@ -102,6 +102,10 @@
   Since the Emacs LISP program `windows.el' written by HIROSE Yuuji
   implicitly loads `revive.el' if possible, you should also take care
   of the order of loading `windows.el' and the configuration.
+* New format specifier "%u" for `twittering-retweet-format'.
+  "%u" is added as a new format specifier for
+  `twittering-retweet-format'. It is replaced with the URL of the
+  cited tweet.
 * Skeleton for initializing an organic retweet.
   You can use a skeleton as the variable `twittering-retweet-format'
   for initializing an organic retweet. This means that you can also
@@ -109,11 +113,13 @@
   skeleton are converted with the below replacement table and then the
   skeleton is inserted with `skeleton-insert'.
   The replacement table is as follows.
-    %s: screen_name
-    %t: text
-    %%: %
-  This is equivalent to the previous rule applied for
-  `twittering-retweet-format'.
+    %s - The screen-name of the cited tweet.
+    %t - The text of the cited tweet.
+    %u - The URL of the cited tweet.
+    %# - The ID of the cited tweet.
+    %% - % itself.
+  This is equivalent to the rule applied for
+  `twittering-retweet-format' as a string.
   Note that it is inserted before the edit skeleton specified by
   `twittering-edit-skeleton' is performed.
 * Tweet type of edit skeleton for an organic retweet.

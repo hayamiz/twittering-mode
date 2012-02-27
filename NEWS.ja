@@ -101,6 +101,9 @@
   また、同じくHIROSE Yuujiさん作のEmacs LISPプログラム`windows.el'は
   `revive.el'を暗黙にloadしますので、`windows.el'をloadするタイミング
   にも注意してください。
+* `twittering-retweet-format'用の新しい書式指定子"%u"
+  `twittering-retweet-format'で指定できる書式指定子として"%u"が追加さ
+  れました。これは引用されるtweetを指すURLと置き換えられます。
 * skeletonによる非公式ReTweetの初期文字列設定
   非公式ReTweetを編集する際の初期文字列を指定する変数
   `twittering-retweet-format'にskeletonを指定できるようになりました。
@@ -108,11 +111,12 @@
   れる文字列を下記の対応表によって変換してから、関数`skeleton-insert'
   で挿入します。
   対応表は以下の通りです。
-    %s: screen_name
-    %t: text
-    %%: %
-  この表は従来から`twittering-retweet-format'に適用されていた規則と同
-  じです。
+    %s - 引用されるtweetの投稿者のscreen-name
+    %t - 引用されるtweetの内容
+    %u - 引用されるtweetを指すURL
+    %# - 引用されるtweetのID
+    %% - %自身
+  この表は`twittering-retweet-format'に適用される規則と同じです。
   この変数`twittering-retweet-format'による初期文字列の挿入後に変数
   `twittering-edit-skeleton'で指定されたedit skeletonが適用される点に
   注意してください。

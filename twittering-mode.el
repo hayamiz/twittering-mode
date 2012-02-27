@@ -8664,7 +8664,14 @@ instead."
     (set-window-configuration twittering-pre-edit-window-configuration)
     (setq twittering-pre-edit-window-configuration nil)))
 
-(defvar twittering-reply-recipient nil)
+(defvar twittering-edit-mode-info nil
+  "Alist of a tweet being edited.
+Pairs of a key symbol and an associated value are following:
+  direct-message-recipient -- the recipient when the edited message is
+    sent as a direct message.
+  cited-id -- the id of the tweet that the edited message refers to.
+  tweet-type -- the type of the edited message, which is one of the
+    following symbol; normal, reply or direct-message.")
 
 (defun twittering-ensure-whole-of-status-is-visible (&optional window)
   "Ensure that the whole of the tweet on the current point is visible."
@@ -8690,6 +8697,15 @@ instead."
       (pop-to-buffer buf nil t)
       (twittering-ensure-whole-of-status-is-visible win))
     (twittering-edit-mode)
+    (make-local-variable 'twittering-edit-mode-info)
+    (setq twittering-edit-mode-info
+	  `((cited-id . ,reply-to-id)
+	    (tweet-type . ,(cdr (assq tweet-type
+				      '((direct-message . direct-message)
+					(normal . normal)
+					(organic-retweet . normal)
+					(reply . reply)))))
+	    (direct-message-recipient . ,username)))
     (twittering-edit-setup-help username tweet-type reply-to-id)
     (goto-char (twittering-edit-get-help-end))
     (if (eq tweet-type 'direct-message)
@@ -8707,19 +8723,18 @@ instead."
        ((listp init-string-or-skeleton)
 	(skeleton-insert init-string-or-skeleton)))
       (set-buffer-modified-p nil))
-    (make-local-variable 'twittering-reply-recipient)
-    (setq twittering-reply-recipient
-	  `(,reply-to-id ,username ,(when (eq tweet-type 'direct-message)
-				      '(direct_messages))))
     (twittering-edit-skeleton-insert tweet-type reply-to-id
 				     current-spec)))
 
 (defun twittering-edit-post-status ()
   (interactive)
-  (let ((status (twittering-edit-extract-status))
-	(reply-to-id (nth 0 twittering-reply-recipient))
-	(username (nth 1 twittering-reply-recipient))
-	(spec (nth 2 twittering-reply-recipient)))
+  (let* ((status (twittering-edit-extract-status))
+	 (cited-id (cdr (assq 'cited-id twittering-edit-mode-info)))
+	 (cited-tweet (twittering-find-status cited-id))
+	 (cited-username (cdr (assq 'user-screen-name cited-tweet)))
+	 (direct-message-recipient
+	  (cdr (assq 'direct-message-recipient twittering-edit-mode-info)))
+	 (tweet-type (cdr (assq 'tweet-type twittering-edit-mode-info))))
     (cond
      ((string-match "\\` *\\'" status)
       (message "Empty tweet!"))
@@ -8730,25 +8745,23 @@ instead."
       (setq twittering-edit-history
 	    (cons status twittering-edit-history))
       (cond
-       ((twittering-timeline-spec-is-direct-messages-p spec)
-	(if username
+       ((eq tweet-type 'direct-message)
+	(if direct-message-recipient
 	    (twittering-call-api 'send-direct-message
-				 `((username . ,username)
+				 `((username . ,direct-message-recipient)
 				   (status . ,status)))
 	  (message "No username specified")))
+       ((and (eq tweet-type 'reply)
+	     ;; Add in_reply_to_status_id only when a posting status
+	     ;; begins with @cited-username.
+	     (string-match (concat "\\`@" cited-username "\\(?:[\n\r \t]+\\)*")
+			   status))
+	(twittering-call-api
+	 'update-status
+	 `((status . ,status)
+	   (in-reply-to-status-id . ,cited-id))))
        (t
-	(let ((as-reply
-	       (and reply-to-id
-		    (string-match
-		     (concat "\\`@" username "\\(?:[\n\r \t]+\\)*")
-		     status))))
-	  ;; Add in_reply_to_status_id only when a posting status
-	  ;; begins with @username.
-	  (twittering-call-api
-	   'update-status
-	   `((status . ,status)
-	     ,@(when as-reply
-		 `((in-reply-to-status-id . ,(format "%s" reply-to-id)))))))))
+	(twittering-call-api 'update-status `((status . ,status)))))
       (twittering-edit-close))
      (t
       nil))))

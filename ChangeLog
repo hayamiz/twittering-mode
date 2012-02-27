@@ -78,6 +78,17 @@
 	(twittering-edit-set-help-string): likewise.
 	(twittering-update-status-from-pop-up-buffer): likewise.
 
+	* twittering-mode.el: Control an attribute of a tweet being edited
+	with an alist bound to `twittering-edit-mode-info'.
+	(twittering-reply-recipient): removed.
+	(twittering-edit-mode-info): new variable, which is an alist
+	specifying the attribute of the tweet being edited.
+	(twittering-update-status-from-pop-up-buffer): control the
+	attribute of the tweet being edited with the new variable
+	`twittering-edit-mode-info'.
+	(twittering-edit-post-status): determine the attribute of the
+	tweet being posted by the variable `twittering-edit-mode-info'.
+
 2012-02-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Accept a symbol as FUNC of a composite

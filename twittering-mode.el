@@ -4209,11 +4209,6 @@ Statuses are stored in ascending-order with respect to their IDs."
 			 (twittering-status-id< id2 id1))))))
 	  (puthash spec `(,id-table ,referring-id-table ,new-timeline-data)
 		   twittering-timeline-data-table))
-	(when (twittering-jojo-mode-p spec)
-	  (mapc (lambda (status)
-		  (twittering-update-jojo (cdr (assq 'user-screen-name status))
-					  (cdr (assq 'text status))))
-		new-statuses))
 	(let ((twittering-new-tweets-spec spec)
 	      (twittering-new-tweets-statuses new-statuses)
 	      (twittering-new-tweets-count (length new-statuses)))
@@ -8224,6 +8219,8 @@ been initialized yet."
 	  (boundp 'twittering-sign-string-function))
       (message "Warning: `twittering-sign-simple-string' and `twittering-sign-string-function' are obsolete. Use the new feature `twittering-edit-skeleton'.")
       ))
+    (add-hook 'twittering-new-tweets-rendered-hook
+	      'twittering-jojo-mode-hook-function)
     (run-hooks 'twittering-mode-init-hook)
     (setq twittering-initialized t)))
 
@@ -8985,12 +8982,6 @@ instead."
     (unless (eq prev-mode twittering-jojo-mode)
       (twittering-update-mode-line))))
 
-(defun twittering-jojo-mode-p (spec)
-  (let ((buffer (twittering-get-buffer-from-spec spec)))
-    (when (buffer-live-p buffer)
-      (with-current-buffer buffer
-	twittering-jojo-mode))))
-
 (defun twittering-toggle-reverse-mode (&optional arg)
   (interactive "P")
   (let ((prev-mode twittering-reverse-mode))
@@ -9199,26 +9190,37 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
 			 '(955 12363 12431 12356 12356 12424 955)) "")))
       (twittering-call-api 'update-status `((status . ,text))))))
 
-(defun twittering-update-jojo (usr msg)
-  (when (and (not (string= usr (twittering-get-username)))
+(defun twittering-post-predicted-message-like-jojo (status)
+  (let ((screen-name (cdr (assq 'user-screen-name status)))
+	(text (cdr (assq 'text status))))
+    (when (and (not (string= screen-name (twittering-get-username)))
+	       (string-match
+		(mapconcat 'char-to-string
+			   (mapcar
+			    'twittering-ucs-to-char
+			    '(#x6b21 #x306b #x005c #x0028 #x304a #x524d
+				     #x005c #x007c #x8cb4 #x69d8 #x005c #x0029
+				     #x306f #x300c #x005c #x0028 #x005b #x005e
+				     #x300d #x005d #x002b #x005c #x0029 #x300d
+				     #x3068 #x8a00 #x3046))
+			   "")
+		text))
+      (let ((text
+	     (concat "@" screen-name " "
+		     (match-string-no-properties 2 msg)
+		     (mapconcat 'char-to-string
+				(mapcar 'twittering-ucs-to-char
+					'(#x3000 #x306f #x3063 #x0021 #x003f))
+				""))))
+	(twittering-call-api 'update-status `((status . ,text)))))))
+
+(defun twittering-jojo-mode-hook-function ()
+  (when (and twittering-jojo-mode
 	     (string= "Japanese" current-language-environment)
 	     (or (< 21 emacs-major-version)
 		 (eq 'utf-8 (terminal-coding-system))))
-    (if (string-match
-	 (mapconcat
-	  'char-to-string
-	  (mapcar 'twittering-ucs-to-char
-		  '(27425 12395 92 40 12362 21069 92 124 36020 27096
-			  92 41 12399 12300 92 40 91 94 12301 93 43 92
-			  41 12301 12392 35328 12358)) "")
-	 msg)
-	(let ((text (concat "@" usr " "
-			    (match-string-no-properties 2 msg)
-			    (mapconcat
-			     'char-to-string
-			     (mapcar 'twittering-ucs-to-char
-				     '(12288 12399 12387 33 63)) ""))))
-	  (twittering-call-api 'update-status `((status . ,text)))))))
+    (mapcar 'twittering-post-predicted-message-like-jojo
+	    twittering-rendered-new-tweets)))
 
 (defun twittering-direct-message ()
   (interactive)

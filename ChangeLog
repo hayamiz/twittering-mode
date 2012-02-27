@@ -15,6 +15,17 @@
 	(twittering-new-tweets-rendered-hook): add an explanation to the
 	docstring.
 
+	* twittering-mode.el: Reimplement jojo-mode as a hook.
+	(twittering-add-statuses-to-timeline-data): remove statements for
+	jojo-mode.
+	(twittering-initialize-global-variables-if-necessary): add
+	`twittering-jojo-mode-hook-function' to the new tweets rendered
+	hook.
+	(twittering-jojo-mode-p): removed.
+	(twittering-update-jojo): removed.
+	(twittering-post-predicted-message-like-jojo): new function.
+	(twittering-jojo-mode-hook-function): new function.
+
 2012-02-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Accept a symbol as FUNC of a composite

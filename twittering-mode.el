@@ -8586,8 +8586,7 @@ instead."
 
 (defun twittering-edit-set-help-string (str)
   "Add STR as a help for `twittering-edit-mode' to the current buffer."
-  (let ((help-str (propertize (twittering-fill-string str nil nil t)
-			      'face 'font-lock-comment-face))
+  (let ((help-str (twittering-fill-string str nil nil t))
 	(help-overlay
 	 (or twittering-help-overlay
 	     ;; Initialize `twittering-help-overlay'.
@@ -8605,19 +8604,23 @@ instead."
 		 "a reply")
 		(t
 		 "a tweet")))
+	 (status-format
+	  (cond
+	   ((eq tweet-type 'direct-message)
+	    (format "%%FILL{DIRECT MESSAGE to %s}\n" username))
+	   ((eq tweet-type 'reply)
+	    "%FILL{REPLY to the tweet by %s at %C{%y/%m/%d %H:%M:%S};}\n%FILL{%FACE[font-lock-doc-face]{\"%T\"}}\n")
+	   (t
+	    nil)))
+	 (func (when status-format
+		 (twittering-generate-format-status-function status-format)))
 	 (help-str
 	  (apply 'concat
-		 `(,@(cond
-		      ((eq tweet-type 'direct-message)
-		       `(,(format "DIRECT MESSAGE to %s\n" username)))
-		      ((eq tweet-type 'reply)
-		       (let* ((status (twittering-find-status reply-to-id))
-			      (text (cdr (assq 'text status)))
-			      (username (cdr (assq 'user-screen-name status))))
-			 `(,(format "REPLY to \"%s\" by %s\n"
-				    text
-				    username)))))
-		   ,(format (substitute-command-keys "Keymap:
+		 `(,@(when func
+		       `(,(funcall func
+				   (twittering-find-status reply-to-id)
+				   nil)))
+		   ,(propertize (format (substitute-command-keys "Keymap:
   \\[twittering-edit-post-status]: send %s
   \\[twittering-edit-cancel-status]: cancel %s
   \\[twittering-edit-next-history]: next history element
@@ -8625,7 +8628,8 @@ instead."
   \\[twittering-edit-replace-at-point]: shorten URL at point
 
 ---- text above this line is ignored ----
-") item item)))))
+") item item)
+				'face 'font-lock-comment-face)))))
     (twittering-edit-set-help-string help-str)))
 
 (defun twittering-edit-close ()

@@ -33,6 +33,13 @@
 	(twittering-update-status-from-pop-up-buffer): send REPLY-TO-ID to
 	the function `twittering-edit-setup-help'.
 
+	* twittering-mode.el: Generate a description of a edited tweet by
+	`twittering-generate-format-status-function'.
+	(twittering-edit-set-help-string): do not add a text property to
+	STR.
+	(twittering-edit-setup-help): generate a description by
+	`twittering-generate-format-status-function'.
+
 2012-02-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Accept a symbol as FUNC of a composite

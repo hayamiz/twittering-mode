@@ -106,6 +106,13 @@
 	(twittering-organic-retweet): send the ID of the cited tweet to
 	`twittering-update-status' as REPLY-TO-ID.
 
+	* twittering-mode.el: Generate a help on an edit buffer from the
+	buffer-local variable `twittering-edit-mode-info'.
+	(twittering-edit-setup-help): generate a help from the
+	buffer-local variable `twittering-edit-mode-info'.
+	(twittering-update-status-from-pop-up-buffer): remove obsolete
+	arguments from the invocation of `twittering-edit-setup-help'.
+
 2012-02-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Accept a symbol as FUNC of a composite

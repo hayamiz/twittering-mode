@@ -8621,10 +8621,14 @@ instead."
 	  (insert-before-markers help-str)
 	  (delete-region (point-min) help-end))))))
 
-(defun twittering-edit-setup-help (&optional username tweet-type reply-to-id)
-  (let* ((item (cond
+(defun twittering-edit-setup-help ()
+  (let* ((direct-message-recipient
+	  (cdr (assq 'direct-message-recipient twittering-edit-mode-info)))
+	 (tweet-type (cdr (assq 'tweet-type twittering-edit-mode-info)))
+	 (cited-id (cdr (assq 'cited-id twittering-edit-mode-info)))
+	 (item (cond
 		((eq tweet-type 'direct-message)
-		 (format "a direct message to %s" username))
+		 (format "a direct message to %s" direct-message-recipient))
 		((eq tweet-type 'reply)
 		 "a reply")
 		(t
@@ -8632,7 +8636,7 @@ instead."
 	 (status-format
 	  (cond
 	   ((eq tweet-type 'direct-message)
-	    (format "%%FILL{DIRECT MESSAGE to %s}\n" username))
+	    (format "%%FILL{DIRECT MESSAGE to %s}\n" direct-message-recipient))
 	   ((eq tweet-type 'reply)
 	    "%FILL{REPLY to the tweet by %s at %C{%y/%m/%d %H:%M:%S};}\n%FILL{%FACE[font-lock-doc-face]{\"%T\"}}\n")
 	   (t
@@ -8643,7 +8647,7 @@ instead."
 	  (apply 'concat
 		 `(,@(when func
 		       `(,(funcall func
-				   (twittering-find-status reply-to-id)
+				   (twittering-find-status cited-id)
 				   nil)))
 		   ,(propertize (format (substitute-command-keys "Keymap:
   \\[twittering-edit-post-status]: send %s
@@ -8705,7 +8709,7 @@ Pairs of a key symbol and an associated value are following:
 					(organic-retweet . normal)
 					(reply . reply)))))
 	    (direct-message-recipient . ,username)))
-    (twittering-edit-setup-help username tweet-type reply-to-id)
+    (twittering-edit-setup-help)
     (goto-char (twittering-edit-get-help-end))
     (if (eq tweet-type 'direct-message)
 	(message "C-c C-c to send, C-c C-k to cancel")

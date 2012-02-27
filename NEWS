@@ -184,6 +184,10 @@
   buffer. Which the tweet is a reply, a direct message or an
   independent ordinary tweet is explicitly displayed. You can also
   copy the tweet being replied.
+* Switch of a reply and a normal tweet on a pop-up edit buffer.
+  You can toggle whether the tweet being edited will be sent as a
+  reply or a normal tweet by invoking `twittering-edit-toggle-reply'
+  bound to "C-c C-r" in default.
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

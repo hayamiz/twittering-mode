@@ -113,6 +113,15 @@
 	(twittering-update-status-from-pop-up-buffer): remove obsolete
 	arguments from the invocation of `twittering-edit-setup-help'.
 
+	* twittering-mode.el: Enable to toggle a reply and a normal tweet
+	on an edit buffer.
+	(twittering-edit-mode-map): bind "C-c C-r" to
+	`twittering-edit-toggle-reply'.
+	(twittering-edit-setup-help): display a help for
+	`twittering-edit-toggle-reply'.
+	(twittering-edit-toggle-reply): new function, which toggles
+	whether the tweet being edited will be sent as a reply or not.
+
 2012-02-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Accept a symbol as FUNC of a composite

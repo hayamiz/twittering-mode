@@ -180,6 +180,11 @@
   りました。編集中のtweetがreplyなのか、direct messageなのか、あるいは
   通常のtweetなのかが確認できます。reply先のtweet内容のコピーもできま
   す。
+* 編集中のtweetをreplyとして送るかどうかの切り替え
+  編集中のtweetをreplyとして送るかどうかを編集バッファ上で切り替えられ
+  るようになりました。関数`twittering-edit-toggle-reply'(デフォルトでは
+  "C-c C-r"にbindされています)を呼ぶたびにreplyとして送るかどうかが切
+  り替わります。
 
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正

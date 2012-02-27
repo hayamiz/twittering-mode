@@ -8519,6 +8519,7 @@ entry in `twittering-edit-skeleton-alist' are performed.")
   (let ((km twittering-edit-mode-map))
     (define-key km (kbd "C-c C-c") 'twittering-edit-post-status)
     (define-key km (kbd "C-c C-k") 'twittering-edit-cancel-status)
+    (define-key km (kbd "C-c C-r") 'twittering-edit-toggle-reply)
     (define-key km (kbd "M-n") 'twittering-edit-next-history)
     (define-key km (kbd "M-p") 'twittering-edit-previous-history)
     (define-key km (kbd "<f4>") 'twittering-edit-replace-at-point)))
@@ -8652,6 +8653,7 @@ instead."
 		   ,(propertize (format (substitute-command-keys "Keymap:
   \\[twittering-edit-post-status]: send %s
   \\[twittering-edit-cancel-status]: cancel %s
+  \\[twittering-edit-toggle-reply]: toggle a normal tweet and a reply.
   \\[twittering-edit-next-history]: next history element
   \\[twittering-edit-previous-history]: previous history element
   \\[twittering-edit-replace-at-point]: shorten URL at point
@@ -8805,6 +8807,28 @@ Pairs of a key symbol and an associated value are following:
   (when (eq major-mode 'twittering-edit-mode)
     (twittering-tinyurl-replace-at-point)
     (twittering-edit-length-check)))
+
+(defun twittering-edit-toggle-reply ()
+  "Toggle whether the tweet being edited will be sent as a reply or not."
+  (interactive)
+  (let ((tweet-type (cdr (assq 'tweet-type twittering-edit-mode-info)))
+	(cited-id (cdr (assq 'cited-id twittering-edit-mode-info))))
+    (cond
+     ((eq tweet-type 'direct-message)
+      (message "The current message is a direct message."))
+     ((null cited-id)
+      (message "The current message does not have a reply target."))
+     (t
+      (setq twittering-edit-mode-info
+	    (mapcar (lambda (entry)
+		      (if (eq (car entry) 'tweet-type)
+			  `(tweet-type
+			    . ,(cdr (assq (cdr entry)
+					  '((normal . reply)
+					    (reply . normal)))))
+			entry))
+		    twittering-edit-mode-info))
+      (twittering-edit-setup-help)))))
 
 ;;;;
 ;;;; Edit a status on minibuffer

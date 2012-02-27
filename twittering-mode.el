@@ -8341,9 +8341,8 @@ function PRED returns non-nil. PRED is invoked with three arguments
 TWEET-TYPE, IN-REPLY-TO-ID and CURRENT-SPEC.
 TWEET-TYPE is a symbol, which is one of 'direct-message, 'normal,
 'organic-retweet and 'reply, specifying which type of tweet will be edited.
-If the tweet will not be edited as a reply, IN-REPLY-TO-ID is nil.
-If the tweet will be edited as a reply, IN-REPLY-TO-ID is a string specifying
-the replied tweet.
+If the tweet will be edited as a reply or an organic retweet, IN-REPLY-TO-ID
+is a string specifying the replied tweet. Otherwise, IN-REPLY-TO-ID is nil.
 CURRENT-SPEC specifies where the action of posting a tweet is performed.
 If the action is performed on a twittering-mode buffer, CURRENT-SPEC is
 a timeline spec string of the buffer.
@@ -8883,6 +8882,7 @@ Pairs of a key symbol and an associated value are following:
 			(as-reply
 			 (and reply-to-id
 			      username
+			      (eq tweet-type 'reply)
 			      (string-match
 			       (concat "@" username "\\(?:[\n\r \t]+\\)*")
 			       status))))
@@ -9217,8 +9217,8 @@ Pairs of a key symbol and an associated value are following:
   "Post a tweet.
 The first argument INIT-STRING-OR-SKELETON is nil, an initial text or a
 skeleton to be inserted with `skeleton-insert'.
-REPLY-TO-ID and USERNAME are an ID and a user-screen-name of a tweet to
-which you are going to reply. If the tweet is not a reply, they are nil.
+REPLY-TO-ID is an ID of a tweet which you are going to cite or reply to.
+USERNAME is a recipient of a direct message.
 TWEET-TYPE is a symbol meaning the type of the tweet being edited. It must
 be one of 'direct-message, 'normal, 'organic-retweet and 'reply.
 If TWEET-TYPE is nil, it is equivalent to 'normal, which means that a tweet
@@ -9385,7 +9385,7 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
 		       (twittering-format-string element prefix replace-table)
 		     element))
 		 skeleton-with-format-string)
-	 nil nil 'organic-retweet)
+	 id nil 'organic-retweet)
 	))))
 
 (defun twittering-native-retweet ()

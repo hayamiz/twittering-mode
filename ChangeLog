@@ -95,6 +95,17 @@
 	not placed on the beginning.
 	(twittering-update-status-from-minibuffer): likewise.
 
+	* twittering-mode.el: Send the cited ID to the function
+	`twittering-update-status' when editing an organic retweet.
+	(twittering-edit-skeleton-alist): mention that IN-REPLY-TO is
+	non-nil when a tweet is edited as an organic retweet.
+	(twittering-update-status-from-minibuffer): post a tweet as a
+	reply only if TWEET-TYPE is the symbol `reply'.
+	(twittering-update-status): mention that REPLY-TO-ID is non-nil
+	when a tweet cites or replies to a certain tweet.
+	(twittering-organic-retweet): send the ID of the cited tweet to
+	`twittering-update-status' as REPLY-TO-ID.
+
 2012-02-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Accept a symbol as FUNC of a composite

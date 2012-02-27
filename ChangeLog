@@ -26,6 +26,13 @@
 	(twittering-post-predicted-message-like-jojo): new function.
 	(twittering-jojo-mode-hook-function): new function.
 
+	* twittering-mode.el: Display the replied tweet on the pop-up
+	edit buffer.
+	(twittering-edit-set-help-string): new function.
+	(twittering-edit-setup-help): add a new argument REPLY-TO-ID.
+	(twittering-update-status-from-pop-up-buffer): send REPLY-TO-ID to
+	the function `twittering-edit-setup-help'.
+
 2012-02-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Accept a symbol as FUNC of a composite

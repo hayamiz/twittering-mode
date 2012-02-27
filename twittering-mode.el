@@ -8584,11 +8584,40 @@ instead."
       (buffer-substring-no-properties (point-min) (point-max))
     ""))
 
-(defun twittering-edit-setup-help (&optional username tweet-type)
-  (let* ((item (if (eq tweet-type 'direct-message)
-		   (format "a direct message to %s" username)
-		 "a tweet"))
-	 (help-str (format (substitute-command-keys "Keymap:
+(defun twittering-edit-set-help-string (str)
+  "Add STR as a help for `twittering-edit-mode' to the current buffer."
+  (let ((help-str (propertize (twittering-fill-string str nil nil t)
+			      'face 'font-lock-comment-face))
+	(help-overlay
+	 (or twittering-help-overlay
+	     ;; Initialize `twittering-help-overlay'.
+	     (let ((overlay (make-overlay 1 1 nil nil nil)))
+	       (overlay-put overlay 'priority twittering-help-overlay-priority)
+	       (setq twittering-help-overlay overlay)
+	       twittering-help-overlay))))
+    (overlay-put help-overlay 'after-string help-str)))
+
+(defun twittering-edit-setup-help (&optional username tweet-type reply-to-id)
+  (let* ((item (cond
+		((eq tweet-type 'direct-message)
+		 (format "a direct message to %s" username))
+		((eq tweet-type 'reply)
+		 "a reply")
+		(t
+		 "a tweet")))
+	 (help-str
+	  (apply 'concat
+		 `(,@(cond
+		      ((eq tweet-type 'direct-message)
+		       `(,(format "DIRECT MESSAGE to %s\n" username)))
+		      ((eq tweet-type 'reply)
+		       (let* ((status (twittering-find-status reply-to-id))
+			      (text (cdr (assq 'text status)))
+			      (username (cdr (assq 'user-screen-name status))))
+			 `(,(format "REPLY to \"%s\" by %s\n"
+				    text
+				    username)))))
+		   ,(format (substitute-command-keys "Keymap:
   \\[twittering-edit-post-status]: send %s
   \\[twittering-edit-cancel-status]: cancel %s
   \\[twittering-edit-next-history]: next history element
@@ -8596,15 +8625,8 @@ instead."
   \\[twittering-edit-replace-at-point]: shorten URL at point
 
 ---- text above this line is ignored ----
-") item item))
-	 (help-overlay
-	  (or twittering-help-overlay
-	      (make-overlay 1 1 nil nil nil))))
-    (add-text-properties 0 (length help-str) '(face font-lock-comment-face)
-			 help-str)
-    (overlay-put help-overlay 'after-string help-str)
-    (overlay-put help-overlay 'priority twittering-help-overlay-priority)
-    (setq twittering-help-overlay help-overlay)))
+") item item)))))
+    (twittering-edit-set-help-string help-str)))
 
 (defun twittering-edit-close ()
   (kill-buffer (current-buffer))
@@ -8638,7 +8660,7 @@ instead."
       (pop-to-buffer buf nil t)
       (twittering-ensure-whole-of-status-is-visible win))
     (twittering-edit-mode)
-    (twittering-edit-setup-help username tweet-type)
+    (twittering-edit-setup-help username tweet-type reply-to-id)
     (if (eq tweet-type 'direct-message)
 	(message "C-c C-c to send, C-c C-k to cancel")
       (and (null init-string-or-skeleton)

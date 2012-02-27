@@ -8754,7 +8754,7 @@ Pairs of a key symbol and an associated value are following:
        ((and (eq tweet-type 'reply)
 	     ;; Add in_reply_to_status_id only when a posting status
 	     ;; begins with @cited-username.
-	     (string-match (concat "\\`@" cited-username "\\(?:[\n\r \t]+\\)*")
+	     (string-match (concat "@" cited-username "\\(?:[\n\r \t]+\\)*")
 			   status))
 	(twittering-call-api
 	 'update-status
@@ -8884,7 +8884,7 @@ Pairs of a key symbol and an associated value are following:
 			 (and reply-to-id
 			      username
 			      (string-match
-			       (concat "\\`@" username "\\(?:[\n\r \t]+\\)*")
+			       (concat "@" username "\\(?:[\n\r \t]+\\)*")
 			       status))))
 		    ;; Add in_reply_to_status_id only when a posting
 		    ;; status begins with @username.

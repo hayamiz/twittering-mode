@@ -89,6 +89,12 @@
 	(twittering-edit-post-status): determine the attribute of the
 	tweet being posted by the variable `twittering-edit-mode-info'.
 
+	* twittering-mode.el: Allow a reply where a mention is not placed
+	on the beginning.
+	(twittering-edit-post-status): allow a reply where a mention is
+	not placed on the beginning.
+	(twittering-update-status-from-minibuffer): likewise.
+
 2012-02-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Accept a symbol as FUNC of a composite

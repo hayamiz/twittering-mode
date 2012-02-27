@@ -8492,7 +8492,6 @@ entry in `twittering-edit-skeleton-alist' are performed.")
 (defvar twittering-edit-history nil)
 (defvar twittering-edit-local-history nil)
 (defvar twittering-edit-local-history-idx nil)
-(defvar twittering-edit-help-end-pos 1)
 (defvar twittering-warning-overlay nil)
 
 (define-derived-mode twittering-edit-mode nil "twmode-status-edit"
@@ -8503,8 +8502,6 @@ entry in `twittering-edit-skeleton-alist' are performed.")
   (make-local-variable 'font-lock-global-modes)
   (setq font-lock-global-modes '(not twittering-edit-mode))
 
-  (make-local-variable 'twittering-edit-help-end-pos)
-  (setq twittering-edit-help-end-pos (point-min))
   (make-local-variable 'twittering-warning-overlay)
   (setq twittering-warning-overlay (make-overlay 1 1 nil nil nil))
   (overlay-put twittering-warning-overlay 'face 'font-lock-warning-face)
@@ -8582,19 +8579,26 @@ instead."
 			(- (point-max) (- length maxlen)) (point-max))
 	(move-overlay twittering-warning-overlay 1 1)))))
 
+(defun twittering-edit-get-help-end ()
+  "Return the end position of the help on `twittering-edit-mode'."
+  (when (eq major-mode 'twittering-edit-mode)
+    (next-single-property-change (point-min) 'read-only nil (point-max))))
+
 (defun twittering-edit-extract-status ()
   "Return the text of the status being edited on `twittering-edit-mode'."
   (if (eq major-mode 'twittering-edit-mode)
-      (buffer-substring-no-properties twittering-edit-help-end-pos (point-max))
+      (buffer-substring-no-properties (twittering-edit-get-help-end)
+				      (point-max))
     ""))
 
 (defun twittering-edit-reset-status (str)
   "Reset the contents of the current `twittering-edit-mode' buffer with STR."
   (when (eq major-mode 'twittering-edit-mode)
-    (delete-region twittering-edit-help-end-pos (point-max))
-    (goto-char twittering-edit-help-end-pos)
-    (insert str)
-    (goto-char twittering-edit-help-end-pos)))
+    (let ((help-end (twittering-edit-get-help-end)))
+      (delete-region help-end (point-max))
+      (goto-char help-end)
+      (insert str)
+      (goto-char help-end))))
 
 (defun twittering-edit-set-help-string (str)
   "Render STR as a help for `twittering-edit-mode' to the current buffer."
@@ -8602,14 +8606,21 @@ instead."
 	 (len (length help-str)))
     (add-text-properties 0 1 '(front-sticky (read-only)) help-str)
     (add-text-properties (1- len) len '(rear-nonsticky t) help-str)
-    (let ((inhibit-read-only t)
-	  (inhibit-modification-hooks t)
-	  (diff (max 0 (- (point) twittering-edit-help-end-pos))))
-      (delete-region (point-min) twittering-edit-help-end-pos)
-      (goto-char (point-min))
-      (insert help-str)
-      (setq twittering-edit-help-end-pos (point))
-      (goto-char (+ (point) diff)))))
+    (save-excursion
+      (let ((inhibit-read-only t)
+	    (inhibit-modification-hooks t)
+	    (help-end (twittering-edit-get-help-end)))
+	(goto-char help-end)
+	(if (= (point-min) help-end)
+	    ;; When no helps are rendered, the all markers should be
+	    ;; placed after the new help.
+	    (insert help-str)
+	  ;; Use `insert-before-markers' because the marker of the current
+	  ;; position should follow the new help.
+	  ;; Delete the old help after inserting the new help to make
+	  ;; the new help visible if possible.
+	  (insert-before-markers help-str)
+	  (delete-region (point-min) help-end))))))
 
 (defun twittering-edit-setup-help (&optional username tweet-type reply-to-id)
   (let* ((item (cond
@@ -8680,7 +8691,7 @@ instead."
       (twittering-ensure-whole-of-status-is-visible win))
     (twittering-edit-mode)
     (twittering-edit-setup-help username tweet-type reply-to-id)
-    (goto-char twittering-edit-help-end-pos)
+    (goto-char (twittering-edit-get-help-end))
     (if (eq tweet-type 'direct-message)
 	(message "C-c C-c to send, C-c C-k to cancel")
       (and (null init-string-or-skeleton)

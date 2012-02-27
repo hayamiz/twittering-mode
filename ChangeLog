@@ -64,6 +64,20 @@
 	`twittering-edit-reset-status'.
 	(twittering-edit-previous-history): likewise.
 
+	* twittering-mode.el: Dynamically determine an end position of a
+	help on a pop-up edit buffer.
+	(twittering-edit-help-end-pos): removed.
+	(twittering-edit-mode): remove the variable
+	`twittering-edit-help-end-pos'.
+	(twittering-edit-get-help-end): new function, which replaces the
+	buffer-local variable `twittering-edit-help-end-pos'.
+	(twittering-edit-extract-status): use the function
+	`twittering-edit-get-help-end' instead of the variable
+	`twittering-edit-help-end-pos'.
+	(twittering-edit-reset-status): likewise.
+	(twittering-edit-set-help-string): likewise.
+	(twittering-update-status-from-pop-up-buffer): likewise.
+
 2012-02-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Accept a symbol as FUNC of a composite

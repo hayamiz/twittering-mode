@@ -182,7 +182,8 @@
 * Description on a pop-up edit buffer.
   The description is rendered on the top of the pop-up edit
   buffer. Which the tweet is a reply, a direct message or an
-  independent ordinary tweet is explicitly displayed.
+  independent ordinary tweet is explicitly displayed. You can also
+  copy the tweet being replied.
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

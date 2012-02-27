@@ -40,6 +40,30 @@
 	(twittering-edit-setup-help): generate a description by
 	`twittering-generate-format-status-function'.
 
+	* twittering-mode.el: Render a help on a pop-up edit buffer as a
+	read-only text. The replied tweet can be copied on the edit
+	buffer. Rendering a help as a read-only text also suppresses
+	strange behavior of overlays exceeding the size of the current
+	window.
+	(twittering-help-overlay): removed.
+	(twittering-help-overlay-priority): removed.
+	(twittering-edit-help-end-pos): new variable.
+	(twittering-edit-mode): remove the parent mode to suppress
+	invocation of hooks for `text-mode'. The trick for disabling
+	font-lock mode is introduced. `twittering-edit-help-end-pos' is
+	prepared as a buffer-local variable.
+	(twittering-edit-extract-status): determine the region being
+	extracted with `twittering-edit-help-end-pos'.
+	(twittering-edit-reset-status): new function.
+	(twittering-edit-set-help-string): render a help for
+	`twittering-edit-mdoe' as a read-only text.
+	(twittering-update-status-from-pop-up-buffer): move the cursor
+	just behind the help.
+	(twittering-edit-next-history): extract the edited message by
+	`twittering-edit-extract-status' and reset it by
+	`twittering-edit-reset-status'.
+	(twittering-edit-previous-history): likewise.
+
 2012-02-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Accept a symbol as FUNC of a composite

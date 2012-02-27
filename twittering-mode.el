@@ -8492,16 +8492,19 @@ entry in `twittering-edit-skeleton-alist' are performed.")
 (defvar twittering-edit-history nil)
 (defvar twittering-edit-local-history nil)
 (defvar twittering-edit-local-history-idx nil)
-(defvar twittering-help-overlay nil)
-(defvar twittering-help-overlay-priority 1000
-  "*Priority of the help overlay in edit mode of `twittering-mode'.")
+(defvar twittering-edit-help-end-pos 1)
 (defvar twittering-warning-overlay nil)
 
-(define-derived-mode twittering-edit-mode text-mode "twmode-status-edit"
+(define-derived-mode twittering-edit-mode nil "twmode-status-edit"
   (use-local-map twittering-edit-mode-map)
 
-  (make-local-variable 'twittering-help-overlay)
-  (setq twittering-help-overlay nil)
+  ;; Prevent `global-font-lock-mode' enabling `font-lock-mode'.
+  ;; This technique is derived from `lisp/bs.el' distributed with Emacs 22.2.
+  (make-local-variable 'font-lock-global-modes)
+  (setq font-lock-global-modes '(not twittering-edit-mode))
+
+  (make-local-variable 'twittering-edit-help-end-pos)
+  (setq twittering-edit-help-end-pos (point-min))
   (make-local-variable 'twittering-warning-overlay)
   (setq twittering-warning-overlay (make-overlay 1 1 nil nil nil))
   (overlay-put twittering-warning-overlay 'face 'font-lock-warning-face)
@@ -8580,21 +8583,33 @@ instead."
 	(move-overlay twittering-warning-overlay 1 1)))))
 
 (defun twittering-edit-extract-status ()
+  "Return the text of the status being edited on `twittering-edit-mode'."
   (if (eq major-mode 'twittering-edit-mode)
-      (buffer-substring-no-properties (point-min) (point-max))
+      (buffer-substring-no-properties twittering-edit-help-end-pos (point-max))
     ""))
 
+(defun twittering-edit-reset-status (str)
+  "Reset the contents of the current `twittering-edit-mode' buffer with STR."
+  (when (eq major-mode 'twittering-edit-mode)
+    (delete-region twittering-edit-help-end-pos (point-max))
+    (goto-char twittering-edit-help-end-pos)
+    (insert str)
+    (goto-char twittering-edit-help-end-pos)))
+
 (defun twittering-edit-set-help-string (str)
-  "Add STR as a help for `twittering-edit-mode' to the current buffer."
-  (let ((help-str (twittering-fill-string str nil nil t))
-	(help-overlay
-	 (or twittering-help-overlay
-	     ;; Initialize `twittering-help-overlay'.
-	     (let ((overlay (make-overlay 1 1 nil nil nil)))
-	       (overlay-put overlay 'priority twittering-help-overlay-priority)
-	       (setq twittering-help-overlay overlay)
-	       twittering-help-overlay))))
-    (overlay-put help-overlay 'after-string help-str)))
+  "Render STR as a help for `twittering-edit-mode' to the current buffer."
+  (let* ((help-str (propertize str 'read-only t))
+	 (len (length help-str)))
+    (add-text-properties 0 1 '(front-sticky (read-only)) help-str)
+    (add-text-properties (1- len) len '(rear-nonsticky t) help-str)
+    (let ((inhibit-read-only t)
+	  (inhibit-modification-hooks t)
+	  (diff (max 0 (- (point) twittering-edit-help-end-pos))))
+      (delete-region (point-min) twittering-edit-help-end-pos)
+      (goto-char (point-min))
+      (insert help-str)
+      (setq twittering-edit-help-end-pos (point))
+      (goto-char (+ (point) diff)))))
 
 (defun twittering-edit-setup-help (&optional username tweet-type reply-to-id)
   (let* ((item (cond
@@ -8665,6 +8680,7 @@ instead."
       (twittering-ensure-whole-of-status-is-visible win))
     (twittering-edit-mode)
     (twittering-edit-setup-help username tweet-type reply-to-id)
+    (goto-char twittering-edit-help-end-pos)
     (if (eq tweet-type 'direct-message)
 	(message "C-c C-c to send, C-c C-k to cancel")
       (and (null init-string-or-skeleton)
@@ -8740,13 +8756,10 @@ instead."
       (message "End of history.")
     (let ((current-history (nthcdr twittering-edit-local-history-idx
 				   twittering-edit-local-history)))
-      (setcar current-history (buffer-string))
+      (setcar current-history (twittering-edit-extract-status))
       (decf twittering-edit-local-history-idx)
-      (erase-buffer)
-      (insert (nth twittering-edit-local-history-idx
-		   twittering-edit-local-history))
-      (twittering-edit-setup-help)
-      (goto-char (point-min)))))
+      (twittering-edit-reset-status (nth twittering-edit-local-history-idx
+					 twittering-edit-local-history)))))
 
 (defun twittering-edit-previous-history ()
   (interactive)
@@ -8755,14 +8768,10 @@ instead."
       (message "Beginning of history.")
     (let ((current-history (nthcdr twittering-edit-local-history-idx
 				   twittering-edit-local-history)))
-      (setcar current-history (buffer-string))
+      (setcar current-history (twittering-edit-extract-status))
       (incf twittering-edit-local-history-idx)
-      (erase-buffer)
-      (insert (nth twittering-edit-local-history-idx
-		   twittering-edit-local-history))
-      (twittering-edit-setup-help)
-      (goto-char (point-min))))
-  )
+      (twittering-edit-reset-status (nth twittering-edit-local-history-idx
+					 twittering-edit-local-history)))))
 
 (defun twittering-edit-replace-at-point ()
   (interactive)

@@ -245,6 +245,19 @@
 
   (test-assert-equal
    (test-restore-timeline-spec
+    ":search/ABC/"
+    '(search "ABC")
+    '(search "ABC"))
+   '(t t))
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ":search/AB\\\\C\\/aaa\\\\/"
+    '(search "AB\\C/aaa\\")
+    '(search "AB\\C/aaa\\"))
+   '(t t))
+
+  (test-assert-equal
+   (test-restore-timeline-spec
     ":filter/ABC/user/mylist"
     '(filter "ABC" (list "user" "mylist"))
     '(filter "ABC" (list "user" "mylist")))

@@ -55,6 +55,7 @@
   did not appear when the motion was based on display line. The bug
   has been fixed.
   Thanks to lemit who reported the problem.
+* Fix of the escape of a query string in a search timeline spec.
 
  2.0.0: 2011-04-22
 ------------------

@@ -52,6 +52,7 @@
   での論理行単位のカーソル移動がおかしくなっていました。この問題を解消
   しました。
   Thanks to lemit who reported the problem.
+* search timeline spec内の検索文字列のエスケープを修正
 
  2.0.0: 2011-04-22
 ------------------

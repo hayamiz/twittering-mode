@@ -9,6 +9,19 @@
 	* test/test-twittering-mode.el: Add tests for search timeline
 	specs.
 
+	* twittering-mode.el: Support ":exclude-re/REGEXP/SPEC"
+	timelines.
+	(twittering-timeline-spec-to-string): support the new timeline
+	spec ":exclude-re/REGEXP/SPEC".
+	(twittering-extract-timeline-spec): likewise.
+	(twittering-timeline-spec-composite-p): likewise.
+	(twittering-get-base-timeline-specs): likewise.
+	(twittering-generate-composite-timeline): likewise.
+	(twittering-current-timeline-referring-id-table): likewise.
+	(twittering-current-timeline-data): likewise.
+	* test/test-twittering-mode.el: Add tests for exclude-re timeline
+	specs.
+
 2012-02-28  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the function

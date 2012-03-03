@@ -189,6 +189,13 @@
   るようになりました。関数`twittering-edit-toggle-reply'(デフォルトでは
   "C-c C-r"にbindされています)を呼ぶたびにreplyとして送るかどうかが切
   り替わります。
+* exclude-re timelineに対応
+  新しく":exclude-re/REGEXP/SPEC"というtimelineに対応しました。この
+  timelineはSPECで表されるものとほぼ同じですが、正規表現REGEXPにマッチ
+  するようなtweetは除外されている点が異なります。REGEXP内で / を指定す
+  る際は \ でエスケープする必要があります。例えば、Emacsの文字列リテラ
+  ル":exclude-re/\\//:home"で表されるtimelineでは、 / を含むtweetが除
+  外されています。
 
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正

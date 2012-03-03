@@ -301,6 +301,31 @@
 
   (test-assert-equal
    (test-restore-timeline-spec
+    ":exclude-re/ABC/user"
+    '(exclude-re "ABC" (user "user"))
+    '(exclude-re "ABC" (user "user")))
+   '(t t))
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ":exclude-re/ABC/user/mylist"
+    '(exclude-re "ABC" (list "user" "mylist"))
+    '(exclude-re "ABC" (list "user" "mylist")))
+   '(t t))
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ":exclude-re/ABC\\\\/user/mylist"
+    '(exclude-re "ABC\\\\" (list "user" "mylist"))
+    '(exclude-re "ABC\\\\" (list "user" "mylist")))
+   '(t t))
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ":exclude-re/ABC\\/\\(word\\|123\\)/user"
+    '(exclude-re "ABC/\\(word\\|123\\)" (user "user"))
+    '(exclude-re "ABC/\\(word\\|123\\)" (user "user")))
+   '(t t))
+
+  (test-assert-equal
+   (test-restore-timeline-spec
     ":retweeted_by_me" '(retweeted_by_me)  '(retweeted_by_me))
    '(t t))
   (test-assert-equal

@@ -1,3 +1,14 @@
+2012-03-04  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix the escape of a query string in a search
+	timeline spec.
+	(twittering-timeline-spec-to-string): correctly escape a query of
+	a search timeline spec.
+	(twittering-extract-timeline-spec): correctly decode a query
+	string with escaped characters.
+	* test/test-twittering-mode.el: Add tests for search timeline
+	specs.
+
 2012-02-28  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the function

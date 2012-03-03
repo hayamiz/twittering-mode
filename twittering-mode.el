@@ -3657,7 +3657,7 @@ If SHORTEN is non-nil, the abbreviated expression will be used."
      ((eq type 'search)
       (let ((query (car value)))
 	(concat ":search/"
-		(replace-regexp-in-string "/" "\\/" query nil t)
+		(replace-regexp-in-string "\\(\\\\\\|/\\)" "\\\\\\1" query)
 		"/")))
      ;; composite
      ((eq type 'exclude-if)
@@ -3749,8 +3749,8 @@ Return cons of the spec and the rest string."
 	(if (string-match "^:search/\\(\\(.*?[^\\]\\)??\\(\\\\\\\\\\)*\\)??/"
 			  str)
 	    (let* ((escaped-query (or (match-string 1 str) ""))
-		   (query (replace-regexp-in-string "\\\\/" "/"
-						    escaped-query nil t))
+		   (query (replace-regexp-in-string "\\\\\\(\\\\\\|/\\)" "\\1"
+						    escaped-query))
 		   (rest (substring str (match-end 0))))
 	      (if (not (string= "" escaped-query))
 		  `((search ,query) . ,rest)

@@ -240,6 +240,7 @@
   response of the `destroy-status' API. If the API ends in failure,
   you can try to delete the status again because the status remains on
   the buffer.
+* Fix of the escape of a query string in a search timeline spec.
 
  2.0.0: 2011-04-22
 ------------------

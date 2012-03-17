@@ -83,6 +83,13 @@
 	(twittering-show-replied-statuses): reimplemented with the new
 	function `twittering-render-replied-statuses'.
 
+	* twittering-mode.el: `twittering-redisplay-status-on-each-buffer'
+	supports various symbols as a specifier of regions to be
+	redisplayed.
+	(twittering-redisplay-status-on-each-buffer): support other
+	symbols besides `need-to-be-updated' as a specifier of regions to
+	be redisplayed.
+
 2012-03-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the escape of a query string in a search

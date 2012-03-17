@@ -7912,15 +7912,17 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 	    (twittering-redisplay-status-on-each-buffer buffer)))
 	(twittering-get-buffer-list)))
 
-(defun twittering-redisplay-status-on-each-buffer (buffer)
-  (let ((deactivate-mark deactivate-mark)
+(defun twittering-redisplay-status-on-each-buffer (buffer &optional prop)
+  "Redisplay regions with the text property PROP on BUFFER."
+  (let ((prop (or prop 'need-to-be-updated))
+	(deactivate-mark deactivate-mark)
 	(window-list (get-buffer-window-list buffer nil t))
 	(marker (with-current-buffer buffer (point-marker)))
 	(result nil))
     (with-current-buffer buffer
       (save-excursion
 	(twittering-for-each-property-region
-	 'need-to-be-updated
+	 prop
 	 (lambda (beg end value)
 	   (let* ((func (car value))
 		  (args (cdr value))

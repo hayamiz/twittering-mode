@@ -111,6 +111,10 @@
 	from ID.
 	(twittering-make-alist-of-non-existent-tweet): likewise.
 
+	* twittering-mode.el: Update the docstring of the variable
+	`twittering-initial-timeline-spec-string'.
+	(twittering-initial-timeline-spec-string): update the docstring.
+
 2012-03-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the escape of a query string in a search

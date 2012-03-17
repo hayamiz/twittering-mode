@@ -240,9 +240,12 @@ recommended way because writing a password in .emacs file is so
 dangerous.")
 
 (defvar twittering-initial-timeline-spec-string ":home"
-  "*The initial timeline spec string. If the value of the variable is a
-list of timeline spec strings, the timelines are rendered on their own
-buffers.")
+  "*An initial timeline spec string or a list of timeline spec strings.
+This specifies one or more initial timeline spec strings, which are
+automatically visited when invoking `twittering-mode' or `twit'.
+
+If it is a string, it specifies a timeline spec string.
+If it is a list of strings, it specifies multiple timeline spec strings.")
 
 (defvar twittering-timeline-spec nil
   "The timeline spec for the current buffer.")

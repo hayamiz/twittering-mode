@@ -30,6 +30,17 @@
 	(twittering-get-response-header): record the extracted HTTP
 	response header if `twittering-debug-mode' is non-nil.
 
+	* twittering-mode.el: Remove the function
+	`twittering-make-field-properties'. It is unnecessary because
+	`twittering-render-a-field' automatically add a field property.
+	(twittering-get-common-properties): update the docstring.
+	(twittering-make-field-properties): removed.
+	(twittering-make-field-properties-of-popped-ancestors): removed.
+	(twittering-make-properties-of-popped-ancestors): new function.
+	(twittering-show-replied-statuses): use
+	`twittering-make-properties-of-popped-ancestors' instead of
+	`twittering-make-field-properties-of-popped-ancestors'.
+
 2012-03-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the escape of a query string in a search

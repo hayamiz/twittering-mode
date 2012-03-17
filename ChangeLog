@@ -1,3 +1,12 @@
+2012-03-17  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix the condition of confirmation on posting
+	a tweet. The variable `twittering-request-confirmation-on-posting'
+	had been ignored on posting a reply. Thanks to Takashi Masuda who
+	reported the problem.
+	(twittering-edit-post-status): fix the condition of confirmation
+	on posting a tweet.
+
 2012-03-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the escape of a query string in a search

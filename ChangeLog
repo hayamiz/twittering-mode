@@ -58,6 +58,18 @@
 	(twittering-make-alist-of-non-existent-tweet): new function, which
 	generates a dummy alist for a non-existent tweet.
 
+	* twittering-mode.el: Add functions for finding a region of
+	replied statuses with the common base status.
+	(twittering-replied-statuses-visible-p): add a docstring.
+	(twittering-get-beginning-of-visible-replied-statuses): new
+	function, which returns the beginning position of replied statuses
+	rendered by `twittering-show-replied-statuses'.
+	(twittering-get-end-of-visible-replied-statuses): new function,
+	which returns the end position of replied statuses rendered by
+	`twittering-show-replied-statuses'.
+	(twittering-hide-replied-statuses): determine a region being
+	deleted by using the new functions.
+
 2012-03-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the escape of a query string in a search

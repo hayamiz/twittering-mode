@@ -7963,8 +7963,14 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 ;;;; Display replied statuses
 ;;;;
 
-(defun twittering-replied-statuses-visible-p ()
-  (let* ((pos (twittering-get-current-status-head))
+(defun twittering-replied-statuses-visible-p (&optional pos)
+  "Return non-nil if a replied status related to POS is visible.
+Return non-nil if a replied status has been rendered at POS by
+`twittering-show-replied-statuses'.
+Return non-nil if a reply is rendered at POS and the replied statuses
+has been rendered by `twittering-show-replied-statuses'.
+Otherwise, return nil."
+  (let* ((pos (twittering-get-current-status-head pos))
 	 (id (twittering-get-id-at pos))
 	 (prev (twittering-get-previous-status-head pos))
 	 (next (twittering-get-next-status-head pos)))
@@ -7976,6 +7982,68 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
      (and next
 	  (twittering-status-id=
 	   id (twittering-get-base-id-of-ancestor-at next))))))
+
+(defun twittering-get-beginning-of-visible-replied-statuses (&optional pos)
+  "Return the beginning position of visible replied statuses at POS.
+If POS is nil, the current position is used instead.
+If `twittering-show-replied-statuses' has rendered a replied status at POS,
+return the beginning position of the replied statuses with the common base
+status.
+If a reply is rendered at POS and its ancestors has been rendered by
+`twittering-show-replied-statuses', return the beginning position of the
+replied statuses.
+Otherwise, return nil."
+  (let* ((pos (or pos (point)))
+	 (base-id (twittering-get-base-id-of-ancestor-at pos)))
+    (cond
+     (base-id
+      ;; A replied status is rendered at POS.
+      (while
+	  (let* ((prev (twittering-get-previous-status-head pos))
+		 (prev-base-id
+		  (when prev
+		    (twittering-get-base-id-of-ancestor-at prev))))
+	    (and prev prev-base-id
+		 (twittering-status-id= base-id prev-base-id)
+		 (setq pos prev))))
+      (or pos (point-min)))
+     ((twittering-replied-statuses-visible-p pos)
+      ;; A reply is rendered at POS and its replied statuses are visible.
+      (if twittering-reverse-mode
+	  (twittering-get-beginning-of-visible-replied-statuses
+	   (twittering-get-previous-status-head pos))
+	(twittering-get-next-status-head pos)))
+     (t
+      nil))))
+
+(defun twittering-get-end-of-visible-replied-statuses (&optional pos)
+  "Return the end position of visible replied statuses at POS.
+If POS is nil, the current position is used instead.
+If `twittering-show-replied-statuses' has rendered a replied status at POS,
+return the end position of the replied statuses with the common base status.
+If a reply is rendered at POS and its ancestors has been rendered by
+`twittering-show-replied-statuses', return the beginning position of the
+replied statuses.
+Otherwise, return nil."
+  (let* ((pos (or pos (point)))
+	 (base-id (twittering-get-base-id-of-ancestor-at pos)))
+    (cond
+     (base-id
+      ;; A replied status is rendered at POS.
+      (while
+	  (let ((current-base-id (twittering-get-base-id-of-ancestor-at pos)))
+	    (and current-base-id
+		 (twittering-status-id= base-id current-base-id)
+		 (setq pos (twittering-get-next-status-head pos)))))
+      (or pos (point-max)))
+     ((twittering-replied-statuses-visible-p pos)
+      ;; A reply is rendered at POS and its replied statuses are visible.
+      (if twittering-reverse-mode
+	  (twittering-get-current-status-head pos)
+	(twittering-get-end-of-visible-replied-statuses
+	 (twittering-get-next-status-head pos))))
+     (t
+      nil))))
 
 (defun twittering-show-replied-statuses (&optional count interactive)
   (interactive)
@@ -8028,30 +8096,8 @@ If INTERRUPT is non-nil, the iteration is stopped if FUNC returns nil."
 			(twittering-get-id-at pos)))
 	   (pointing-to-base-status
 	    (not (twittering-rendered-as-ancestor-status-p pos)))
-	   (beg
-	    (if (and pointing-to-base-status (not twittering-reverse-mode))
-		(twittering-get-next-status-head pos)
-	      (let ((pos pos))
-		(while
-		    (let* ((prev (twittering-get-previous-status-head pos))
-			   (prev-base-id
-			    (when prev
-			      (twittering-get-base-id-of-ancestor-at prev))))
-		      (and prev
-			   (twittering-status-id= base-id prev-base-id)
-			   (setq pos prev))))
-		(or pos (point-min)))))
-	   (end
-	    (if (and pointing-to-base-status twittering-reverse-mode)
-		pos
-	      (let ((pos beg))
-		(while
-		    (let ((current-base-id
-			   (twittering-get-base-id-of-ancestor-at pos)))
-		      (and current-base-id
-			   (twittering-status-id= base-id current-base-id)
-			   (setq pos (twittering-get-next-status-head pos)))))
-		(or pos (point-max)))))
+	   (beg (twittering-get-beginning-of-visible-replied-statuses pos))
+	   (end (twittering-get-end-of-visible-replied-statuses pos))
 	   (buffer-read-only nil))
       (unless pointing-to-base-status
 	(goto-char (if twittering-reverse-mode

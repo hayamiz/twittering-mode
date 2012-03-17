@@ -197,7 +197,7 @@
 * Support for exclude-re timelines.
   ":exclude-re/REGEXP/SPEC" is added as a new timeline spec. The
   timeline equals SPEC, except that it does not include tweets that
-  matches the regular expression REGEXP. In REGEXP, a slash must be
+  match the regular expression REGEXP. In REGEXP, a slash must be
   escaped with a backslash. For example, tweets including a slash are
   excluded from the timeline corresponding to the Emacs string literal
   ":exclude-re/\\//:home".

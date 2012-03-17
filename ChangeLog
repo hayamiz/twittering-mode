@@ -7,6 +7,15 @@
 	(twittering-edit-post-status): fix the condition of confirmation
 	on posting a tweet.
 
+	* twittering-mode.el: Support error messages formatted as JSON.
+	(twittering-get-error-message): receive a new argument
+	CONNECTION-INFO and support error messages sent as JSON.
+	(twittering-http-get-default-sentinel): send CONNECTION-INFO to
+	the function `twittering-get-error-message'.
+	(twittering-http-get-list-sentinel-base): likewise.
+	(twittering-http-post-default-sentinel): likewise.
+	(twittering-http-post-destroy-status-sentinel): likewise.
+
 2012-03-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the escape of a query string in a search

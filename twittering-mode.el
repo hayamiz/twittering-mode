@@ -7368,15 +7368,14 @@ variable `twittering-status-format'."
 (defun twittering-field-id= (field1 field2)
   (string= field1 field2))
 
-(defun twittering-make-field-id (status &optional base-id)
-  "Generate a field property for STATUS.
-Tweets are rendered in order of the field.
+(defun twittering-make-field-id-from-id (id &optional base-id)
+  "Generate a field property for the tweet corresponding to ID.
+Tweets are rendered in order of the field on `twittering-mode'.
 
 If BASE-ID is non-nil, generate a field id for a tweet rendered
 as a popped ancestor tweet by `twittering-show-replied-statuses'.
 In the case, BASE-ID means the ID of the descendant."
-  (let ((id (cdr (assq 'id status)))
-	(format-func (lambda (id) (format "%02d-%s" (length id) id))))
+  (let ((format-func (lambda (id) (format "%02d-%s" (length id) id))))
     (cond
      (base-id
       (format "O:%s:5:ancestor:%s"
@@ -7384,6 +7383,16 @@ In the case, BASE-ID means the ID of the descendant."
 	      (funcall format-func id)))
      (t
       (format "O:%s:8" (funcall format-func id))))))
+
+(defun twittering-make-field-id (status &optional base-id)
+  "Generate a field property for STATUS.
+Tweets are rendered in order of the field on `twittering-mode'.
+
+If BASE-ID is non-nil, generate a field id for a tweet rendered
+as a popped ancestor tweet by `twittering-show-replied-statuses'.
+In the case, BASE-ID means the ID of the descendant."
+  (let ((id (cdr (assq 'id status))))
+    (twittering-make-field-id-from-id id base-id)))
 
 (defun twittering-make-properties-of-popped-ancestors (base-id)
   `(rendered-as ((ancestor-of . ,base-id))))

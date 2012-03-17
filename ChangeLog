@@ -41,6 +41,13 @@
 	`twittering-make-properties-of-popped-ancestors' instead of
 	`twittering-make-field-properties-of-popped-ancestors'.
 
+	* twittering-mode.el: Add a new function
+	`twittering-make-field-id-from-id' which generates a field ID from
+	a tweet ID instead of a tweet alist.
+	(twittering-make-field-id-from-id): new function.
+	(twittering-make-field-id): reimplemented with the new function
+	`twittering-make-field-id-from-id'.
+
 2012-03-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the escape of a query string in a search

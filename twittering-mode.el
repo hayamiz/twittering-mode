@@ -2367,6 +2367,53 @@ If BUFFER is nil, the current buffer is used instead."
       (format "Response: %s"
 	      (twittering-get-error-message header-info connection-info))))))
 
+(defun twittering-retrieve-single-tweet-sentinel (proc status connection-info header-info)
+  (let ((status-line (cdr (assq 'status-line header-info)))
+	(status-code (cdr (assq 'status-code header-info))))
+    (case-string
+     status-code
+     (("200" "403" "404")
+      (debug-printf "connection-info=%s" connection-info)
+      (let* ((id (cdr (assq 'id connection-info)))
+	     (format (cdr (assq 'format connection-info)))
+	     (user-screen-name (cdr (assq 'user-screen-name connection-info)))
+	     (status
+	      (cond
+	       ((string= status-code "403")
+		;; Forbidden. Maybe a protected tweet?
+		(twittering-make-alist-of-forbidden-tweet id
+							  user-screen-name))
+	       ((string= status-code "404")
+		;; The requested resource does not exist.
+		(twittering-make-alist-of-non-existent-tweet id
+							     user-screen-name))
+	       ((eq format 'json)
+		(let ((json-object (twittering-json-read)))
+		  (twittering-json-object-to-a-status json-object)))
+	       ((eq format 'xml)
+		(let ((xmltree
+		       (twittering-xml-parse-region (point-min) (point-max))))
+		  (when xmltree
+		    (car
+		     (twittering-xmltree-to-status
+		      `((statuses nil ,@xmltree)))))))
+	       (t
+		nil))))
+	(when status
+	  (twittering-add-statuses-to-timeline-data `(,status) '(:single)))
+	(cond
+	 ((string= status-code "403")
+	  (format "You are not authorized to see this tweet (ID %s)." id))
+	 ((string= status-code "404")
+	  (format "The tweet with ID %s does not exist." id))
+	 (twittering-notify-successful-http-get
+	  (format "Fetching %s.  Success." id))
+	 (t
+	  nil))))
+     (t
+      (format "Response: %s"
+	      (twittering-get-error-message header-info connection-info))))))
+
 (defmacro twittering-http-get-list-sentinel-base (what)
   `(let ((status-line (cdr (assq 'status-line header-info)))
 	(status-code (cdr (assq 'status-code header-info)))
@@ -4534,6 +4581,11 @@ retrieve-timeline -- Retrieve a timeline.
       `twittering-http-get'.
     page -- (optional and valid only for favorites timeline) which page will
       be retrieved.
+retrieve-single-tweet -- Retrieve a single tweet.
+  Valid key symbols in ARGS-ALIST:
+    id -- the ID of the tweet to be retrieved.
+    username -- (optional) the screen name of the author of the tweet.
+    format -- (optional) the symbol specifying the format.
 get-list-index -- Retrieve list names owned by a user.
   Valid key symbols in ARGS-ALIST:
     username -- the username.
@@ -4738,6 +4790,28 @@ get-service-configuration -- Get the configuration of the server.
 	  (twittering-http-get host method parameters format-str
 			       additional-info sentinel clean-up-sentinel)
 	(error "Invalid timeline spec"))))
+   ((eq command 'retrieve-single-tweet)
+    (let* ((id (cdr (assq 'id args-alist)))
+	   (user-screen-name (cdr (assq 'username args-alist)))
+	   (format
+	    (let ((format (cdr (assq 'format args-alist))))
+	      (cond
+	       ((and format (symbolp format))
+		format)
+	       (t
+		'xml))))
+	   (format-str (symbol-name format))
+	   (parameters '(("include_entities" . "true")))
+	   (sentinel (cdr (assq 'sentinel args-alist)))
+	   (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist)))
+	   (additional-info `(,@additional-info
+			      (id . ,id)
+			      (user-screen-name . ,user-screen-name)
+			      (format . ,format))))
+      (twittering-http-get twittering-api-host
+			   (twittering-api-path "statuses/show/" id)
+			   parameters format-str additional-info
+			   sentinel clean-up-sentinel)))
    ((eq command 'get-list-index)
     ;; Get list names.
     (let ((username (cdr (assq 'username args-alist)))
@@ -5255,6 +5329,32 @@ If the authorization failed, return nil."
 		       nil
 		     str))
 		 twittering-timeline-history))))
+
+(defun twittering-make-alist-of-forbidden-tweet (id &optional user-screen-name)
+  (let ((created-at
+	 (apply 'encode-time
+		(parse-time-string "Jan 01 00:00:00 +0000 2012")))
+	)
+  `((forbidden . t)
+    (id . ,id)
+    (created-at . ,created-at)
+    (user-name . nil)
+    (user-screen-name . ,user-screen-name)
+    (text . "SORRY, YOU ARE NOT AUTHORIZED TO SEE THIS TWEET.")
+    )))
+
+(defun twittering-make-alist-of-non-existent-tweet (id &optional user-screen-name)
+  (let ((created-at
+	 (apply 'encode-time
+		(parse-time-string "Jan 01 00:00:00 +0000 2012")))
+	)
+  `((forbidden . t)
+    (id . ,id)
+    (created-at . ,created-at)
+    (user-name . nil)
+    (user-screen-name . ,user-screen-name)
+    (text . ,(format "THE TWEET WITH ID %s DOES NOT EXIST." id))
+    )))
 
 (defun twittering-atom-xmltree-to-status-datum (atom-xml-entry)
   (let* ((id-str (car (cddr (assq 'id atom-xml-entry))))

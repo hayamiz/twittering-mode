@@ -48,6 +48,16 @@
 	(twittering-make-field-id): reimplemented with the new function
 	`twittering-make-field-id-from-id'.
 
+	* twittering-mode.el: Add a new command `retrieve-single-tweet'
+	to the function `twittering-call-api'.
+	(twittering-retrieve-single-tweet-sentinel): new function.
+	(twittering-call-api): add `retrieve-single-tweet' as a new
+	command.
+	(twittering-make-alist-of-forbidden-tweet): new function, which
+	generates a dummy alist for a forbidden tweet.
+	(twittering-make-alist-of-non-existent-tweet): new function, which
+	generates a dummy alist for a non-existent tweet.
+
 2012-03-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the escape of a query string in a search

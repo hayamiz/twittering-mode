@@ -105,6 +105,12 @@
 	(twittering-snowflake-epoch-time): new function.
 	(twittering-id-to-time): new function.
 
+	* twittering-mode.el: Use the time extracted from ID for forbidden
+	or non-existent tweets.
+	(twittering-make-alist-of-forbidden-tweet): use the time extracted
+	from ID.
+	(twittering-make-alist-of-non-existent-tweet): likewise.
+
 2012-03-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the escape of a query string in a search

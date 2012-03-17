@@ -5422,9 +5422,10 @@ If the authorization failed, return nil."
 
 (defun twittering-make-alist-of-forbidden-tweet (id &optional user-screen-name)
   (let ((created-at
-	 (apply 'encode-time
-		(parse-time-string "Jan 01 00:00:00 +0000 2012")))
-	)
+	 (or
+	  (twittering-id-to-time id)
+	  (apply 'encode-time
+		 (parse-time-string "Jan 01 00:00:00 +0000 2012")))))
   `((forbidden . t)
     (id . ,id)
     (created-at . ,created-at)
@@ -5435,9 +5436,10 @@ If the authorization failed, return nil."
 
 (defun twittering-make-alist-of-non-existent-tweet (id &optional user-screen-name)
   (let ((created-at
-	 (apply 'encode-time
-		(parse-time-string "Jan 01 00:00:00 +0000 2012")))
-	)
+	 (or
+	  (twittering-id-to-time id)
+	  (apply 'encode-time
+		 (parse-time-string "Jan 01 00:00:00 +0000 2012")))))
   `((forbidden . t)
     (id . ,id)
     (created-at . ,created-at)

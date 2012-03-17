@@ -26,6 +26,10 @@
 	(twittering-update-service-configuration-sentinel): display an
 	error message in a HTTP response body.
 
+	* twittering-mode.el: Record HTTP response headers on debug mode.
+	(twittering-get-response-header): record the extracted HTTP
+	response header if `twittering-debug-mode' is non-nil.
+
 2012-03-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the escape of a query string in a search

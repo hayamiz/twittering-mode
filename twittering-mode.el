@@ -1438,7 +1438,13 @@ BUFFER may be a buffer or the name of an existing buffer which contains the HTTP
     (save-excursion
       (goto-char (point-min))
       (if (search-forward-regexp "\r?\n\r?\n" nil t)
-	  (buffer-substring (point-min) (match-end 0))
+	  (prog1
+	      (buffer-substring (point-min) (match-end 0))
+	    (when twittering-debug-mode
+	      (debug-printf "connection-info=%s\n" connection-info)
+	      (debug-print "HTTP response header:\n--BEGIN\n")
+	      (debug-print (buffer-substring (point-min) (match-end 0)))
+	      (debug-print "--END\n")))
 	nil))))
 
 (defun twittering-make-header-info-alist (header-str)

@@ -90,6 +90,15 @@
 	symbols besides `need-to-be-updated' as a specifier of regions to
 	be redisplayed.
 
+	* twittering-mode.el: Support iterative retrieval of a series of
+	replies.
+	(twittering-retrieve-single-tweet-sentinel): redisplay some
+	regions related to the retrieved status.
+	(twittering-render-a-tweet-with-delay): new function.
+	(twittering-toggle-or-retrieve-replied-statuses): new function.
+	(twittering-mode-map): bind "R" to the new function
+	`twittering-toggle-or-retrieve-replied-statuses'.
+
 2012-03-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the escape of a query string in a search

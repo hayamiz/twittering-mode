@@ -201,6 +201,18 @@
   escaped with a backslash. For example, tweets including a slash are
   excluded from the timeline corresponding to the Emacs string literal
   ":exclude-re/\\//:home".
+* Iterative retrieval of a series of replies.
+  You can trace back a series of replies by a new function
+  `twittering-toggle-or-retrieve-replied-statuses' bound to "R" in
+  default. The function behaves as follows:
+  - If some of tweets in the series of replies pointed by the cursor
+    have not been rendered, try to show them as possible. If some of
+    them have not been retrieved yet, retrieve the latest one and show
+    it.
+  - If all tweets in the series of replies pointed by the cursor
+    have been rendered, hide them.
+  - If the cursor does not point to one of tweets in a series of
+    replies, do nothing.
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

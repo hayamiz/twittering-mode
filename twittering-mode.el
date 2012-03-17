@@ -2400,7 +2400,23 @@ If BUFFER is nil, the current buffer is used instead."
 	       (t
 		nil))))
 	(when status
-	  (twittering-add-statuses-to-timeline-data `(,status) '(:single)))
+	  (twittering-add-statuses-to-timeline-data `(,status) '(:single))
+	  (let ((buffer (cdr (assq 'buffer connection-info)))
+		(prop
+		 (cdr (assq 'property-to-be-redisplayed connection-info))))
+	    (when (and buffer prop (buffer-live-p buffer))
+	      (twittering-redisplay-status-on-each-buffer buffer prop)
+	      (with-current-buffer buffer
+		(save-excursion
+		  (let ((buffer-read-only nil))
+		    (lexical-let ((prop prop))
+		      (twittering-for-each-property-region
+		       prop
+		       (lambda (beg end value)
+			 ;; Remove the property required no longer.
+			 (remove-text-properties beg end `(,prop nil))
+			 (goto-char beg)
+			 (twittering-render-replied-statuses))))))))))
 	(cond
 	 ((string= status-code "403")
 	  (format "You are not authorized to see this tweet (ID %s)." id))
@@ -8113,6 +8129,92 @@ Return nil if no statuses are rendered."
 	  t))
       nil))))
 
+(defun twittering-render-a-status-with-delay (beg end id prefix)
+  "Render a status with a delay.
+It is assumed that this function is used as a property value that is
+processed by the function `twittering-redisplay-status-on-each-buffer'."
+  (let ((status (twittering-find-status id)))
+    (when status
+      (let ((properties (and beg (text-properties-at beg))))
+	(apply 'propertize (twittering-format-status status prefix)
+	       properties)))))
+
+(defun twittering-toggle-or-retrieve-replied-statuses ()
+  "Show/Hide all of replied statuses or retrieve a replied status.
+If the cursor points to a reply or one of expanded replied statuses and
+some of ancestor replied statuses have been already retrieved but they have
+not been rendered, render them.
+If the cursor points to a reply or one of expanded replied statuses and
+all of retrieved ancestor statuses have been already rendered but the oldest
+one of them is also a reply, retrieve the replied status.
+If the cursor points to a reply or one of expanded replied statuses and
+all of ancestor replied statuses have been already rendered, hide them by
+`twittering-hide-replied-statuses'."
+  (interactive)
+  (let* ((pos (point))
+	 (pos
+	  ;; POS points to the head of the direct reply of the status being
+	  ;; retrieved.
+	  (cond
+	   ((twittering-replied-statuses-visible-p pos)
+	    ;; If some replied statuses are visible, find the edge.
+	    (if twittering-reverse-mode
+		(twittering-get-beginning-of-visible-replied-statuses pos)
+	      (twittering-get-previous-status-head
+	       (twittering-get-end-of-visible-replied-statuses pos))))
+	   (t
+	    (twittering-get-current-status-head pos))))
+	 (id (twittering-get-id-at pos))
+	 (status (twittering-find-status id))
+	 (reply-id (cdr (assq 'in-reply-to-status-id status)))
+	 (reply-username (cdr (assq 'in-reply-to-screen-name status)))
+	 (base-id (or (twittering-get-base-id-of-ancestor-at pos)
+		      id)))
+    (cond
+     ((twittering-find-status reply-id)
+      ;; The status corresponding to REPLY-ID has been already retrieved
+      ;; but it has not been rendered.
+      ;;
+      ;; `twittering-render-replied-statuses' additionally renders all
+      ;; of already retrieved statuses.
+      (twittering-render-replied-statuses))
+     (reply-id
+      (let* ((pos
+	      ;; POS points to the position where the new field will be
+	      ;; inserted.
+	      (if twittering-reverse-mode
+		  pos
+		(or (twittering-get-next-status-head pos)
+		    (point-max))))
+	     (field-id (twittering-make-field-id-from-id reply-id base-id))
+	     (prefix "  ")
+	     (label "[RETRIEVING...]")
+	     (symbol-for-redisplay 'waiting-for-retrieval)
+	     (properties
+	      `(,@(twittering-make-properties-of-popped-ancestors base-id)
+		,symbol-for-redisplay
+		(twittering-render-a-status-with-delay ,reply-id ,prefix)))
+	     (str (apply 'propertize (concat prefix label) properties))
+	     (buffer-read-only nil))
+	(twittering-call-api
+	 'retrieve-single-tweet
+	 `((id . ,reply-id)
+	   (username . ,reply-username)
+	   (format . ,(when (require 'json nil t)
+			'json))
+	   (sentinel . twittering-retrieve-single-tweet-sentinel))
+	 `((buffer . ,(current-buffer))
+	   (property-to-be-redisplayed . ,symbol-for-redisplay)))
+	(save-excursion
+	  (goto-char pos)
+	  (twittering-render-a-field (point) field-id str))))
+     ((twittering-replied-statuses-visible-p)
+      ;; All ancestor replied statuses have been rendered.
+      (twittering-hide-replied-statuses))
+     (t
+      ;; The pointed status is not a reply.
+      (message "This status is not a reply.")))))
+
 (defun twittering-show-replied-statuses (&optional count interactive)
   (interactive)
   (cond
@@ -8377,6 +8479,7 @@ managed by `twittering-mode'."
       (define-key km (kbd "H") 'twittering-goto-first-status)
       (define-key km (kbd "i") 'twittering-icon-mode)
       (define-key km (kbd "r") 'twittering-toggle-show-replied-statuses)
+      (define-key km (kbd "R") 'twittering-toggle-or-retrieve-replied-statuses)
       (define-key km (kbd "t") 'twittering-toggle-proxy)
       (define-key km (kbd "C-c C-p") 'twittering-toggle-proxy)
       (define-key km (kbd "q") 'twittering-kill-buffer)

@@ -4912,9 +4912,15 @@ get-service-configuration -- Get the configuration of the server.
 			  entries)))
 	(setq twittering-service-configuration-queried nil)
 	nil))
+     (("400")
+      ;; Rate limit exceeded.
+      (setq twittering-service-configuration-queried nil)
+      (format "Response: %s"
+	      (twittering-get-error-message header-info connection-info)))
      (t
       (setq twittering-service-configuration-queried nil)
-      (format "Response: %s" status-line)))))
+      (format "Response: %s"
+	      (twittering-get-error-message header-info connection-info))))))
 
 (defun twittering-update-service-configuration-clean-up-sentinel (proc status connection-info)
   (when (not (twittering-process-alive-p proc))

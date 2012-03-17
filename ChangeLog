@@ -21,6 +21,11 @@
 	(twittering-get-error-message): try to parse a HTTP respose body
 	whose status code is 401 or 404.
 
+	* twittering-mode.el: Display an error message from the
+	'help/configuration' API.
+	(twittering-update-service-configuration-sentinel): display an
+	error message in a HTTP response body.
+
 2012-03-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the escape of a query string in a search

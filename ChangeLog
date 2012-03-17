@@ -16,6 +16,11 @@
 	(twittering-http-post-default-sentinel): likewise.
 	(twittering-http-post-destroy-status-sentinel): likewise.
 
+	* twittering-mode.el: Parse a HTTP response body whose status code
+	is 401 or 404.
+	(twittering-get-error-message): try to parse a HTTP respose body
+	whose status code is 401 or 404.
+
 2012-03-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the escape of a query string in a search

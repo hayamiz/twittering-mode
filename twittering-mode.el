@@ -2243,11 +2243,14 @@ If BUFFER is nil, the current buffer is used instead."
 	(status-code (cdr (assq 'status-code header-info))))
     (cond
      ((and (buffer-live-p buffer)
-	   (member status-code '("400" "403")))
+	   (member status-code '("400" "401" "403" "404")))
       ;; Twitter returns an error message as a HTTP response body if
       ;; HTTP status is "400 Bad Request" or "403 Forbidden".
       ;; See "HTTP Response Codes and Errors | dev.twitter.com"
       ;; http://dev.twitter.com/pages/responses_errors .
+      ;;
+      ;; However, Twitter seems to return an error message even when
+      ;; the HTTP status is "401 Unauthorized" or "404 Not Found".
       (let* ((format (cdr (assq 'format connection-info)))
 	     (error-mes
 	      (cond

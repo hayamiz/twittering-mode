@@ -7974,14 +7974,16 @@ Otherwise, return nil."
 	 (id (twittering-get-id-at pos))
 	 (prev (twittering-get-previous-status-head pos))
 	 (next (twittering-get-next-status-head pos)))
-    (or
-     (twittering-get-base-id-of-ancestor-at pos)
-     (and prev
-	  (twittering-status-id=
-	   id (twittering-get-base-id-of-ancestor-at prev)))
-     (and next
-	  (twittering-status-id=
-	   id (twittering-get-base-id-of-ancestor-at next))))))
+    (when id
+      ;; If ID is nil, it means that no normal tweets are rendered at POS.
+      (or
+       (twittering-get-base-id-of-ancestor-at pos)
+       (and prev
+	    (twittering-status-id=
+	     id (twittering-get-base-id-of-ancestor-at prev)))
+       (and next
+	    (twittering-status-id=
+	     id (twittering-get-base-id-of-ancestor-at next)))))))
 
 (defun twittering-get-beginning-of-visible-replied-statuses (&optional pos)
   "Return the beginning position of visible replied statuses at POS.

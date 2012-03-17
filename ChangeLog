@@ -70,6 +70,11 @@
 	(twittering-hide-replied-statuses): determine a region being
 	deleted by using the new functions.
 
+	* twittering-mode.el: Fix the behavior of the function
+	`twittering-replied-statuses-visible-p' on a header or a footer.
+	(twittering-replied-statuses-visible-p): return nil on a header or
+	a footer.
+
 2012-03-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the escape of a query string in a search

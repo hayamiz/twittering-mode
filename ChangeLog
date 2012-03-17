@@ -75,6 +75,14 @@
 	(twittering-replied-statuses-visible-p): return nil on a header or
 	a footer.
 
+	* twittering-mode.el: Add a new function
+	`twittering-render-replied-statuses'.
+	(twittering-render-replied-statuses): new function, which renders
+	replied statuses even if some replied statuses have been already
+	rendered.
+	(twittering-show-replied-statuses): reimplemented with the new
+	function `twittering-render-replied-statuses'.
+
 2012-03-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the escape of a query string in a search

@@ -8047,47 +8047,85 @@ Otherwise, return nil."
      (t
       nil))))
 
+(defun twittering-render-replied-statuses (&optional pos count)
+  "Render replied statuses on the position specified by POS.
+If POS is nil, the current position is used instead.
+If COUNT is a positive integer, it specifies the number of rendered statuses.
+If COUNT is nil, all ancestor statuses that have been already retrieved are
+rendered.
+
+Return non-nil if one or more statuses are rendered.
+Return nil if no statuses are rendered."
+  (let* ((pos (or pos (point)))
+	 (id
+	  ;; nil if no normal statuses are rendered at POS.
+	  (twittering-get-id-at pos))
+	 (replied-status-are-visible
+	  (when id
+	    (twittering-replied-statuses-visible-p pos)))
+	 (base-id (if replied-status-are-visible
+		      (or
+		       ;; If a replied status is rendered at POS.
+		       (twittering-get-base-id-of-ancestor-at pos)
+		       ;; If the base reply is rendered at POS.
+		       id)
+		    id))
+	 (statuses
+	  (when base-id
+	    (twittering-get-replied-statuses base-id (if (numberp count)
+							 count))))
+	 (statuses (if twittering-reverse-mode
+		       statuses
+		     (reverse statuses))))
+    (cond
+     ((null id)
+      ;; No normal statuses are rendered here.
+      nil)
+     (statuses
+      (let ((pos
+	     (cond
+	      ((twittering-replied-statuses-visible-p pos)
+	       ;; Some replied statuses have been already rendered.
+	       (twittering-get-beginning-of-visible-replied-statuses pos))
+	      (twittering-reverse-mode
+	       (twittering-get-current-status-head))
+	      (t
+	       (or (twittering-get-next-status-head)
+		   (point-max)))))
+	    (prefix "  ")
+	    (buffer-read-only nil))
+	(save-excursion
+	  (goto-char pos)
+	  (mapc
+	   (lambda (status)
+	     (twittering-render-a-field
+	      (point)
+	      (twittering-make-field-id status base-id)
+	      (let ((formatted-status (twittering-format-status status prefix))
+		    (field-properties
+		     (twittering-make-properties-of-popped-ancestors base-id)))
+		(add-text-properties 0 (length formatted-status)
+				     field-properties formatted-status)
+		formatted-status)))
+	   statuses)
+	  t))
+      nil))))
+
 (defun twittering-show-replied-statuses (&optional count interactive)
   (interactive)
-  (if (twittering-replied-statuses-visible-p)
-      (when interactive
-	(message "The replied statuses were already showed."))
-    (let* ((base-id (twittering-get-id-at))
-	   (statuses (twittering-get-replied-statuses base-id
-						      (if (numberp count)
-							  count)))
-	   (statuses (if twittering-reverse-mode
-			 statuses
-		       (reverse statuses))))
-      (if statuses
-	  (let ((pos (if twittering-reverse-mode
-			 (twittering-get-current-status-head)
-		       (or (twittering-get-next-status-head)
-			   (point-max))))
-		(prefix "  ")
-		(buffer-read-only nil))
-	    (save-excursion
-	      (goto-char pos)
-	      (mapc
-	       (lambda (status)
-		 (twittering-render-a-field
-		  (point)
-		  (twittering-make-field-id status base-id)
-		  (let ((formatted-status
-			 (twittering-format-status status prefix))
-			(field-properties
-			 (twittering-make-properties-of-popped-ancestors
-			  base-id)))
-		    (add-text-properties 0 (length formatted-status)
-					 field-properties formatted-status)
-		    formatted-status)))
-	       statuses)
-	      t))
-	(when interactive
-	  (if (twittering-have-replied-statuses-p base-id)
-	      (message "The status this replies to has not been fetched yet.")
-	    (message "This status is not a reply.")))
-	nil))))
+  (cond
+   ((twittering-replied-statuses-visible-p)
+    (when interactive
+      (message "The replied statuses were already showed.")))
+   ((twittering-render-replied-statuses (point) count)
+    t)
+   (t
+    ;; Failed to render replied statuses.
+    (when interactive
+      (let ((base-id (twittering-get-id-at)))
+	(if (twittering-have-replied-statuses-p base-id)
+	    (message "The status this replies to has not been fetched yet.")
+	  (message "This status is not a reply.")))))))
 
 (defun twittering-hide-replied-statuses (&optional interactive)
   (interactive)

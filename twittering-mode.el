@@ -9020,7 +9020,15 @@ instead."
 			       short-length-https
 			     short-length-http)))
 	    (let ((additional-length
-		   (+ (- beg pos) (min short-len (- end beg)))))
+		   ;; Ignore the original length to follow the change
+		   ;; of t.co URL wrapper.
+		   ;;
+		   ;; https://dev.twitter.com/docs/tco-url-wrapper
+		   ;; As of October 10, 2011 the t.co URL wrapper
+		   ;; automatically wraps all links submitted to
+		   ;; Twitter, regardless of length. This includes
+		   ;; so-called URLs without protocols.
+		   (+ (- beg pos) short-len)))
 	      (setq len (+ len additional-length))
 	      (setq pos end)))))
       (+ len (- (length str) pos))))

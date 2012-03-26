@@ -2,6 +2,14 @@
 
 	* twittering-mode.el: Fix the filename of the footer line.
 
+	* twittering-mode.el: Fix the calculation of length of a tweet
+	including a URL.
+	(twittering-effective-length): always use the length retrieved by
+	'help/configuration' API. The function previously used the minimum
+	of the length by the API and the original length. This causes
+	failure in posting a tweet because the t.co URL wrapper
+	automatically wraps all links as of October 10, 2011.
+
 2012-03-17  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the condition of confirmation on posting

@@ -12,6 +12,8 @@
 
 	* README.markdown: Fix a typo.
 
+	* README.markdown: Update the document.
+
 2012-03-17  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the condition of confirmation on posting

@@ -10,6 +10,8 @@
 	failure in posting a tweet because the t.co URL wrapper
 	automatically wraps all links as of October 10, 2011.
 
+	* README.markdown: Fix a typo.
+
 2012-03-17  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the condition of confirmation on posting

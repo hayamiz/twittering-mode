@@ -19,7 +19,7 @@ Twittering-mode enables you to twit on Emacsen.
     * Direct message
     * ReTweet
     * Hash tag
-    * Signiture
+    * Signature
   * Following and removing users
   * Marking tweets as favorites
 * HTTP Proxy support

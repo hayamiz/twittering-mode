@@ -9195,10 +9195,10 @@ Pairs of a key symbol and an associated value are following:
        ((stringp init-string-or-skeleton)
 	(insert init-string-or-skeleton))
        ((listp init-string-or-skeleton)
-	(skeleton-insert init-string-or-skeleton)))
-      (set-buffer-modified-p nil))
+	(skeleton-insert init-string-or-skeleton))))
     (twittering-edit-skeleton-insert tweet-type reply-to-id
-				     current-spec)))
+				     current-spec)
+    (set-buffer-modified-p nil)))
 
 (defun twittering-edit-post-status ()
   (interactive)

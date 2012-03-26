@@ -14,6 +14,13 @@
 
 	* README.markdown: Update the document.
 
+	* twittering-mode.el: Ensure that a pop-up edit buffer is
+	initially marked as unmodified.
+	(twittering-update-status-from-pop-up-buffer): mark the pop-up
+	edit buffer as unmodified. Since the help is rendered as a
+	read-only text, the buffer must be marked as unmodified
+	explicitly.
+
 2012-03-17  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the condition of confirmation on posting

@@ -10576,7 +10576,7 @@ Note that the current implementation assumes `revive.el' 2.19 ."
 ;; End:
 
 (provide 'twittering-mode)
-;;; twittering.el ends here
+;;; twittering-mode.el ends here
 
                   (progn  (when  (
                    boundp  (  intern (

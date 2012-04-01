@@ -115,7 +115,8 @@ Twittering-mode enables you to twit on Emacsen.
   - `RET`: Post a reply to the pointed tweet or open the pointed URL
     with `browse-url`.
   - `C-c RET`: Post an organic retweet. This is only a tweet citing
-    the pointed tweet and not a official/native retweet.
+    the pointed tweet and not an official/native retweet.
+  - `C-uC-c RET`: Post an official/native retweet.
   - `d`: Send a direct message.
   - `C-cC-l`: Post a joke message.
 - Delete a tweet.

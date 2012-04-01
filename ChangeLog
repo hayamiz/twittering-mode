@@ -5,6 +5,9 @@
 	* README.markdown: Add an explanation how to post an
 	official/native retweet.
 
+	* README.markdown: Add basic key bindings to the 'Quick start'
+	section.
+
 2012-03-27  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the filename of the footer line.

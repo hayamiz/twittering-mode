@@ -63,8 +63,21 @@ Twittering-mode enables you to twit on Emacsen.
     Once the authorized OAuth token is encrypted, you do not have to
     retrieve a PIN code with an external browser. The master password
     is only required to establish authorized connection to Twitter.
-3.  Your home timeline will appear. You can also open other timelines by
-    *V* with [timeline-spec](#timeline-spec). Enjoy!
+3.  Your home timeline will appear. Basic key bindings are as
+    follows.
+
+    - `V`: Open or switch to another timeline by
+      [timeline-spec](#timeline-spec).
+    - `u` or `C-cC-s`: Post a tweet.
+    - `RET`: Post a reply to the pointed tweet or open the pointed URL
+      with `browse-url`.
+    - `C-c RET`: Post an organic retweet. This is only a tweet citing
+      the pointed tweet and not an official/native retweet.
+    - `C-uC-c RET`: Post an official/native retweet.
+    - `d`: Send a direct message.
+    - `C-cD`: Delete the pointed tweet.
+
+    Enjoy!
 
  Usage
 ------------------------

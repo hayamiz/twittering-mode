@@ -1,3 +1,7 @@
+2012-04-01  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* README.markdown: Fix the explanation of the key binding 'd'.
+
 2012-03-27  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the filename of the footer line.

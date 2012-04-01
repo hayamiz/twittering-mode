@@ -90,7 +90,7 @@ Twittering-mode enables you to twit on Emacsen.
   - `V`: Open a timeline by [timeline-spec](#timeline-spec).
   - `b`: Switch to the previous timeline.
   - `f`: Switch to the next timeline.
-  - `d` or `C-cC-d`: Open the direct messages timeline.
+  - `C-cC-d`: Open the direct messages timeline.
     This is equivalent to `V` with `:direct_messages`.
   - `v`: Open the home timeline of the pointed user.
   - `C-cC-f`: Open the friend timeline.
@@ -116,6 +116,7 @@ Twittering-mode enables you to twit on Emacsen.
     with `browse-url`.
   - `C-c RET`: Post an organic retweet. This is only a tweet citing
     the pointed tweet and not a official/native retweet.
+  - `d`: Send a direct message.
   - `C-cC-l`: Post a joke message.
 - Delete a tweet.
   - `C-cD`: Delete the pointed tweet.

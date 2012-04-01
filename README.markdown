@@ -209,7 +209,7 @@ The valid timeline specs follows:
                            username username username)
                  ":home")))
             ("related-to-twitter" . "$related-to(twitter)")))
-  </pre></code>
+  </code></pre>
   With this configuration, you can use the below aliases.
   - `$FRIENDS` is equivalent to `my-account/friends-list`.
   - `$related-to` is equivalent to `:home`.

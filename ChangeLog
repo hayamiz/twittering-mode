@@ -1,3 +1,7 @@
+2012-04-02  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* README.markdown: Fix the order of tags.
+
 2012-04-01  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* README.markdown: Fix the explanation of the key binding 'd'.

@@ -218,6 +218,14 @@
     have been rendered, hide them.
   - If the cursor does not point to one of tweets in a series of
     replies, do nothing.
+* Configuration of how to open a window for an edit buffer.
+  A new variable `twittering-pop-to-buffer-function' is added. It
+  specifies how to open a window for an edit buffer. The default value
+  is `twittering-pop-to-buffer-in-bottom-largest-window', which opens
+  a window by splitting the largest window on the bottom of the
+  current frame. You can also use the function
+  `twittering-pop-to-buffer-in-current-window', which splits the
+  current window.
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

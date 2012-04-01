@@ -15,6 +15,30 @@
 	`twittering-delete-status'.
 	* README.markdown: Fix the documents related to "C-cD".
 
+	* twittering-mode.el: Add a new variable
+	`twittering-pop-to-buffer-function' to specify how to open a
+	window for an edit buffer. Previously, a window for an edit buffer
+	was opened by invoking the function `pop-to-buffer' with
+	specifying non-nil as the argument NORECORD. This was an ad-hoc
+	solution of the problem that an edit buffer was assigned on a
+	different window for each time. However, with the solution, a
+	window for an edit buffer might be hidden by opening another
+	window because the window for an edit buffer was not recorded in
+	the list of recently selected windows. To avoid the behavior, new
+	functions open a window with a fixed rule and record a new window
+	in the list.
+	(twittering-pop-to-buffer-function): new variable.
+	(twittering-pop-to-buffer): new function, which just invokes the
+	function specified by `twittering-pop-to-buffer-function'.
+	(twittering-pop-to-buffer-simple): new function for the new
+	variable `twittering-pop-to-buffer-function'.
+	(twittering-pop-to-buffer-in-current-window): likewise.
+	(twittering-pop-to-buffer-in-largest-window): likewise.
+	(twittering-pop-to-buffer-in-bottom-largest-window): likewise.
+	(twittering-update-status-from-pop-up-buffer): use
+	`twittering-pop-to-buffer' instead of invoking `pop-to-buffer'
+	directly.
+
 2012-03-27  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the filename of the footer line.

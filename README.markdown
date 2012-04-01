@@ -75,7 +75,7 @@ Twittering-mode enables you to twit on Emacsen.
       the pointed tweet and not an official/native retweet.
     - `C-uC-c RET`: Post an official/native retweet.
     - `d`: Send a direct message.
-    - `C-cD`: Delete the pointed tweet.
+    - `C-cC-w`: Delete the pointed tweet.
 
     Enjoy!
 
@@ -133,7 +133,7 @@ Twittering-mode enables you to twit on Emacsen.
   - `d`: Send a direct message.
   - `C-cC-l`: Post a joke message.
 - Delete a tweet.
-  - `C-cD`: Delete the pointed tweet.
+  - `C-cC-w`: Delete the pointed tweet.
 - View more info.
   - `U`: Push the URL of the pointed link or tweet onto the kill ring.
   - `C-cC-v`: Open the profile of the pointed user with `browse-url`.

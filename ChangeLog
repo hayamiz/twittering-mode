@@ -8,6 +8,13 @@
 	* README.markdown: Add basic key bindings to the 'Quick start'
 	section.
 
+	* twittering-mode.el: Bind "C-cC-w" to
+	`twittering-delete-status'. The binding is a future replacement
+	for "C-cD", which violates the Emacs Key Binding Conventions.
+	(twittering-mode-map): bind "C-cC-w" to the function
+	`twittering-delete-status'.
+	* README.markdown: Fix the documents related to "C-cD".
+
 2012-03-27  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the filename of the footer line.

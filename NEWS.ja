@@ -20,6 +20,11 @@
   scroll-modeが有効であったときのように振舞います。最新のtweetに追従す
   るには、timelineバッファの最新側のヘッダもしくはフッタ上にカーソルを
   置いてください。
+* "C-cD"の代替として"C-cC-w"を導入
+  これまで、"C-cD"がtweet削除用関数'twittering-delete-status'にbindさ
+  れていました。しかしこのキーはEmacsのKey Binding Conventionsに則って
+  いません。そこでその代替として"C-cC-w"を同関数にbindしました。"C-cD"
+  も有効ですが、"C-cC-w"の使用を推奨します。
 
 ### 改良
 * 現在のtimelineに応じたedit skeleton

@@ -8526,6 +8526,7 @@ managed by `twittering-mode'."
       (define-key km (kbd "C-<mouse-3>") 'twittering-push-tweet-onto-kill-ring)
       (define-key km (kbd "C-c C-v") 'twittering-view-user-page)
       (define-key km (kbd "C-c D") 'twittering-delete-status)
+      (define-key km (kbd "C-c C-w") 'twittering-delete-status)
       (define-key km (kbd "a") 'twittering-toggle-activate-buffer)
       (define-key km (kbd "g") 'twittering-current-timeline)
       (define-key km (kbd "u") 'twittering-update-status-interactive)

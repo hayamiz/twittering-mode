@@ -20,6 +20,11 @@
   version of twittering-mode always behaves as the previous version
   does on scroll-mode. To track the latest tweet, put the cursor on
   the header or footer that is rendered on the latest end.
+* A new key binding for "C-cC-w", future replacement for "C-cD".
+  "C-cD" has been bound to `twittering-delete-status`, the function to
+  delete a tweet. But the binding violates the Emacs Key Binding
+  Conventions. "C-cC-w" is bound to the function. The old binding is
+  also valid, but the new one is recommended.
 
 ### Improvements
 * Edit skeleton according to the current timeline.

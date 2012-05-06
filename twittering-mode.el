@@ -4738,6 +4738,14 @@ retrieve-single-tweet -- Retrieve a single tweet.
     id -- the ID of the tweet to be retrieved.
     username -- (optional) the screen name of the author of the tweet.
     format -- (optional) the symbol specifying the format.
+    sentinel -- (optional) the sentinel that processes the buffer consisting
+      of retrieved data.. This is used as an argument SENTINEL of
+      `twittering-send-http-request' via `twittering-http-get'.
+      If nil, `twittering-http-get-default-sentinel' is used.
+    clean-up-sentinel -- (optional) the clean-up sentinel that post-processes
+      the buffer associated to the process. This is used as an argument
+      CLEAN-UP-SENTINEL of `twittering-send-http-request' via
+      `twittering-http-get'.
 get-list-index -- Retrieve list names owned by a user.
   Valid key symbols in ARGS-ALIST:
     username -- the username.

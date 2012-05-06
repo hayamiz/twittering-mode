@@ -12,6 +12,10 @@
 	* test/test-twittering-mode.el: remove tests for the filter
 	timeline.
 
+	* twittering-mode.el: Fix the docstring of `twittering-call-api'.
+	(twittering-call-api): fix the docstring for the command
+	`retrieve-single-tweet'.
+
 2012-04-02  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* README.markdown: Fix the order of tags.

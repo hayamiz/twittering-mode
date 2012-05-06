@@ -221,6 +221,10 @@
   のを分割することで編集バッファ用のウィンドウを確保します。他にも、関
   数`twittering-pop-to-buffer-in-current-window'を指定することもできま
   す。この関数は現在のウィンドウを分割してウィンドウを確保します。
+* single tweet timelineに対応
+  新しく":single/ID"というtimelineに対応しました。このtimelineはIDで
+  指定されたtweetのみからなるtimelineです。非常に古いtweet等にアクセス
+  するのに利用できます。
 
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正

@@ -177,6 +177,8 @@ The valid timeline specs follows:
     Retweets sent to *USER*'s home timeline.
   - `:retweets_of_me` :
     Your tweets that have been retweeted by others.
+- Single
+  - `:single/ID` : A tweet specified by *ID*.
 - Search
   - `:search/QUERY-STRING/` :
     Tweets matching *QUERY-STRING*. In *QUERY-STRING*, */* (slash) and

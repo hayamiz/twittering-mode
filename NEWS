@@ -226,6 +226,10 @@
   current frame. You can also use the function
   `twittering-pop-to-buffer-in-current-window', which splits the
   current window.
+* Support for `single tweet' timelines.
+  ":single/ID" is added as a new timeline spec. The timeline consists
+  of a tweet specified by ID. You can read a very old tweet by using
+  the timeline spec.
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

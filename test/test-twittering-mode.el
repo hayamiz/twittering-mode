@@ -333,6 +333,16 @@
     '(list "USER" "non-ASCIIリスト")
     '(list "USER" "non-ASCIIリスト"))
    '(t t))
+
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ;; An example from
+    ;; https://dev.twitter.com/docs/api/1/get/statuses/home_timeline ,
+    ;; which is posted by cindy li.
+    ":single/18700887835"
+    '(single "18700887835")
+    '(single "18700887835"))
+   '(t t))
   )
 
 (defcase timeline-spec-dependence nil nil

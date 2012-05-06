@@ -2415,9 +2415,19 @@ If BUFFER is nil, the current buffer is used instead."
 	(when status
 	  (twittering-add-statuses-to-timeline-data `(,status) '(:single))
 	  (let ((buffer (cdr (assq 'buffer connection-info)))
+		(spec (cdr (assq 'timeline-spec connection-info)))
 		(prop
 		 (cdr (assq 'property-to-be-redisplayed connection-info))))
-	    (when (and buffer prop (buffer-live-p buffer))
+	    (cond
+	     (spec
+	      ;; The process has been invoked via `twittering-call-api' with
+	      ;; the command `retrieve-timeline', not the command
+	      ;; `retrieve-single-tweet'.
+	      (let ((new-statuses `(,status))
+		    (buffer (twittering-get-buffer-from-spec spec)))
+		(when (and new-statuses buffer)
+		  (twittering-render-timeline buffer new-statuses t))))
+	     ((and buffer prop (buffer-live-p buffer))
 	      (twittering-redisplay-status-on-each-buffer buffer prop)
 	      (with-current-buffer buffer
 		(save-excursion
@@ -2429,7 +2439,7 @@ If BUFFER is nil, the current buffer is used instead."
 			 ;; Remove the property required no longer.
 			 (remove-text-properties beg end `(,prop nil))
 			 (goto-char beg)
-			 (twittering-render-replied-statuses))))))))))
+			 (twittering-render-replied-statuses)))))))))))
 	(cond
 	 ((string= status-code "403")
 	  (format "You are not authorized to see this tweet (ID %s)." id))
@@ -3742,8 +3752,10 @@ Before calling this, you have to configure `twittering-bitly-login' and
 ;;; - (retweeted_to_user USER): retweets posted to the user.
 ;;; - (retweets_of_me):
 ;;;     tweets of the authenticated user that have been retweeted by others.
+;;; - (single ID): the single tweet specified by ID.
 ;;;
 ;;; - (search STRING): the result of searching with query STRING.
+;;;
 ;;; - (exclude-if FUNC SPEC):
 ;;;     the same timeline as SPEC, except that it does not include tweets
 ;;;     that FUNC returns non-nil for.
@@ -3780,6 +3792,8 @@ Before calling this, you have to configure `twittering-bitly-login' and
 ;;; RETWEETED_TO_ME ::= ":retweeted_to_me"
 ;;; RETWEETED_TO_USER ::= ":retweeted_to_user/" USER
 ;;; RETWEETS_OF_ME ::= ":retweets_of_me"
+;;; SINGLE ::= ":single/" ID
+;;; ID ::= /[0-9]+/
 ;;;
 ;;; SEARCH ::= ":search/" QUERY_STRING "/"
 ;;; QUERY_STRING ::= any string, where "/" is escaped by a backslash.
@@ -3829,6 +3843,7 @@ If SHORTEN is non-nil, the abbreviated expression will be used."
      ((eq type 'retweeted_to_me) ":retweeted_to_me")
      ((eq type 'retweeted_to_user) (concat ":retweeted_to_user/" (car value)))
      ((eq type 'retweets_of_me) ":retweets_of_me")
+     ((eq type 'single) (concat ":single/" (car value)))
      ((eq type 'search)
       (let ((query (car value)))
 	(concat ":search/"
@@ -3921,6 +3936,10 @@ Return cons of the spec and the rest string."
 	(let ((user (match-string 1 str))
 	      (rest (substring str (match-end 0))))
 	  `((retweeted_to_user ,user) . ,rest)))
+       ((string-match "^:single/\\([0-9]+\\)" str)
+	(let ((id (match-string 1 str))
+	      (rest (substring str (match-end 0))))
+	  `((single ,id) . ,rest)))
        ((string= type "search")
 	(if (string-match "^:search/\\(\\(.*?[^\\]\\)??\\(\\\\\\\\\\)*\\)??/"
 			  str)
@@ -4060,7 +4079,8 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 		search
 		retweeted_by_me retweeted_by_user
 		retweeted_to_me retweeted_to_user
-		retweets_of_me))
+		retweets_of_me
+		single))
 	(type (car spec)))
     (memq type primary-spec-types)))
 
@@ -4254,6 +4274,12 @@ referring the former ID."
     (cond
      ((null spec)
       nil)
+     ((eq type 'single)
+      (let* ((id (cadr spec))
+	     (status (twittering-find-status id)))
+	(if status
+	    `(,status)
+	  nil)))
      ((memq type '(exclude-if exclude-re merge))
       (let ((primary-base-specs
 	     (twittering-get-primary-base-timeline-specs spec)))
@@ -4946,10 +4972,25 @@ get-service-configuration -- Get the configuration of the server.
 	   (sentinel (cdr (assq 'sentinel args-alist)))
 	   (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist)))
 	   (additional-info `(,@additional-info (format . ,format))))
-      (if (and host method)
-	  (twittering-http-get host method parameters format-str
-			       additional-info sentinel clean-up-sentinel)
-	(error "Invalid timeline spec"))))
+      (cond
+       ((eq spec-type 'single)
+	(let ((id (cadr spec))
+	      (sentinel (or sentinel
+			    'twittering-retrieve-single-tweet-sentinel)))
+	  (if (twittering-find-status id)
+	      ;; If the status has already retrieved, do nothing.
+	      nil
+	    (twittering-call-api 'retrieve-single-tweet
+				 `((id . ,id)
+				   (format . ,format)
+				   (sentinel . ,sentinel)
+				   (clean-up-sentinel . ,clean-up-sentinel))
+				 additional-info))))
+       ((and host method)
+	(twittering-http-get host method parameters format-str
+			     additional-info sentinel clean-up-sentinel))
+       (t
+	(error "Invalid timeline spec")))))
    ((eq command 'retrieve-single-tweet)
     (let* ((id (cdr (assq 'id args-alist)))
 	   (user-screen-name (cdr (assq 'username args-alist)))

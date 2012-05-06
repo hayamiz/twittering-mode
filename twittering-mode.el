@@ -7371,6 +7371,7 @@ following symbols;
 			 'keymap twittering-mode-on-uri-map
 			 'uri url
 			 'uri-origin 'explicit-uri-in-tweet
+			 'expanded-uri expanded-url
 			 'face 'twittering-uri-face
 			 'front-sticky nil
 			 'rear-nonsticky t)))

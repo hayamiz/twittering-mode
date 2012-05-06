@@ -33,6 +33,11 @@
 	* README.markdown: Add an explanation for a `single tweet'
 	timeline spec.
 
+	* twittering-mode.el: Add the expanded uri to the url string as a
+	property if possible.
+	(twittering-make-fontified-tweet-text-with-entity): add the
+	expanded-uri property to the url string.
+
 2012-04-02  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* README.markdown: Fix the order of tags.

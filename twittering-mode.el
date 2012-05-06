@@ -3760,9 +3760,10 @@ Before calling this, you have to configure `twittering-bitly-login' and
 ;;; SPEC ::= PRIMARY | COMPOSITE
 ;;; PRIMARY ::= USER | LIST | DIRECT_MESSSAGES | DIRECT_MESSSAGES_SENT
 ;;;             | FRIENDS | HOME | MENTIONS | PUBLIC | REPLIES
-;;;             | RETWEETED_BY_ME | RETWEETED_TO_ME | RETWEETS_OF_ME
+;;;             | RETWEETED_BY_ME | RETWEETED_BY_USER
+;;;             | RETWEETED_TO_ME | RETWEETED_TO_USER | RETWEETS_OF_ME
 ;;;             | SEARCH
-;;; COMPOSITE ::= MERGE | FILTER
+;;; COMPOSITE ::= EXCLUDE-IF | EXCLUDE-RE | MERGE | FILTER
 ;;;
 ;;; USER ::= /[a-zA-Z0-9_-]+/
 ;;; LIST ::= USER "/" LISTNAME

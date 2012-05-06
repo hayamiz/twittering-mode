@@ -184,32 +184,32 @@
 (defcase timeline-spec nil nil
   (test-assert-equal
    (test-restore-timeline-spec
-    "(user+(user/mylist+(@))+:filter/WORD/(USER2+:mentions))"
+    "(user+(user/mylist+(@))+:exclude-re/WORD/(USER2+:mentions))"
     '(merge (user "user")
 	    (merge (list "user" "mylist")
 		   (merge (replies)))
-	    (filter "WORD" (merge (user "USER2")
-				  (mentions))))
+	    (exclude-re "WORD" (merge (user "USER2")
+				      (mentions))))
     '(merge (user "user")
 	    (list "user" "mylist")
 	    (replies)
-	    (filter "WORD" (merge (user "USER2")
-				  (mentions)))))
+	    (exclude-re "WORD" (merge (user "USER2")
+				      (mentions)))))
    '(t t))
   (test-assert-equal
    (test-restore-timeline-spec
-    "(user-A+~+((user-B))+(:filter/R+/user-C+(:filter/R3\\//USER-D+:public)))"
+    "(user-A+~+((user-B))+(:exclude-re/R+/user-C+(:exclude-re/R3\\//USER-D+:public)))"
     '(merge (user "user-A")
 	    (home)
 	    (merge (user "user-B")
-		   (filter "R+" (user "user-C")))
-	    (filter "R3/" (user "USER-D"))
+		   (exclude-re "R+" (user "user-C")))
+	    (exclude-re "R3/" (user "USER-D"))
 	    (public))
     '(merge (user "user-A")
 	    (home)
 	    (user "user-B")
-	    (filter "R+" (user "user-C"))
-	    (filter "R3/" (user "USER-D"))
+	    (exclude-re "R+" (user "user-C"))
+	    (exclude-re "R3/" (user "USER-D"))
 	    (public)))
    '(t t))
 
@@ -232,33 +232,6 @@
     ":search/AB\\\\C\\/aaa\\\\/"
     '(search "AB\\C/aaa\\")
     '(search "AB\\C/aaa\\"))
-   '(t t))
-
-  (test-assert-equal
-   (test-restore-timeline-spec
-    ":filter/ABC/user/mylist"
-    '(filter "ABC" (list "user" "mylist"))
-    '(filter "ABC" (list "user" "mylist")))
-   '(t t))
-  (test-assert-equal
-   (test-restore-timeline-spec
-    ":filter/ABC\\/user/mylist"
-    '(filter "ABC/user" (user "mylist"))
-    '(filter "ABC/user" (user "mylist")))
-   '(t t))
-
-  (test-assert-equal
-   (test-restore-timeline-spec
-    ":filter/ABC\\\\/user/mylist"
-    '(filter "ABC\\\\" (list "user" "mylist"))
-    '(filter "ABC\\\\" (list "user" "mylist")))
-   '(t t))
-
-  (test-assert-equal
-   (test-restore-timeline-spec
-    ":filter/\\\\/user/mylist"
-    '(filter "\\\\" (list "user" "mylist"))
-    '(filter "\\\\" (list "user" "mylist")))
    '(t t))
 
   (test-assert-equal

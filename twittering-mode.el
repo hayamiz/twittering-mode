@@ -3752,7 +3752,6 @@ Before calling this, you have to configure `twittering-bitly-login' and
 ;;;     that matches the regular expression specified by REGEXP-STRING.
 ;;;
 ;;; - (merge SPEC1 SPEC2 ...): result of merging timelines SPEC1 SPEC2 ...
-;;; - (filter REGEXP SPEC): timeline filtered with REGEXP.
 ;;;
 
 ;;; Timeline spec string
@@ -3763,7 +3762,7 @@ Before calling this, you have to configure `twittering-bitly-login' and
 ;;;             | RETWEETED_BY_ME | RETWEETED_BY_USER
 ;;;             | RETWEETED_TO_ME | RETWEETED_TO_USER | RETWEETS_OF_ME
 ;;;             | SEARCH
-;;; COMPOSITE ::= EXCLUDE-IF | EXCLUDE-RE | MERGE | FILTER
+;;; COMPOSITE ::= EXCLUDE-IF | EXCLUDE-RE | MERGE
 ;;;
 ;;; USER ::= /[a-zA-Z0-9_-]+/
 ;;; LIST ::= USER "/" LISTNAME
@@ -3791,7 +3790,6 @@ Before calling this, you have to configure `twittering-bitly-login' and
 ;;;
 ;;; MERGE ::= "(" MERGED_SPECS ")"
 ;;; MERGED_SPECS ::= SPEC | SPEC "+" MERGED_SPECS
-;;; FILTER ::= ":filter/" REGEXP "/" SPEC
 ;;;
 
 (defvar twittering-regexp-hash
@@ -3849,13 +3847,6 @@ If SHORTEN is non-nil, the abbreviated expression will be used."
 	    (print-level nil))
 	(concat ":exclude-re/"
 		(replace-regexp-in-string "/" "\\\\\/" regexp-str)
-		"/"
-		(twittering-timeline-spec-to-string spec))))
-     ((eq type 'filter)
-      (let ((regexp (car value))
-	    (spec (cadr value)))
-	(concat ":filter/"
-		(replace-regexp-in-string "/" "\\/" regexp nil t)
 		"/"
 		(twittering-timeline-spec-to-string spec))))
      ((eq type 'merge)
@@ -3993,20 +3984,6 @@ Return cons of the spec and the rest string."
 	 (t
 	  (error "\"%s\" has no valid regexp" str)
 	  nil)))
-       ((string= type "filter")
-	(if (string-match "^:filter/\\(\\(.*?[^\\]\\)??\\(\\\\\\\\\\)*\\)??/"
-			  str)
-	    (let* ((escaped-regexp (or (match-string 1 str) ""))
-		   (regexp (replace-regexp-in-string "\\\\/" "/"
-						     escaped-regexp nil t))
-		   (following (substring str (match-end 0)))
-		   (pair (twittering-extract-timeline-spec
-			  following unresolved-aliases))
-		   (spec (car pair))
-		   (rest (cdr pair)))
-	      `((filter ,regexp ,spec) . ,rest))
-	  (error "\"%s\" has no valid regexp" str)
-	  nil))
        (t
 	(error "\"%s\" is invalid as a timeline spec" str)
 	nil))))
@@ -4075,7 +4052,7 @@ Return nil if SPEC-STR is invalid as a timeline spec."
 (defun twittering-timeline-spec-primary-p (spec)
   "Return non-nil if SPEC is a primary timeline spec.
 `primary' means that the spec is not a composite timeline spec such as
-`filter' and `merge'."
+`merge'."
   (let ((primary-spec-types
 	 '(user list
 		direct_messages direct_messages_sent

@@ -3,6 +3,15 @@
 	* twittering-mode.el: Add some timeline specs to the definition of
 	timeline spec strings.
 
+	* twittering-mode.el: Remove routines for the filter timeline.
+	(twittering-timeline-spec-to-string): remove routines for the
+	filter timeline.
+	(twittering-extract-timeline-spec): likewise.
+	(twittering-timeline-spec-primary-p): remove the mention to the
+	filter timeline from the docstring.
+	* test/test-twittering-mode.el: remove tests for the filter
+	timeline.
+
 2012-04-02  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* README.markdown: Fix the order of tags.

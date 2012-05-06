@@ -4520,6 +4520,14 @@ Statuses are stored in ascending-order with respect to their IDs."
     (format "http://%s/search?q=%s"
 	    twittering-web-host (twittering-percent-encode query-string))))
 
+(defun twittering-extract-id-from-url (url-string)
+  "Extract the ID from URL-STRING.
+Return nil if URL-STRING cannot be interpreted as a URL pointing a tweet."
+  (when (string-match
+	 "\\`https?://twitter.com/\\(?:#!/\\)?[^/]+/status/\\([0-9]+\\)/?\\'"
+	 url-string)
+    (match-string 1 url-string)))
+
 ;;;;
 ;;;; Utility of status IDs
 ;;;;
@@ -9745,8 +9753,13 @@ Pairs of a key symbol and an associated value are following:
 	 (goto-spec (get-text-property (point) 'goto-spec))
 	 (screen-name-in-text
 	  (get-text-property (point) 'screen-name-in-text))
+	 (uri (or (get-text-property (point) 'expanded-uri)
+		  (get-text-property (point) 'uri)))
+	 (mentioned-id (when uri
+			 (twittering-extract-id-from-url uri)))
 	 (spec (cond (goto-spec goto-spec)
 		     (screen-name-in-text `(user ,screen-name-in-text))
+		     (mentioned-id `(single ,mentioned-id))
 		     (username `(user ,username))
 		     (t nil))))
     (if spec

@@ -225,6 +225,10 @@
   新しく":single/ID"というtimelineに対応しました。このtimelineはIDで
   指定されたtweetのみからなるtimelineです。非常に古いtweet等にアクセス
   するのに利用できます。
+* tweetに含まれるURLからのsingle tweet timeline取得
+  特定のtweetを指すURL上で関数`twittering-other-user-timeline'を呼ぶこ
+  とで、そのtweetに対応したsingle tweet timelineを開けるようになりまし
+  た。この関数はデフォルトでは"v"にbindされています。
 
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正

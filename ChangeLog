@@ -38,6 +38,12 @@
 	(twittering-make-fontified-tweet-text-with-entity): add the
 	expanded-uri property to the url string.
 
+	* twittering-mode.el: Visit a single tweet timeline via a URL of a
+	tweet.
+	(twittering-extract-id-from-url): new function.
+	(twittering-other-user-timeline): visit a single tweet timeline if
+	the cursor points to a URL of a tweet.
+
 2012-04-02  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* README.markdown: Fix the order of tags.

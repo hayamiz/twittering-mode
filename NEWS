@@ -230,6 +230,10 @@
   ":single/ID" is added as a new timeline spec. The timeline consists
   of a tweet specified by ID. You can read a very old tweet by using
   the timeline spec.
+* Single tweet timeline from a URL in a tweet.
+  You can visit a `single tweet' timeline from a URL pointing to the
+  tweet by invoking `twittering-other-user-timeline' on the URL. The
+  function is bound to "v" in default.
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

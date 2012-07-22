@@ -8317,9 +8317,9 @@ Return nil if no statuses are rendered."
 	       ;; Some replied statuses have been already rendered.
 	       (twittering-get-beginning-of-visible-replied-statuses pos))
 	      (twittering-reverse-mode
-	       (twittering-get-current-status-head))
+	       (twittering-get-current-status-head pos))
 	      (t
-	       (or (twittering-get-next-status-head)
+	       (or (twittering-get-next-status-head pos)
 		   (point-max)))))
 	    (prefix "  ")
 	    (buffer-read-only nil))

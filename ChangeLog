@@ -16,6 +16,12 @@
 	milli-second parameter.
 	(twittering-id-to-time): restore the milli-second parameter.
 
+	* twittering-mode.el: Fix the bug that
+	`twittering-render-replied-statuses' may ignore the argument
+	`pos'.
+	(twittering-render-replied-statuses): correctly consider the
+	argument `pos'.
+
 2012-05-06  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Add some timeline specs to the definition of

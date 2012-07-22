@@ -4265,6 +4265,10 @@ referring the former ID."
 	(mapcar (lambda (base-spec)
 		  (elt (gethash base-spec twittering-timeline-data-table) 1))
 		(twittering-get-primary-base-timeline-specs spec)))))
+     ((eq type 'single)
+      ;; Single tweet timelines are registered in a special way.
+      ;; See `twittering-retrieve-single-tweet-sentinel'.
+      (elt (gethash '(:single) twittering-timeline-data-table) 1))
      (t
       (elt (gethash spec twittering-timeline-data-table) 1)))))
 

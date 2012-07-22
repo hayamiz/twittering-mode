@@ -22,6 +22,15 @@
 	(twittering-render-replied-statuses): correctly consider the
 	argument `pos'.
 
+	* twittering-mode.el: Fix the bug that a single tweet timeline
+	consisting of a retweet causes an error. A single tweet timeline
+	is registered to `twittering-timeline-data-table' in a special
+	way (See `twittering-retrieve-single-tweet-sentinel'). However,
+	`twittering-current-timeline-referring-id-table' did not take it
+	into account.
+	(twittering-current-timeline-referring-id-table): return the
+	correct hash table for a single tweet timeline.
+
 2012-05-06  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Add some timeline specs to the definition of

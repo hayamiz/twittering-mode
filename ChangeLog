@@ -5,6 +5,13 @@
 	(twittering-update-status-from-pop-up-buffer): clear list of undo
 	entries.
 
+	* twittering-mode.el: Fix the bug that retweets may not be
+	rendered in a composite timeline.
+	(twittering-render-timeline): render a retweet if the first ID
+	referring the retweet is unknown. This is necessary because a
+	referring ID table of a composite timeline may lack information of
+	some component timelines.
+
 2012-05-06  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Add some timeline specs to the definition of

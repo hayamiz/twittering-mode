@@ -7907,7 +7907,15 @@ to the latest status."
 				 id (gethash retweeted-id referring-id-table)))
 			   ;; `status' is the first retweet.
 			   status)
+			  ((null (gethash retweeted-id referring-id-table))
+			   ;; If the first ID referring the retweet is unknown,
+			   ;; render it.
+			   ;; This is necessary because a referring ID table
+			   ;; of a composite timeline may lack information of
+			   ;; some component timelines.
+			   status)
 			  (t
+			   ;; Otherwise, do not render it.
 			   nil))))
 		     timeline-data)))
 	   (timeline-data (if twittering-reverse-mode

@@ -9295,6 +9295,7 @@ Pairs of a key symbol and an associated value are following:
 					(reply . reply)))))
 	    (direct-message-recipient . ,username)))
     (twittering-edit-setup-help)
+    (setq buffer-undo-list nil)
     (goto-char (twittering-edit-get-help-end))
     (if (eq tweet-type 'direct-message)
 	(message "C-c C-c to send, C-c C-k to cancel")

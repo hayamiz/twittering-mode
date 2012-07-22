@@ -4603,7 +4603,13 @@ by Snowflake."
     (let* ((epoch (twittering-snowflake-epoch-time))
 	   (str (calc-eval
 		 `(,(format "floor(rsh(10#%s,22)/1000)" id)
-		   calc-word-size 64 calc-number-radix 16))))
+		   calc-word-size 64 calc-number-radix 16)))
+	   (milisec
+	    (string-to-number
+	     (calc-eval
+	      `(,(format "rsh(10#%s,22)%%1000" id)
+		calc-word-size 64 calc-number-radix 10))
+	     10)))
       (when (string-match "^16#\\([[:xdigit:]]+\\)" str)
 	(let* ((hex-str (match-string 1 str))
 	       (hex-str
@@ -4615,6 +4621,7 @@ by Snowflake."
 			(substring hex-str 0 (- (length hex-str) 4)) 16)
 		      ,(string-to-number
 			(substring hex-str (- (length hex-str) 4)) 16)
+		      ,(* milisec 1000)
 		      ))))))))
 
 ;;;;

@@ -22,6 +22,14 @@
 	(twittering-get-and-render-timeline): reimplemented with the new
 	function `twittering-retrieve-timeline'.
 
+	* twittering-mode.el: Add a new command
+	`twittering-get-tweets-before' to get tweets before a
+	specific time.
+	(twittering-parse-time-string): new function.
+	(twittering-time-to-id): new function.
+	(twittering-get-tweets-within-specific-time-range): new function.
+	(twittering-get-tweets-before): new function.
+
 2012-07-22  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Clear list of undo entries on a pop-up edit

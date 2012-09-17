@@ -670,6 +670,52 @@ be invoked when the process is successfully started."
 	(funcall sentinel proc "finished")))
     proc))
 
+(defun twittering-parse-time-string (str &optional round-up)
+  "Parse the time-string STR into (SEC MIN HOUR DAY MON YEAR DOW DST TZ).
+This function is the same as `parse-time-string' except to complement the
+lacked parameters with the current time.
+If ROUND-UP is nil, complement the lacked parameters with the oldest ones.
+If ROUND-UP is non-nil, complement the lacked parameters with the latest ones.
+For example, (twittering-parse-time-string \"2012-04-20\")
+returns (0 0 0 20 4 2012 nil nil 32400).
+And (twittering-parse-time-string \"2012-04-20\" t)
+returns (59 59 23 20 4 2012 nil nil 32400).
+The values are identical to those of `decode-time', but any values that are
+unknown are returned as nil."
+  (let* ((parsed (parse-time-string str))
+	 (current (decode-time (current-time)))
+	 (replacement-alist
+	  `((SEC . ,(if round-up
+			59
+		      0))
+	    (MIN . ,(if round-up
+			59
+		      0))
+	    (HOUR . ,(if round-up
+			 23
+		       0))
+	    (DAY . nil)
+	    (MON . nil)
+	    (YEAR . nil)
+	    (DOW . nil)
+	    (DST . nil)
+	    (TZ . nil)))
+	 (sym-list (mapcar 'car replacement-alist))
+	 (result nil))
+    (while (and parsed current sym-list)
+      (let* ((sym (car sym-list))
+	     (v (or (car parsed)
+		    (cdr (assq sym replacement-alist))
+		    ;; If `sym' is not 'DOW and it is bound to nil
+		    ;; in `replacement-alist', use `current'.
+		    (unless (eq sym 'DOW)
+		      (car current)))))
+	(setq result (cons v result)))
+      (setq parsed (cdr parsed))
+      (setq current (cdr current))
+      (setq sym-list (cdr sym-list)))
+    (reverse result)))
+
 ;;;;
 ;;;; Utility for portability
 ;;;;
@@ -4627,6 +4673,25 @@ by Snowflake."
 			(substring hex-str (- (length hex-str) 4)) 16)
 		      ,(* milisec 1000)
 		      ))))))))
+
+(defun twittering-time-to-id (time)
+  "Return the ID corresponding to TIME by Snowflake.
+Bits other than timestamp are zero. The least significant 22 bits are zero.
+TIME must be an Emacs internal representation as a return value of
+`current-time'."
+  (require 'calc)
+  (let* ((epoch-time (twittering-snowflake-epoch-time))
+	 (dt (if (time-less-p epoch-time time)
+		 (time-subtract time epoch-time)
+	       nil))
+	 (sec-high (nth 0 dt))
+	 (sec-low (nth 1 dt))
+	 (microsec (or (nth 2 dt) "0")))
+    (when dt
+      (calc-eval
+       `(,(format "lsh((16#%04x%04x) * 1000 + floor(%d/1000), 22)"
+		  sec-high sec-low microsec)
+	 calc-word-size 64 calc-number-radix 10)))))
 
 ;;;;
 ;;;; Process info
@@ -9864,6 +9929,42 @@ Pairs of a key symbol and an associated value are following:
   (when (twittering-buffer-p)
     (let ((spec-string (twittering-current-timeline-spec-string)))
       (twittering-get-and-render-timeline noninteractive))))
+
+(defun twittering-get-tweets-within-specific-time-range (time-beg time-end)
+  "Get tweets within a time range between TIME-BEG and TIME-END.
+TIME-BEG and TIME-END must be nil or an internal representation of time as
+same as the returned value of `current-time'."
+  (let* ((since_id (when time-beg
+		     (twittering-time-to-id time-beg)))
+	 (max_id (when time-end
+		   (twittering-time-to-id time-end)))
+	 (spec-string (twittering-current-timeline-spec-string))
+	 (noninteractive t)
+	 (args
+	  `(,@(cond
+	       (max_id `((max_id . ,max_id)))
+	       (since_id `((since_id . ,since_id)))
+	       (t nil)))))
+    (twittering-retrieve-timeline spec-string noninteractive args nil)))
+
+(defun twittering-get-tweets-before (&optional before-str)
+  (interactive)
+  (let* ((id (when (null before-str)
+	       (twittering-get-id-at)))
+	 (init-str
+	  (when id
+	    (let* ((status (twittering-find-status id))
+		   (init-time
+		    (or (cdr (assq 'retweeting-created-at status))
+			(cdr (assq 'created-at status)))))
+	      (format-time-string "%Y-%m-%d %T" init-time))))
+	 (before-str
+	  (or before-str
+	      (read-string "before [YYYY-MM-DD [HH:MM:SS]]: " init-str)))
+	 (time-beg nil)
+	 (time-end
+	  (apply 'encode-time (twittering-parse-time-string before-str t))))
+    (twittering-get-tweets-within-specific-time-range time-beg time-end)))
 
 ;;;; Commands for posting a status
 

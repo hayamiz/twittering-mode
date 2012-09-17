@@ -234,6 +234,9 @@
   You can visit a `single tweet' timeline from a URL pointing to the
   tweet by invoking `twittering-other-user-timeline' on the URL. The
   function is bound to "v" in default.
+* New command to get tweets before a specific time.
+  By using the new command `twittering-get-tweets-before', you can get
+  tweets of the current timeline before a specific time.
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

@@ -229,6 +229,9 @@
   特定のtweetを指すURL上で関数`twittering-other-user-timeline'を呼ぶこ
   とで、そのtweetに対応したsingle tweet timelineを開けるようになりまし
   た。この関数はデフォルトでは"v"にbindされています。
+* 特定日時以前のtweetを取得するコマンドを追加
+  現在のtimelineの、指定した日時以前のtweetを取得できる新しいコマンド
+  `twittering-get-tweets-before'が追加されました。
 
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正

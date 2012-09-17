@@ -5,6 +5,12 @@
 	(twittering-send-http-request-curl): add the option `--compressed'
 	to the arguments for the program `curl'.
 
+	* twittering-mode.el: Do not call `force-mode-line-update' via the
+	unread status notifier. It had been invoked via a sentinel or
+	`post-command-hook'.
+	(twittering-set-number-of-unread): do not call the function
+	`force-mode-line-update'.
+
 2012-07-22  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Clear list of undo entries on a pop-up edit

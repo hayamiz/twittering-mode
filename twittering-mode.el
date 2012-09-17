@@ -8495,8 +8495,7 @@ means the number of statuses retrieved after the last visiting of the buffer.")
 	     `(,buffer ,number)
 	     (if entry
 		 (remq entry twittering-unread-status-info)
-	       twittering-unread-status-info)))
-      (force-mode-line-update))))
+	       twittering-unread-status-info))))))
 
 (defun twittering-make-unread-status-notifier-string ()
   "Generate a string that displays unread statuses."

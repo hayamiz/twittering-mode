@@ -11,6 +11,17 @@
 	(twittering-set-number-of-unread): do not call the function
 	`force-mode-line-update'.
 
+	* twittering-mode.el: Add a new function
+	`twittering-retrieve-timeline'.
+	(twittering-retrieve-timeline): new function for retrieving and
+	rendering a timeline. This accepts any timeilne spec string
+	including that for composite timeline, though
+	`twittering-call-api' accepts only a primary timeline. Also, the
+	new function can be invoked with more detailed retrieval options
+	than the existing function `twittering-get-and-render-timeline'.
+	(twittering-get-and-render-timeline): reimplemented with the new
+	function `twittering-retrieve-timeline'.
+
 2012-07-22  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Clear list of undo entries on a pop-up edit

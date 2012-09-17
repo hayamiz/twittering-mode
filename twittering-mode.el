@@ -8051,10 +8051,18 @@ will be restored after rendering statuses."
 	      point-window-list)
 	(goto-char original-pos)))))
 
-(defun twittering-get-and-render-timeline (&optional noninteractive id spec spec-string)
-  (let ((spec (or spec (twittering-current-timeline-spec)))
-	(spec-string
-	 (or spec-string (twittering-current-timeline-spec-string))))
+(defun twittering-retrieve-timeline (spec-string noninteractive api-arguments additional-info)
+  "Retrieve and render a timeline specified by SPEC-STRING.
+Retrieve a timeline specified by SPEC-STRING, which must be a timeline spec
+string. Any timeline spec string including that for composite timeline can be
+used as SPEC-STRING, though the primitive function `twittering-call-api'
+accepts only a spec of a primary timeline.
+
+NONINTERACTIVE is sent to the sentinel as a parameter `noninteractive' via
+an argument `additional-info' of `twittering-call-api'.
+API-ARGUMENTS is also sent to `twittering-call-api' as its argument
+`args-alist'."
+  (let ((spec (twittering-string-to-timeline-spec spec-string)))
     (cond
      ((not (twittering-account-authorized-p))
       ;; ignore any requests if the account has not been authorized.
@@ -8064,26 +8072,19 @@ will be restored after rendering statuses."
       ;; ignore non-interactive request if a process is waiting for responses.
       t)
      ((twittering-timeline-spec-primary-p spec)
-      (let* ((latest-status
-	      ;; Assume that a list which was returned by
-	      ;; `twittering-current-timeline-data' is sorted.
-	      (car (twittering-current-timeline-data spec)))
-	     (since_id (cdr-safe (assq 'id latest-status)))
-	     (args
-	      `((timeline-spec . ,spec)
+      (let* ((args
+	      `(,@api-arguments
+		(timeline-spec . ,spec)
 		(timeline-spec-string . ,spec-string)
 		(format . ,(when (require 'json nil t)
 			     'json))
-		,@(cond
-		   (id `((max_id . ,id)))
-		   (since_id `((since_id . ,since_id)))
-		   (t nil))
 		(clean-up-sentinel
 		 . ,(lambda (proc status connection-info)
 		      (when (memq status '(exit signal closed failed))
 			(twittering-release-process proc))))))
 	     (additional-info
-	      `((noninteractive . ,noninteractive)
+	      `(,@additional-info
+		(noninteractive . ,noninteractive)
 		(timeline-spec . ,spec)
 		(timeline-spec-string . ,spec-string)))
 	     (proc
@@ -8098,12 +8099,27 @@ will be restored after rendering statuses."
 		 (if buffer
 		     (twittering-get-timeline-spec-string-for-buffer buffer)
 		   (twittering-timeline-spec-to-string spec))))
-	   (twittering-get-and-render-timeline noninteractive id
-					       spec spec-string)))
+	   (twittering-retrieve-timeline spec-string noninteractive
+					 api-arguments additional-info)))
        (twittering-get-base-timeline-specs spec)))
      (t
       (let ((type (car spec)))
 	(error "%s has not been supported yet" type))))))
+
+(defun twittering-get-and-render-timeline (&optional noninteractive id spec spec-string)
+  (let* ((spec (or spec (twittering-current-timeline-spec)))
+	 (spec-string
+	  (or spec-string (twittering-current-timeline-spec-string)))
+	 (latest-status
+	  ;; Assume that a list which was returned by
+	  ;; `twittering-current-timeline-data' is sorted.
+	  (car (twittering-current-timeline-data spec)))
+	 (since_id (cdr-safe (assq 'id latest-status)))
+	 (args `(,@(cond
+		    (id `((max_id . ,id)))
+		    (since_id `((since_id . ,since_id)))
+		    (t nil)))))
+    (twittering-retrieve-timeline spec-string noninteractive args nil)))
 
 ;;;;
 ;;;; Map function for statuses on buffer

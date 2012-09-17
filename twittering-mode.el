@@ -2404,7 +2404,8 @@ If BUFFER is nil, the current buffer is used instead."
 	    (when (and new-statuses buffer)
 	      (twittering-render-timeline buffer new-statuses t))))
 	(if twittering-notify-successful-http-get
-	    (format "Fetching %s.  Success." spec-string)
+	    (format "Fetching %s. (%d tweets) Success." spec-string
+		    (length statuses))
 	  nil)))
      (("404")
       ;; The requested resource does not exist.

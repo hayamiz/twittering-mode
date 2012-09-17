@@ -30,6 +30,11 @@
 	(twittering-get-tweets-within-specific-time-range): new function.
 	(twittering-get-tweets-before): new function.
 
+	* twittering-mode.el: Display how many tweets are retrieved.
+	(twittering-http-get-default-sentinel): display how many tweets
+	are retrieved. This may includes some tweets that has been already
+	retrieved as an other timeline.
+
 2012-07-22  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Clear list of undo entries on a pop-up edit

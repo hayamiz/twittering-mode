@@ -4960,6 +4960,7 @@ get-service-configuration -- Get the configuration of the server.
 	    (cond
 	     ((eq spec-type 'favorites)
 	      `(("include_entities" . "true")
+		,@(when max_id `(("max_id" . ,max_id)))
 		,@(when page `(("page" . ,page)))))
 	     ((eq spec-type 'retweeted_by_user)
 	      (let ((username (elt spec 1)))

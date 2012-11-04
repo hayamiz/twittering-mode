@@ -1,3 +1,10 @@
+2012-11-05  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Support the backward retrieval of favorites
+	timeline.
+	(twittering-call-api): send the parameter `max_id' for retrieving
+	favorites timeline if necessary.
+
 2012-09-17  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Request a compressed HTTP response when

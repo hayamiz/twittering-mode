@@ -2392,21 +2392,29 @@ If BUFFER is nil, the current buffer is used instead."
 		  (when xmltree
 		    (twittering-atom-xmltree-to-status xmltree))))
 	       (t
-		nil))))
-	(when statuses
-	  (let ((new-statuses
-		 (twittering-add-statuses-to-timeline-data statuses spec))
-		(buffer (twittering-get-buffer-from-spec spec)))
-	    ;; FIXME: We should retrieve un-retrieved statuses until
-	    ;; statuses is nil. twitter server returns nil as
-	    ;; xmltree with HTTP status-code is "200" when we
-	    ;; retrieved all un-retrieved statuses.
-	    (when (and new-statuses buffer)
-	      (twittering-render-timeline buffer new-statuses t))))
-	(if twittering-notify-successful-http-get
-	    (format "Fetching %s. (%d tweets) Success." spec-string
-		    (length statuses))
-	  nil)))
+		nil)))
+	     (rendered-tweets nil))
+	(let ((updated-timeline-info
+	       (twittering-add-statuses-to-timeline-data statuses spec))
+	      (buffer (twittering-get-buffer-from-spec spec)))
+	  ;; FIXME: We should retrieve un-retrieved statuses until
+	  ;; statuses is nil. twitter server returns nil as
+	  ;; xmltree with HTTP status-code is "200" when we
+	  ;; retrieved all un-retrieved statuses.
+	  (if twittering-notify-successful-http-get
+	      (if updated-timeline-info
+		  (concat
+		   (format "Fetching %s. Success. " spec-string)
+		   (mapconcat
+		    (lambda (info)
+		      (let ((spec-string (nth 0 info))
+			    (num (nth 1 info)))
+			(format "%s: +%d" spec-string num)))
+		    updated-timeline-info
+		    ", "))
+		(format "Fetching %s. Success. (No new tweets)"
+			spec-string))
+	    nil))))
      (("404")
       ;; The requested resource does not exist.
       (let ((spec (cdr (assq 'timeline-spec connection-info)))
@@ -4447,6 +4455,9 @@ Statuses are stored in ascending-order with respect to their IDs."
 	(and replied-id (not (string= "" replied-id)))))))
 
 (defun twittering-add-statuses-to-timeline-data (statuses &optional spec)
+  "Add STATUSES as new statuses for SPEC and update derived timelines.
+The function returns a list of lists including an updated timeline spec
+string and the number of new statuses for the timeline."
   (let* ((spec (or spec (twittering-current-timeline-spec)))
 	 (id-table
 	  (or (twittering-current-timeline-id-table spec)
@@ -4485,25 +4496,30 @@ Statuses are stored in ascending-order with respect to their IDs."
 	(let ((twittering-new-tweets-spec spec)
 	      (twittering-new-tweets-statuses new-statuses)
 	      (twittering-new-tweets-count (length new-statuses)))
-	  (run-hooks 'twittering-new-tweets-hook))
-	;; Update timelines derived from SPEC.
-	(mapc
-	 (lambda (buffer)
-	   (let ((other-spec (twittering-get-timeline-spec-for-buffer buffer)))
-	     (when (and
-		    (twittering-timeline-spec-composite-p other-spec)
-		    (twittering-timeline-spec-depending-on-p other-spec spec))
-	       (let* ((twittering-new-tweets-spec other-spec)
-		      (twittering-new-tweets-statuses
-		       (twittering-generate-composite-timeline
-			other-spec spec new-statuses))
-		      (twittering-new-tweets-count
-		       (length twittering-new-tweets-statuses)))
-		 (twittering-render-timeline buffer
-					     twittering-new-tweets-statuses t)
-		 (run-hooks 'twittering-new-tweets-hook)))))
-	 (twittering-get-buffer-list))
-	new-statuses))))
+	  (run-hooks 'twittering-new-tweets-hook)))
+      ;; Update timelines derived from SPEC and return the number of
+      ;; new tweets for each updated timeline.
+      (remove
+       nil
+       (mapcar
+	(lambda (buffer)
+	  (let ((other-spec (twittering-get-timeline-spec-for-buffer buffer))
+		(other-spec-string
+		 (twittering-get-timeline-spec-string-for-buffer buffer)))
+	    (when (twittering-timeline-spec-depending-on-p other-spec spec)
+	      (let* ((twittering-new-tweets-spec other-spec)
+		     (twittering-new-tweets-statuses
+		      (twittering-generate-composite-timeline
+		       other-spec spec new-statuses))
+		     (twittering-new-tweets-count
+		      (length twittering-new-tweets-statuses))
+		     (rendered-tweets
+		      (twittering-render-timeline
+		       buffer twittering-new-tweets-statuses t)))
+		(when rendered-tweets
+		  (run-hooks 'twittering-new-tweets-hook)
+		  `(,other-spec-string ,(length rendered-tweets)))))))
+	(twittering-get-buffer-list))))))
 
 ;;;;
 ;;;; URIs related to a tweet
@@ -7959,12 +7975,14 @@ Return non-nil if the status is rendered. Otherwise, return nil."
 	 t))))
 
 (defun twittering-render-timeline (buffer timeline-data &optional invoke-hook keep-point)
-  "Render statuses for BUFFER.
+  "Render statuses for BUFFER and return the list of the rendered statuses.
 TIMELINE-DATA is a list of statuses being rendered.
 If INVOKE-HOOK is non-nil and one or more tweets are rendered, run hooks
 specified by `twittering-new-tweets-rendered-hook'.
 If KEEP-POINT is nil and BUFFER is empty, this function moves cursor positions
-to the latest status."
+to the latest status.
+
+This function returns a list of the statuses newly rendered by the invocation."
   (with-current-buffer buffer
     (let* ((spec (twittering-get-timeline-spec-for-buffer buffer))
 	   (referring-id-table
@@ -8000,6 +8018,7 @@ to the latest status."
 			      (reverse timeline-data)
 			    timeline-data))
 	   (rendering-entire (null (twittering-get-first-status-head)))
+	   (result-tweets nil)
 	   (buffer-read-only nil))
       (twittering-update-status-format)
       (twittering-update-mode-line)
@@ -8062,10 +8081,11 @@ to the latest status."
 			   timeline-data)))
 		 (twittering-rendered-new-tweets
 		  (if twittering-reverse-mode
-		      (nreverse rendered-tweets)
+		      (reverse rendered-tweets)
 		    rendered-tweets))
 		 (twittering-rendered-new-tweets-spec spec)
 		 (twittering-rendered-new-tweets-spec-string spec-string))
+	    (setq result-tweets rendered-tweets)
 	    (when (and invoke-hook twittering-rendered-new-tweets)
 	      (run-hooks 'twittering-new-tweets-rendered-hook)))))
       (debug-print (current-buffer))
@@ -8090,7 +8110,8 @@ to the latest status."
 	       window-list)
 	    ;; Move the buffer position if the buffer is invisible.
 	    (goto-char dest))))
-       ))
+       )
+      result-tweets)
     ))
 
 (defun twittering-rerender-timeline-all (buffer &optional restore-point)

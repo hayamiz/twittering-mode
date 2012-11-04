@@ -5,6 +5,15 @@
 	(twittering-call-api): send the parameter `max_id' for retrieving
 	favorites timeline if necessary.
 
+	* twittering-mode.el: Display how many tweets are added to each
+	buffer.
+	(twittering-http-get-default-sentinel): display how many tweets
+	are added to each buffer.
+	(twittering-add-statuses-to-timeline-data): return a list of pairs
+	of a timeline spec string and the number of addtional tweets.
+	(twittering-render-timeline): return a list of tweets newly
+	rendered.
+
 2012-09-17  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Request a compressed HTTP response when

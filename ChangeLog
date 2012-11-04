@@ -14,6 +14,16 @@
 	(twittering-render-timeline): return a list of tweets newly
 	rendered.
 
+	* twittering-mode.el: Extract the format from the HTTP response
+	header.
+	(twittering-get-content-subtype-symbol-from-header-info): new
+	function for extracting the content subtype from a HTTP header.
+	(twittering-send-http-request): fix docstring.
+	(twittering-get-error-message): extract the format from the HTTP
+	response header instead of using `connection-info`.
+	(twittering-http-get-default-sentinel): likewise.
+	(twittering-retrieve-single-tweet-sentinel): likewise.
+
 2012-09-17  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Request a compressed HTTP response when

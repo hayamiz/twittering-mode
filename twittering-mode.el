@@ -10539,8 +10539,6 @@ Return nil if no statuses are rendered."
 	     (oldest-id (cdr (assq 'id oldest-status)))
 	     (spec-type (car (twittering-current-timeline-spec))))
 	(cond
-	 ((eq spec-type 'favorites)
-	  (message "Backward retrieval of favorites is not supported yet."))
 	 (oldest-id
 	  (message "Get more of the previous timeline...")
 	  ;; Here, the cursor points to the footer field or the end of
@@ -10586,8 +10584,6 @@ Otherwise, return a positive integer greater than POS."
 	     (oldest-id (cdr (assq 'id oldest-status)))
 	     (spec-type (car (twittering-current-timeline-spec))))
 	(cond
-	 ((eq spec-type 'favorites)
-	  (message "Backward retrieval of favorites is not supported yet."))
 	 (oldest-id
 	  (message "Get more of the previous timeline...")
 	  ;; Here, the cursor points to the header field.

@@ -1,3 +1,15 @@
+2013-01-14  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix a bug of backward retrieval of
+	favorites timeline. The functions, `twittering-goto-next-status'
+	and `twittering-goto-previous-status', did nothing for favorites
+	timeline. They now treat favorites timeline as they treat other
+	timelines. Thanks to the anonymous person who reported the
+	problem.
+	(twittering-goto-next-status): Remove a special action for
+	favorites timeline.
+	(twittering-goto-previous-status): likewise.
+
 2012-11-05  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Support the backward retrieval of favorites

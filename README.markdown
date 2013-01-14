@@ -33,25 +33,40 @@ Twittering-mode enables you to twit on Emacsen.
 -------------------
 
 - GNU Emacs 21 (some restrictions)
-- GNU Emacs 22, 23
+- GNU Emacs 22, 23, 24
 
  Prerequisites
 -------------------
 
 - For SSL connection, one of the followings is required.
-  - cURL
-  - GNU Wget
-  - OpenSSL
-  - GnuTLS
-- For storing an authorized token with encryption (master password
-  function), GnuPG is required.
-- For converting and resizing icon images, ImageMagick or its compatible
-  alternative is required.
-- For persistent icon storage, gzip is required.
+  - cURL http://curl.haxx.se/
+  - GNU Wget http://www.gnu.org/software/wget/
+  - OpenSSL http://www.openssl.org/
+  - GnuTLS http://www.gnu.org/software/gnutls/
+- For keeping an OAuth authorized token in a local storage encrypted
+  with master password, GnuPG ( http://www.gnupg.org/ ) is  required.
+  On Emacs 22 and earlier, either EasyPG ( http://epg.sourceforge.jp/ )
+  or alpaca.el( http://www.mew.org/~kazu/proj/cipher/ ) is also
+  required.
+- For displaying icons in formats that are not supported by Emacs and
+  resizing icon images, ImageMagick ( http://www.imagemagick.org/ ) or
+  its compatible alternative is required, e.g. GraphicsMagick
+  ( http://www.graphicsmagick.org/ ). Note that twittering-mode on
+  icon-mode converts retrieved icons into XPM in default. So,
+  icon-mode without additional configuration requires, ImageMagick (or
+  its alternative).
+- For keeping retrieved icons in a local storage, gzip
+  ( http://www.gzip.org/ ) is required.
 
  Quick start
 ------------------------
 
+0.  Put *twittering-mode.el* in a directory specified by the variable
+    `load-path`. Note that the directories *emacs21* and *url-emacs21*
+    must be placed at the same directory on Emacs 21. On Windows
+    without curl or wget, the directory *win-curl* must be placed
+    there. You can add a directory to the variable `load-path` by
+    `(add-to-list 'load-path "ADDITIONAL-DIRECTORY")`.
 1.  Execute `M-x twit` to run twittering-mode.
 2.  Open OAuth authorization page with an external browser, click *Allow*,
     and enter the PIN code in the prompt of Emacs.
@@ -65,7 +80,6 @@ Twittering-mode enables you to twit on Emacsen.
     is only required to establish authorized connection to Twitter.
 3.  Your home timeline will appear. Basic key bindings are as
     follows.
-
     - `V`: Open or switch to another timeline by
       [timeline-spec](#timeline-spec).
     - `u` or `C-cC-s`: Post a tweet.
@@ -76,6 +90,64 @@ Twittering-mode enables you to twit on Emacsen.
     - `C-uC-c RET`: Post an official/native retweet.
     - `d`: Send a direct message.
     - `C-cC-w`: Delete the pointed tweet.
+4.  Add some of the following major configurations to your init file
+    if you like.
+    - To display icons, add `(setq twittering-icon-mode t)`.
+      This may require ImageMagick or its compatible alternative.
+    - To resize icons, add `(setq twittering-convert-fix-size SIZE)`.
+      The default size is 48 pixels. This requires ImageMagick or its
+      compatible alternative.
+    - To keep retrieved icons in a local storage, add
+      `(setq twittering-use-icon-storage t)`. This requires gzip. The
+      icons are saved on *~/.twittering-mode-icons.gz*, which can be
+      changed by the variable `twittering-icon-storage-file`.
+    - To display tweets in the *reverse* order, add
+      `(setq twittering-reverse-mode t)`. With it, the latest tweet
+      is rendered the bottom of the buffer.
+    - To use a HTTP proxy, add the following configuration.
+      <pre><code>
+        (setq twittering-proxy-use t)
+        (setq twittering-proxy-server "PROXY-HOSTNAME")
+        (setq twittering-proxy-port PROXY-PORT-NUMBER)
+      </code></pre>
+    - To change the number of tweets retrieved at once, add
+      `(setq twittering-number-of-tweets-on-retrieval NUMBER)`.
+    - To change the interval of retrieving tweets, add
+      `(setq twittering-timer-interval SECOND)`. You should be careful
+      not to exceed the limitation of number of API calls.
+    - To display the number of unread tweets on the mode-line, add
+      `(twittering-enable-unread-status-notifier)`.
+    - To display the remaining number of API calls, add
+      `(setq twittering-display-remaining t)`.
+    - To change the format of an organic retweet, configure the
+      variable `twittering-retweet-format`. For example, add
+      `(setq twittering-retweet-format '(nil _ " %u RT @%s: %t"))`.
+      For details, see the docstring of the variable by
+      `M-x describe-variable`.
+    - To change the timelines automatically opened on starting
+      twittering-mode, configure the variable
+      `twittering-initial-timeline-spec-string`. For example,
+      add the below configuration.
+      <pre><code>
+        (setq twittering-initial-timeline-spec-string
+              '("(:home+@)"
+                "(:search/twittering mode/+:search/twmode/)"))
+      </code></pre>
+      For details, see the docstring of the variable by
+      `M-x describe-variable`.
+    - To customize the format of tweets, configure the variable
+      `twittering-status-format`. For example, add the below
+      configuration.
+      <pre><code>
+        (setq twittering-status-format
+              "%FOLD{%RT{%FACE[bold]{RT}}%i%s>>%r @%C{%Y-%m-%d %H:%M:%S} %@{}\n%FOLD[ ]{%T%RT{\nretweeted by %s @%C{%Y-%m-%d %H:%M:%S}}}}")
+      </code></pre>
+      For details, see the docstring of the variable by
+      `M-x describe-variable`.
+    - To inherit mentions and hashtags on editing a reply, add
+      `(setq twittering-edit-skeleton 'inherit-any)`.
+      For details, see the docstring of the variable by
+      `M-x describe-variable`.
 
     Enjoy!
 
@@ -146,7 +218,8 @@ Twittering-mode enables you to twit on Emacsen.
   - `t` or `C-cC-p`: Toggle between with or without a proxy server.
   - `C-cC-t`: Set the current hashtag.
 
- <a id="timeline-spec">Timeline spec</a>
+
+<a id="timeline-spec">Timeline spec</a>
 ------------------------
 By pressing *V* (`twittering-visit-timeline`) on twittering-mode, you
 can specify a timeline to be opened by *timeline spec*.

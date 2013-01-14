@@ -10,6 +10,9 @@
 	favorites timeline.
 	(twittering-goto-previous-status): likewise.
 
+	* README.markdown: Add explanations of major configurations and
+	others.
+
 2012-11-05  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Support the backward retrieval of favorites

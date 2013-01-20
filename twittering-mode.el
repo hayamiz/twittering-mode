@@ -4619,7 +4619,7 @@ string and the number of new statuses for the timeline."
   "Extract the ID from URL-STRING.
 Return nil if URL-STRING cannot be interpreted as a URL pointing a tweet."
   (when (string-match
-	 "\\`https?://twitter.com/\\(?:#!/\\)?[^/]+/status/\\([0-9]+\\)/?\\'"
+	 "\\`https?://twitter.com/\\(?:#!/\\)?[^/]+/status\\(?:es\\)?/\\([0-9]+\\)/?\\'"
 	 url-string)
     (match-string 1 url-string)))
 

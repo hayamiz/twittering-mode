@@ -1,3 +1,10 @@
+2013-01-21  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Update the regexp for extracting an ID from
+	a tweet.
+	(twittering-extract-id-from-url): update the regexp for extracting
+	an ID from a tweet.
+
 2013-01-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix a bug of backward retrieval of

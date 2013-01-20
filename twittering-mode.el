@@ -8017,31 +8017,37 @@ This function returns a list of the statuses newly rendered by the invocation."
 	    (twittering-current-timeline-referring-id-table spec))
 	   (timeline-data
 	    ;; Collect visible statuses.
-	    (remove nil
-		    (mapcar
-		     (lambda (status)
-		       (let ((id (cdr (assq 'id status)))
-			     (retweeted-id (cdr (assq 'retweeted-id status))))
-			 (cond
-			  ((null retweeted-id)
-			   ;; `status' is not a retweet.
-			   status)
-			  ((and retweeted-id
-				(twittering-status-id=
-				 id (gethash retweeted-id referring-id-table)))
-			   ;; `status' is the first retweet.
-			   status)
-			  ((null (gethash retweeted-id referring-id-table))
-			   ;; If the first ID referring the retweet is unknown,
-			   ;; render it.
-			   ;; This is necessary because a referring ID table
-			   ;; of a composite timeline may lack information of
-			   ;; some component timelines.
-			   status)
-			  (t
-			   ;; Otherwise, do not render it.
-			   nil))))
-		     timeline-data)))
+	    (let ((prev-id nil))
+	      (remove
+	       nil
+	       (mapcar
+		(lambda (status)
+		  (let ((id (cdr (assq 'id status)))
+			(retweeted-id (cdr (assq 'retweeted-id status))))
+		    (if (twittering-status-id= prev-id id)
+			;; `status' is equivalent the previous one.
+			nil
+		      (setq prev-id id)
+		      (cond
+		       ((null retweeted-id)
+			;; `status' is not a retweet.
+			status)
+		       ((and retweeted-id
+			     (twittering-status-id=
+			      id (gethash retweeted-id referring-id-table)))
+			;; `status' is the first retweet.
+			status)
+		       ((null (gethash retweeted-id referring-id-table))
+			;; If the first ID referring the retweet is unknown,
+			;; render it.
+			;; This is necessary because a referring ID table
+			;; of a composite timeline may lack information of
+			;; some component timelines.
+			status)
+		       (t
+			;; Otherwise, do not render it.
+			nil)))))
+		timeline-data))))
 	   (timeline-data (if twittering-reverse-mode
 			      (reverse timeline-data)
 			    timeline-data))

@@ -5,6 +5,12 @@
 	(twittering-extract-id-from-url): update the regexp for extracting
 	an ID from a tweet.
 
+	* twittering-mode.el: Avoid rendering same tweets repeatedly. The
+	function `twittering-render-timeline' rendered given repeated
+	tweets as is. Since a merged timeline may include one tweet
+	multiple times, such a tweet was rendered multiple times.
+	(twittering-render-timeline): skip repeated tweets.
+
 2013-01-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix a bug of backward retrieval of

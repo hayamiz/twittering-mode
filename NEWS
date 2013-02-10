@@ -238,6 +238,13 @@
   By using the new command `twittering-get-tweets-before', you can get
   tweets of the current timeline before a specific time.
 * Support for backward retrieval of favorites timeline.
+* Different intervals of retrieving timelines.
+  An interval of retrieving each timeline can be configured by the new
+  variable `twittering-relative-retrieval-interval-alist'. The alist
+  consists of pairs of a regexp and a relative interval. The regexp
+  specifies timelines and they are retrieved at intervals that are the
+  relative interval times as long as the variable
+  `twittering-timer-interval'.
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

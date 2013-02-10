@@ -596,6 +596,33 @@ For example, the following functions can be used; `pop-to-buffer',
 `twittering-pop-to-buffer-in-largest-window', and
 `twittering-pop-to-buffer-in-bottom-largest-window'.")
 
+(defvar twittering-relative-retrieval-interval-alist
+  '(("\\`:direct.*\\'" 4)
+    (":home" ":mentions" 1)
+    (t 1))
+  "*An alist of relative intervals of retrieving timelines.
+Each element looks like (TIMELINE-SPEC-REGEXP RELATIVE-INTERVAL).
+
+TIMELINE-SPEC-REGEXP must be t or a regexp string specifying primary
+timeline specs.
+If TIMELINE-SPEC-REGEXP is t, it matches all timelines.
+RELATIVE-INTERVAL must be zero or a positive integer specifying relative
+interval of retrieving timelines that match TIMELINE-SPEC-REGEXP.
+
+An interval for a timeline is determined as follows;
+1. Find the first element where TIMELINE-SPEC-REGEXP matches the
+   timeline or TIMELINE-SPEC-REGEXP is t.
+   If no elements are found, the interval is `twittering-timer-interval'.
+2. Check the RELATIVE-INTERVAL of the element.
+   If RELATIVE-INTERVAL is a positive integer, the interval is
+   RELATIVE-INTERVAL times as long as `twittering-timer-interval'.
+
+   If RELATIVE-INTERVAL is zero, the interval is infinity.
+   The timeline is not retrieved automatically.")
+
+(defvar twittering-relative-retrieval-count-alist '()
+  "An alist for counting retrieval of primary timelines.")
+
 ;;;;
 ;;;; Macro and small utility function
 ;;;;
@@ -8212,7 +8239,8 @@ API-ARGUMENTS is also sent to `twittering-call-api' as its argument
 	     (proc
 	      (twittering-call-api 'retrieve-timeline args additional-info)))
 	(when proc
-	  (twittering-register-process proc spec spec-string))))
+	  (twittering-register-process proc spec spec-string)
+	  (twittering-initialize-retrieval-count spec))))
      ((twittering-timeline-spec-composite-p spec)
       (mapc
        (lambda (spec)
@@ -8744,8 +8772,10 @@ FUNC is called as (apply FUNC ARGS)."
   (interactive)
   (unless twittering-timer
     (let ((action (or action #'twittering-update-active-buffers)))
+      ;; Update all active timelines forcibly.
+      (twittering-update-active-buffers t)
       (setq twittering-timer
-	    (run-at-time "0 sec"
+	    (run-at-time (format "%d sec" twittering-timer-interval)
 			 twittering-timer-interval
 			 #'twittering-timer-action action))))
   (unless twittering-timer-for-redisplaying
@@ -8768,16 +8798,93 @@ FUNC is called as (apply FUNC ARGS)."
     (cancel-timer twittering-timer-for-redisplaying)
     (setq twittering-timer-for-redisplaying nil)))
 
-(defun twittering-update-active-buffers (&optional noninteractive)
-  "Invoke `twittering-get-and-render-timeline' for each active buffer
-managed by `twittering-mode'."
+(defun twittering-get-relative-interval (spec)
+  (let* ((spec-string (twittering-timeline-spec-to-string spec))
+	 (normalized-alist
+	  (apply 'append
+		 (mapcar
+		  (lambda (entry)
+		    (let ((interval (car (last entry)))
+			  (regexp-list (butlast entry 1)))
+		      (when (integerp interval)
+			(mapcar (lambda (regexp) `(,regexp . ,interval))
+				regexp-list))))
+		  twittering-relative-retrieval-interval-alist)))
+	 (rest normalized-alist)
+	 (current normalized-alist)
+	 (result 0))
+    (while (not
+	    (or (and (stringp (car current))
+		     (string-match (car current) spec-string))
+		(eq t (car current))))
+      (setq current (car rest))
+      (setq rest (cdr rest)))
+    (if (integerp (cdr current))
+	(cdr current)
+      ;; The default relative interval is 1.
+      1)))
+
+(defun twittering-get-retrieval-count (spec)
+  (cdr (assoc spec twittering-relative-retrieval-count-alist)))
+
+(defun twittering-set-retrieval-count (spec count)
+  (let ((current (assoc spec twittering-relative-retrieval-count-alist)))
+    (if (null current)
+	(add-to-list 'twittering-relative-retrieval-count-alist
+		     `(,spec . ,count))
+      (setcdr current count))))
+
+(defun twittering-initialize-retrieval-count (spec)
+  (twittering-set-retrieval-count spec
+				  (twittering-get-relative-interval spec)))
+
+(defun twittering-update-active-buffers (&optional force noninteractive)
+  "Update active buffers managed by `twittering-mode' at a certain interval.
+
+If FORCE is nil, each active buffer is updated at a relative interval
+determined by `twittering-relative-retrieval-interval-alist'.
+If a relative interval of a timeline is 3, the timeline is updated once
+by three invocations of this function.
+
+If FORCE is non-nil, all active buffers are updated forcibly."
   (when (twittering-account-authorized-p)
     (twittering-update-service-configuration)
-    (let ((buffer-list (twittering-get-active-buffer-list)))
-      (mapc (lambda (buffer)
-	      (with-current-buffer buffer
-		(twittering-get-and-render-timeline noninteractive)))
-	    buffer-list))))
+    (let* ((buffer-list (twittering-get-active-buffer-list))
+	   (primary-spec-list
+	    (delete-dups
+	     (apply 'append
+		    (mapcar
+		     (lambda (buffer)
+		       (twittering-get-primary-base-timeline-specs
+			(twittering-get-timeline-spec-for-buffer buffer)))
+		     buffer-list)))))
+      (mapc
+       (lambda (spec)
+	 (let ((current
+		(if force
+		    1
+		  (twittering-get-retrieval-count spec))))
+	   (cond
+	    ((null current)
+	     ;; Initialize the count if no entry for the primary timeline
+	     ;; exists.
+	     (twittering-initialize-retrieval-count spec))
+	    ((and (integerp current) (= 0 current))
+	     ;; Do nothing.
+	     )
+	    ((and (integerp current) (= 1 current))
+	     ;; Retrieve the timeline and initialize count.
+	     (let ((spec-string
+		    (twittering-timeline-spec-to-string spec)))
+	       (twittering-get-and-render-timeline
+		noninteractive nil spec spec-string)
+	       (twittering-initialize-retrieval-count spec)))
+	    ((and (integerp current) (< 1 current))
+	     ;; Decrement count.
+	     (twittering-set-retrieval-count spec (1- current)))
+	    (t
+	     nil))))
+       primary-spec-list))))
 
 ;;;;
 ;;;; Keymap

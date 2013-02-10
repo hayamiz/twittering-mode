@@ -233,6 +233,12 @@
   現在のtimelineの、指定した日時以前のtweetを取得できる新しいコマンド
   `twittering-get-tweets-before'が追加されました。
 * favorites timelineで過去のtweetの遡って取得する機能を追加
+* timelineごとに異なる取得間隔
+  新しい変数`twittering-relative-retrieval-interval-alist'で、timeline
+  ごとに取得間隔を変更できるようになりました。この変数は正規表現と相対
+  間隔からなる連想リストです。この正規表現にマッチするtimelineは、
+  `twittering-timer-interval'を「相対間隔」倍した間隔で更新されるよう
+  になります。
 
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正

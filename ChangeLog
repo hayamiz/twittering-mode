@@ -11,6 +11,19 @@
 	Ikumi Keita who reported the problem.
 	(twittering-render-replied-statuses): fix a return value.
 
+	* twittering-mode.el: Support different intervals of retrieving
+	timelines.
+	(twittering-relative-retrieval-interval-alist): new variable.
+	(twittering-relative-retrieval-count-alist): new variable.
+	(twittering-retrieve-timeline): reset the retrieval count.
+	(twittering-start): update all active timelines forcibly once.
+	(twittering-get-relative-interval): new function.
+	(twittering-get-retrieval-count): new function.
+	(twittering-set-retrieval-count): new function.
+	(twittering-initialize-retrieval-count): new function.
+	(twittering-update-active-buffers): reduce retrievals according to
+	the variable `twittering-relative-retrieval-interval-alist'.
+
 2013-01-21  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Update the regexp for extracting an ID from

@@ -8479,7 +8479,8 @@ Return nil if no statuses are rendered."
 				     field-properties formatted-status)
 		formatted-status)))
 	   statuses)
-	  t))
+	  t)))
+     (t
       nil))))
 
 (defun twittering-render-a-status-with-delay (beg end id prefix)

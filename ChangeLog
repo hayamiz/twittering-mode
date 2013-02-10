@@ -5,6 +5,12 @@
 	Thanks to the anonymous person who reported the problem.
 	(twittering-post-predicted-message-like-jojo): fix variable name.
 
+	* twittering-mode.el: Fix a return value of
+	`twittering-render-replied-statuses'. The function returns nil
+	without regard to whether a tweet is rendered or not. Thanks to
+	Ikumi Keita who reported the problem.
+	(twittering-render-replied-statuses): fix a return value.
+
 2013-01-21  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Update the regexp for extracting an ID from

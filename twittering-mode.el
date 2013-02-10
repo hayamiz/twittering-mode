@@ -10078,7 +10078,7 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
 		text))
       (let ((text
 	     (concat "@" screen-name " "
-		     (match-string-no-properties 2 msg)
+		     (match-string-no-properties 2 text)
 		     (mapconcat 'char-to-string
 				(mapcar 'twittering-ucs-to-char
 					'(#x3000 #x306f #x3063 #x0021 #x003f))

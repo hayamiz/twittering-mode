@@ -1,3 +1,10 @@
+2013-02-11  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix the jojo-mode that caused an error when
+	the condition of automatically posting a tweet was satisfied.
+	Thanks to the anonymous person who reported the problem.
+	(twittering-post-predicted-message-like-jojo): fix variable name.
+
 2013-01-21  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Update the regexp for extracting an ID from

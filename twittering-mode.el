@@ -2660,13 +2660,28 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
 (defun twittering-http-post-destroy-status-sentinel (proc status connection-info header-info)
   "A sentinel for deleting a status invoked via `twittering-call-api'."
   (let ((status-line (cdr (assq 'status-line header-info)))
-	(status-code (cdr (assq 'status-code header-info))))
+	(status-code (cdr (assq 'status-code header-info)))
+	(format
+	 (twittering-get-content-subtype-symbol-from-header-info header-info)))
     (case-string
      status-code
      (("200")
-      (let* ((xml (twittering-xml-parse-region (point-min) (point-max)))
-	     (id (elt (assq 'id (assq 'status xml)) 2))
-	     (text (elt (assq 'text (assq 'status xml)) 2)))
+      (let* ((params
+	      (cond
+	       ((eq format 'xml)
+		(let ((xml
+		       (twittering-xml-parse-region (point-min) (point-max))))
+		  `((id . ,(elt (assq 'id (assq 'status xml)) 2))
+		    (text . ,(elt (assq 'text (assq 'status xml)) 2)))))
+	       ((eq format 'json)
+		(let ((json-object (twittering-json-read)))
+		  `((id . ,(cdr (assq 'id_str json-object)))
+		    (text . ,(cdr (assq 'text json-object))))))
+	       (t
+		(error "Format \"%s\" is not supported" format)
+		nil)))
+	     (id (cdr (assq 'id params)))
+	     (text (cdr (assq 'text params))))
 	(cond
 	 (id
 	  (twittering-delete-status-from-data-table id)
@@ -5245,10 +5260,12 @@ get-service-configuration -- Get the configuration of the server.
 			    parameters nil additional-info)))
    ((eq command 'destroy-status)
     ;; Destroy a status.
-    (let ((id (cdr (assq 'id args-alist))))
+    (let* ((id (cdr (assq 'id args-alist)))
+	   (format (if (require 'json nil t) 'json 'xml))
+	   (format-str (symbol-name format)))
       (twittering-http-post twittering-api-host
 			    (twittering-api-path "statuses/destroy/" id)
-			    nil nil additional-info
+			    nil format-str additional-info
 			    'twittering-http-post-destroy-status-sentinel)))
    ((eq command 'retweet)
     ;; Post a retweet.

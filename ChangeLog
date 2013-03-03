@@ -7,6 +7,13 @@
 	(twittering-call-api): use the JSON format for the commands
 	`get-list-index' and `get-list-subscriptions' if possible.
 
+	* twittering-mode.el: Use the JSON format for posting a status if
+	possible.
+	(twittering-http-post-destroy-status-sentinel): support a response
+	in the JSON format.
+	(twittering-call-api): use the JSON format for the command
+	`destroy-status' if possible.
+
 2013-02-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the jojo-mode that caused an error when

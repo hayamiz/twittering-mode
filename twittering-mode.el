@@ -9231,7 +9231,8 @@ all of ancestor replied statuses have been already rendered, hide them by
 	   (property-to-be-redisplayed . ,symbol-for-redisplay)))
 	(save-excursion
 	  (goto-char pos)
-	  (twittering-render-a-field (point) field-id str))))
+	  (twittering-render-a-field (point) field-id str))
+	(goto-char pos)))
      ((twittering-replied-statuses-visible-p)
       ;; All ancestor replied statuses have been rendered.
       (twittering-hide-replied-statuses))

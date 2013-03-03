@@ -135,6 +135,11 @@
 	* README.markdown: Add an explanation of prerequisites for the
 	Twitter REST API v1.1.
 
+	* twittering-mode.el: Move the cursor to the tweet that will be
+	retrieved.
+	(twittering-toggle-or-retrieve-replied-statuses): move the cursor
+	to the tweet that will be retrieved.
+
 2013-02-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the jojo-mode that caused an error when

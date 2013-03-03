@@ -71,6 +71,19 @@
 	screen name and a password with the new function
 	`twittering-get-from-account-info'.
 
+	* twittering-mode.el: Access an account information indirectly.
+	(twittering-register-account-info): new function.
+	(twittering-get-username): use `twittering-get-main-account-info'
+	instead of using the variable `twittering-username' directly.
+	(twittering-get-password): likewise.
+	(twittering-verify-credentials): use the functions
+	`twittering-get-main-account-info' and
+	`twittering-register-account-info' instead of using variables
+	directly.
+	(twittering-http-get-verify-credentials-sentinel): store or
+	discard the validated account information with the new function
+	`twittering-register-account-info'.
+
 2013-02-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the jojo-mode that caused an error when

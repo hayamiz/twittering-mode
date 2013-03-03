@@ -5468,11 +5468,8 @@ get-service-configuration -- Get the configuration of the server.
 ;;;; Account authorization
 ;;;;
 
-(defun twittering-get-username ()
-  twittering-username)
-
-(defun twittering-get-password ()
-  twittering-password)
+(defun twittering-register-account-info (account-info)
+  (setq twittering-oauth-access-token-alist account-info))
 
 (defun twittering-get-main-account-info ()
   (cond
@@ -5484,6 +5481,14 @@ get-service-configuration -- Get the configuration of the server.
 
 (defun twittering-get-from-account-info (param account-info)
   (cdr (assoc param account-info)))
+
+(defun twittering-get-username ()
+  (let ((account-info (twittering-get-main-account-info)))
+    (twittering-get-from-account-info "screen_name" account-info)))
+
+(defun twittering-get-password ()
+  (let ((account-info (twittering-get-main-account-info)))
+    (twittering-get-from-account-info "password" account-info)))
 
 (defun twittering-make-basic-authentication-string (account-info)
   (concat "Basic "
@@ -5560,10 +5565,10 @@ If the authorization failed, return nil."
     nil)
    ((twittering-has-oauth-access-token-p)
     (let* ((username (cdr (assoc "screen_name"
-				 twittering-oauth-access-token-alist)))
+				 (twittering-get-main-account-info))))
 	   (proc
 	    (twittering-call-api-with-account
-	     twittering-oauth-access-token-alist
+	     (twittering-get-main-account-info)
 	     'verify-credentials
 	     `((sentinel
 		. twittering-http-get-verify-credentials-sentinel)
@@ -5619,8 +5624,7 @@ If the authorization failed, return nil."
 	     (assoc "oauth_token_secret" token-alist)
 	     (assoc "screen_name" token-alist))
 	(let ((username (cdr (assoc "screen_name" token-alist))))
-	  (setq twittering-oauth-access-token-alist token-alist)
-	  (setq twittering-username username)
+	  (twittering-register-account-info token-alist)
 	  (message "Authorization for the account \"%s\" succeeded."
 		   username)
 	  (when (and twittering-use-master-password
@@ -5630,6 +5634,7 @@ If the authorization failed, return nil."
 	  ;; Succeeded in authorizing the account.
 	  t))
        (t
+	;; There is no global account info that should be invalidated.
 	;; Failed to authorize the account.
 	(message "Authorization via OAuth failed. Type M-x twit to retry.")
 	nil))))
@@ -5653,9 +5658,7 @@ If the authorization failed, return nil."
        ((and token-alist
 	     (assoc "oauth_token" token-alist)
 	     (assoc "oauth_token_secret" token-alist))
-	;; set `twittering-username' only if the account is valid.
-	(setq twittering-username (car account-info))
-	(setq twittering-oauth-access-token-alist token-alist)
+	(twittering-register-account-info token-alist)
 	(message "Authorization for the account \"%s\" succeeded."
 		 (twittering-get-username))
 	(when (and twittering-use-master-password
@@ -5728,12 +5731,7 @@ If the authorization failed, return nil."
     (case-string
      status-code
      (("200")
-      (cond
-       ((eq twittering-auth-method 'basic)
-	(setq twittering-username username)
-	(setq twittering-password password))
-       (t
-	(setq twittering-username username)))
+      (twittering-register-account-info account-info)
       (setq twittering-account-authorization 'authorized)
       (message "Authorization for the account \"%s\" succeeded." username)
       nil)
@@ -5742,12 +5740,8 @@ If the authorization failed, return nil."
       (let ((error-mes
 	     (format "Authorization for the account \"%s\" failed. Type M-x twit to retry with correct information."
 		     username)))
-	(cond
-	 ((memq twittering-auth-method '(oauth xauth))
-	  (setq twittering-oauth-access-token-alist nil))
-	 ((eq twittering-auth-method 'basic)
-	  (setq twittering-username nil)
-	  (setq twittering-password nil)))
+	;; Invalidate the account info.
+	(twittering-register-account-info nil)
 	(message "%s" error-mes)
 	nil))
      (t

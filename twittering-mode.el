@@ -2561,10 +2561,12 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
 		(prop
 		 (cdr (assq 'property-to-be-redisplayed connection-info))))
 	    (cond
-	     (spec
+	     ((null prop)
 	      ;; The process has been invoked via `twittering-call-api' with
 	      ;; the command `retrieve-timeline', not the command
-	      ;; `retrieve-single-tweet'.
+	      ;; `retrieve-single-tweet' for rendering a replied tweet.
+	      ;; No special property that specifies regions being re-rendered
+	      ;; is given.
 	      (let ((new-statuses `(,status))
 		    (buffer (twittering-get-buffer-from-spec spec)))
 		(when (and new-statuses buffer)
@@ -5730,7 +5732,8 @@ get-service-configuration -- Get the configuration of the server.
        `((timeline-spec . (single ,id))
 	 (format . ,format)
 	 (sentinel . ,sentinel)
-	 (clean-up-sentinel . ,clean-up-sentinel)))))
+	 (clean-up-sentinel . ,clean-up-sentinel))
+       additional-info)))
    ((eq command 'get-list-index)
     ;; Get list names.
     (let* ((username (cdr (assq 'username args-alist)))

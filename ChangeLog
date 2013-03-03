@@ -150,6 +150,12 @@
 	from retrieving the ":retweets_of_me" timeline.
 	(twittering-call-api-with-account-in-api1.1): fix a typo.
 
+	* twittering-mode.el: Fix the function of rendering a replied
+	tweet.
+	(twittering-retrieve-single-tweet-sentinel): fix the condition
+	for deciding whether it should re-render a tweet partially or
+	not.
+
 2013-02-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the jojo-mode that caused an error when

@@ -39,10 +39,13 @@ Twittering-mode enables you to twit on Emacsen.
 -------------------
 
 - For SSL connection, one of the followings is required.
+  SSL connection is required for the Twitter REST API v1.1.
   - cURL http://curl.haxx.se/
   - GNU Wget http://www.gnu.org/software/wget/
   - OpenSSL http://www.openssl.org/
   - GnuTLS http://www.gnu.org/software/gnutls/
+- For parsing JSON, json.el is required.
+  It is distributed with Emacs 23.1 and later.
 - For keeping an OAuth authorized token in a local storage encrypted
   with master password, GnuPG ( http://www.gnupg.org/ ) is  required.
   On Emacs 22 and earlier, either EasyPG ( http://epg.sourceforge.jp/ )

@@ -245,6 +245,18 @@
   specifies timelines and they are retrieved at intervals that are the
   relative interval times as long as the variable
   `twittering-timer-interval'.
+* Support for the Twitter REST API v1.1.
+  The default value of `twittering-service-method' is changed to
+  `twitter-api-v1.1'. The configuration means that twittering-mode
+  uses the Twitter REST API v1.1. The service method requires SSL
+  connection and JSON parser. Note that the former requires cURL with
+  OpenSSL, GNU Wget with OpenSSL, OpenSSL or GnuTLS and the latter
+  requires `json.el' that is not distributed with Emacs 22 or
+  earlier.
+  In addition, some timelines are obsolete in the Twitter REST API
+  v1.1. The obsolete timeline spec strings follow; ":friends",
+  ":replies", ":public", ":retweeted_by_me", ":retweeted_to_me",
+  ":retweeted_by_user/USER", ":retweeted_to_user/USER".
 
 ### Bug fixes
 * Fix of displaying a message of authorization.

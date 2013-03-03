@@ -239,6 +239,18 @@
   間隔からなる連想リストです。この正規表現にマッチするtimelineは、
   `twittering-timer-interval'を「相対間隔」倍した間隔で更新されるよう
   になります。
+* Twitter REST API v1.1に対応
+  変数`twittering-service-method'の値を`twitter-api-v1.1'に変更しまし
+  た。この設定でtwittering-modeはTwitter REST API v1.1を使うようになり
+  ます。この場合、SSL接続とJSON解析器が必要です。SSL接続にはcURL with
+  OpenSSL, GNU Wget with OpenSSL, OpenSSLとGnuTLSのいずれかが必要で、
+  さらにJSON解析器として`json.el'が必要となる点に注意してください。
+  Emacs22とそれ以前のEmacsでは`json.el'が同梱されていませんので別途用
+  意する必要があります。
+  また、Twitter REST API v1.1ではいくつかのtimelineが廃止されています。
+  廃止されたtimelineに対応するtimeline spec文字列は":friends",
+  ":replies", ":public", ":retweeted_by_me", ":retweeted_to_me",
+  ":retweeted_by_user/USER", ":retweeted_to_user/USER"です。
 
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正

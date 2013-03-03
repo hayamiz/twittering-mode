@@ -109,6 +109,32 @@
 	a command directly.
 	(twittering-call-api-with-account-in-api1.0): new function.
 
+	* twittering-mode.el: Support the Twitter REST API v1.1.
+	(twittering-service-method): change the default service method.
+	(twittering-service-method-table): add entries for the new service
+	method `twitter-api-v1.1'.
+	(twittering-http-get-default-sentinel): switch parser according to
+	the service method and the timeline.
+	(twittering-http-get-list-sentinel-base): support a response from
+	the Twitter REST API v1.1.
+	(twittering-update-server-info): replace a header name for the
+	Twitter REST API v1.1 with that for the Twitter REST API
+	v1.0. This is an ad-hoc solution. Since each API method is
+	separately limited on the Twitter REST API v1.1, the rate limit
+	information should be managed for each API method.
+	(twittering-call-api-with-account): call a special function
+	according to the current `twittering-service-method'.
+	(twittering-call-api-with-account-in-api1.0): new function that is
+	the same as the previous `twittering-call-api-with-account'.
+	(twittering-call-api-with-account-in-api1.1): new function.
+	(twittering-update-service-configuration): support the new service
+	method `twitter-api-v1.1'.
+	(twittering-use-profile-image-api): add a supplementary document.
+	(twittering-effective-length): support the new service method
+	`twitter-api-v1.1'.
+	* README.markdown: Add an explanation of prerequisites for the
+	Twitter REST API v1.1.
+
 2013-02-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the jojo-mode that caused an error when

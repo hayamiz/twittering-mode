@@ -566,7 +566,7 @@ pop-up buffer.")
 (defvar twittering-search-api-method "search")
 (defvar twittering-web-path-prefix "")
 
-(defvar twittering-service-method 'twitter
+(defvar twittering-service-method 'twitter-api-v1.1
   "*Service method for `twittering-mode'.
 The symbol `twitter' means Twitter Service. The symbol `statusnet' means
 StatusNet Service.")
@@ -574,6 +574,9 @@ StatusNet Service.")
 (defvar twittering-service-method-table
   '((twitter (status-url . twittering-get-status-url-twitter)
 	     (search-url . twittering-get-search-url-twitter))
+    (twitter-api-v1.1
+     (status-url . twittering-get-status-url-twitter)
+     (search-url . twittering-get-search-url-twitter))
     (statusnet (status-url . twittering-get-status-url-statusnet)
 	       (search-url . twittering-get-search-url-statusnet)))
   "A list of alist of service methods.")
@@ -2437,6 +2440,7 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
       (debug-printf "connection-info=%s" connection-info)
       (let* ((spec (cdr (assq 'timeline-spec connection-info)))
 	     (spec-string (cdr (assq 'timeline-spec-string connection-info)))
+	     (service-method (cdr (assq 'service-method connection-info)))
 	     (statuses
 	      (cond
 	       ((eq format 'json)
@@ -2444,13 +2448,22 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
 		  (cond
 		   ((null json-array)
 		    nil)
-		   ((eq (car spec) 'search)
-		    (mapcar 'twittering-json-object-to-a-status-on-search
-			    (cdr (assq 'results json-array))))
-		   ((twittering-timeline-spec-is-direct-messages-p spec)
-		    (mapcar
-		     'twittering-json-object-to-a-status-on-direct-messages
-		     json-array))
+		   ((memq service-method '(twitter statusnet))
+		    (cond
+		     ((eq (car spec) 'search)
+		      (mapcar 'twittering-json-object-to-a-status-on-search
+			      (cdr (assq 'results json-array))))
+		     ((twittering-timeline-spec-is-direct-messages-p spec)
+		      (mapcar
+		       'twittering-json-object-to-a-status-on-direct-messages
+		       json-array))
+		     (t
+		      (mapcar 'twittering-json-object-to-a-status
+			      json-array))))
+		   ((and (eq service-method 'twitter-api-v1.1)
+			 (eq (car spec) 'search))
+		    (mapcar 'twittering-json-object-to-a-status
+			    (cdr (assq 'statuses json-array))))
 		   (t
 		    (mapcar 'twittering-json-object-to-a-status
 			    json-array)))))
@@ -2610,12 +2623,22 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
 			    ))
 		   ))))
 	((eq format 'json)
-	 (let ((json-object (twittering-json-read)))
+	 (let* ((json-object (twittering-json-read))
+		(json-list
+		 (cond
+		  ((arrayp json-object)
+		   ;; GET lists/list in the Twitter REST API v1.1 returns
+		   ;; an array.
+		   json-object)
+		  (t
+		   ;; GET lists/subscriptions in the Twitter REST API v1.1
+		   ;; returns an alist.
+		   (cdr (assq 'lists json-object))))))
 	   (when json-object
 	     (setq indexes
 		   (mapcar (lambda (entry)
 			     (cdr (assq ,what entry)))
-			   (cdr (assq 'lists json-object)))))))
+			   json-list)))))
 	(t
 	 (error "Format \"%s\" is not supported" format)
 	 nil)))
@@ -4905,7 +4928,20 @@ TIME must be an Emacs internal representation as a return value of
 			      (assoc entry twittering-server-info-alist)))
 		     new-entry-list))
       (setq twittering-server-info-alist
-	    (append header-info
+	    (append (mapcar
+		     (lambda (entry)
+		       ;; Replace a header name for the Twitter REST API v1.1
+		       ;; with that for the Twitter REST API v1.0.
+		       (cond
+			((string= "X-Rate-Limit-Limit" (car entry))
+			 `("X-RateLimit-Limit" . ,(cdr entry)))
+			((string= "X-Rate-Limit-Remaining" (car entry))
+			 `("X-RateLimit-Remaining" . ,(cdr entry)))
+			((string= "X-Rate-Limit-Reset" (car entry))
+			 `("X-RateLimit-Reset" . ,(cdr entry)))
+			(t
+			 entry)))
+		     header-info)
 		    (remove nil (mapcar
 				 (lambda (entry)
 				   (if (member (car entry) new-entry-list)
@@ -5177,16 +5213,25 @@ get-service-configuration -- Get the configuration of the server.
     clean-up-sentinel -- (optional) the clean-up sentinel that post-processes
       the buffer associated to the process. This is used as an argument
       CLEAN-UP-SENTINEL of `twittering-send-http-request'."
-  (cond
-   ((memq twittering-service-method '(twitter statusnet))
-    (twittering-call-api-with-account-in-api1.0
-     account-info-alist command args-alist additional-info))
-   (t
-    (error "`twittering-service-method' has an invalid service method")
-    )))
+  (let* ((additional-info
+	  `(,@additional-info
+	    (service-method . ,twittering-service-method))))
+    (cond
+     ((memq twittering-service-method '(twitter statusnet))
+      (twittering-call-api-with-account-in-api1.0
+       account-info-alist command args-alist additional-info))
+     ((eq twittering-service-method 'twitter-api-v1.1)
+      (if (require 'json nil t)
+	  (twittering-call-api-with-account-in-api1.1
+	   account-info-alist command args-alist additional-info)
+	(error "`json.el' is required to use the Twitter REST API v1.1")
+	nil))
+     (t
+      (error "`twittering-service-method' is an invalid service method")
+      ))))
 
 (defun twittering-call-api-with-account-in-api1.0 (account-info-alist command args-alist &optional additional-info)
-  "Call Twitter API1.0 and return the process object for the request."
+  "Call the Twitter REST API v1.0 and return the process object for the request."
   (cond
    ((eq command 'retrieve-timeline)
     ;; Retrieve a timeline.
@@ -5486,6 +5531,358 @@ get-service-configuration -- Get the configuration of the server.
    (t
     nil)))
 
+(defun twittering-call-api-with-account-in-api1.1 (account-info-alist command args-alist &optional additional-info)
+  "Call the Twitter REST API v1.1 and return the process object for the request."
+  (cond
+   ((eq command 'retrieve-timeline)
+    ;; Retrieve a timeline.
+    (let* ((args-alist
+	    (let* ((spec (cdr (assq 'timeline-spec args-alist)))
+		   (spec-type (car-safe spec))
+		   (table '((friends . (home))
+			    (replies . (mentions)))))
+	      (cond
+	       ((memq spec-type '(friends replies))
+		(let* ((alternative (cdr (assq spec-type table)))
+		       (alternative-str
+			(twittering-timeline-spec-to-string alternative)))
+		  (message
+		   "Timeline spec %s is not supported in the Twitter REST API v1.1"
+		   spec)
+		  `((timeline-spec . ,alternative)
+		    (timeline-spec-string . ,alternative-str)
+		    ,@args-alist)))
+	       (t
+		args-alist))))
+	   (spec (cdr (assq 'timeline-spec args-alist)))
+	   (spec-type (car-safe spec))
+	   (max-number (if (eq 'search spec-type)
+			   100 ;; FIXME: refer to defconst.
+			 twittering-max-number-of-tweets-on-retrieval))
+	   (number
+	    (let ((number
+		   (or (cdr (assq 'number args-alist))
+		       (let* ((default-number 20)
+			      (n twittering-number-of-tweets-on-retrieval))
+			 (cond
+			  ((integerp n) n)
+			  ((string-match "^[0-9]+$" n) (string-to-number n 10))
+			  (t default-number))))))
+	      (min (max 1 number) max-number)))
+	   (number-str (number-to-string number))
+	   (max_id (cdr (assq 'max_id args-alist)))
+	   (since_id (cdr (assq 'since_id args-alist)))
+	   (word (when (eq 'search spec-type)
+		   (cadr spec)))
+	   (parameters
+	    (cond
+	     ((eq spec-type 'user)
+	      (let ((username (elt spec 1)))
+		`("api.twitter.com"
+		  "1.1/statuses/user_timeline"
+		  ("count" . ,number-str)
+		  ("include_entities" . "true")
+		  ("include_rts" . "true")
+		  ,@(when max_id `(("max_id" . ,max_id)))
+		  ("screen_name" . ,username)
+		  ,@(when since_id `(("since_id" . ,since_id)))
+		  )))
+	     ((eq spec-type 'list)
+	      (let ((username (elt spec 1))
+		    (list-name (elt spec 2)))
+		`("api.twitter.com"
+		  "1.1/lists/statuses"
+		  ("count" . ,number-str)
+		  ("include_entities" . "true")
+		  ("include_rts" . "true")
+		  ,@(when max_id `(("max_id" . ,max_id)))
+		  ("owner_screen_name" . ,username)
+		  ,@(when since_id `(("since_id" . ,since_id)))
+		  ("slug" . ,list-name))))
+	     ((eq spec-type 'direct_messages)
+	      `("api.twitter.com"
+		"1.1/direct_messages"
+		("count" . ,number-str)
+		("include_entities" . "true")
+		,@(when max_id `(("max_id" . ,max_id)))
+		,@(when since_id `(("since_id" . ,since_id)))))
+	     ((eq spec-type 'direct_messages_sent)
+	      `("api.twitter.com"
+		"1.1/direct_messages/sent"
+		("count" . ,number-str)
+		("include_entities" . "true")
+		,@(when max_id `(("max_id" . ,max_id)))
+		,@(when since_id `(("since_id" . ,since_id)))))
+	     ((eq spec-type 'favorites)
+	      (let ((user (elt spec 1)))
+		`("api.twitter.com"
+		  "1.1/favorites/list"
+		  ("count" . ,number-str)
+		  ("include_entities" . "true")
+		  ,@(when max_id `(("max_id" . ,max_id)))
+		  ,@(when user `(("screen_name" . ,user)))
+		  ,@(when since_id `(("since_id" . ,since_id))))))
+	     ((eq spec-type 'home)
+	      `("api.twitter.com"
+		"1.1/statuses/home_timeline"
+		("count" . ,number-str)
+		("include_entities" . "true")
+		,@(when max_id `(("max_id" . ,max_id)))
+		,@(when since_id `(("since_id" . ,since_id)))))
+	     ((eq spec-type 'mentions)
+	      `("api.twitter.com"
+		"1.1/statuses/mentions_timeline"
+		("count" . ,number-str)
+		("include_entities" . "true")
+		,@(when max_id `(("max_id" . ,max_id)))
+		,@(when since_id `(("since_id" . ,since_id)))))
+	     ((eq spec-type 'public)
+	      (error
+	       "Timeline spec %s is not supported in the Twitter REST API v1.1"
+	       spec)
+	      nil)
+	     ((memq spec-type '(retweeted_by_me
+				retweeted_by_user
+				retweeted_to_me
+				retweeted_to_user))
+	      (error
+	       "Timeline spec %s is not supported in the Twitter REST API v1.1"
+	       spec)
+	      nil)
+	     ((eq spec-type 'retweet_of_me)
+	      `("api.twitter.com"
+		"1.1/statuses/retweets_of_me"
+		("count" . ,number-str)
+		("include_entities" . "true")
+		,@(when max_id `(("max_id" . ,max_id)))
+		,@(when since_id `(("since_id" . ,since_id)))))
+	     ((eq spec-type 'single)
+	      (let ((id (elt spec 1)))
+		`("api.twitter.com"
+		  "1.1/statuses/show"
+		  ("id" . ,id)
+		  ("include_entities" . "true"))))
+	     ((eq spec-type 'search)
+	      (let ((word (elt spec 1)))
+		`("api.twitter.com"
+		  "1.1/search/tweets"
+		  ("count" . ,number-str)
+		  ("include_entities" . "true")
+		  ,@(when max_id `(("max_id" . ,max_id)))
+		  ("q" . ,word)
+		  ("result_type" . "mixed")
+		  ,@(when since_id `(("since_id" . ,since_id))))))))
+	   (format 'json)
+	   (format-str (symbol-name format))
+	   (host (elt parameters 0))
+	   (method (elt parameters 1))
+	   (http-parameters (nthcdr 2 parameters))
+	   (sentinel (cdr (assq 'sentinel args-alist)))
+	   (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist)))
+	   (additional-info `(,@additional-info (format . ,format)))
+	   ;; special treatment for single timeline.
+	   (id (cdr (assoc "id" http-parameters)))
+	   (sentinel (or sentinel
+			 (when (eq spec-type 'single)
+			   'twittering-retrieve-single-tweet-sentinel))))
+      (cond
+       ((null parameters)
+	nil)
+       ((not (and (string= format-str "json")
+		  (require 'json nil t)))
+	(error "The Twitter REST API v1.1 supports only JSON")
+	nil)
+       ((and (eq spec-type 'single)
+	     (twittering-find-status id))
+	;; If the status has already retrieved, do nothing.
+	nil)
+       ((and host method)
+	(twittering-http-get account-info-alist host method http-parameters
+			     format-str
+			     additional-info sentinel clean-up-sentinel))
+       (t
+	(error "Invalid timeline spec")
+	nil))))
+   ((eq command 'retrieve-single-tweet)
+    (let* ((id (cdr (assq 'id args-alist)))
+	   (user-screen-name (cdr (assq 'username args-alist)))
+	   (format
+	    (let ((format (cdr (assq 'format args-alist))))
+	      (cond
+	       ((and format (symbolp format))
+		format)
+	       (t
+		'json))))
+	   (format-str (symbol-name format))
+	   (sentinel (cdr (assq 'sentinel args-alist)))
+	   (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist)))
+	   (additional-info `(,@additional-info
+			      (id . ,id)
+			      (user-screen-name . ,user-screen-name)
+			      (format . ,format))))
+      (twittering-call-api-with-account-in-api1.1
+       account-info-alist 'retrieve-timeline
+       `((timeline-spec . (single ,id))
+	 (format . ,format)
+	 (sentinel . ,sentinel)
+	 (clean-up-sentinel . ,clean-up-sentinel)))))
+   ((eq command 'get-list-index)
+    ;; Get list names.
+    (let* ((username (cdr (assq 'username args-alist)))
+	   (sentinel (cdr (assq 'sentinel args-alist)))
+	   (host "api.twitter.com")
+	   (method "1.1/lists/list")
+	   (http-parameters `(("screen_name" . ,username)))
+	   (format-str "json")
+	   (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
+      (twittering-http-get account-info-alist host method http-parameters
+			   format-str additional-info
+			   sentinel clean-up-sentinel)))
+   ((eq command 'get-list-subscriptions)
+    (let* ((username (cdr (assq 'username args-alist)))
+	   (sentinel (cdr (assq 'sentinel args-alist)))
+	   (host "api.twitter.com")
+	   (method "1.1/lists/subscriptions")
+	   (http-parameters
+	    `(("count" . "20")
+	      ("screen_name" . ,username)))
+	   (format-str "json")
+	   (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
+      (twittering-http-get account-info-alist host method http-parameters
+			   format-str additional-info
+			   sentinel clean-up-sentinel)))
+   ((eq command 'create-friendships)
+    ;; Create a friendship.
+    (let* ((username (cdr (assq 'username args-alist)))
+	   (host "api.twitter.com")
+	   (method "1.1/friendships/create")
+	   (http-parameters
+	    `(("screen_name" . ,username)))
+	   (format-str "json"))
+      (twittering-http-post account-info-alist host method http-parameters
+			    format-str additional-info)))
+   ((eq command 'destroy-friendships)
+    ;; Destroy a friendship
+    (let* ((username (cdr (assq 'username args-alist)))
+	   (host "api.twitter.com")
+	   (method "1.1/friendships/destroy")
+	   (http-parameters
+	    `(("screen_name" . ,username)))
+	   (format-str "json"))
+      (twittering-http-post account-info-alist host method http-parameters
+			    format-str additional-info)))
+   ((eq command 'create-favorites)
+    ;; Create a favorite.
+    (let* ((id (cdr (assq 'id args-alist)))
+	   (host "api.twitter.com")
+	   (method "1.1/favorites/create")
+	   (http-parameters `(("id" . ,id)))
+	   (format-str "json"))
+      (twittering-http-post account-info-alist host method http-parameters
+			    format-str additional-info)))
+   ((eq command 'destroy-favorites)
+    ;; Destroy a favorite.
+    (let* ((id (cdr (assq 'id args-alist)))
+	   (host "api.twitter.com")
+	   (method "1.1/favorites/destroy")
+	   (http-parameters `(("id" . ,id)))
+	   (format-str "json"))
+      (twittering-http-post account-info-alist host method http-parameters
+			    format-str additional-info)))
+   ((eq command 'update-status)
+    ;; Post a tweet.
+    (let* ((status (cdr (assq 'status args-alist)))
+	   (id (cdr (assq 'in-reply-to-status-id args-alist)))
+	   (host "api.twitter.com")
+	   (method "1.1/statuses/update")
+	   (http-parameters
+	    `(("status" . ,status)
+	      ,@(when id `(("in_reply_to_status_id" . ,id)))))
+	   (format-str "json"))
+      (twittering-http-post account-info-alist host method http-parameters
+			    format-str additional-info)))
+   ((eq command 'destroy-status)
+    ;; Destroy a status.
+    (let* ((id (cdr (assq 'id args-alist)))
+	   (host "api.twitter.com")
+	   (method (format "1.1/statuses/destroy/%s" id))
+	   (http-parameters nil)
+	   (format-str "json"))
+      (twittering-http-post account-info-alist host method http-parameters
+			    format-str additional-info
+			    'twittering-http-post-destroy-status-sentinel)))
+   ((eq command 'retweet)
+    ;; Post a retweet.
+    (let* ((id (cdr (assq 'id args-alist)))
+	   (host "api.twitter.com")
+	   (method (format "1.1/statuses/retweet/%s" id))
+	   (http-parameters nil)
+	   (format-str "json"))
+      (twittering-http-post account-info-alist host method http-parameters
+			    format-str additional-info)))
+   ((eq command 'verify-credentials)
+    ;; Verify the account.
+    (let* ((host "api.twitter.com")
+	   (method "1.1/account/verify_credentials")
+	   (http-parameters nil)
+	   (format-str "json")
+	   (sentinel (cdr (assq 'sentinel args-alist)))
+	   (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
+      (twittering-http-get account-info-alist host method http-parameters
+			   format-str additional-info
+			   sentinel clean-up-sentinel)))
+   ((eq command 'send-direct-message)
+    ;; Send a direct message.
+    (let* ((host "api.twitter.com")
+	   (method "1.1/direct_messages/new")
+	   (http-parameters
+	    `(("screen_name" . ,(cdr (assq 'username args-alist)))
+	      ("text" . ,(cdr (assq 'status args-alist)))))
+	   (format-str "json"))
+      (twittering-http-post account-info-alist host method http-parameters
+			    format-str additional-info)))
+   ((eq command 'block)
+    ;; Block a user.
+    (let* ((user-id (cdr (assq 'user-id args-alist)))
+	   (username (cdr (assq 'username args-alist)))
+	   (host "api.twitter.com")
+	   (method "1.1/blocks/create")
+	   (http-parameters (if user-id
+				`(("user_id" . ,user-id))
+			      `(("screen_name" . ,username))))
+	   (format-str "json"))
+      (twittering-http-post host method http-parameters
+			    format-str additional-info)))
+   ((eq command 'block-and-report-as-spammer)
+    ;; Report a user as a spammer and block him or her.
+    (let* ((user-id (cdr (assq 'user-id args-alist)))
+	   (username (cdr (assq 'username args-alist)))
+	   (host "api.twitter.com")
+	   (method "1.1/users/report_spam")
+	   (http-parameters (if user-id
+				`(("user_id" . ,user-id))
+			      `(("screen_name" . ,username))))
+	   (format-str "json"))
+      (twittering-http-post host method http-parameters
+			    format-str additional-info)))
+   ((eq command 'get-service-configuration)
+    (let* ((host "api.twitter.com")
+	   (method "1.1/account/verify_credentials")
+	   (request
+	    (twittering-make-http-request-from-uri
+	    "GET" nil
+	    (concat (if twittering-use-ssl
+			"https"
+		      "http")
+		    "://" host "/" method ".json")))
+	   (additional-info nil)
+	   (sentinel (cdr (assq 'sentinel args-alist)))
+	   (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
+      (twittering-send-http-request request additional-info
+				    sentinel clean-up-sentinel)))
+   (t
+    nil)))
+
 ;;;;
 ;;;; Service configuration
 ;;;;
@@ -5509,7 +5906,7 @@ get-service-configuration -- Get the configuration of the server.
 (defun twittering-update-service-configuration (&optional ignore-time)
   "Update `twittering-service-configuration' if necessary."
   (when (and
-	 (eq twittering-service-method 'twitter)
+	 (memq twittering-service-method '(twitter twitter-api-v1.1))
 	 (null twittering-service-configuration-queried)
 	 (or ignore-time
 	     (let ((current (twittering-get-service-configuration 'time))
@@ -6913,7 +7310,7 @@ format.")
 
 (defvar twittering-use-profile-image-api nil
   "*Whether to use `profile_image' API for retrieving scaled icon images.
-NOTE: This API is rate limited.")
+NOTE: This API is rate limited and is obsolete in the Twitter REST API v1.1.")
 
 (defvar twittering-icon-storage-file
   (expand-file-name "~/.twittering-mode-icons.gz")
@@ -9616,7 +10013,7 @@ entry in `twittering-edit-skeleton-alist' are performed.")
   "Return the effective length of STR with taking account of shortening URIs.
 
 The returned length is calculated with taking account of shortening URIs
-if `twittering-service-method' is the symbol `twitter'.
+if `twittering-service-method' is the symbol `twitter' or `twitter-api-v1.1'.
 It is assumed that a URI via HTTP will be converted into a URI consisting of
 SHORT-LENGTH-HTTP characters.
 It is assumed that a URI via HTTPS will be converted into a URI consisting of
@@ -9628,7 +10025,7 @@ If SHORT-LENGTH-HTTPS is nil, the value of
  (twittering-get-service-configuration 'short_url_length_https) is used
 instead."
   (cond
-   ((eq twittering-service-method 'twitter)
+   ((memq twittering-service-method '(twitter twitter-api-v1.1))
     (let ((regexp "\\(?:^\\|[[:space:]]\\)\\(http\\(s\\)?://[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+\\)")
 	  (short-length-http
 	   (or short-length-http

@@ -101,6 +101,14 @@
 	string for a HTTP request from the cookie information stored in
 	the variable `twittering-cookie-alist'.
 
+	* twittering-mode.el: Separate the current core of
+	`twittering-call-api-with-account' as a new function
+	`twittering-call-api-with-account-in-api1.0'.
+	(twittering-call-api-with-account): call a new function
+	`twittering-call-api-with-account-in-api1.0' instead of processing
+	a command directly.
+	(twittering-call-api-with-account-in-api1.0): new function.
+
 2013-02-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the jojo-mode that caused an error when

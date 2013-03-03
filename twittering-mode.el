@@ -5178,6 +5178,16 @@ get-service-configuration -- Get the configuration of the server.
       the buffer associated to the process. This is used as an argument
       CLEAN-UP-SENTINEL of `twittering-send-http-request'."
   (cond
+   ((memq twittering-service-method '(twitter statusnet))
+    (twittering-call-api-with-account-in-api1.0
+     account-info-alist command args-alist additional-info))
+   (t
+    (error "`twittering-service-method' has an invalid service method")
+    )))
+
+(defun twittering-call-api-with-account-in-api1.0 (account-info-alist command args-alist &optional additional-info)
+  "Call Twitter API1.0 and return the process object for the request."
+  (cond
    ((eq command 'retrieve-timeline)
     ;; Retrieve a timeline.
     (let* ((spec (cdr (assq 'timeline-spec args-alist)))

@@ -14,6 +14,13 @@
 	(twittering-call-api): use the JSON format for the command
 	`destroy-status' if possible.
 
+	* twittering-mode.el: Use the JSON format for retrieving server
+	configuration if possible.
+	(twittering-call-api): use the JSON format for the command
+	`get-service-configuration' if possible.
+	(twittering-update-service-configuration-sentinel): support a
+	response in the JSON format.
+
 2013-02-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the jojo-mode that caused an error when

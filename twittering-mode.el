@@ -5310,17 +5310,20 @@ get-service-configuration -- Get the configuration of the server.
 			    (twittering-api-path "report_spam")
 			    parameters nil additional-info)))
    ((eq command 'get-service-configuration)
-    (let ((request
-	   (twittering-make-http-request-from-uri
-	    "GET" nil
-	    (concat (if twittering-use-ssl
-			"https"
-		      "http")
-		    "://" twittering-api-host
-		    "/" (twittering-api-path "help/configuration.xml"))))
-	  (additional-info nil)
-	  (sentinel (cdr (assq 'sentinel args-alist)))
-	  (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
+    (let* ((format (if (require 'json nil t) 'json 'xml))
+	   (format-str (symbol-name format))
+	   (request
+	    (twittering-make-http-request-from-uri
+	     "GET" nil
+	     (concat (if twittering-use-ssl
+			 "https"
+		       "http")
+		     "://" twittering-api-host
+		     "/"
+		     (twittering-api-path "help/configuration." format-str))))
+	   (additional-info nil)
+	   (sentinel (cdr (assq 'sentinel args-alist)))
+	   (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
       (twittering-send-http-request request additional-info
 				    sentinel clean-up-sentinel)))
    (t
@@ -5370,18 +5373,38 @@ get-service-configuration -- Get the configuration of the server.
 
 (defun twittering-update-service-configuration-sentinel (proc status connection-info header-info)
   (let ((status-line (cdr (assq 'status-line header-info)))
-	(status-code (cdr (assq 'status-code header-info))))
+	(status-code (cdr (assq 'status-code header-info)))
+	(format
+	 (twittering-get-content-subtype-symbol-from-header-info header-info)))
     (case-string
      status-code
      (("200")
-      (let* ((xml (twittering-xml-parse-region (point-min) (point-max)))
-	     (conf-alist (cddr (assq 'configuration xml)))
+      (let* ((conf-alist
+	      (cond
+	       ((eq format 'xml)
+		(let ((xml
+		       (twittering-xml-parse-region (point-min) (point-max))))
+		  (mapcar
+		   (lambda (entry)
+		     `(,(car entry) . ,(elt entry 2)))
+		   (cddr (assq 'configuration xml)))))
+	       ((eq format 'json)
+		(twittering-json-read))
+	       (t
+		(error "Format \"%s\" is not supported" format)
+		nil)))
 	     (entries '(short_url_length short_url_length_https)))
 	(setq twittering-service-configuration
 	      `((time . ,(current-time))
 		,@(mapcar (lambda (entry)
-			    (let ((value (elt (assq entry conf-alist) 2)))
-			      (cons entry (string-to-number value))))
+			    (let ((value (cdr (assq entry conf-alist))))
+			      (cons
+			       entry
+			       (cond
+				((stringp value)
+				 (string-to-number value))
+				(t
+				 value)))))
 			  entries)))
 	(setq twittering-service-configuration-queried nil)
 	nil))

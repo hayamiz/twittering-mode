@@ -40,6 +40,24 @@
 	(twittering-update-server-info): receive an alist HEADER-INFO
 	instead of a string HEADER-STR.
 
+	* twittering-mode.el: Add a new function
+	`twittering-call-api-with-account'.
+	(twittering-add-application-header-to-http-request): receive an
+	alist ACCOUNT-INFO for specifying an account.
+	(twittering-http-get): likewise.
+	(twittering-http-post): likewise.
+	(twittering-call-api): call the new function
+	`twittering-call-api-with-account' with the main account.
+	(twittering-call-api-with-account): new function. This requires an
+	account information alist which it calls an API with.
+	(twittering-get-main-account-info): new function.
+	(twittering-verify-credentials): use a return value of
+	`twittering-get-main-account-info' instead of using variables
+	directly.
+	(twittering-http-get-verify-credentials-sentinel): extract an
+	account information from the `account-info' element in
+	`connection-info'.
+
 2013-02-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the jojo-mode that caused an error when

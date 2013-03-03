@@ -4092,7 +4092,7 @@ Return cons of the spec and the rest string."
    ((string-match "^~" str)
     `((home) . ,(substring str (match-end 0))))
    ((string-match (concat "^" twittering-regexp-atmark) str)
-    `((replies) . ,(substring str (match-end 0))))
+    `((mentions) . ,(substring str (match-end 0))))
    ((string-match (concat "^" twittering-regexp-hash "\\([[:alpha:]0-9_-]+\\)")
 		  str)
     (let* ((tag (match-string 1 str))

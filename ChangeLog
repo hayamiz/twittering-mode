@@ -140,6 +140,12 @@
 	(twittering-toggle-or-retrieve-replied-statuses): move the cursor
 	to the tweet that will be retrieved.
 
+	* twittering-mode.el: The timeline spec string "@" means the
+	mentions timeline instead of the replies timeline.
+	(twittering-extract-timeline-spec): interpret the timeline spec
+	string "@" as the mentions timeline instead of the replies
+	timeline.
+
 2013-02-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the jojo-mode that caused an error when

@@ -21,6 +21,13 @@
 	(twittering-update-service-configuration-sentinel): support a
 	response in the JSON format.
 
+	* twittering-mode.el: Sort newly retrieved tweets before rendering
+	them.
+	(twittering-add-statuses-to-timeline-data): sort added tweets
+	before rendering them. This is necessary because
+	`twittering-render-timeline' assumes that given tweets are
+	ordered.
+
 2013-02-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the jojo-mode that caused an error when

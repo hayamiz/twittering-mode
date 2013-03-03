@@ -4550,24 +4550,33 @@ string and the number of new statuses for the timeline."
 	  (or (twittering-current-timeline-referring-id-table spec)
 	      (make-hash-table :test 'equal)))
 	 (timeline-data (twittering-current-timeline-data spec)))
-    (let ((new-statuses
-	   (remove nil
-		   (mapcar
-		    (lambda (status)
-		      (let ((id (cdr (assq 'id status)))
-			    (retweeted-id (cdr (assq 'retweeted-id status))))
-			(unless (or (not retweeted-id)
-				    (gethash retweeted-id referring-id-table))
-			  ;; Store the id of the first observed tweet
-			  ;; that refers `retweeted-id'.
-			  (puthash retweeted-id id referring-id-table))
-			(if (gethash id id-table)
-			    nil
-			  (puthash id status id-table)
-			  (puthash id id referring-id-table)
-			  `((source-spec . ,spec)
-			    ,@status))))
-		    statuses))))
+    (let* ((new-statuses
+	    (remove nil
+		    (mapcar
+		     (lambda (status)
+		       (let ((id (cdr (assq 'id status)))
+			     (retweeted-id (cdr (assq 'retweeted-id status))))
+			 (unless (or (not retweeted-id)
+				     (gethash retweeted-id referring-id-table))
+			   ;; Store the id of the first observed tweet
+			   ;; that refers `retweeted-id'.
+			   (puthash retweeted-id id referring-id-table))
+			 (if (gethash id id-table)
+			     nil
+			   (puthash id status id-table)
+			   (puthash id id referring-id-table)
+			   `((source-spec . ,spec)
+			     ,@status))))
+		     statuses)))
+	   (new-statuses
+	    ;; Sort tweets by ID.
+	    ;; This is necessary because `twittering-render-timeline' assumes
+	    ;; that given tweets are ordered.
+	    (sort new-statuses
+		  (lambda (status1 status2)
+		    (let ((id1 (cdr (assq 'id status1)))
+			  (id2 (cdr (assq 'id status2))))
+		      (twittering-status-id< id2 id1))))))
       (when new-statuses
 	(let ((new-timeline-data
 	       (sort (append new-statuses timeline-data)

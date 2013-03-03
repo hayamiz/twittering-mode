@@ -2565,36 +2565,50 @@ If BUFFER is nil, the current buffer is used instead."
 
 (defmacro twittering-http-get-list-sentinel-base (what)
   `(let ((status-line (cdr (assq 'status-line header-info)))
-	(status-code (cdr (assq 'status-code header-info)))
-	(indexes nil)
-	(mes nil))
-    (case-string
-     status-code
-     (("200")
-      (let ((xmltree (twittering-xml-parse-region (point-min) (point-max))))
-	(when xmltree
-	  (setq indexes
-		(mapcar
-		 (lambda (c-node)
-		   (caddr (assq ,what c-node)))
-		 (remove nil
-			 (mapcar
-			  (lambda (node)
-			    (and (consp node) (eq 'list (car node))
-				 node))
-			  (cdr-safe
-			   (assq 'lists (assq 'lists_list xmltree))))
-			 ))
-		))))
-     (t
-      (setq mes (format "Response: %s"
-			(twittering-get-error-message header-info
-						      connection-info)))))
-    (setq twittering-list-index-retrieved
-	  (or indexes
-	      mes
-	      "")) ;; set "" explicitly if user does not have a list.
-    mes))
+	 (status-code (cdr (assq 'status-code header-info)))
+	 (format
+	  (twittering-get-content-subtype-symbol-from-header-info header-info))
+	 (indexes nil)
+	 (mes nil))
+     (case-string
+      status-code
+      (("200")
+       (cond
+	((eq format 'xml)
+	 (let ((xmltree (twittering-xml-parse-region (point-min) (point-max))))
+	   (when xmltree
+	     (setq indexes
+		   (mapcar
+		    (lambda (c-node)
+		      (caddr (assq ,what c-node)))
+		    (remove nil
+			    (mapcar
+			     (lambda (node)
+			       (and (consp node) (eq 'list (car node))
+				    node))
+			     (cdr-safe
+			      (assq 'lists (assq 'lists_list xmltree))))
+			    ))
+		   ))))
+	((eq format 'json)
+	 (let ((json-object (twittering-json-read)))
+	   (when json-object
+	     (setq indexes
+		   (mapcar (lambda (entry)
+			     (cdr (assq ,what entry)))
+			   (cdr (assq 'lists json-object)))))))
+	(t
+	 (error "Format \"%s\" is not supported" format)
+	 nil)))
+      (t
+       (setq mes (format "Response: %s"
+			 (twittering-get-error-message header-info
+						       connection-info)))))
+     (setq twittering-list-index-retrieved
+	   (or indexes
+	       mes
+	       "")) ;; set "" explicitly if user does not have a list.
+     mes))
 
 (defun twittering-http-get-list-index-sentinel (proc status connection-info header-info)
   (twittering-http-get-list-sentinel-base 'slug))
@@ -5172,20 +5186,24 @@ get-service-configuration -- Get the configuration of the server.
 			   sentinel clean-up-sentinel)))
    ((eq command 'get-list-index)
     ;; Get list names.
-    (let ((username (cdr (assq 'username args-alist)))
-	  (sentinel (cdr (assq 'sentinel args-alist)))
-	  (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
+    (let* ((username (cdr (assq 'username args-alist)))
+	   (sentinel (cdr (assq 'sentinel args-alist)))
+	   (format (if (require 'json nil t) 'json 'xml))
+	   (format-str (symbol-name format))
+	   (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
       (twittering-http-get twittering-api-host
 			   (twittering-api-path username "/lists")
-			   nil nil additional-info
+			   nil format-str additional-info
 			   sentinel clean-up-sentinel)))
    ((eq command 'get-list-subscriptions)
-    (let ((username (cdr (assq 'username args-alist)))
-	  (sentinel (cdr (assq 'sentinel args-alist)))
-	  (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
+    (let* ((username (cdr (assq 'username args-alist)))
+	   (sentinel (cdr (assq 'sentinel args-alist)))
+	   (format (if (require 'json nil t) 'json 'xml))
+	   (format-str (symbol-name format))
+	   (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
       (twittering-http-get twittering-api-host
 			   (twittering-api-path username "/lists/subscriptions")
-			   nil nil additional-info
+			   nil format-str additional-info
 			   sentinel clean-up-sentinel)))
    ((eq command 'create-friendships)
     ;; Create a friendship.

@@ -2320,23 +2320,9 @@ ACCOUNT-INFO must be an alist that includes the following keys;
 	 (auth-str
 	  (cond
 	   ((eq twittering-auth-method 'basic)
-	    (concat "Basic "
-		    (base64-encode-string
-		     (concat (cdr (assoc "screen_name" account-info))
-			     ":" (cdr (assoc "password" account-info))))))
+	    (twittering-make-basic-authentication-string account-info))
 	   ((memq twittering-auth-method '(oauth xauth))
-	    (let ((access-token (cdr (assoc "oauth_token" account-info)))
-		  (access-token-secret
-		   (cdr (assoc "oauth_token_secret" account-info))))
-	      (unless (and (stringp access-token)
-			   (stringp access-token-secret))
-		(error "`account-info' has no valid OAuth token"))
-	      (twittering-oauth-auth-str-access
-	       method
-	       (cdr (assq 'uri-without-query request))
-	       (cdr (assq 'encoded-query-alist request))
-	       twittering-oauth-consumer-key twittering-oauth-consumer-secret
-	       access-token access-token-secret)))
+	    (twittering-make-oauth-authentication-string account-info request))
 	   (t
 	    nil)))
 	 (application-headers
@@ -5496,6 +5482,29 @@ get-service-configuration -- Get the configuration of the server.
    ((memq twittering-auth-method '(oauth xauth))
     twittering-oauth-access-token-alist)))
 
+(defun twittering-get-from-account-info (param account-info)
+  (cdr (assoc param account-info)))
+
+(defun twittering-make-basic-authentication-string (account-info)
+  (concat "Basic "
+	  (base64-encode-string
+	   (concat (cdr (assoc "screen_name" account-info))
+		   ":" (cdr (assoc "password" account-info))))))
+
+(defun twittering-make-oauth-authentication-string (account-info request)
+  (let ((method (cdr (assq 'method request)))
+	(access-token (cdr (assoc "oauth_token" account-info)))
+	(access-token-secret (cdr (assoc "oauth_token_secret" account-info))))
+    (unless (and (stringp access-token)
+		 (stringp access-token-secret))
+      (error "`account-info' has no valid OAuth token"))
+    (twittering-oauth-auth-str-access
+     method
+     (cdr (assq 'uri-without-query request))
+     (cdr (assq 'encoded-query-alist request))
+     twittering-oauth-consumer-key twittering-oauth-consumer-secret
+     access-token access-token-secret)))
+
 (defun twittering-account-authorized-p ()
   (eq twittering-account-authorization 'authorized))
 (defun twittering-account-authorization-queried-p ()
@@ -5660,17 +5669,17 @@ If the authorization failed, return nil."
 	(message "Authorization via xAuth failed. Type M-x twit to retry.")
 	nil))))
    ((eq twittering-auth-method 'basic)
-    (let* ((account-info-alist
+    (let* ((account-info
 	    (let ((pair (twittering-prepare-account-info)))
 	      `(("screen_name" . ,(car pair))
 		("password" . ,(cdr pair)))))
 	   ;; Bind account information locally to ensure that
 	   ;; the variables are reset when the verification fails.
-	   (twittering-username (car account-info-alist))
-	   (twittering-password (cdr account-info-alist))
+	   (twittering-username (car account-info))
+	   (twittering-password (cdr account-info))
 	   (proc
 	    (twittering-call-api-with-account
-	     account-info-alist
+	     account-info
 	     'verify-credentials
 	     `((sentinel . twittering-http-get-verify-credentials-sentinel)
 	       (clean-up-sentinel
@@ -5678,7 +5687,7 @@ If the authorization failed, return nil."
       (cond
        ((null proc)
 	(message "Process invocation for authorizing \"%s\" failed."
-		 (cdr (assq "screen_name" account-info-alist)))
+		 (twittering-get-from-account-info "screen_name" account-info))
 	;; Failed to authorize the account.
 	nil)
        (t
@@ -5712,8 +5721,10 @@ If the authorization failed, return nil."
   (let* ((status-line (cdr (assq 'status-line header-info)))
 	 (status-code (cdr (assq 'status-code header-info)))
 	 (account-info (cdr (assq 'account-info connection-info)))
-	 (username (cdr (assoc "screen_name" account-info)))
-	 (password (cdr (assoc "password" account-info))))
+	 (username
+	  (twittering-get-from-account-info "screen_name" account-info))
+	 (password
+	  (twittering-get-from-account-info "password" account-info)))
     (case-string
      status-code
      (("200")

@@ -58,6 +58,19 @@
 	account information from the `account-info' element in
 	`connection-info'.
 
+	* twittering-mode.el: Add functions to make an authentication
+	string from an account-info alist.
+	(twittering-add-application-header-to-http-request): use new
+	functions for making an authentication string for a HTTP request.
+	(twittering-get-from-account-info): new function.
+	(twittering-make-basic-authentication-string): new function.
+	(twittering-make-oauth-authentication-string): new function.
+	(twittering-verify-credentials): rename `account-info-alist'
+	`account-info'.
+	(twittering-http-get-verify-credentials-sentinel): extract a
+	screen name and a password with the new function
+	`twittering-get-from-account-info'.
+
 2013-02-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the jojo-mode that caused an error when

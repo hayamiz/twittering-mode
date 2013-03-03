@@ -84,6 +84,23 @@
 	discard the validated account information with the new function
 	`twittering-register-account-info'.
 
+	* twittering-mode.el: Support the HTTP cookie.
+	(twittering-cookie-alist): new variable to store cookies for each
+	account.
+	(twittering-add-application-header-to-http-request): add a cookie
+	string if necessary.
+	(twittering-http-get): invoke `twittering-update-server-info' with
+	`connection-info' according to the modification  of the function.
+	(twittering-http-post): likewise.
+	(twittering-update-server-info): receive an alist CONNECTION-INFO
+	as a new argument and update `twittering-cookie-alist'. The new
+	argument is required to store cookies for each account.
+	(twittering-extract-cookie): new function to extract cookies from
+	a HTTP response header as an alist.
+	(twittering-make-cookie-string): new function to make a cookie
+	string for a HTTP request from the cookie information stored in
+	the variable `twittering-cookie-alist'.
+
 2013-02-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the jojo-mode that caused an error when

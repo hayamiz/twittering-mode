@@ -293,6 +293,13 @@ directly. Use `twittering-current-timeline-spec-string' or
 (defvar twittering-mode-hook nil
   "*Hook run every time a buffer is initialized as a twittering-mode buffer.")
 
+(defvar twittering-cookie-alist nil
+  "Alist for stroing cookies for each account.
+This variable stores an alist.
+A key of the alist is a string that is a screen name of an account.
+A value of the alist is a cookie alist which corresponds to a list of
+a pair of a cookie name and value.")
+
 (defvar twittering-new-tweets-count 0
   "Number of new tweets when `twittering-new-tweets-hook' is run.")
 (defvar twittering-new-tweets-spec nil
@@ -2325,9 +2332,12 @@ ACCOUNT-INFO must be an alist that includes the following keys;
 	    (twittering-make-oauth-authentication-string account-info request))
 	   (t
 	    nil)))
+	 (cookie-str (twittering-make-cookie-string request account-info))
 	 (application-headers
 	  `(,@(twittering-http-application-headers method)
-	    ("Authorization" . ,auth-str))))
+	    ("Authorization" . ,auth-str)
+	    ,@(when cookie-str
+		`(("Cookie" . ,cookie-str))))))
     (mapcar (lambda (entry)
 	      (if (eq (car entry) 'header-list)
 		  `(header-list
@@ -2398,7 +2408,7 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
 	  (lexical-let ((sentinel (or sentinel
 				      'twittering-http-get-default-sentinel)))
 	    (lambda (proc status connection-info header-info)
-	      (twittering-update-server-info header-info)
+	      (twittering-update-server-info connection-info header-info)
 	      (apply sentinel proc status connection-info header-info nil))))
 	 (path (concat "/" method "." format))
 	 (headers nil)
@@ -2649,7 +2659,7 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
 	  (lexical-let ((sentinel (or sentinel
 				      'twittering-http-post-default-sentinel)))
 	    (lambda (proc status connection-info header-info)
-	      (twittering-update-server-info header-info)
+	      (twittering-update-server-info connection-info header-info)
 	      (apply sentinel proc status connection-info header-info nil))))
 	 (path (concat "/" method "." format))
 	 (headers nil)
@@ -4884,8 +4894,11 @@ TIME must be an Emacs internal representation as a return value of
 ;;;; Server info
 ;;;;
 
-(defun twittering-update-server-info (header-info)
-  (let ((new-entry-list (mapcar 'car header-info)))
+(defun twittering-update-server-info (connection-info header-info)
+  (let* ((new-entry-list (mapcar 'car header-info))
+	 (account-info (cdr (assq 'account-info connection-info)))
+	 (account
+	  (twittering-get-from-account-info "screen_name" account-info)))
     (when (remove t (mapcar
 		     (lambda (entry)
 		       (equal (assoc entry header-info)
@@ -4904,7 +4917,99 @@ TIME must be an Emacs internal representation as a return value of
 		(with-current-buffer buffer
 		  (twittering-update-mode-line)))
 	      (twittering-get-buffer-list))))
+    ;; cookie
+    (let* ((new-cookies
+	    (twittering-extract-cookie connection-info header-info))
+	   (old-cookies (cdr (assoc account twittering-cookie-alist)))
+	   (updated-cookies
+	    (append new-cookies
+		    (remove nil
+			    (mapcar (lambda (cookie)
+				      (unless (assoc (car cookie) new-cookies)
+					cookie))
+				    old-cookies)))))
+      (setq twittering-cookie-alist
+	    (cons (cons account updated-cookies)
+		  (remove nil
+			  (mapcar (lambda (entry)
+				    (unless (equal account (car entry))
+				      entry))
+				  twittering-cookie-alist)))))
     header-info))
+
+(defun twittering-extract-cookie (connection-info header-info)
+  (remove
+   nil
+   (mapcar
+    (lambda (entry)
+      (let ((header-item (car entry))
+	    (header-value (cdr entry)))
+	(when (and (string= header-item "Set-Cookie")
+		   (string-match "\\([^= ]*\\) *= *\\([^; ]*\\) *;? *"
+				 header-value))
+	  ;; For ease of implementation, the followings are assumed.
+	  ;; 1. Each response header includes only one cookie.
+	  ;; 2. `value' of cookie is a token, not a quoted string.
+	  ;; 3. Attributes except `domain', `expires' and `path' are ignored.
+	  (let* ((name (downcase (match-string 1 header-value)))
+		 (value (match-string 2 header-value))
+		 (attributes
+		  (mapcar
+		   (lambda (str)
+		     (when (string-match "\\` *\\([^ ]*\\) *= *\\(.*\\)\\'"
+					 str)
+		       (let ((attr (downcase (match-string 1 str)))
+			     (value (match-string 2 str)))
+			 (cond
+			  ((string= attr "domain")
+			   `(domain . ,value))
+			  ((string= attr "expires")
+			   `(expires
+			     . ,(apply 'encode-time
+				       (parse-time-string
+					(replace-regexp-in-string
+					 "-" " " value)))))
+			  ((string= attr "path")
+			   `(path . ,value))
+			  (t
+			   nil)))))
+		   (split-string (substring header-value (match-end 0))
+				 " *; *")))
+		 (additional-attributes
+		  `(,@(let* ((domain (cdr (assq 'domain attributes)))
+			     (request (cdr (assq 'request connection-info)))
+			     (host (cdr (assq 'host request)))
+			     (prefix
+			      (if domain
+				  (regexp-quote domain)
+				(concat "\\`" (regexp-quote host)))))
+			`((domain-regexp . ,(concat prefix "\\'")))))))
+	    `(,name
+	      (value . ,value)
+	      ,@attributes
+	      ,@additional-attributes)))))
+    header-info)))
+
+(defun twittering-make-cookie-string (request account-info)
+  (let ((account
+	 (twittering-get-from-account-info "screen_name" account-info))
+	(current-time (current-time))
+	(host (cdr (assq 'host request))))
+    (when account
+      (mapconcat
+       'identity
+       (remove nil
+	       (mapcar
+		(lambda (entry)
+		  (let* ((expires (cdr (assq 'expires entry)))
+			 (not-expired (or (null expires)
+					  (time-less-p current-time expires)))
+			 (domain-regexp (cdr (assq 'domain-regexp entry))))
+		    (when (and not-expired
+			       (string-match domain-regexp host))
+		      (format "%s=%s" (car entry) (cdr (assq 'value entry))))))
+		(cdr (assoc account twittering-cookie-alist))))
+       ";"))))
 
 (defun twittering-get-server-info (field)
   (let* ((table

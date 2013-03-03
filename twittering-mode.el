@@ -1721,7 +1721,7 @@ The method to perform the request is determined from
 		     (let* ((header (twittering-get-response-header buffer))
 			    (header-info
 			     (and header
-				  (twittering-update-server-info header))))
+				  (twittering-make-header-info-alist header))))
 		       (with-current-buffer buffer
 			 (goto-char (point-min))
 			 (when (search-forward-regexp "\r?\n\r?\n" nil t)
@@ -2394,7 +2394,12 @@ If BUFFER is nil, the current buffer is used instead."
 
 (defun twittering-http-get (host method &optional parameters format additional-info sentinel clean-up-sentinel)
   (let* ((format (or format "xml"))
-	 (sentinel (or sentinel 'twittering-http-get-default-sentinel))
+	 (sentinel
+	  (lexical-let ((sentinel (or sentinel
+				      'twittering-http-get-default-sentinel)))
+	    (lambda (proc status connection-info header-info)
+	      (twittering-update-server-info header-info)
+	      (apply sentinel proc status connection-info header-info nil))))
 	 (path (concat "/" method "." format))
 	 (headers nil)
 	 (port nil)
@@ -2633,7 +2638,12 @@ PARAMETERS is alist of URI parameters.
  ex) ((\"mode\" . \"view\") (\"page\" . \"6\")) => <URI>?mode=view&page=6
 FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
   (let* ((format (or format "xml"))
-	 (sentinel (or sentinel 'twittering-http-post-default-sentinel))
+	 (sentinel
+	  (lexical-let ((sentinel (or sentinel
+				      'twittering-http-post-default-sentinel)))
+	    (lambda (proc status connection-info header-info)
+	      (twittering-update-server-info header-info)
+	      (apply sentinel proc status connection-info header-info nil))))
 	 (path (concat "/" method "." format))
 	 (headers nil)
 	 (port nil)
@@ -4864,9 +4874,8 @@ TIME must be an Emacs internal representation as a return value of
 ;;;; Server info
 ;;;;
 
-(defun twittering-update-server-info (header-str)
-  (let* ((header-info (twittering-make-header-info-alist header-str))
-	 (new-entry-list (mapcar 'car header-info)))
+(defun twittering-update-server-info (header-info)
+  (let ((new-entry-list (mapcar 'car header-info)))
     (when (remove t (mapcar
 		     (lambda (entry)
 		       (equal (assoc entry header-info)

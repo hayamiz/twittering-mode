@@ -28,6 +28,18 @@
 	`twittering-render-timeline' assumes that given tweets are
 	ordered.
 
+	* twittering-mode.el: Update the server information only when
+	receiving a response from a Twitter-like service. Other types of
+	responses such as image retrieval and URL shortening do not update
+	the info.
+	(twittering-send-http-request): do not invoke
+	`twittering-update-server-info' directly.
+	(twittering-http-get): modify the sentinel so that it also invokes
+	`twittering-update-server-info'.
+	(twittering-http-post): likewise.
+	(twittering-update-server-info): receive an alist HEADER-INFO
+	instead of a string HEADER-STR.
+
 2013-02-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the jojo-mode that caused an error when

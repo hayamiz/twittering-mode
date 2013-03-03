@@ -5649,7 +5649,7 @@ get-service-configuration -- Get the configuration of the server.
 	       "Timeline spec %s is not supported in the Twitter REST API v1.1"
 	       spec)
 	      nil)
-	     ((eq spec-type 'retweet_of_me)
+	     ((eq spec-type 'retweets_of_me)
 	      `("api.twitter.com"
 		"1.1/statuses/retweets_of_me"
 		("count" . ,number-str)
@@ -5671,7 +5671,12 @@ get-service-configuration -- Get the configuration of the server.
 		  ,@(when max_id `(("max_id" . ,max_id)))
 		  ("q" . ,word)
 		  ("result_type" . "mixed")
-		  ,@(when since_id `(("since_id" . ,since_id))))))))
+		  ,@(when since_id `(("since_id" . ,since_id))))))
+	     (t
+	      (error
+	       "Timeline spec %s is unknown"
+	       spec-string)
+	      nil)))
 	   (format 'json)
 	   (format-str (symbol-name format))
 	   (host (elt parameters 0))

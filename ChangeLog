@@ -146,6 +146,10 @@
 	string "@" as the mentions timeline instead of the replies
 	timeline.
 
+	* twittering-mode.el: Fix a typo that disables twittering-mode.el
+	from retrieving the ":retweets_of_me" timeline.
+	(twittering-call-api-with-account-in-api1.1): fix a typo.
+
 2013-02-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the jojo-mode that caused an error when

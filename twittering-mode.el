@@ -5872,19 +5872,15 @@ get-service-configuration -- Get the configuration of the server.
 			    format-str additional-info)))
    ((eq command 'get-service-configuration)
     (let* ((host "api.twitter.com")
-	   (method "1.1/account/verify_credentials")
-	   (request
-	    (twittering-make-http-request-from-uri
-	    "GET" nil
-	    (concat (if twittering-use-ssl
-			"https"
-		      "http")
-		    "://" host "/" method ".json")))
+	   (method "1.1/help/configuration")
+	   (http-parameters nil)
+	   (format-str "json")
 	   (additional-info nil)
 	   (sentinel (cdr (assq 'sentinel args-alist)))
 	   (clean-up-sentinel (cdr (assq 'clean-up-sentinel args-alist))))
-      (twittering-send-http-request request additional-info
-				    sentinel clean-up-sentinel)))
+      (twittering-http-get account-info-alist host method http-parameters
+			   format-str additional-info
+			   sentinel clean-up-sentinel)))
    (t
     nil)))
 

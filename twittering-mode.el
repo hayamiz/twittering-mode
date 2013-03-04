@@ -5557,6 +5557,7 @@ get-service-configuration -- Get the configuration of the server.
 	       (t
 		args-alist))))
 	   (spec (cdr (assq 'timeline-spec args-alist)))
+	   (spec-string (cdr (assq 'timeline-spec-string args-alist)))
 	   (spec-type (car-safe spec))
 	   (max-number (if (eq 'search spec-type)
 			   100 ;; FIXME: refer to defconst.

@@ -1,3 +1,9 @@
+2013-03-05  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Bind a local variable correctly.
+	(twittering-call-api-with-account-in-api1.1): correctly bind the
+	variable `spec-string' used.
+
 2013-03-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Use the JSON format for retrieving list

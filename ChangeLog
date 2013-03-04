@@ -4,6 +4,12 @@
 	(twittering-call-api-with-account-in-api1.1): correctly bind the
 	variable `spec-string' used.
 
+	* twittering-mode.el: Fix the function parsing timelines related
+	to direct messages with the Twitter REST API v1.1.
+	(twittering-http-get-default-sentinel): call the function
+	`twittering-json-object-to-a-status-on-direct-messages' correctly
+	when using the Twitter REST API v1.1.
+
 2013-03-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Use the JSON format for retrieving list

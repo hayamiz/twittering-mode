@@ -2448,22 +2448,18 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
 		  (cond
 		   ((null json-array)
 		    nil)
-		   ((memq service-method '(twitter statusnet))
+		   ((eq (car spec) 'search)
 		    (cond
-		     ((eq (car spec) 'search)
+		     ((memq service-method '(twitter statusnet))
 		      (mapcar 'twittering-json-object-to-a-status-on-search
 			      (cdr (assq 'results json-array))))
-		     ((twittering-timeline-spec-is-direct-messages-p spec)
-		      (mapcar
-		       'twittering-json-object-to-a-status-on-direct-messages
-		       json-array))
-		     (t
+		     ((eq service-method 'twitter-api-v1.1)
 		      (mapcar 'twittering-json-object-to-a-status
-			      json-array))))
-		   ((and (eq service-method 'twitter-api-v1.1)
-			 (eq (car spec) 'search))
-		    (mapcar 'twittering-json-object-to-a-status
-			    (cdr (assq 'statuses json-array))))
+			      (cdr (assq 'statuses json-array))))))
+		   ((twittering-timeline-spec-is-direct-messages-p spec)
+		    (mapcar
+		     'twittering-json-object-to-a-status-on-direct-messages
+		     json-array))
 		   (t
 		    (mapcar 'twittering-json-object-to-a-status
 			    json-array)))))

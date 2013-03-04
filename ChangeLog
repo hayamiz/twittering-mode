@@ -17,6 +17,11 @@
 	command `get-service-configuration' and add an authentication
 	header correctly.
 
+	* twittering-mode.el: Confirm that `json.el' and SSL are available
+	before calling the Twitter REST API v1.1.
+	(twittering-call-api-with-account): confirm that `json.el' and SSL
+	are available for the Twitter REST API v1.1.
+
 2013-03-04  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Use the JSON format for retrieving list

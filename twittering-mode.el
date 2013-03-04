@@ -5219,11 +5219,16 @@ get-service-configuration -- Get the configuration of the server.
       (twittering-call-api-with-account-in-api1.0
        account-info-alist command args-alist additional-info))
      ((eq twittering-service-method 'twitter-api-v1.1)
-      (if (require 'json nil t)
-	  (twittering-call-api-with-account-in-api1.1
-	   account-info-alist command args-alist additional-info)
+      (cond
+       ((not (require 'json nil t))
 	(error "`json.el' is required to use the Twitter REST API v1.1")
-	nil))
+	nil)
+       ((not twittering-use-ssl)
+	(error "SSL is required to use the Twitter REST API v1.1")
+	nil)
+       (t
+	(twittering-call-api-with-account-in-api1.1
+	 account-info-alist command args-alist additional-info))))
      (t
       (error "`twittering-service-method' is an invalid service method")
       ))))

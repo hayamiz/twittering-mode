@@ -9769,6 +9769,8 @@ been initialized yet."
     (when (twittering-account-authorized-p)
       (mapc 'twittering-visit-timeline (cdr timeline-spec-list)))))
 
+(put 'twittering-mode 'mode-class 'special)
+
 ;;;;
 ;;;; Preparation for invoking APIs
 ;;;;

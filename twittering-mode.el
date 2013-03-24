@@ -287,6 +287,12 @@ directly. Use `twittering-current-timeline-spec-string' or
 (defvar twittering-server-info-alist nil
   "Alist of server information.")
 
+(defvar twittering-api-limit-info-alist '()
+  "Alist of an API identifier and an alist representing rate limit for the API.")
+
+(defvar twittering-timeline-spec-to-api-table '()
+  "Alist of a timeline spec and an API identifier for retrieving the timeline.")
+
 
 (defvar twittering-mode-init-hook nil
   "*Hook run after initializing global variables for `twittering-mode'.")
@@ -5023,31 +5029,79 @@ TIME must be an Emacs internal representation as a return value of
 ;;;; Server info
 ;;;;
 
+(defun twittering-update-api-table (spec api-string)
+  "Register a pair of a timeline spec and an API for retrieving the timeline.
+SPEC is a timeline spec. API-STRING is an identifier of an API for retrieving
+the timeline."
+  (let ((current (assoc spec twittering-timeline-spec-to-api-table)))
+    (if (null current)
+	(add-to-list 'twittering-timeline-spec-to-api-table
+		     `(,spec . ,api-string))
+      (setcdr current api-string))))
+
+(defun twittering-make-rate-limit-alist (header-info)
+  "Make a rate-limit information alist from HEADER-INFO.
+Key symbols of a returned alist are following; limit, remaining, reset-time.
+Values bound to limit and remaining is a positive integer and
+one bound to reset-time is an Emacs time (result of `seconds-to-time')."
+  (let ((symbol-table
+	 '(("X-Rate-Limit-Limit" . limit)
+	   ("X-Rate-Limit-Remaining" . remaining)
+	   ("X-Rate-Limit-Reset" . reset-time)
+	   ;; For Twitter API v1.0.
+	   ("X-RateLimit-Limit" . limit)
+	   ("X-RateLimit-Remaining" . remaining)
+	   ("X-RateLimit-Reset" . reset-time))))
+    (remove
+     nil
+     (mapcar (lambda (entry)
+	       (let ((sym
+		      (cdr
+		       (twittering-assoc-string (car entry) symbol-table t))))
+		 (cond
+		  ((memq sym '(limit remaining))
+		   `(,sym . ,(string-to-number (cdr entry))))
+		  ((eq sym 'reset-time)
+		   `(,sym
+		     . ,(seconds-to-time (string-to-number (cdr entry)))))
+		  (t
+		   nil))))
+	     header-info))))
+
+(defun twittering-update-rate-limit-info (api-string spec header-info)
+  "Register rate-limit information.
+API-STRING is an identifier of an API. SPEC is a timeline spec that had been
+retrieved by the API. HEADER-INFO is an alist generated from the HTTP response
+header of the API."
+  (let* ((api-string
+	  (if (eq twittering-service-method 'twitter)
+	      ;; The key for Twitter API v1.0 is nil.
+	      nil
+	    api-string))
+	 (current (assoc api-string twittering-api-limit-info-alist))
+	 (rate-limit-alist (twittering-make-rate-limit-alist header-info)))
+    (twittering-update-api-table spec api-string)
+    (if (null current)
+	(add-to-list 'twittering-api-limit-info-alist
+		     `(,api-string . ,rate-limit-alist))
+      (setcdr current rate-limit-alist))))
+
 (defun twittering-update-server-info (connection-info header-info)
   (let* ((new-entry-list (mapcar 'car header-info))
 	 (account-info (cdr (assq 'account-info connection-info)))
 	 (account
-	  (twittering-get-from-account-info "screen_name" account-info)))
+	  (twittering-get-from-account-info "screen_name" account-info))
+	 (spec (cdr (assq 'timeline-spec connection-info)))
+	 (api-string
+	  (cdr (assq 'uri-without-query (assq 'request connection-info)))))
+    (twittering-update-rate-limit-info api-string spec header-info)
     (when (remove t (mapcar
 		     (lambda (entry)
 		       (equal (assoc entry header-info)
 			      (assoc entry twittering-server-info-alist)))
 		     new-entry-list))
       (setq twittering-server-info-alist
-	    (append (mapcar
-		     (lambda (entry)
-		       ;; Replace a header name for the Twitter REST API v1.1
-		       ;; with that for the Twitter REST API v1.0.
-		       (cond
-			((string= "X-Rate-Limit-Limit" (car entry))
-			 `("X-RateLimit-Limit" . ,(cdr entry)))
-			((string= "X-Rate-Limit-Remaining" (car entry))
-			 `("X-RateLimit-Remaining" . ,(cdr entry)))
-			((string= "X-Rate-Limit-Reset" (car entry))
-			 `("X-RateLimit-Reset" . ,(cdr entry)))
-			(t
-			 entry)))
-		     header-info)
+	    (append header-info
 		    (remove nil (mapcar
 				 (lambda (entry)
 				   (if (member (car entry) new-entry-list)
@@ -5153,33 +5207,35 @@ TIME must be an Emacs internal representation as a return value of
 		(cdr (assoc account twittering-cookie-alist))))
        ";"))))
 
-(defun twittering-get-server-info (field)
-  (let* ((table
-	  '((ratelimit-remaining . "X-RateLimit-Remaining")
-	    (ratelimit-limit . "X-RateLimit-Limit")
-	    (ratelimit-reset . "X-RateLimit-Reset")))
-	 (numeral-field '(ratelimit-remaining ratelimit-limit))
-	 (unix-epoch-time-field '(ratelimit-reset))
-	 (field-name (cdr (assq field table)))
-	 (field-value
-	  (cdr (twittering-assoc-string
-		field-name twittering-server-info-alist t))))
-    (when (and field-name field-value)
-      (cond
-       ((memq field numeral-field)
-	(string-to-number field-value))
-       ((memq field unix-epoch-time-field)
-	(seconds-to-time (string-to-number (concat field-value ".0"))))
-       (t
-	nil)))))
+(defun twittering-get-ratelimit-alist (&optional spec)
+  (let ((api-string
+	 (cdr (assoc spec twittering-timeline-spec-to-api-table))))
+    (cdr (assoc api-string twittering-api-limit-info-alist))))
 
-(defun twittering-get-ratelimit-remaining ()
-  (or (twittering-get-server-info 'ratelimit-remaining)
+(defun twittering-get-ratelimit-remaining (&optional spec)
+  (or (cdr (assq 'remaining (twittering-get-ratelimit-alist spec)))
       0))
 
-(defun twittering-get-ratelimit-limit ()
-  (or (twittering-get-server-info 'ratelimit-limit)
+(defun twittering-get-ratelimit-limit (&optional spec)
+  (or (cdr (assq 'limit (twittering-get-ratelimit-alist spec)))
       0))
+
+(defun twittering-get-ratelimit-indicator-string (&optional spec)
+  "Make an indicator string of rate-limit information of SPEC."
+  (cond
+   ((eq twittering-service-method 'twitter)
+    ;; Twitter API v1.0.
+    (format "%d/%d"
+	    (twittering-get-ratelimit-remaining)
+	    (twittering-get-ratelimit-limit)))
+   (t
+    (mapconcat
+     (lambda (spec)
+       (format "%d/%d"
+	       (twittering-get-ratelimit-remaining spec)
+	       (twittering-get-ratelimit-limit spec)))
+     (twittering-get-primary-base-timeline-specs spec)
+     "+"))))
 
 ;;;;
 ;;;; Abstract layer for Twitter API
@@ -7971,9 +8027,8 @@ static char * unplugged_xpm[] = {
 	   ,@(when twittering-proxy-use '("proxy")))))
     (concat active-mode-indicator
 	    (when twittering-display-remaining
-	      (format " %d/%d"
-		      (twittering-get-ratelimit-remaining)
-		      (twittering-get-ratelimit-limit)))
+	      (let ((spec (twittering-current-timeline-spec)))
+		(twittering-get-ratelimit-indicator-string spec)))
 	    (when enabled-options
 	      (concat "[" (mapconcat 'identity enabled-options " ") "]")))))
 

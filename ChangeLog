@@ -27,6 +27,32 @@
 	(twittering-get-server-info): replace `assoc-string' with
 	`twittering-assoc-string'.
 
+	* twittering-mode.el: Display rate-limit information for each API.
+	(twittering-api-limit-info-alist): new variable for storing
+	rate-limit information for each API.
+	(twittering-timeline-spec-to-api-table): new variable for storing
+	combination of timeline spec and an API for retrieving the
+	timeline.
+	(twittering-update-api-table): new function for registering a
+	timeline spec and an API with the new variable
+	`twittering-timeline-spec-to-api-table'.
+	(twittering-make-rate-limit-alist): new function.
+	(twittering-update-rate-limit-info): new function for updating the
+	new variables `twittering-api-limit-info-alist' and
+	`twittering-timeline-spec-to-api-table'.
+	(twittering-update-server-info): update rate-limit information
+	with new function.
+	(twittering-get-server-info): removed.
+	(twittering-get-ratelimit-alist): new function.
+	(twittering-get-ratelimit-remaining): use the new function
+	`twittering-get-ratelimit-alist'.
+	(twittering-get-ratelimit-limit): likewise.
+	(twittering-get-ratelimit-indicator-string): new function for
+	making an indicator string of rate-limit information.
+	(twittering-mode-line-buffer-identification): make an indicator
+	string of rate-limit information by the new function
+	`twittering-get-ratelimit-indicator-string'.
+
 2013-03-05  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Bind a local variable correctly.

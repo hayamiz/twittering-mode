@@ -9665,7 +9665,7 @@ If FORCE is non-nil, all active buffers are updated forcibly."
     (twittering-update-service-configuration)
     (let* ((buffer-list (twittering-get-active-buffer-list))
 	   (primary-spec-list
-	    (delete-dups
+	    (twittering-remove-duplicates
 	     (apply 'append
 		    (mapcar
 		     (lambda (buffer)

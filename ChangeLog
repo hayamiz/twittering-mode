@@ -53,6 +53,11 @@
 	string of rate-limit information by the new function
 	`twittering-get-ratelimit-indicator-string'.
 
+	* twittering-mode.el: Replace `delete-dups' with
+	`twittering-remove-duplicates' for portability.
+	(twittering-update-active-buffers): replace `delete-dups' with
+	`twittering-remove-duplicates' for portability.
+
 2013-03-05  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Bind a local variable correctly.

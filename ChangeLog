@@ -18,6 +18,15 @@
 	(twittering-json-read): use the new advice for decoding surrogate
 	pairs in strings returned by `json-read'.
 
+	* twittering-mode.el: Add `twittering-assoc-string' for
+	portability. In Emacs 21, the function `assoc-string' is not
+	defined. In such case, the reimplemented version is
+	used. Othewise, `twittering-assoc-string' is an alias of
+	`assoc-string'.
+	(twittering-assoc-string): new function for portability.
+	(twittering-get-server-info): replace `assoc-string' with
+	`twittering-assoc-string'.
+
 2013-03-05  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Bind a local variable correctly.

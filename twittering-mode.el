@@ -803,6 +803,44 @@ as a list of a string on Emacs21."
 		added
 	      (butlast added (- len maxelt)))))))
 
+(if (fboundp 'assoc-string)
+    (defalias 'twittering-assoc-string 'assoc-string)
+  (defun twittering-assoc-string (key list &optional case-fold)
+    "Like `assoc' but specifically for strings (and symbols).
+This returns the first element of LIST whose car matches the string or
+symbol KEY, or nil if no match exists.  When performing the
+comparison, symbols are first converted to strings, and unibyte
+strings to multibyte.  If the optional arg CASE-FOLD is non-nil, case
+is ignored.
+
+Unlike `assoc', KEY can also match an entry in LIST consisting of a
+single string, rather than a cons cell whose car is a string.
+
+This is reimplemented version of `assoc-string' which is not
+defined in Emacs21."
+    (let* ((key (if (stringp key)
+		    key
+		  (symbol-name key)))
+	   (regexp (concat "\\`" key "\\'"))
+	   (rest list)
+	   (result nil)
+	   (case-fold-search case-fold))
+      (while (not (null rest))
+	(let* ((current (car rest))
+	       (current-key
+		(if (listp current)
+		    (car current)
+		  current))
+	       (current-key
+		(if (stringp current-key)
+		    current-key
+		  (symbol-name current-key))))
+	  (if (string-match key current-key)
+	      (setq result current
+		    rest nil)
+	    (setq rest (cdr rest)))))
+      result)))
+
 ;;;;
 ;;;; Debug mode
 ;;;;
@@ -5123,7 +5161,9 @@ TIME must be an Emacs internal representation as a return value of
 	 (numeral-field '(ratelimit-remaining ratelimit-limit))
 	 (unix-epoch-time-field '(ratelimit-reset))
 	 (field-name (cdr (assq field table)))
-	 (field-value (cdr (assoc field-name twittering-server-info-alist))))
+	 (field-value
+	  (cdr (twittering-assoc-string
+		field-name twittering-server-info-alist t))))
     (when (and field-name field-value)
       (cond
        ((memq field numeral-field)

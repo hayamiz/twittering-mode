@@ -3681,16 +3681,80 @@ exiting abnormally by decoding unknown numeric character reference."
 ;;;; JSON parser with a fallback character
 ;;;;
 
+(defconst twittering-surrogate-pair-regexp
+  (if (<= 23 emacs-major-version)
+      ;; Literal strings such as "\uXXXX" is not allowed in Emacs 21
+      ;; and earlier. A character of invalid code point such as U+D800
+      ;; is not allowed in Emacs 22.
+      ;; To avoid errors caused by literal strings invalid in Emacs 22
+      ;; and earlier, the regexp is generated indirectly.
+      (format "[%c-%c][%c-%c]"
+	      (decode-char 'ucs #xd800)
+	      (decode-char 'ucs #xdbff)
+	      (decode-char 'ucs #xdc00)
+	      (decode-char 'ucs #xdfff))
+    ;; A regexp that never matches any strings.
+    "\\'\\`")
+  "Regexp to match a surrogate pair for CESU-8.
+In Emacs 22 and earlier, this variable is initialized by a regexp
+that never matches any string because code points for a surrogate pair,
+from U+D800 to U+DFFF, are invalid.")
+
+(defun twittering-decode-surrogate-pairs-as-cesu-8 (str)
+  "Decode surrogate pairs in STR similarly to CESU-8.
+If STR includes surrogate pairs represented by code points from U+D800 to
+U+DFFF, decode them with CESU-8 and return the result.
+
+A character not in the Basic Multilingual Plane is represented by a surrogate
+pair in JSON (RFC4627). This is similar to CESU-8. But the function
+`json-read' in `json.el' does not correctly decode surrogate pairs. Therefore,
+`json-read' may return a string including invalid code points from U+D800 to
+U+DFFF. This function decodes such invalid code points."
+  (let ((str str)
+	(prev 0)
+	(current 0)
+	(result ""))
+    (while (setq current
+		 (string-match twittering-surrogate-pair-regexp str prev))
+      (let* ((next (match-end 0))
+	     (decoded-str
+	      (decode-coding-string
+	       (mapconcat
+		(lambda (c)
+		  (let* ((code-point (encode-char c 'ucs))
+			 (b1 (/ code-point #x100))
+			 (b2 (% code-point #x100)))
+		    (unibyte-string b1 b2)))
+		(match-string 0 str)
+		"")
+	       'utf-16)))
+	(setq result
+	      (concat result
+		      (substring str prev current)
+		      decoded-str))
+	(setq prev next)))
+    (setq result (concat result (substring str prev)))
+    result))
+
+(defadvice json-read-string (after twittering-decode-surrogate-pairs-as-cesu-8)
+  (when (<= 23 emacs-major-version)
+    (setq ad-return-value
+	  (twittering-decode-surrogate-pairs-as-cesu-8 ad-return-value))))
+
 (defun twittering-json-read (&rest args)
   "Wrapped `json-read' in order to avoid decoding errors.
 `json-read' is called after activating the advice
 `twittering-add-fail-over-to-decode-char'.
 This prevents `json-read' from exiting abnormally by decoding an unknown
 numeric character reference."
-  (let ((activated (ad-is-active 'decode-char)))
+  (let ((activated (ad-is-active 'decode-char))
+	(json-activated (ad-is-active 'json-read-string)))
     (ad-enable-advice
      'decode-char 'after 'twittering-add-fail-over-to-decode-char)
     (ad-activate 'decode-char)
+    (ad-enable-advice 'json-read-string 'after
+		      'twittering-decode-surrogate-pairs-as-cesu-8)
+    (ad-activate 'json-read-string)
     (unwind-protect
 	(condition-case err
 	    (apply 'json-read args)
@@ -3699,9 +3763,15 @@ numeric character reference."
 	   nil))
       (ad-disable-advice 'decode-char 'after
 			 'twittering-add-fail-over-to-decode-char)
+      (ad-disable-advice 'json-read-string 'after
+			 'twittering-decode-surrogate-pairs-as-cesu-8)
       (if activated
 	  (ad-activate 'decode-char)
-	(ad-deactivate 'decode-char)))))
+	(ad-deactivate 'decode-char))
+      (if json-activated
+	  (ad-activate 'json-read-string)
+	(ad-deactivate 'json-read-string))
+      )))
 
 ;;;;
 ;;;; Window configuration

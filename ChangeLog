@@ -1,3 +1,23 @@
+2013-03-25  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Decode surrogate pairs in strings returned
+	by `json-read'. A new advice is added for decoding surrogate
+	pairs.
+	A character not in the Basic Multilingual Plane is
+	represented by a surrogate pair in JSON (RFC4627). This is similar
+	to CESU-8. But the function `json-read' in `json.el' does not
+	correctly decode surrogate pairs. `json-read' returns a string
+	including invalid code points from U+D800 to U+DFFF.
+	`twittering-json-read' now decodes them by using a new advice.
+	Thanks to multiSnow who reported the problem.
+	(twittering-surrogate-pair-regexp): new constant that matches a
+	surrogate pair in CESU-8.
+	(twittering-decode-surrogate-pairs-as-cesu-8): new function that
+	decodes surrogate pairs in a given string similarly to CESU-8.
+	(json-read-string): new advice for decoding surrogate pairs.
+	(twittering-json-read): use the new advice for decoding surrogate
+	pairs in strings returned by `json-read'.
+
 2013-03-05  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Bind a local variable correctly.

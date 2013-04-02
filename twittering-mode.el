@@ -5685,7 +5685,7 @@ get-service-configuration -- Get the configuration of the server.
 	   (parameters (if user-id
 			   `(("user_id" . ,user-id))
 			 `(("screen_name" . ,username)))))
-      (twittering-http-post twittering-api-host
+      (twittering-http-post account-info-alist twittering-api-host
 			    (twittering-api-path "blocks/create")
 			    parameters nil additional-info)))
    ((eq command 'block-and-report-as-spammer)
@@ -5695,7 +5695,7 @@ get-service-configuration -- Get the configuration of the server.
 	   (parameters (if user-id
 			   `(("user_id" . ,user-id))
 			 `(("screen_name" . ,username)))))
-      (twittering-http-post twittering-api-host
+      (twittering-http-post account-info-alist twittering-api-host
 			    (twittering-api-path "report_spam")
 			    parameters nil additional-info)))
    ((eq command 'get-service-configuration)
@@ -6045,7 +6045,7 @@ get-service-configuration -- Get the configuration of the server.
 				`(("user_id" . ,user-id))
 			      `(("screen_name" . ,username))))
 	   (format-str "json"))
-      (twittering-http-post host method http-parameters
+      (twittering-http-post account-info-alist host method http-parameters
 			    format-str additional-info)))
    ((eq command 'block-and-report-as-spammer)
     ;; Report a user as a spammer and block him or her.
@@ -6057,7 +6057,7 @@ get-service-configuration -- Get the configuration of the server.
 				`(("user_id" . ,user-id))
 			      `(("screen_name" . ,username))))
 	   (format-str "json"))
-      (twittering-http-post host method http-parameters
+      (twittering-http-post account-info-alist host method http-parameters
 			    format-str additional-info)))
    ((eq command 'get-service-configuration)
     (let* ((host "api.twitter.com")

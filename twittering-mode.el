@@ -567,7 +567,8 @@ pop-up buffer.")
 (defvar twittering-private-info-file-loaded nil
   "Whether the private info file has been loaded or not.")
 (defvar twittering-variables-stored-with-encryption
-  '(twittering-oauth-access-token-alist))
+  '(twittering-oauth-access-token-alist
+    twittering-oauth-access-tokens))
 
 (defvar twittering-api-prefix "1/")
 (defvar twittering-search-api-method "search")
@@ -6189,7 +6190,16 @@ get-service-configuration -- Get the configuration of the server.
 ;;;;
 
 (defun twittering-register-account-info (account-info)
+  (twittering-update-account-info-in-list account-info)
   (setq twittering-oauth-access-token-alist account-info))
+
+(defun twittering-update-account-info-in-list (account-info)
+  (let* ((screen-name (twittering-get-from-account-info "screen_name" account-info))
+	 (existing-entry (assoc screen-name twittering-oauth-access-tokens)))
+    (when existing-entry
+      (setq twittering-oauth-access-tokens
+	    (delq existing-entry twittering-oauth-access-tokens)))
+    (add-to-list 'twittering-oauth-access-tokens (list screen-name account-info))))
 
 (defun twittering-get-main-account-info ()
   (cond

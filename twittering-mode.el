@@ -9101,8 +9101,12 @@ API-ARGUMENTS is also sent to `twittering-call-api' as its argument
 		(noninteractive . ,noninteractive)
 		(timeline-spec . ,spec)
 		(timeline-spec-string . ,spec-string)))
+	     (account-info-alist
+	      (twittering-get-account-info-by-name (twittering-timeline-account-spec spec)))
 	     (proc
-	      (twittering-call-api 'retrieve-timeline args additional-info)))
+	      (if account-info-alist
+		  (twittering-call-api-with-account account-info-alist 'retrieve-timeline args additional-info)
+		(twittering-call-api 'retrieve-timeline args additional-info))))
 	(when proc
 	  (twittering-register-process proc spec spec-string)
 	  (twittering-initialize-retrieval-count spec))))

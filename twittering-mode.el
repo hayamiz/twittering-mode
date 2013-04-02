@@ -129,6 +129,7 @@ on authorization via OAuth.")
 (defvar twittering-oauth-consumer-key nil)
 (defvar twittering-oauth-consumer-secret nil)
 (defvar twittering-oauth-access-token-alist nil)
+(defvar twittering-oauth-access-tokens '())
 
 (defconst twittering-max-number-of-tweets-on-retrieval 200
   "The maximum number of `twittering-number-of-tweets-on-retrieval'.")
@@ -4069,6 +4070,8 @@ Before calling this, you have to configure `twittering-bitly-login' and
 ;;;
 ;;; - (merge SPEC1 SPEC2 ...): result of merging timelines SPEC1 SPEC2 ...
 ;;;
+;;; - (account ACCOUNT_NAME SPEC): use the given account to fetch tweets
+;;;
 
 ;;; Timeline spec string
 ;;;
@@ -4078,7 +4081,7 @@ Before calling this, you have to configure `twittering-bitly-login' and
 ;;;             | RETWEETED_BY_ME | RETWEETED_BY_USER
 ;;;             | RETWEETED_TO_ME | RETWEETED_TO_USER | RETWEETS_OF_ME
 ;;;             | SEARCH
-;;; COMPOSITE ::= EXCLUDE-IF | EXCLUDE-RE | MERGE
+;;; COMPOSITE ::= EXCLUDE-IF | EXCLUDE-RE | MERGE | ACCOUNT
 ;;;
 ;;; USER ::= /[a-zA-Z0-9_-]+/
 ;;; LIST ::= USER "/" LISTNAME
@@ -4108,6 +4111,8 @@ Before calling this, you have to configure `twittering-bitly-login' and
 ;;;
 ;;; MERGE ::= "(" MERGED_SPECS ")"
 ;;; MERGED_SPECS ::= SPEC | SPEC "+" MERGED_SPECS
+;;;
+;;; ACCOUNT ::= ":account/" USER "/" SPEC
 ;;;
 
 (defvar twittering-regexp-hash
@@ -4172,6 +4177,14 @@ If SHORTEN is non-nil, the abbreviated expression will be used."
       (concat "("
 	      (mapconcat 'twittering-timeline-spec-to-string value "+")
 	      ")"))
+     ((eq type 'account)
+      (let ((account (car value))
+	    (spec (cadr value))
+	    (print-level nil))
+	(concat ":account/"
+		(replace-regexp-in-string "/" "\\\\\/" account)
+		"/"
+		(twittering-timeline-spec-to-string spec))))
      (t
       nil))))
 
@@ -4307,6 +4320,27 @@ Return cons of the spec and the rest string."
 	 (t
 	  (error "\"%s\" has no valid regexp" str)
 	  nil)))
+       ((string= type "account")
+	(cond
+	 ((string-match "^:account/\\(\\(.*?[^\\]\\)??\\(\\\\\\\\\\)*\\)??/"
+			str)
+	  (let* ((escaped-account (or (match-string 1 str) ""))
+		 (account
+		  (replace-regexp-in-string "\\\\/" "/" escaped-account nil t))
+		 (following (substring str (match-end 0))))
+	    (cond
+	     ((string= "" escaped-account)
+	      (error "\"%s\" has no valid account name" str)
+	      nil)
+	     (t
+	      (let* ((pair (twittering-extract-timeline-spec
+			    following unresolved-aliases))
+		     (spec (car pair))
+		     (rest (cdr pair)))
+		`((account ,account ,spec) . ,rest))))))
+	 (t
+	  (error "\"%s\" has no valid account name" str)
+	  nil)))
        (t
 	(error "\"%s\" is invalid as a timeline spec" str)
 	nil))))
@@ -4392,7 +4426,7 @@ Return nil if SPEC-STR is invalid as a timeline spec."
   "Return non-nil if SPEC is a composite timeline spec.
 `composite' means that the spec depends on other timelines."
   (let ((composite-spec-types
-	 '(exclude-if exclude-re merge))
+	 '(exclude-if exclude-re account merge))
 	(type (car spec)))
     (memq type composite-spec-types)))
 
@@ -4448,7 +4482,7 @@ The result timelines may be a composite timeline."
     (cond
      ((twittering-timeline-spec-primary-p spec)
       `(,spec))
-     ((memq type '(exclude-if exclude-re))
+     ((memq type '(exclude-if exclude-re account))
       `(,(elt spec 2)))
      ((eq type 'merge)
       (cdr spec))
@@ -4539,6 +4573,8 @@ If SPEC is a primary timeline and does not equal BASE-SPEC, return nil."
 	 (let ((id1 (cdr (assq 'id status1)))
 	       (id2 (cdr (assq 'id status2))))
 	   (twittering-status-id< id2 id1)))))
+     ((eq type 'account)
+      base-statuses)
      (t
       nil))))
 
@@ -4560,7 +4596,7 @@ referring the former ID."
     (cond
      ((null spec)
       nil)
-     ((memq type '(exclude-if exclude-re merge))
+     ((memq type '(exclude-if exclude-re account merge))
       ;; Use the first non-nil table instead of merging the all tables
       ;; because it may take a long time to merge them.
       (car
@@ -4588,7 +4624,7 @@ referring the former ID."
 	(if status
 	    `(,status)
 	  nil)))
-     ((memq type '(exclude-if exclude-re merge))
+     ((memq type '(exclude-if exclude-re account merge))
       (let ((primary-base-specs
 	     (twittering-get-primary-base-timeline-specs spec)))
 	(sort
@@ -6162,6 +6198,10 @@ get-service-configuration -- Get the configuration of the server.
       ("password" . ,twittering-password)))
    ((memq twittering-auth-method '(oauth xauth))
     twittering-oauth-access-token-alist)))
+
+(defun twittering-get-account-info-by-name (name)
+  (if (memq twittering-auth-method '(oauth xauth))
+      (cadr (assoc name twittering-oauth-access-tokens))))
 
 (defun twittering-get-from-account-info (param account-info)
   (cdr (assoc param account-info)))
@@ -9013,7 +9053,7 @@ will be restored after rendering statuses."
 	      point-window-list)
 	(goto-char original-pos)))))
 
-(defun twittering-retrieve-timeline (spec-string noninteractive api-arguments additional-info)
+(defun twittering-retrieve-timeline (spec-string noninteractive api-arguments additional-info &optional account-info-alist)
   "Retrieve and render a timeline specified by SPEC-STRING.
 Retrieve a timeline specified by SPEC-STRING, which must be a timeline spec
 string. Any timeline spec string including that for composite timeline can be
@@ -9050,21 +9090,28 @@ API-ARGUMENTS is also sent to `twittering-call-api' as its argument
 		(timeline-spec . ,spec)
 		(timeline-spec-string . ,spec-string)))
 	     (proc
-	      (twittering-call-api 'retrieve-timeline args additional-info)))
+	      (if account-info-alist
+		  (twittering-call-api-with-account account-info-alist 'retrieve-timeline args additional-info)
+		(twittering-call-api 'retrieve-timeline args additional-info))))
 	(when proc
 	  (twittering-register-process proc spec spec-string)
 	  (twittering-initialize-retrieval-count spec))))
      ((twittering-timeline-spec-composite-p spec)
-      (mapc
-       (lambda (spec)
-	 (let* ((buffer (twittering-get-buffer-from-spec spec))
-		(spec-string
-		 (if buffer
-		     (twittering-get-timeline-spec-string-for-buffer buffer)
-		   (twittering-timeline-spec-to-string spec))))
-	   (twittering-retrieve-timeline spec-string noninteractive
-					 api-arguments additional-info)))
-       (twittering-get-base-timeline-specs spec)))
+      (let* ((accountp (eq 'account (car spec)))
+	     (account-info-alist
+	      (if accountp
+		  (twittering-get-account-info-by-name (cadr spec))
+		account-info-alist)))
+	  (mapc
+	   (lambda (spec)
+	     (let* ((buffer (twittering-get-buffer-from-spec spec))
+		    (spec-string
+		     (if buffer
+			 (twittering-get-timeline-spec-string-for-buffer buffer)
+		       (twittering-timeline-spec-to-string spec))))
+	       (twittering-retrieve-timeline spec-string noninteractive
+					     api-arguments additional-info account-info-alist)))
+	   (twittering-get-base-timeline-specs spec))))
      (t
       (let ((type (car spec)))
 	(error "%s has not been supported yet" type))))))

@@ -4125,57 +4125,71 @@ Before calling this, you have to configure `twittering-bitly-login' and
 (defun twittering-timeline-spec-to-string (timeline-spec &optional shorten)
   "Convert TIMELINE-SPEC into a string.
 If SHORTEN is non-nil, the abbreviated expression will be used."
-  (let ((type (car timeline-spec))
-	(value (cdr timeline-spec)))
-    (cond
-     ;; user
-     ((eq type 'user) (car value))
-     ;; list
-     ((eq type 'list) (concat (car value) "/" (cadr value)))
-     ;; simple
-     ((eq type 'direct_messages) ":direct_messages")
-     ((eq type 'direct_messages_sent) ":direct_messages_sent")
-     ((eq type 'favorites)
-      (if value
-	  (concat ":favorites/" (car value))
-	":favorites"))
-     ((eq type 'friends) ":friends")
-     ((eq type 'home) (if shorten "~" ":home"))
-     ((eq type 'mentions) ":mentions")
-     ((eq type 'public) ":public")
-     ((eq type 'replies) (if shorten "@" ":replies"))
-     ((eq type 'retweeted_by_me) ":retweeted_by_me")
-     ((eq type 'retweeted_by_user) (concat ":retweeted_by_user/" (car value)))
-     ((eq type 'retweeted_to_me) ":retweeted_to_me")
-     ((eq type 'retweeted_to_user) (concat ":retweeted_to_user/" (car value)))
-     ((eq type 'retweets_of_me) ":retweets_of_me")
-     ((eq type 'single) (concat ":single/" (car value)))
-     ((eq type 'search)
-      (let ((query (car value)))
-	(concat ":search/"
-		(replace-regexp-in-string "\\(\\\\\\|/\\)" "\\\\\\1" query)
-		"/")))
-     ;; composite
-     ((eq type 'exclude-if)
-      (let ((func (car value))
-	    (spec (cadr value))
-	    (print-level nil))
-	(concat ":exclude-if/" (prin1-to-string func) "/"
-		(twittering-timeline-spec-to-string spec))))
-     ((eq type 'exclude-re)
-      (let ((regexp-str (car value))
-	    (spec (cadr value))
-	    (print-level nil))
-	(concat ":exclude-re/"
-		(replace-regexp-in-string "/" "\\\\\/" regexp-str)
-		"/"
-		(twittering-timeline-spec-to-string spec))))
-     ((eq type 'merge)
-      (concat "("
-	      (mapconcat 'twittering-timeline-spec-to-string value "+")
-	      ")"))
-     (t
-      nil))))
+  (let* ((type (car timeline-spec))
+	 (value (cdr timeline-spec))
+	 (account-spec (twittering-timeline-account-spec timeline-spec))
+	 (suffix
+	  (if account-spec
+	      (concat "/:account/" account-spec)
+	      ""))
+	 (body
+	  (cond
+	   ;; user
+	   ((eq type 'user) (car value))
+	   ;; list
+	   ((eq type 'list) (concat (car value) "/" (cadr value)))
+	   ;; simple
+	   ((eq type 'direct_messages) ":direct_messages")
+	   ((eq type 'direct_messages_sent) ":direct_messages_sent")
+	   ((eq type 'favorites)
+	    (if value
+		(concat ":favorites/" (car value))
+	      ":favorites"))
+	   ((eq type 'friends) ":friends")
+	   ((eq type 'home) (if shorten "~" ":home"))
+	   ((eq type 'mentions) ":mentions")
+	   ((eq type 'public) ":public")
+	   ((eq type 'replies) (if shorten "@" ":replies"))
+	   ((eq type 'retweeted_by_me) ":retweeted_by_me")
+	   ((eq type 'retweeted_by_user) (concat ":retweeted_by_user/" (car value)))
+	   ((eq type 'retweeted_to_me) ":retweeted_to_me")
+	   ((eq type 'retweeted_to_user) (concat ":retweeted_to_user/" (car value)))
+	   ((eq type 'retweets_of_me) ":retweets_of_me")
+	   ((eq type 'single) (concat ":single/" (car value)))
+	   ((eq type 'search)
+	    (let ((query (car value)))
+	      (concat ":search/"
+		      (replace-regexp-in-string "\\(\\\\\\|/\\)" "\\\\\\1" query)
+		      "/")))
+	   ;; composite
+	   ((eq type 'exclude-if)
+	    (let ((func (car value))
+		  (spec (cadr value))
+		  (print-level nil))
+	      (concat ":exclude-if/" (prin1-to-string func) "/"
+		      (twittering-timeline-spec-to-string spec))))
+	   ((eq type 'exclude-re)
+	    (let ((regexp-str (car value))
+		  (spec (cadr value))
+		  (print-level nil))
+	      (concat ":exclude-re/"
+		      (replace-regexp-in-string "/" "\\\\\/" regexp-str)
+		      "/"
+		      (twittering-timeline-spec-to-string spec))))
+	   ((eq type 'merge)
+	    (concat "("
+		    (mapconcat 'twittering-timeline-spec-to-string value "+")
+		    ")"))
+	   (t
+	    ""))))
+    (concat body suffix)))
+
+(defun twittering-timeline-account-spec (timeline-spec)
+  (when (twittering-timeline-spec-primary-p timeline-spec)
+    (let ((last-elm (car (last timeline-spec))))
+      (when (and (listp last-elm)
+		 (eq 'account (car last-elm)))
+	(cadr last-elm)))))
 
 (eval-and-compile
   (defmacro twittering-make-user-timeline-spec-direct (user)
@@ -4198,20 +4212,27 @@ Return cons of the spec and the rest string."
     (let ((user (match-string 1 str))
 	  (listname (match-string 2 str))
 	  (rest (substring str (match-end 0))))
-      `(,(twittering-make-list-timeline-spec-direct user listname) . ,rest)))
+      (twittering-extract-timeline-account-spec
+       (twittering-make-list-timeline-spec-direct user listname)
+       rest)))
    ((string-match "^\\([a-zA-Z0-9_-]+\\)" str)
     (let ((user (match-string 1 str))
 	  (rest (substring str (match-end 0))))
-      `(,(twittering-make-user-timeline-spec-direct user) . ,rest)))
+      (twittering-extract-timeline-account-spec
+       (twittering-make-user-timeline-spec-direct user)
+       rest)))
    ((string-match "^~" str)
-    `((home) . ,(substring str (match-end 0))))
+    (twittering-extract-timeline-account-spec
+     '(home) (substring str (match-end 0))))
    ((string-match (concat "^" twittering-regexp-atmark) str)
-    `((mentions) . ,(substring str (match-end 0))))
+    (twittering-extract-timeline-account-spec
+     '(mentions) (substring str (match-end 0))))
    ((string-match (concat "^" twittering-regexp-hash "\\([[:alpha:]0-9_-]+\\)")
 		  str)
     (let* ((tag (match-string 1 str))
 	   (rest (substring str (match-end 0))))
-      `(,(twittering-make-hashtag-timeline-spec-direct tag) . ,rest)))
+      (twittering-extract-timeline-account-spec
+       (twittering-make-hashtag-timeline-spec-direct tag) rest)))
    ((string-match "^:\\([a-z_-]+\\)" str)
     (let ((type (match-string 1 str))
 	  (following (substring str (match-end 0)))
@@ -4228,24 +4249,29 @@ Return cons of the spec and the rest string."
       (cond
        ((assoc type alist)
 	(let ((first-spec (list (cdr (assoc type alist)))))
-	  (cons first-spec following)))
+	  (twittering-extract-timeline-account-spec
+	   first-spec following)))
        ((string= type "favorites")
 	(if (string-match "^:favorites/\\([a-zA-Z0-9_-]+\\)" str)
-	    (let ((rest (substring str (match-end 0))))
-	      `((favorites ,(match-string 1 str)) . ,rest))
-	  `((favorites) . ,following)))
+	    (twittering-extract-timeline-account-spec
+	       `(favorites ,(match-string 1 str)) (substring str (match-end 0)))
+	  (twittering-extract-timeline-account-spec
+	   '(favorites) following)))
        ((string-match "^:retweeted_by_user/\\([a-zA-Z0-9_-]+\\)" str)
 	(let ((user (match-string 1 str))
 	      (rest (substring str (match-end 0))))
-	  `((retweeted_by_user ,user) . ,rest)))
+	  (twittering-extract-timeline-account-spec
+	   `(retweeted_by_user ,user) rest)))
        ((string-match "^:retweeted_to_user/\\([a-zA-Z0-9_-]+\\)" str)
 	(let ((user (match-string 1 str))
 	      (rest (substring str (match-end 0))))
-	  `((retweeted_to_user ,user) . ,rest)))
+	  (twittering-extract-timeline-account-spec
+	   `(retweeted_to_user ,user) rest)))
        ((string-match "^:single/\\([0-9]+\\)" str)
 	(let ((id (match-string 1 str))
 	      (rest (substring str (match-end 0))))
-	  `((single ,id) . ,rest)))
+	  (twittering-extract-timeline-account-spec
+	   `(single ,id) rest)))
        ((string= type "search")
 	(if (string-match "^:search/\\(\\(.*?[^\\]\\)??\\(\\\\\\\\\\)*\\)??/"
 			  str)
@@ -4254,7 +4280,8 @@ Return cons of the spec and the rest string."
 						    escaped-query))
 		   (rest (substring str (match-end 0))))
 	      (if (not (string= "" escaped-query))
-		  `((search ,query) . ,rest)
+		  (twittering-extract-timeline-account-spec
+		   `(search ,query) rest)
 		(error "\"%s\" has no valid regexp" str)
 		nil))))
        ((string= type "exclude-if")
@@ -4365,6 +4392,16 @@ Return cons of the spec and the rest string."
     (error "\"%s\" is invalid as a timeline spec" str)
     nil)
    ))
+
+(defun twittering-extract-timeline-account-spec (primary-spec str)
+  (if (string-match "^/:account/\\([a-zA-Z0-9_-]+\\)" str)
+      (let ((account (match-string 1 str))
+	    (rest (substring str (match-end 0))))
+	;; insert (account "screen_name") at last
+	(push `(account ,account)
+	      (cdr (nthcdr (- (length primary-spec) 1) primary-spec)))
+	(cons primary-spec rest))
+      (cons primary-spec str)))
 
 (defun twittering-string-to-timeline-spec (spec-str)
   "Convert SPEC-STR into a timeline spec.

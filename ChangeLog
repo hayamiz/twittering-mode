@@ -13,6 +13,11 @@
 	if either SPEC-STR1 or SPEC-STR2 is invalid as a timeline spec
 	string.
 
+	* twittering-mode.el: Reduce API rate limit information on
+	mode-line.
+	(twittering-get-ratelimit-indicator-string): reduce timelines
+	retrieved by a common API.
+
 2013-03-25  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Decode surrogate pairs in strings returned

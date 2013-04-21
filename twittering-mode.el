@@ -5240,11 +5240,17 @@ header of the API."
 	    (twittering-get-ratelimit-limit)))
    (t
     (mapconcat
-     (lambda (spec)
-       (format "%d/%d"
-	       (twittering-get-ratelimit-remaining spec)
-	       (twittering-get-ratelimit-limit spec)))
-     (twittering-get-primary-base-timeline-specs spec)
+     (lambda (api-string)
+       (let* ((alist (cdr (assoc api-string twittering-api-limit-info-alist)))
+	      (remaining (cdr (assq 'remaining alist)))
+	      (limit (cdr (assq 'limit alist))))
+	 (format "%s/%s"
+		 (if remaining (number-to-string remaining) "?")
+		 (if limit (number-to-string limit) "?"))))
+     (twittering-remove-duplicates
+      (mapcar (lambda (spec)
+		(cdr (assoc spec twittering-timeline-spec-to-api-table)))
+	      (twittering-get-primary-base-timeline-specs spec)))
      "+"))))
 
 ;;;;

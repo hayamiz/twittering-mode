@@ -304,6 +304,9 @@
   you can try to delete the status again because the status remains on
   the buffer.
 * Fix of the escape of a query string in a search timeline spec.
+* Fix of errors raised by asynchronous sentinels.
+  Previously, an error might be raised from a sentinel when a timeline of
+  non-existent user was requested. The bug has been fixed.
 
  2.0.0: 2011-04-22
 ------------------

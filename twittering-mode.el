@@ -4364,10 +4364,18 @@ Return cons of the spec and the rest string."
     nil)
    ))
 
-(defun twittering-string-to-timeline-spec (spec-str)
+(defun twittering-string-to-timeline-spec (spec-str &optional noerror)
   "Convert SPEC-STR into a timeline spec.
-Return nil if SPEC-STR is invalid as a timeline spec."
-  (let ((result-pair (twittering-extract-timeline-spec spec-str)))
+If SPEC-STR is invalid as a timeline spec string, raise an error or return
+nil if NOERROR is non-nil."
+  (let ((result-pair
+	 (condition-case err
+	     (twittering-extract-timeline-spec spec-str)
+	   (error
+	    (if noerror
+		nil
+	      (signal (car err) (cdr err))
+	      nil)))))
     (if (and result-pair (string= "" (cdr result-pair)))
 	(car result-pair)
       nil)))
@@ -4433,10 +4441,12 @@ If SPEC is not a search timeline spec, return nil."
        (cadr spec)))
 
 (defun twittering-equal-string-as-timeline (spec-str1 spec-str2)
-  "Return non-nil if SPEC-STR1 equals SPEC-STR2 as a timeline spec."
+  "Return non-nil if SPEC-STR1 equals SPEC-STR2 as a timeline spec.
+If either SPEC-STR1 or SPEC-STR2 is invalid as a timeline spec string,
+return nil."
   (if (and (stringp spec-str1) (stringp spec-str2))
-      (let ((spec1 (twittering-string-to-timeline-spec spec-str1))
-	    (spec2 (twittering-string-to-timeline-spec spec-str2)))
+      (let ((spec1 (twittering-string-to-timeline-spec spec-str1 t))
+	    (spec2 (twittering-string-to-timeline-spec spec-str2 t)))
 	(equal spec1 spec2))
     nil))
 

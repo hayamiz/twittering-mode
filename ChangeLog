@@ -1,3 +1,18 @@
+2013-04-22  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Suppress an error on a sentinel. Previously,
+	an error might be raised from a sentinel when a timeline of
+	non-existent user was requested. A sentinel for such a request
+	tries to remove the timeline spec string corresponding to
+	non-existent user from the history. In the process, conversion
+	from an invalid timeline spec string had caused an error.
+	(twittering-string-to-timeline-spec): add an optional argument
+	NOERROR. If NOERROR is non-nil, the function does not raise an
+	error even if SPEC-STR is invalid as a timeline spec string.
+	(twittering-equal-string-as-timeline): do not raise an error even
+	if either SPEC-STR1 or SPEC-STR2 is invalid as a timeline spec
+	string.
+
 2013-03-25  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Decode surrogate pairs in strings returned

@@ -10575,7 +10575,7 @@ Pairs of a key symbol and an associated value are following:
 	(while not-posted-p
 	  (setq status (read-from-minibuffer prompt status map nil 'twittering-tweet-history nil t))
 	  (let ((status status))
-	    (if (< 140 (length status))
+	    (if (< 140 (twittering-effective-length status))
 		(setq prompt "status (too long): ")
 	      (setq prompt "status: ")
 	      (when (twittering-status-not-blank-p status)

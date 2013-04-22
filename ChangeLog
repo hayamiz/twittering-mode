@@ -1,3 +1,10 @@
+2013-04-22  tomykaira <tomykaira@gmail.com>
+
+	* twittering-mode.el: Check effective length of tweet when posting
+	from minibuffer.
+	(twittering-update-status-from-minibuffer): check an effective
+	length of a tweet instead of a literal length.
+
 2013-04-22  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Suppress an error on a sentinel. Previously,

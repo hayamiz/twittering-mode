@@ -4,7 +4,7 @@
 require 'optparse'
 require 'tempfile'
 require 'erb'
-require 'rubygems'
+#require 'rubygems'
 require 'bluecloth'
 
 $web_dir = File.dirname(__FILE__)

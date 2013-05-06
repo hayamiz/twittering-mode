@@ -6,6 +6,15 @@
 ------------------
 
 ### Important notice
+
+### Improvements
+
+### Bug fixes
+
+ 3.0.0: 2013-04-21
+------------------
+
+### Important notice
 * Obsolete implicit sign string feature.
   The function `twittering-sign-string-function' and the variable
   `twittering-sign-simple-string' are now obsolete. The `edit

@@ -1,3 +1,9 @@
+2013-05-07  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* LAST-VERSION, NEWS, NEWS.ja, VERSION, doc/web/index.text,
+	doc/web/ja.po, doc/web/publish.rb, doc/web/screenshot.text:
+	release 3.0.0.
+
 2013-04-22  tomykaira <tomykaira@gmail.com>
 
 	* twittering-mode.el: Check effective length of tweet when posting

@@ -10,6 +10,7 @@
 ### Improvements
 
 ### Bug fixes
+* Fix of invoking a hook twice for the same timeline.
 
  3.0.0: 2013-04-21
 ------------------

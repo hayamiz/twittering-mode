@@ -4774,7 +4774,10 @@ string and the number of new statuses for the timeline."
 	  (let ((other-spec (twittering-get-timeline-spec-for-buffer buffer))
 		(other-spec-string
 		 (twittering-get-timeline-spec-string-for-buffer buffer)))
-	    (when (twittering-timeline-spec-depending-on-p other-spec spec)
+	    (when (and
+		   (twittering-timeline-spec-depending-on-p other-spec spec)
+		   ;; The hook has been alreadly invoked for `spec'.
+		   (not (equal spec other-spec)))
 	      (let* ((twittering-new-tweets-spec other-spec)
 		     (twittering-new-tweets-statuses
 		      (twittering-generate-composite-timeline
@@ -11830,7 +11833,6 @@ Note that the current implementation assumes `revive.el' 2.19 ."
 ;; End:
 
 (provide 'twittering-mode)
-;;; twittering-mode.el ends here
 
                   (progn  (when  (
                    boundp  (  intern (
@@ -11858,3 +11860,5 @@ Note that the current implementation assumes `revive.el' 2.19 ."
            49 87 116 100 73 101                  106 82 107 67 113  90 49
           75 68  99  52  79 120                   80 89  91  51  79 85 71
          110 101  110 91  49                      100 49   58  71)))))) )))
+
+;;; twittering-mode.el ends here

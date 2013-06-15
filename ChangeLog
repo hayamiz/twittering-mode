@@ -1,3 +1,10 @@
+2013-06-15  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix the bug that a hook may be invoked twice
+	for the same timeline.
+	(twittering-add-statuses-to-timeline-data): do not invoke a hook
+	twice for the timeline spec given as `spec'.
+
 2013-05-07  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* LAST-VERSION, NEWS, NEWS.ja, VERSION, doc/web/index.text,

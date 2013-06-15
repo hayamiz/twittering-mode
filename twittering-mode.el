@@ -7,7 +7,7 @@
 ;;	Tsuyoshi CHO <Tsuyoshi.CHO+develop@Gmail.com>
 ;;	Alberto Garcia <agarcia@igalia.com>
 ;; Created: Sep 4, 2007
-;; Version: HEAD
+;; Version: 3.0.0
 ;; Identity: $Id$
 ;; Keywords: twitter web
 ;; URL: http://twmode.sf.net/
@@ -83,7 +83,7 @@
       ad-do-it)))
 (require 'url)
 
-(defconst twittering-mode-version "HEAD")
+(defconst twittering-mode-version "3.0.0")
 (defconst twittering-mode-identity "$Id$")
 (defvar twittering-api-host "api.twitter.com")
 (defvar twittering-api-search-host "search.twitter.com")

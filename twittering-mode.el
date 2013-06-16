@@ -4774,10 +4774,7 @@ string and the number of new statuses for the timeline."
 	  (let ((other-spec (twittering-get-timeline-spec-for-buffer buffer))
 		(other-spec-string
 		 (twittering-get-timeline-spec-string-for-buffer buffer)))
-	    (when (and
-		   (twittering-timeline-spec-depending-on-p other-spec spec)
-		   ;; The hook has been alreadly invoked for `spec'.
-		   (not (equal spec other-spec)))
+	    (when (twittering-timeline-spec-depending-on-p other-spec spec)
 	      (let* ((twittering-new-tweets-spec other-spec)
 		     (twittering-new-tweets-statuses
 		      (twittering-generate-composite-timeline
@@ -4788,7 +4785,9 @@ string and the number of new statuses for the timeline."
 		      (twittering-render-timeline
 		       buffer twittering-new-tweets-statuses t)))
 		(when rendered-tweets
-		  (run-hooks 'twittering-new-tweets-hook)
+		  (when (not (equal spec other-spec))
+		    ;; The hook has been alreadly invoked for `spec'.
+		    (run-hooks 'twittering-new-tweets-hook))
 		  `(,other-spec-string ,(length rendered-tweets)))))))
 	(twittering-get-buffer-list))))))
 

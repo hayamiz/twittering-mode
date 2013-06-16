@@ -1,7 +1,15 @@
+2013-06-16  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix the bug that retrieved tweets may not be
+	rendered. This bug is caused by the previous commit. Thanks to
+	irie who reported the problem.
+	(twittering-add-statuses-to-timeline-data): call
+	`twittering-render-timeline' correctly.
+
 2013-06-15  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the bug that a hook may be invoked twice
-	for the same timeline.
+	for the same timeline. Thanks to irie who discoverd the problem.
 	(twittering-add-statuses-to-timeline-data): do not invoke a hook
 	twice for the timeline spec given as `spec'.
 

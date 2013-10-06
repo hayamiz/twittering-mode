@@ -7,7 +7,8 @@
 ;;	Tsuyoshi CHO <Tsuyoshi.CHO+develop@Gmail.com>
 ;;	Alberto Garcia <agarcia@igalia.com>
 ;; Created: Sep 4, 2007
-;; Version: HEAD
+;; Version: 20130616.1818
+;; X-Original-Version: HEAD
 ;; Identity: $Id$
 ;; Keywords: twitter web
 ;; URL: http://twmode.sf.net/
@@ -41,7 +42,8 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl)
+		   (require 'easymenu))
 (require 'xml)
 
 (eval-and-compile
@@ -83,8 +85,24 @@
       ad-do-it)))
 (require 'url)
 
+(defun twittering-mode-version ()
+  "Display a message for twittering-mode version."
+  (interactive)
+  (let ((version-string
+	 (format "twittering-mode-v%s" twittering-mode-version)))
+    (if (interactive-p)
+	(message "%s" version-string)
+      version-string)))
+
 (defconst twittering-mode-version "HEAD")
 (defconst twittering-mode-identity "$Id$")
+
+(defgroup twittering nil
+  "Twittering-mode enables you to twit on Emacsen."
+  :link '(url-link "https://github.com/hayamiz/twittering-mode")
+  :prefix "twittering-"
+  :group 'external)
+
 (defvar twittering-api-host "api.twitter.com")
 (defvar twittering-api-search-host "search.twitter.com")
 (defvar twittering-web-host "twitter.com")
@@ -94,15 +112,6 @@
   "://api.twitter.com/oauth/authorize?oauth_token=")
 (defvar twittering-oauth-access-token-url-without-scheme
   "://api.twitter.com/oauth/access_token")
-
-(defun twittering-mode-version ()
-  "Display a message for twittering-mode version."
-  (interactive)
-  (let ((version-string
-	 (format "twittering-mode-v%s" twittering-mode-version)))
-    (if (interactive-p)
-	(message "%s" version-string)
-      version-string)))
 
 (defvar twittering-auth-method 'oauth
   "*Authentication method for `twittering-mode'.
@@ -132,10 +141,6 @@ on authorization via OAuth.")
 
 (defconst twittering-max-number-of-tweets-on-retrieval 200
   "The maximum number of `twittering-number-of-tweets-on-retrieval'.")
-
-(defvar twittering-number-of-tweets-on-retrieval 20
-  "*The number of tweets which will be retrieved in one request.
-The upper limit is `twittering-max-number-of-tweets-on-retrieval'.")
 
 (defvar twittering-tinyurl-service 'tinyurl
   "*The service to shorten URI.
@@ -194,10 +199,109 @@ If the second element is a function, it is called as `(funcall
 THE-SECOND-ELEMENT service-symbol HTTP-reply-string)' and its result is used
 as a shortened URL.")
 
-(defvar twittering-bitly-login nil
-  "*The login name for URL shortening service bit.ly and j.mp.")
-(defvar twittering-bitly-api-key nil
-  "*The API key for URL shortening service bit.ly and j.mp.")
+(defcustom twittering-bitly-login nil
+  "*The login name for URL shortening service bit.ly and j.mp."
+  :group 'twittering
+  :type '(string))
+
+(defcustom twittering-bitly-api-key nil
+  "*The API key for URL shortening service bit.ly and j.mp."
+  :group 'twittering
+  :type '(string))
+
+(defcustom twittering-status-format 
+  "%i %s,  %@:\n%FILL[  ]{%T // from %f%L%r%R}\n "
+  "Format string for rendering statuses. 
+Ex. \"%i %s,  %@:\\n%FILL{  %T // from %f%L%r%R}\n \"
+
+Items:
+ %s - screen_name
+ %S - name
+ %i - profile_image
+ %d - description
+ %l - location
+ %L - \" [location]\"
+ %r - \" sent to user\" (use on direct_messages{,_sent})
+ %r - \" in reply to user\" (use on other standard timeline)
+ %R - \" (retweeted by user)\"
+ %RT{...} - strings rendered only when the tweet is a retweet.
+            The braced strings are rendered with the information of the
+            retweet itself instead of that of the retweeted original tweet.
+            For example, %s for a retweet means who posted the original
+            tweet, but %RT{%s} means who retweeted it.
+ %u - url
+ %j - user.id
+ %p - protected?
+ %c - created_at (raw UTC string)
+ %C{time-format-str} - created_at (formatted with time-format-str)
+ %@ - X seconds ago
+ %T - raw text
+ %t - text filled as one paragraph
+ %' - truncated
+ %FACE[face-name]{...} - strings decorated with the specified face.
+ %FILL[prefix]{...} - strings filled as a paragraph. The prefix is optional.
+                      You can use any other specifiers in braces.
+ %FOLD[prefix]{...} - strings folded within the frame width.
+                      The prefix is optional. This keeps newlines and does not
+                      squeeze a series of white spaces.
+                      You can use any other specifiers in braces.
+ %f - source
+ %# - id
+"
+  :group 'twittering
+  :type '(string)
+)
+
+(defcustom twittering-retweet-format '(nil _ " RT: %t (via @%s)")
+  "*A format string or a skeleton for retweet.
+If the value is a string, it means a format string for generating an initial
+string of a retweet. The format string is converted with the below replacement
+table. And then, the cursor is placed on the next of the initial string.
+It is equivalent to the skeleton '(nil STRING _).
+Note that this string is inserted before the edit skeleton specified by
+`twittering-edit-skeleton' is performed.
+
+If the value is a list, it is treated as a skeleton used with
+`skeleton-insert'. The strings included in the list are converted with the
+following replacement table. And then, the list with converted strings is
+inserted by `skeleton-insert'.
+Note that this skeleton is performed before the edit skeleton specified by
+`twittering-edit-skeleton' is performed.
+
+Replacement table:
+ %s - The screen-name of the cited tweet.
+ %t - The text of the cited tweet.
+ %u - The URL of the cited tweet.
+ %# - The ID of the cited tweet.
+ %% - % itself."
+  :group 'twittering
+  :type '(string))
+
+(defcustom twittering-use-master-password nil
+  "*Wheter to store private information encrypted with a master password."
+  :group 'twittering
+  :type '(string))
+
+(defcustom twittering-convert-fix-size 48
+  "Set the Icon size."
+  :group 'twittering)
+
+(defcustom twittering-use-icon-storage nil
+  "*Whether to use the persistent icon storage.
+If this variable is non-nil, icon images are stored to the file specified
+by `twittering-icon-storage-file'."
+  :group 'twittering)
+
+(defcustom twittering-timer-interval 90
+  "The interval of auto reloading. You should use 60 or more
+seconds for this variable because the number of API call is
+limited by the hour."
+  :group 'twittering-mode)
+
+(defcustom twittering-number-of-tweets-on-retrieval 20
+  "The number of tweets which will be retrieved in one request.
+The upper limit is `twittering-max-number-of-tweets-on-retrieval'."
+  :group 'twittering)
 
 (defvar twittering-mode-map (make-sparse-keymap))
 (defvar twittering-mode-menu-on-uri-map (make-sparse-keymap "Twittering Mode"))
@@ -216,11 +320,6 @@ as a shortened URL.")
 (defvar twittering-timer nil
   "Timer object for timeline refreshing will be stored here.
 DO NOT SET VALUE MANUALLY.")
-
-(defvar twittering-timer-interval 90
-  "The interval of auto reloading. You should use 60 or more
-seconds for this variable because the number of API call is
-limited by the hour.")
 
 (defvar twittering-timer-for-redisplaying nil
   "Timer object for timeline redisplay statuses will be stored here.
@@ -367,67 +466,7 @@ Do not modify this variable directly. Use `twittering-activate-buffer',
   "*If non-nil, display remaining of rate limit on the mode-line.")
 (defvar twittering-display-connection-method t
   "*If non-nil, display the current connection method on the mode-line.")
-(defvar twittering-status-format "%i %s,  %@:\n%FILL[  ]{%T // from %f%L%r%R}\n "
-  "Format string for rendering statuses.
-Ex. \"%i %s,  %@:\\n%FILL{  %T // from %f%L%r%R}\n \"
 
-Items:
- %s - screen_name
- %S - name
- %i - profile_image
- %d - description
- %l - location
- %L - \" [location]\"
- %r - \" sent to user\" (use on direct_messages{,_sent})
- %r - \" in reply to user\" (use on other standard timeline)
- %R - \" (retweeted by user)\"
- %RT{...} - strings rendered only when the tweet is a retweet.
-            The braced strings are rendered with the information of the
-            retweet itself instead of that of the retweeted original tweet.
-            For example, %s for a retweet means who posted the original
-            tweet, but %RT{%s} means who retweeted it.
- %u - url
- %j - user.id
- %p - protected?
- %c - created_at (raw UTC string)
- %C{time-format-str} - created_at (formatted with time-format-str)
- %@ - X seconds ago
- %T - raw text
- %t - text filled as one paragraph
- %' - truncated
- %FACE[face-name]{...} - strings decorated with the specified face.
- %FILL[prefix]{...} - strings filled as a paragraph. The prefix is optional.
-                      You can use any other specifiers in braces.
- %FOLD[prefix]{...} - strings folded within the frame width.
-                      The prefix is optional. This keeps newlines and does not
-                      squeeze a series of white spaces.
-                      You can use any other specifiers in braces.
- %f - source
- %# - id
-")
-
-(defvar twittering-retweet-format '(nil _ " RT: %t (via @%s)")
-  "*A format string or a skeleton for retweet.
-If the value is a string, it means a format string for generating an initial
-string of a retweet. The format string is converted with the below replacement
-table. And then, the cursor is placed on the next of the initial string.
-It is equivalent to the skeleton '(nil STRING _).
-Note that this string is inserted before the edit skeleton specified by
-`twittering-edit-skeleton' is performed.
-
-If the value is a list, it is treated as a skeleton used with
-`skeleton-insert'. The strings included in the list are converted with the
-following replacement table. And then, the list with converted strings is
-inserted by `skeleton-insert'.
-Note that this skeleton is performed before the edit skeleton specified by
-`twittering-edit-skeleton' is performed.
-
-Replacement table:
- %s - The screen-name of the cited tweet.
- %t - The text of the cited tweet.
- %u - The URL of the cited tweet.
- %# - The ID of the cited tweet.
- %% - % itself.")
 
 (defvar twittering-fill-column nil
   "*The fill-column used for \"%FILL{...}\" in `twittering-status-format'.
@@ -557,8 +596,6 @@ Twittering-mode provides two functions for updating status:
   "*If *non-nil*, confirmation will be requested on posting a tweet edited in
 pop-up buffer.")
 
-(defvar twittering-use-master-password nil
-  "*Wheter to store private information encrypted with a master password.")
 (defvar twittering-private-info-file
   (expand-file-name "~/.twittering-mode.gpg")
   "*File for storing encrypted private information when
@@ -7487,7 +7524,7 @@ icon and the value is a hash. The key of the child hash is URL and its value
 is the display property for the icon.")
 
 (defvar twittering-convert-program (executable-find "convert"))
-(defvar twittering-convert-fix-size 48)
+
 (defvar twittering-use-convert (not (null twittering-convert-program))
   "*This variable makes a sense only if `twittering-convert-fix-size'
 is non-nil. If this variable is non-nil, icon images are converted by
@@ -7508,11 +7545,6 @@ NOTE: This API is rate limited and is obsolete in the Twitter REST API v1.1.")
 `twittering-icon-storage-limit' determines the number icons stored in the
 file.
 The file is loaded with `with-auto-compression-mode'.")
-
-(defvar twittering-use-icon-storage nil
-  "*Whether to use the persistent icon storage.
-If this variable is non-nil, icon images are stored to the file specified
-by `twittering-icon-storage-file'.")
 
 (defvar twittering-icon-storage-recent-icons nil
   "List of recently rendered icons.")
@@ -11819,6 +11851,35 @@ Note that the current implementation assumes `revive.el' 2.19 ."
    (t
     (error "`revive' has not been loaded yet")
     nil)))
+
+
+(easy-menu-define twittering-mode-menu twittering-mode-map
+  "Menu used when Twittering major mode is active."
+  '("Twit"
+    ["Post a Tweet" twittering-update-status-interactive
+     :help "Create a new Tweet"]
+    "---"
+    ["Open timeline of user" twittering-other-user-timeline
+     :help "Open a various timeline"]
+    ["Open various timelines" twittering-visit-timeline
+     :help "Open a various timeline"]
+    "---"
+    ["Search..." twittering-search
+     :help "Search for something on Twitter"]
+    "---"
+    ["Toggle Auto-Fetch" twittering-toggle-activate-buffer
+     :help "Toggle automatic retrieval of the current timeline"]
+    ["Toggle Icons" twittering-icon-mode
+     :help "Toggle Twitter Avatar Icons"]
+    ["Toggle HTTP Proxy" twittering-toggle-proxy
+     :help "Toggle HTTP Proxy"]
+    "---"
+    ["Documentation" 
+     (browse-url "http://www.emacswiki.org/emacs-en/TwitteringMode")
+     :help "EmacsWiki help page"]
+    ["Settings" (customize-group 'twittering)
+     :help "Twittering-mode settings"]))
+
 
 ;;;###autoload
 (defun twit ()

@@ -277,11 +277,6 @@ Replacement table:
   :group 'twittering
   :type '(string))
 
-(defcustom twittering-use-master-password nil
-  "*Wheter to store private information encrypted with a master password."
-  :group 'twittering
-  :type '(string))
-
 (defcustom twittering-convert-fix-size 48
   "Set the Icon size."
   :group 'twittering)
@@ -296,11 +291,15 @@ by `twittering-icon-storage-file'."
   "The interval of auto reloading. You should use 60 or more
 seconds for this variable because the number of API call is
 limited by the hour."
-  :group 'twittering-mode)
+  :group 'twittering)
 
 (defcustom twittering-number-of-tweets-on-retrieval 20
   "The number of tweets which will be retrieved in one request.
 The upper limit is `twittering-max-number-of-tweets-on-retrieval'."
+  :group 'twittering)
+
+(defcustom twittering-use-master-password nil
+  "Wheter to store private information encrypted with a master password."
   :group 'twittering)
 
 (defvar twittering-mode-map (make-sparse-keymap))

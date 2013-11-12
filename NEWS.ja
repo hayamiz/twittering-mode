@@ -16,6 +16,10 @@
   するための変更です。
 
 ### 改良
+* 新たな短縮URL生成サービスに対応
+  新たに`ow.ly'に対応しました。下記のような設定で有効にできます。
+  (setq twittering-tinyurl-service 'ow.ly) ;; for ow.ly
+  (setq twittering-owly-api-key "YOUR API KEY")
 * 全てのVeriSign Root CA証明書を内蔵
   https://www.symantec.com/page.jsp?id=roots で提供されている有効な
   Root CA証明書を全て`twittering-mode.el'に内蔵しました。

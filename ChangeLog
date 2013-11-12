@@ -190,6 +190,11 @@
 	`twittering-http-post'.
 	(twittering-call-api-with-account-in-api1.1): likewise.
 
+2013-11-12  Takashi Masuda  <masutaka.net@gmail.com>
+
+	* twittering-mode.el: Add `ow.ly' as a URL shortening serivce.
+	(twittering-tinyurl-services-map): add an entry for `ow.ly'.
+
 2013-06-16  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the bug that retrieved tweets may not be

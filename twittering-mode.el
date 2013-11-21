@@ -11824,6 +11824,7 @@ Note that the current implementation assumes `revive.el' 2.19 ."
 (defun twit ()
   "Start twittering-mode."
   (interactive)
+  (switch-to-buffer (get-buffer-create "*twittering*"))
   (twittering-mode))
 
 ;; Local Variables:

@@ -11713,18 +11713,24 @@ which fetch older tweets on reverse-mode."
 
 ;;;; Kill ring
 
+(defun twittering-get-uri-at-point ()
+  "Returns the URI at current point.
+If the character on the current position does not have `uri' property
+and a tweet is pointed, then the URI to the tweet is returned."
+  (or (get-text-property (point) 'uri)
+      (if (get-text-property (point) 'field)
+	  (let ((id (or (get-text-property (point) 'retweeted-id)
+			(get-text-property (point) 'id)))
+		(username (get-text-property (point) 'username)))
+	    (twittering-get-status-url username id))
+	nil)))
+
 (defun twittering-push-uri-onto-kill-ring ()
   "Push URI on the current position onto the kill ring.
 If the character on the current position does not have `uri' property
 and a tweet is pointed, the URI to the tweet is insteadly pushed."
   (interactive)
-  (let ((uri (or (get-text-property (point) 'uri)
-		 (if (get-text-property (point) 'field)
-		     (let ((id (or (get-text-property (point) 'retweeted-id)
-				   (get-text-property (point) 'id)))
-			   (username (get-text-property (point) 'username)))
-		       (twittering-get-status-url username id))
-		   nil))))
+  (let ((uri (twittering-get-uri-at-point)))
     (cond
      ((not (stringp uri))
       nil)
@@ -11736,14 +11742,18 @@ and a tweet is pointed, the URI to the tweet is insteadly pushed."
       (message "Copied %s" uri)
       uri))))
 
+(defun twittering-get-tweet-at-point ()
+  "Returns the tweet at point (format: \"username: text\") or nil"
+  (let* ((username (get-text-property (point) 'username))
+	 (text (get-text-property (point) 'text)))
+    (if (and username text)
+	(format "%s: %s" username text)
+      nil)))
+
 (defun twittering-push-tweet-onto-kill-ring ()
   "Copy the tweet (format: \"username: text\") to the kill-ring."
   (interactive)
-  (let* ((username (get-text-property (point) 'username))
-	 (text (get-text-property (point) 'text))
-	 (copy (if (and username text)
-		   (format "%s: %s" username text)
-		 nil)))
+  (let ((copy (twittering-get-tweet-at-point)))
     (cond
      ((null copy)
       nil)

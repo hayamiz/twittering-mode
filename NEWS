@@ -6,6 +6,14 @@
 ------------------
 
 ### Important notice
+* Posting a native retweet of a native retweet.
+  When the function `twittering-native-retweet' bound to "C-u C-c C-m"
+  is invoked on a native retweet, the current version of
+  twittering-mode posts a native retweet of the retweet. The
+  previous version posted a native retweet of the original tweet
+  that had been retweeted. The behavior is changed so that
+  notifications from Twitter will be sent to the user who has posted
+  the retweet earlier.
 
 ### Improvements
 

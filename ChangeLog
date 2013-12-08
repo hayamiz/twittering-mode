@@ -21,6 +21,17 @@
 	(twittering-push-uri-onto-kill-ring): simply send a tweet alist
 	itself to the function `twittering-get-status-url-from-alist'.
 
+	* twittering-mode.el: Post a native retweet of another native
+	retweet if a user requests it. Previously, twittering-mode posted
+	a native retweet of an original tweet that had been retweeted. The
+	behavior is changed so that notification to the earlier
+	retweeting user from Twitter works well. Twitter sends a
+	notification to a user when his or her retweet is retweeted by
+	other users.
+	(twittering-native-retweet): post a retweet of a native retweet
+	instead of posting a native retweet of the original tweet when a
+	user requests to post a native retweet of another native retweet.
+
 2013-12-09  tomykaira  <tomykaira@gmail.com>
 
 	* twittering-mode.el: Fix arguments of `twittering-http-post'.

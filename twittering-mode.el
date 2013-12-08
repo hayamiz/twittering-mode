@@ -11148,8 +11148,7 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
 
 (defun twittering-native-retweet ()
   (interactive)
-  (let ((id (or (get-text-property (point) 'retweeted-id)
-		(get-text-property (point) 'id)))
+  (let ((id (get-text-property (point) 'id))
 	(text (copy-sequence (get-text-property (point) 'text)))
 	(user (get-text-property (point) 'username))
 	(width (max 40 ;; XXX

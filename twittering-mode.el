@@ -7008,7 +7008,10 @@ to JSON objects from ordinary timeline and search timeline."
 			       . ,(cdr (assq 'display_url entry)))
 			      (expanded-url
 			       . ,(cdr (assq 'expanded_url entry))))))
-			urls))))))
+			urls)))
+      (retweet-count . ,(cdr (assq 'retweet_count json-object)))
+      (favorite-count . ,(cdr (assq 'favorite_count json-object)))
+      )))
 
 (defun twittering-json-object-to-a-status (json-object)
   "Convert JSON-OBJECT representing a tweet into an alist representation.

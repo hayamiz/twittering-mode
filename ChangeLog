@@ -7,6 +7,12 @@
 	(twittering-call-api-with-account-in-api1.1): use `recent' as the
 	`result_type' of search API.
 
+	* twittering-mode.el: Include `retweet-count' and `favorite-count'
+	in an alist representing a tweet.
+	(twittering-extract-common-element-from-json): include
+	`retweet-count' and `favorite-count' in an alist representing a
+	tweet.
+
 2013-12-09  tomykaira  <tomykaira@gmail.com>
 
 	* twittering-mode.el: Fix arguments of `twittering-http-post'.

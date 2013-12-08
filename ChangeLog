@@ -32,6 +32,13 @@
 	instead of posting a native retweet of the original tweet when a
 	user requests to post a native retweet of another native retweet.
 
+	* twittering-mode.el: Embed a root CA certificate with 2048 bits
+	key to follow the update of the server. The root CA certificate
+	`VeriSign Class 3 Public Primary CA - G3' is also embedded, which
+	is used for verifying the server `api.twitter.com'.
+	(twittering-ca-cert-list): add the certificate `VeriSign Class 3
+	Public Primary CA - G3'.
+
 2013-12-09  tomykaira  <tomykaira@gmail.com>
 
 	* twittering-mode.el: Fix arguments of `twittering-http-post'.

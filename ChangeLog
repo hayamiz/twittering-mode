@@ -13,6 +13,14 @@
 	`retweet-count' and `favorite-count' in an alist representing a
 	tweet.
 
+	* twittering-mode.el: Fix a URL for a native retweet. It was
+	generated from a screen-name of the retweeting user and an ID of
+	the retweeted original tweet.
+	(twittering-get-status-url-from-alist): explicitly use the
+	retweeted original tweet when making a URL for a native retweet.
+	(twittering-push-uri-onto-kill-ring): simply send a tweet alist
+	itself to the function `twittering-get-status-url-from-alist'.
+
 2013-12-09  tomykaira  <tomykaira@gmail.com>
 
 	* twittering-mode.el: Fix arguments of `twittering-http-post'.

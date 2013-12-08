@@ -4806,8 +4806,10 @@ string and the number of new statuses for the timeline."
 
 (defun twittering-get-status-url-from-alist (status)
   "Generate a URL of a tweet specified by an alist STATUS."
-  (let ((username (cdr (assq 'user-screen-name status)))
-	(id (cdr (assq 'id status)))
+  (let ((username (cdr (or (assq 'retweeted-user-screen-name status)
+			   (assq 'user-screen-name status))))
+	(id (cdr (or (assq 'retweeted-id status)
+		     (assq 'id status))))
 	(func
 	 (cdr (assq
 	       'status-url
@@ -11723,10 +11725,9 @@ and a tweet is pointed, the URI to the tweet is insteadly pushed."
   (interactive)
   (let ((uri (or (get-text-property (point) 'uri)
 		 (if (get-text-property (point) 'field)
-		     (let ((id (or (get-text-property (point) 'retweeted-id)
-				   (get-text-property (point) 'id)))
-			   (username (get-text-property (point) 'username)))
-		       (twittering-get-status-url username id))
+		     (let* ((id (get-text-property (point) 'id))
+			    (status (twittering-find-status id)))
+		       (twittering-get-status-url-from-alist status))
 		   nil))))
     (cond
      ((not (stringp uri))

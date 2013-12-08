@@ -5858,7 +5858,7 @@ get-service-configuration -- Get the configuration of the server.
 		  ("include_entities" . "true")
 		  ,@(when max_id `(("max_id" . ,max_id)))
 		  ("q" . ,word)
-		  ("result_type" . "mixed")
+		  ("result_type" . "recent")
 		  ,@(when since_id `(("since_id" . ,since_id))))))
 	     (t
 	      (error

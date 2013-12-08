@@ -2,6 +2,11 @@
 
 	* doc/web/index.text: Fix the URL for the mailing list.
 
+	* twittering-mode.el: Retrieve the most recent tweets for search
+	timelines instead of including popular tweets.
+	(twittering-call-api-with-account-in-api1.1): use `recent' as the
+	`result_type' of search API.
+
 2013-12-09  tomykaira  <tomykaira@gmail.com>
 
 	* twittering-mode.el: Fix arguments of `twittering-http-post'.

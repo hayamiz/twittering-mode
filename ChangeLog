@@ -1,3 +1,7 @@
+2013-12-09  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* doc/web/index.text: Fix the URL for the mailing list.
+
 2013-12-09  tomykaira  <tomykaira@gmail.com>
 
 	* twittering-mode.el: Fix arguments of `twittering-http-post'.

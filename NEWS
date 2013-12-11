@@ -16,10 +16,10 @@
   the retweet earlier.
 
 ### Improvements
-* Another root CA certificate.
-  The root CA certificate `VeriSign Class 3 Public Primary CA - G3'
-  which has the 2048 bits key length is also embedded in
-  `twittering-mode.el'.
+* Embedding all VeriSign Root CA Certificates.
+  All active root CA certificates available at
+  https://www.symantec.com/page.jsp?id=roots
+  are embedded in `twittering-mode.el'.
 
 ### Bug fixes
 * Fix of invoking a hook twice for the same timeline.

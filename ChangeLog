@@ -1,3 +1,12 @@
+2013-12-12  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Embed root CA certificates to follow the
+	update of the server. The all root CA certificate available at
+	https://www.symantec.com/page.jsp?id=roots are embedded.
+	(twittering-ca-cert-list): add root CA certificates.
+	* cert/collect.sh: Add a script to collect and integrate root CA
+	certificates.
+
 2013-12-09  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* doc/web/index.text: Fix the URL for the mailing list.

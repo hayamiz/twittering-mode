@@ -1,3 +1,60 @@
+2013-12-12  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Embed root CA certificates to follow the
+	update of the server. The all root CA certificate available at
+	https://www.symantec.com/page.jsp?id=roots are embedded.
+	(twittering-ca-cert-list): add root CA certificates.
+	* cert/collect.sh: Add a script to collect and integrate root CA
+	certificates.
+
+2013-12-09  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* doc/web/index.text: Fix the URL for the mailing list.
+
+	* twittering-mode.el: Retrieve the most recent tweets for search
+	timelines instead of including popular tweets.
+	(twittering-call-api-with-account-in-api1.1): use `recent' as the
+	`result_type' of search API.
+
+	* twittering-mode.el: Include `retweet-count' and `favorite-count'
+	in an alist representing a tweet.
+	(twittering-extract-common-element-from-json): include
+	`retweet-count' and `favorite-count' in an alist representing a
+	tweet.
+
+	* twittering-mode.el: Fix a URL for a native retweet. It was
+	generated from a screen-name of the retweeting user and an ID of
+	the retweeted original tweet.
+	(twittering-get-status-url-from-alist): explicitly use the
+	retweeted original tweet when making a URL for a native retweet.
+	(twittering-push-uri-onto-kill-ring): simply send a tweet alist
+	itself to the function `twittering-get-status-url-from-alist'.
+
+	* twittering-mode.el: Post a native retweet of another native
+	retweet if a user requests it. Previously, twittering-mode posted
+	a native retweet of an original tweet that had been retweeted. The
+	behavior is changed so that notification to the earlier
+	retweeting user from Twitter works well. Twitter sends a
+	notification to a user when his or her retweet is retweeted by
+	other users.
+	(twittering-native-retweet): post a retweet of a native retweet
+	instead of posting a native retweet of the original tweet when a
+	user requests to post a native retweet of another native retweet.
+
+	* twittering-mode.el: Embed a root CA certificate with 2048 bits
+	key to follow the update of the server. The root CA certificate
+	`VeriSign Class 3 Public Primary CA - G3' is also embedded, which
+	is used for verifying the server `api.twitter.com'.
+	(twittering-ca-cert-list): add the certificate `VeriSign Class 3
+	Public Primary CA - G3'.
+
+2013-12-09  tomykaira  <tomykaira@gmail.com>
+
+	* twittering-mode.el: Fix arguments of `twittering-http-post'.
+	(twittering-call-api-with-account-in-api1.0): fix arguments of
+	`twittering-http-post'.
+	(twittering-call-api-with-account-in-api1.1): likewise.
+
 2013-06-16  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the bug that retrieved tweets may not be

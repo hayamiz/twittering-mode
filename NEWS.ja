@@ -6,11 +6,23 @@
 ------------------
 
 ### 重要なお知らせ
+* 公式ReTweetに対する公式ReTweet
+  公式ReTweet上で関数`twittering-native-retweet'(デフォルトでは"C-u
+  C-c C-m"にbindされています)を実行した場合に、その公式ReTweetに対する
+  公式ReTweetを投稿するようになりました。以前のバージョンでは、公式
+  ReTweetそのものではなく、ReTweetされたオリジナルのtweetに対する公式
+  ReTweetを投稿していました。これは対象ReTweetを投稿していたユーザに、
+  さらにReTweetが行われたことの通知がTwitterから正しく送信されるように
+  するための変更です。
 
 ### 改良
+* 全てのVeriSign Root CA証明書を内蔵
+  https://www.symantec.com/page.jsp?id=roots で提供されている有効な
+  Root CA証明書を全て`twittering-mode.el'に内蔵しました。
 
 ### バグ修正
 * 同一のtimelineに対してhookが二重に実行されるバグを修正
+* 公式ReTweetに対するURLを修正
 
  3.0.0: 2013-04-21
 ------------------

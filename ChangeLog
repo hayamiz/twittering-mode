@@ -13,6 +13,9 @@
 	the site of cURL.
 	* cert/*: Removed.
 
+	* twittering-mode.el: Update embedded CA certificates.
+	(twittering-ca-cert-list): update CA certificates.
+
 2013-12-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Embed root CA certificates to follow the

@@ -1,3 +1,9 @@
+2014-03-31  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Remove 'flet'.
+	(twittering-normalize-raw-status): replace 'flet' with a
+	combination of 'let' and 'lambda'.
+
 2013-12-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Embed root CA certificates to follow the

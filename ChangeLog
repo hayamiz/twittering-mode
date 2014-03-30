@@ -4,6 +4,15 @@
 	(twittering-normalize-raw-status): replace 'flet' with a
 	combination of 'let' and 'lambda'.
 
+	* twittering-mode.el: Add marks and a script for updating CA
+	certificates automatically.
+	(twittering-ca-cert-list): add marks for updating CA certificates
+	automatically.
+	* update-cert.sh: Add a script to update CA certificates
+	automatically. This script retrieves certificates distributed on
+	the site of cURL.
+	* cert/*: Removed.
+
 2013-12-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Embed root CA certificates to follow the

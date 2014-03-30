@@ -1156,7 +1156,9 @@ SCHEME must be \"http\" or \"https\"."
 servers on SSL.")
 
 (defconst twittering-ca-cert-list
-  '(;; issuer= /C=US/O=Equifax/OU=Equifax Secure Certificate Authority
+  '(
+;; #BEGIN-CERTIFICATE
+;; issuer= /C=US/O=Equifax/OU=Equifax Secure Certificate Authority
 ;; subject= /C=US/O=Equifax/OU=Equifax Secure Certificate Authority
 ;; serial=35DEF4CF
 ;; SHA1 Fingerprint=D2:32:09:AD:23:D3:14:23:21:74:E4:0D:7F:9D:62:13:97:86:63:3A
@@ -1646,7 +1648,9 @@ Sc2lo4xpeSWuuExsi0BmSxY/zwIa3eFsawdhanYVKZl/G92IgMG/tY9zxaaWI4Sm
 KIYkM2oBLldzJbZev4/mHWGoQClnHYebHX+bn5nNMdZUvmK7OaxoEkiRIKXLsd3+
 b/xa5IJVWa8xqQ==
 -----END CERTIFICATE-----
-"))
+"
+;; #END-CERTIFICATE
+))
 
 (defun twittering-delete-ca-cert ()
   (when (and twittering-cert-file

@@ -8038,68 +8038,28 @@ image are displayed."
 	    :ascent center
 	    :data
 	    "/* XPM */
-/*
- * Copyright (C) 2003 Yuuichi Teranishi <teranisi@gohome.org>
- * Copyright (C) 2003 Kazu Yamamoto <kazu@Mew.org>
- * Copyright (C) 2004 Yoshifumi Nishida <nishida@csl.sony.co.jp>
- * Copyright notice is the same as Mew's one.
- */
-static char * yellow3_xpm[] = {
-\"14 14 7 1\",
+static char * lock[] = {
+\"16 16 3 1\",
 \" 	c None\",
-\".	c #B07403\",
-\"+	c #EFEE38\",
-\"@	c #603300\",
-\"#	c #D0A607\",
-\"$	c #FAFC90\",
-\"%	c #241100\",
-\"    .++++@    \",
-\"   .+@...+@   \",
-\"  .+@    .+@  \",
-\"  .+@    .+@  \",
-\"  .+@    .+@  \",
-\"++########@@@@\",
-\"+$$++++++++#@@\",
-\"+$++++%@+++#@@\",
-\"+$+++%%%@++#@@\",
-\"+$+++%%%@++#@@\",
-\"+$++++%@+++#@@\",
-\"+$++++%@+++#@@\",
-\"+$+++++++++#@@\",
-\"++@@@@@@@@@@@@\"};
+\".	c #000000\",
+\"#	c #FFFFFF\",
+\"                \",
+\"                \",
+\"    ........    \",
+\"   ..######..   \",
+\"   .##....##.   \",
+\"   .#..  ..#.   \",
+\"   .#.    .#.   \",
+\"  ..#......#..  \",
+\"  .##########.  \",
+\"  .##########.  \",
+\"  .####..####.  \",
+\"  .###....###.  \",
+\"  .###....###.  \",
+\"  .##########.  \",
+\"  ............  \",
+\"                \"};
 "
-;;; The above image is copied from `mew-lock.xpm' distributed with Mew.
-;;; The copyright of the image is below, which is copied from `mew.el'.
-
-;;; Copyright Notice:
-
-;; Copyright (C) 1994-2009 Mew developing team.
-;; All rights reserved.
-
-;; Redistribution and use in source and binary forms, with or without
-;; modification, are permitted provided that the following conditions
-;; are met:
-;;
-;; 1. Redistributions of source code must retain the above copyright
-;;    notice, this list of conditions and the following disclaimer.
-;; 2. Redistributions in binary form must reproduce the above copyright
-;;    notice, this list of conditions and the following disclaimer in the
-;;    documentation and/or other materials provided with the distribution.
-;; 3. Neither the name of the team nor the names of its contributors
-;;    may be used to endorse or promote products derived from this software
-;;    without specific prior written permission.
-;;
-;; THIS SOFTWARE IS PROVIDED BY THE TEAM AND CONTRIBUTORS ``AS IS'' AND
-;; ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-;; PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE TEAM OR CONTRIBUTORS BE
-;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
-;; BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-;; WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
-;; OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-;; IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	    ))
   "Image for indicator of SSL state.")
 
@@ -8117,51 +8077,29 @@ static char * yellow3_xpm[] = {
 	    :ascent center
 	    :data
 	    "/* XPM */
-static char *plugged[] = {
-\"32 12 8 1\",
-\"  c None\",
-\". c #a6caf0\",
-\"# c #8fa5cf\",
-\"a c #717171\",
-\"b c #5d5d97\",
-\"c c #8488ca\",
-\"d c #9f9f9f\",
-\"e c #7f8080\",
-\"            ...                 \",
-\"           .ccb....             \",
-\"           accb####.            \",
-\"          .accb#####..          \",
-\"   eeeeeeeeaccb#####.eeeeeeee   \",
-\"   dddddddcaccb#####.dedddddd   \",
-\"   dddddddcaccb#####.dedddddd   \",
-\"   eeeeeeeeaccb#####.eeeeeeee   \",
-\"          aaccb####aaa          \",
-\"           accbaaaaa            \",
-\"           aaaaaaaa             \",
-\"            aaa                 \"
-};
+static char * connected[] = {
+\"16 16 3 1\",
+\" 	c None\",
+\".	c #000000\",
+\"#	c #FFFFFF\",
+\"      .##. ...  \",
+\"      .##. .#.  \",
+\"      .##...#.. \",
+\"      .##..###..\",
+\"      .##..###..\",
+\"      .##.#####.\",
+\"  ... .##.#.#.#.\",
+\"  .#. ..#...#...\",
+\"...#...#.. .#.  \",
+\".#.#.#.##. .#.  \",
+\".#####.##. ...  \",
+\"..### .##.      \",
+\" .###..##.      \",
+\" ..#...##.      \",
+\"  .#. .##.      \",
+\"  ... .##.      \"};
 "))
   "Image for indicator of active state."
-;;; The above image is copied from `plugged.xpm' distributed with Wanderlust
-;;; by Yuuichi Teranishi <teranisi@gohome.org>.
-;;; The copyright of the image is below, which is copied from `COPYING' of
-;;; Wanderlust 2.14.
-;; Copyright (C) 1998-2001 Yuuichi Teranishi <teranisi@gohome.org>
-;;
-;;    This program is free software; you can redistribute it and/or modify
-;;    it under the terms of the GNU General Public License as published by
-;;    the Free Software Foundation; either version 2, or (at your option)
-;;    any later version.
-;;
-;;    This program is distributed in the hope that it will be useful,
-;;    but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;    GNU General Public License for more details.
-;;
-;;    You should have received a copy of the GNU General Public License
-;;    along with GNU Emacs; see the file COPYING.  If not, write to the
-;;    Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;    Boston, MA 02111-1307, USA.
 )
 
 (defconst twittering-inactive-indicator-image
@@ -8170,52 +8108,29 @@ static char *plugged[] = {
 	    :ascent center
 	    :data
 	    "/* XPM */
-static char * unplugged_xpm[] = {
-\"32 12 9 1\",
-\" 	s None	c None\",
-\".	c tomato\",
-\"X	c #a6caf0\",
-\"o	c #8488ca\",
-\"O	c #5d5d97\",
-\"+	c #8fa5cf\",
-\"@	c #717171\",
-\"#	c #7f8080\",
-\"$	c #9f9f9f\",
-\"          XXX......             \",
-\"           ...    ...           \",
-\"          ..O     ....X         \",
-\"         ..oO    ...+..XX       \",
-\"   ######.ooO   ...+++.X#####   \",
-\"   $$$$$o.ooO  ...@+++.X$#$$$   \",
-\"   $$$$$o.ooO ... @+++.X$#$$$   \",
-\"   ######.ooO...  @+++.X#####   \",
-\"         ..o...   @++..@@       \",
-\"          ....    @@..@         \",
-\"           ...    ...@          \",
-\"             ......             \"
-};
+static char * disconnected[] = {
+\"16 16 3 1\",
+\" 	c None\",
+\".	c #000000\",
+\"#	c #FFFFFF\",
+\"      .##.      \",
+\"      .##.      \",
+\"    . .##.      \",
+\"    ...##.      \",
+\"     ..##.      \",
+\"      ..#.      \",
+\"    .. ...      \",
+\"     .. ..      \",
+\"      .. ..     \",
+\"      ... ..    \",
+\"      .#..      \",
+\"      .##..     \",
+\"      .##...    \",
+\"      .##. .    \",
+\"      .##.      \",
+\"      .##.      \"};
 "))
   "Image for indicator of inactive state."
-;;; The above image is copied from `unplugged.xpm' distributed with Wanderlust
-;;; by Yuuichi Teranishi <teranisi@gohome.org>.
-;;; The copyright of the image is below, which is copied from `COPYING' of
-;;; Wanderlust 2.14.
-;; Copyright (C) 1998-2001 Yuuichi Teranishi <teranisi@gohome.org>
-;;
-;;    This program is free software; you can redistribute it and/or modify
-;;    it under the terms of the GNU General Public License as published by
-;;    the Free Software Foundation; either version 2, or (at your option)
-;;    any later version.
-;;
-;;    This program is distributed in the hope that it will be useful,
-;;    but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;    GNU General Public License for more details.
-;;
-;;    You should have received a copy of the GNU General Public License
-;;    along with GNU Emacs; see the file COPYING.  If not, write to the
-;;    Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;    Boston, MA 02111-1307, USA.
 )
 
 (defconst twittering-modeline-properties

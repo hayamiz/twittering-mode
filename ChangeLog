@@ -16,6 +16,13 @@
 	* twittering-mode.el: Update embedded CA certificates.
 	(twittering-ca-cert-list): update CA certificates.
 
+	* twittering-mode.el: Replace images that had been imported from
+	other softwares.
+	(twittering-ssl-indicator-image): replaced with an original
+	image.
+	(twittering-active-indicator-image): likewise.
+	(twittering-inactive-indicator-image): likewise.
+
 2013-12-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Embed root CA certificates to follow the

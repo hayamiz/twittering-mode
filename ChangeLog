@@ -1,3 +1,16 @@
+2014-04-21  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Normalize text properties of a tweet with
+	the Normalization Form Canonical Composition (NFC) defined in
+	Unicode Standard Annex #15.
+	(twittering-normalize-string): new function.
+	(twittering-make-gap-list): takes account of the normalization of
+	a tweet text with NFC.
+	(twittering-extract-common-element-from-json): normalize a tweet
+	text with NFC.
+	(twittering-json-object-to-a-status-base): normalize a source,
+	name, location and description of a tweet with NFC.
+
 2014-03-31  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Remove 'flet'.

@@ -759,6 +759,11 @@ unknown are returned as nil."
       (setq sym-list (cdr sym-list)))
     (reverse result)))
 
+(defun twittering-normalize-string (str)
+  (if (require 'ucs-normalize nil t)
+      (ucs-normalize-NFC-string str)
+    str))
+
 ;;;;
 ;;;; Utility for portability
 ;;;;
@@ -6840,22 +6845,38 @@ If the authorization failed, return nil."
 
 (eval-and-compile
   (defsubst twittering-make-gap-list (text)
-    "Return a list representing index gaps between TEXT and the encoded text.
-Indices included in entities in XML response from Twitter mean the positions
-of characters in the encoded text, where \"<\" and \">\" are encoded as
-\"&lt;\" and \"&gt;\" respectively.
-Therefore, the indices differ from the positions in the decoded text.
+    "Return a list representing index gaps between TEXT and the decoded and normalized text.
+Indices included in entities in a response from Twitter are calculated
+with the assumption that \"<\" and \">\" are encoded as \"&lt;\" and \"&gt;\"
+respectively and a Unicode combining character is considered as a character.
+On rendering a tweet, twittering-mode decode \"&lt;\" and \"&gt;\".
+And also twittering-mode normalize its text into canonically equivalent text
+without combining characters.
+Therefore, the indices in entities differ from the indices of the corresponding
+positions in the decoded text.
+In addition, the normalization to NFC also makes additional gaps between
+the indices in entities and the corresponding positions.
 
-This function calculates the gaps from TEXT, which is assumed to be decoded.
+This function assumes that TEXT is already decoded but not normalized.
+From TEXT, the function calculates the gaps between the encoded text and the
+decoded and normalized text.
 This function returns a list of pairs representing the gaps.
-For each pair, the car means the position in the encoded text and the cdr
-means the gap. The (car pair)-th character in the encoded text corresponds
-to the (- (car pair) (cdr pair))-th character in the decoded text."
+For each pair, the car means the position in the original TEXT and the cdr
+means the gap. The (car pair)-th character in the original TEXT corresponds
+to the (- (car pair) (cdr pair))-th character in the decoded and normalized
+text."
     (let ((result nil)
+	  (regexp
+	   (if (require 'ucs-normalize nil t)
+	       (concat "\\(?:\\([<>]\\)\\|\\("
+		       ucs-normalize-combining-chars-regexp "\\)\\)")
+	     "\\([<>]\\)"))
 	  (pos 0)
 	  (gap 0))
-      (while (string-match "[<>]" text pos)
-	(let ((shift 3))
+      (while (string-match regexp text pos)
+	(let ((shift (if (match-beginning 1)
+			 3
+		       1)))
 	  (setq result
 		(cons `(,(+ gap (match-end 0)) . ,(+ gap shift)) result))
 	  (setq gap (+ shift gap)))
@@ -7176,7 +7197,7 @@ to JSON objects from ordinary timeline and search timeline."
 	 (urls (cdr (assq 'urls entities)))
 	 (hashtags (cdr (assq 'hashtags entities)))
 	 (mentions (cdr (assq 'user_mentions entities))))
-    `((text . ,text)
+    `((text . ,(twittering-normalize-string text))
       (created-at
        . ,(apply 'encode-time
 		 (parse-time-string (cdr (assq 'created_at json-object)))))
@@ -7189,7 +7210,9 @@ to JSON objects from ordinary timeline and search timeline."
 				      (twittering-get-gap start gap-list)))
 				`((start . ,(- start gap))
 				  (end . ,(- end gap))
-				  (text . ,(cdr (assq 'text entry))))))
+				  (text
+				   . ,(twittering-normalize-string
+				       (cdr (assq 'text entry)))))))
 			    hashtags))
        (mentions . ,(mapcar (lambda (entry)
 			      (let* ((indices (cdr (assq 'indices entry)))
@@ -7200,7 +7223,9 @@ to JSON objects from ordinary timeline and search timeline."
 				`((start . ,(- start gap))
 				  (end . ,(- end gap))
 				  (id . ,(cdr (assq 'id_str entry)))
-				  (name . ,(cdr (assq 'name entry)))
+				  (name
+				   . ,(twittering-normalize-string
+				       (cdr (assq 'name entry))))
 				  (screen-name
 				   . ,(cdr (assq 'screen_name entry))))))
 			    mentions))
@@ -7295,9 +7320,9 @@ To convert a JSON object from a search timeline, use
 				 source))
 	      (let ((uri (match-string-no-properties 1 source))
 		    (caption (match-string-no-properties 2 source)))
-		`((source . ,caption)
+		`((source . ,(twittering-normalize-string caption))
 		  (source-uri . ,uri)))
-	    `((source . ,source)
+	    `((source . ,(twittering-normalize-string source))
 	      (source-uri . ""))))
       ;; user data
       ,@(let ((symbol-table
@@ -7314,10 +7339,14 @@ To convert a JSON object from a search timeline, use
 			    (let* ((sym (car entry))
 				   (value (cdr entry))
 				   (value
-				    (if (and (eq sym 'protected)
-					     (eq value :json-false))
-					nil
-				      value)))
+				    (cond
+				     ((and (eq sym 'protected)
+					   (eq value :json-false))
+				      nil)
+				     ((memq sym '(name location description))
+				      (twittering-normalize-string value))
+				     (t
+				      value))))
 			      (when value
 				(let ((dest (cdr (assq sym symbol-table))))
 				  (when dest

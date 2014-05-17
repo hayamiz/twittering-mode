@@ -9932,6 +9932,7 @@ If FORCE is non-nil, all active buffers are updated forcibly."
       (define-key km (kbd "C-c C-p") 'twittering-toggle-proxy)
       (define-key km (kbd "q") 'twittering-kill-buffer)
       (define-key km (kbd "C-c C-q") 'twittering-search)
+      (define-key km (kbd "F") 'twittering-follow)
       nil))
 
 (let ((km twittering-mode-menu-on-uri-map))

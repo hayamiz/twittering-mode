@@ -7824,13 +7824,7 @@ return nil."
 	  (default-directory temporary-file-directory))
       (insert image-data)
       (let* ((args
-	      `(,@(when (<= emacs-major-version 22)
-		    ;; Emacs22 and earlier raises "Color allocation error"
-		    ;; on decoding a XPM image with opacity. To ignore
-		    ;; opacity, the option "+matte" is added.
-		    '("+matte"))
-		,@(unless (fboundp 'create-animated-image)
-		    '("-flatten"))
+	      `(
 		,(if src-type (format "%s:-" src-type) "-")
 		,@(when (integerp twittering-convert-fix-size)
 		    `("-resize"
@@ -8559,7 +8553,8 @@ following symbols;
 		  (format "http://%s/%s/%s.xml?size=%s" twittering-api-host
 			  (twittering-api-path "users/profile_image") user size)))
 	       (t
-		(cdr (assq 'user-profile-image-url ,status-sym))))))
+		(replace-regexp-in-string "_normal\\." "."
+					  (cdr (assq 'user-profile-image-url ,status-sym)))))))
 	 (twittering-make-icon-string nil nil url))))
     ("j" . (cdr (assq 'user-id ,status-sym)))
     ("L" .

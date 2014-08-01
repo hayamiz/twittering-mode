@@ -11400,7 +11400,7 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
 		   (default (if remove
 				retweeting-username
 			      retweeted-username))
-		   (prompt (format "Who do you %s? (default:%s): "
+		   (prompt (format "Who do you want to %s? (default:%s): "
 				   mes default))
 		   (candidates (list retweeted-username retweeting-username)))
 	      (twittering-completing-read prompt candidates nil t
@@ -11409,7 +11409,7 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
 	    (cdr (assq 'user-screen-name status)))
 	   (t
 	    (twittering-read-username-with-completion
-	     (format "Who do you %s? " mes) "" 'twittering-user-history)))))
+	     (format "Who do you want to %s? " mes) "" 'twittering-user-history)))))
     (if (string= "" username)
 	(message "No user selected")
       (if (y-or-n-p (format "%s %s? " (capitalize mes) username))

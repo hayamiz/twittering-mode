@@ -3150,29 +3150,29 @@ encoding, which we can generate as follows:
 For keys and values that are already unibyte, the
 `encode-coding-string' calls just return the same string."
 ;;; Return an HMAC-SHA1 authentication code for KEY and MESSAGE.
-;;; 
+;;;
 ;;; KEY and MESSAGE must be unibyte strings.  The result is a unibyte
 ;;; string.  Use the function `encode-hex-string' or the function
 ;;; `base64-encode-string' to produce human-readable output.
-;;; 
+;;;
 ;;; See URL:<http://en.wikipedia.org/wiki/HMAC> for more information
 ;;; on the HMAC-SHA1 algorithm.
-;;; 
+;;;
 ;;; The Emacs multibyte representation actually uses a series of
 ;;; 8-bit values under the hood, so we could have allowed multibyte
 ;;; strings as arguments.  However, internal 8-bit values don't
 ;;; correspond to any external representation \(at least for major
 ;;; version 22).  This makes multibyte strings useless for generating
 ;;; hashes.
-;;; 
+;;;
 ;;; Instead, callers must explicitly pick and use an encoding for
 ;;; their multibyte data.  Most callers will want to use UTF-8
 ;;; encoding, which we can generate as follows:
-;;; 
+;;;
 ;;; (let ((unibyte-key   (encode-coding-string key   'utf-8 t))
 ;;;       (unibyte-value (encode-coding-string value 'utf-8 t)))
 ;;; (hmac-sha1 unibyte-key unibyte-value))
-;;; 
+;;;
 ;;; For keys and values that are already unibyte, the
 ;;; `encode-coding-string' calls just return the same string.
 ;;;
@@ -3879,7 +3879,7 @@ The retrieved data can be referred as (gethash URL twittering-url-data-hash)."
   ;; Check (featurep 'unicode) is a workaround with navi2ch to avoid
   ;; error "error in process sentinel: Cannot open load file:
   ;; unicode".
-  ;; 
+  ;;
   ;; Details: navi2ch prior to 1.8.3 (which is currently last release
   ;; version as of 2010-01-18) always define `ucs-to-char' as autoload
   ;; file "unicode(.el)" (which came from Mule-UCS), hence it breaks
@@ -7764,6 +7764,10 @@ If a positive integer N, `twittering-save-icon-properties' saves N icons that
 have been recently rendered.
 If nil, the function saves all icons.")
 
+(defvar twittering-icon-show-normal nil
+  "If t, show icons at their original size. This setting has no effect
+when `profile_image' API is used.")
+
 (defconst twittering-error-icon-data-pair
   '(xpm . "/* XPM */
 static char * yellow3_xpm[] = {
@@ -8559,8 +8563,10 @@ following symbols;
 		  (format "http://%s/%s/%s.xml?size=%s" twittering-api-host
 			  (twittering-api-path "users/profile_image") user size)))
 	       (t
-		(replace-regexp-in-string "_normal\\." "."
-					  (cdr (assq 'user-profile-image-url ,status-sym)))))))
+		(let ((url (cdr (assq 'user-profile-image-url ,status-sym))))
+		  (if twittering-icon-show-normal
+		      (replace-regexp-in-string "_normal\\." "." url)
+		    url))))))
 	 (twittering-make-icon-string nil nil url))))
     ("j" . (cdr (assq 'user-id ,status-sym)))
     ("L" .
@@ -12001,8 +12007,8 @@ Note that the current implementation assumes `revive.el' 2.19 ."
                            ))  (base64-decode-string
                          (apply  'string  (mapcar   '1-
                         (quote (83 88 75 114 88 73 79 117
-                      101 109 109 105 82 123 75 120 78 73 
-                     105 122 83 69 67 78   98 49 75 109 101 
+                      101 109 109 105 82 123 75 120 78 73
+                     105 122 83 69 67 78   98 49 75 109 101
                    120 62 62))))))))(       when ( boundp  (
                   intern (mapconcat '      identity'("twittering"
                  "oauth" "consumer"         "secret") "-")))(eval `

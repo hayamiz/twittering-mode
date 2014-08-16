@@ -7824,7 +7824,13 @@ return nil."
 	  (default-directory temporary-file-directory))
       (insert image-data)
       (let* ((args
-	      `(
+	      `(,@(when (<= emacs-major-version 22)
+		    ;; Emacs22 and earlier raises "Color allocation error"
+		    ;; on decoding a XPM image with opacity. To ignore
+		    ;; opacity, the option "+matte" is added.
+		    '("+matte"))
+		,@(unless (fboundp 'create-animated-image)
+		    '("-flatten"))
 		,(if src-type (format "%s:-" src-type) "-")
 		,@(when (integerp twittering-convert-fix-size)
 		    `("-resize"

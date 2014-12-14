@@ -677,7 +677,7 @@ the value of the last form in TIMEOUT-FORMS."
 		 (current 0.0))
      (while (and ,@(when timeout '((< current timeout)))
 		 ,condition)
-       (sit-for interval)
+       (sleep-for interval)
        (setq current (+ current interval)))
      ,(when (or form timeout-forms)
 	(if (null timeout)
@@ -3374,7 +3374,7 @@ function."
 			(twittering-oauth-get-response-alist response-buffer))
 		  )))))
 	(while (eq result 'queried)
-	  (sit-for 0.1))
+	  (sleep-for 0.1))
 	(unless twittering-debug-mode
 	  (kill-buffer buffer))
 	result))))

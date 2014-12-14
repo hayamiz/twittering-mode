@@ -1,3 +1,17 @@
+2014-12-15  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Replace `sit-for' with `sleep-for' for
+	avoiding an infinite loop. On rare occasions, `sit-for' may return
+	immediately even when no input is available (See the document of
+	`input-pending-p'). Since Emacs does not update status of an
+	asynchronous process in those cases, a loop which uses `sit-for'
+	and waits for a finish of a process will wait infinitely. To avoid
+	the situation, invocations of `sit-for' are replaced with those of
+	`sleep-for'. Thanks to Ikumi Keita, who investigates the problem
+	and writes this patch.
+	(twittering-wait-while): use `sleep-for' instead of `sit-for'.
+	(twittering-oauth-get-token-alist-url): likewise.
+
 2014-04-21  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Normalize text properties of a tweet with

@@ -1,5 +1,8 @@
 2014-12-31  Tadashi MATSUO  <tad@mymail.twin.jp>
 
+	* twittering-mode.el: Update embedded CA certificates.
+	(twittering-ca-cert-list): update CA certificates.
+
 	* twittering-mode.el: The timeline spec string "@" is equivalent
 	to ":mentions" instead of ":replies". "@" has been interpreted as
 	a shorten string of ":mentions", but

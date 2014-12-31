@@ -1,5 +1,12 @@
 2014-12-31  Tadashi MATSUO  <tad@mymail.twin.jp>
 
+	* twittering-mode.el: Add the CA certificates issued by Equifax as
+	embedded CA certificates. The added certificates are used for a
+	HTTPS connection for Google URL Shortener, `goo.gl'.
+	(twittering-ca-cert-list): update CA certificates.
+	* update-cert.sh: Retrieve CA certificates issued by Equifax in
+	addition to those issued by Verisign.
+
 	* twittering-mode.el: Update embedded CA certificates.
 	(twittering-ca-cert-list): update CA certificates.
 

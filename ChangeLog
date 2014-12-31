@@ -1,5 +1,9 @@
 2014-12-31  Tadashi MATSUO  <tad@mymail.twin.jp>
 
+	* twittering-mode.el: Extract media entities from a JSON object.
+	(twittering-extract-common-element-from-json): extract media
+	entities.
+
 	* twittering-mode.el: Hide tweets matched with one of filter
 	patterns. Filter patterns can be defined with the new variable
 	`twittering-filter-alist'.

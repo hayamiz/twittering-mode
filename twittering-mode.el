@@ -639,6 +639,38 @@ An interval for a timeline is determined as follows;
 (defvar twittering-relative-retrieval-count-alist '()
   "An alist for counting retrieval of primary timelines.")
 
+(defvar twittering-filter-alist '()
+  "*An alist of hidden tweet patterns for each primary timeline.
+Each element looks like:
+ (TIMELINE-SPECIFIER (SYM1 . REGEXP1) (SYM2 . REGEXP2) ...).
+
+TIMELINE-SPECIFIER must be a string or a list of strings.
+Each string is a regexp for specifying primary timelines.
+Note that you cannot specify composite timelines such as \":merge\",
+\":exclude-if\" or \":exclude-re\".
+Following regexps (REGEXP1, REGEXP2, ...) specify which tweet should
+be hidden in a certain timeline.
+
+In a timeline that matches TIMELINE-SPECIFIER, a tweet is hidden if
+its elements specified by SYM1, SYM2, ... match corresponding REGEXP1, REGEXP2,
+... respectively.
+
+If a timeline matches multiple specifiers, all regexps of matched elements
+are effective.
+
+For example, if you specify
+ '(((\":home\" \":mentions\") (text . \"http://\"))
+   (\"^[^:]\" (text . \"sample\") (user-screen-name . \"\\`FOO\\'\"))
+   (\"twitter/.*\" (text . \"^aa\"))),
+the following tweets are hidden.
+
+- tweets including \"http://\" in the home timeline and the mentions timeline,
+- tweets that are posted by the user FOO and include \"sample\"
+  in user timelines and list timelines,
+- tweets including \"aa\" at a beginning of a line in list timelines of
+  twitter, such as \"twitter/media\" or \"twitter/support\".")
+
+
 ;;;;
 ;;;; Macro and small utility function
 ;;;;
@@ -4703,7 +4735,21 @@ If SPEC is a primary timeline and does not equal BASE-SPEC, return nil."
     (cond
      ((twittering-timeline-spec-primary-p spec)
       (if (equal spec base-spec)
-	  base-statuses
+	  (let ((pattern-list
+		 (twittering-get-filter-list-for-timeline-spec
+		  spec)))
+	    (if pattern-list
+		(remove
+		 nil
+		 (mapcar
+		  (lambda (status)
+		    (if (twittering-match-pattern-list status pattern-list)
+			(progn
+			  (debug-printf "Exclude the status: %s" status)
+			  nil)
+		      status))
+		  base-statuses))
+	      base-statuses))
 	nil))
      ((eq type 'exclude-if)
       (let* ((direct-base (car (twittering-get-base-timeline-specs spec)))
@@ -4748,6 +4794,68 @@ If SPEC is a primary timeline and does not equal BASE-SPEC, return nil."
 	   (twittering-status-id< id2 id1)))))
      (t
       nil))))
+
+;;;;
+;;;; Filter
+;;;;
+
+(defun twittering-get-filter-list-for-timeline-spec-string (spec-string)
+  (let ((entry-list twittering-filter-alist))
+    (remove
+     nil
+     (mapcar
+      (lambda (entry)
+	(let ((spec-regexp
+	       (if (listp (car entry))
+		   (concat "\\(?:"
+			   (mapconcat 'identity (car entry) "\\|")
+			   "\\)")
+		 (car entry)))
+	      (pattern-list (cdr entry)))
+	  (when (string-match spec-regexp spec-string)
+	    pattern-list)))
+      entry-list))))
+
+(defun twittering-get-filter-list-for-timeline-spec (spec)
+  (when twittering-filter-alist
+    (let* ((spec-string (twittering-timeline-spec-to-string spec))
+	   (short-spec-string (twittering-timeline-spec-to-string spec t))
+	   (regexp-list
+	    (twittering-get-filter-list-for-timeline-spec-string
+	     spec-string)))
+      (if (string= spec-string short-spec-string)
+	  regexp-list
+	(append regexp-list
+		(twittering-get-filter-list-for-timeline-spec-string
+		 short-spec-string))))))
+
+(defun twittering-match-pattern (status pattern)
+  (let* ((rest pattern)
+	 (matched t))
+    (while (and rest matched)
+      (let* ((current (car rest))
+	     (sym (car current))
+	     (regexp (cdr current))
+	     (value (cdr (assq sym status)))
+	     (value
+	      (if (eq sym 'text)
+		  (twittering-make-fontified-tweet-text-with-entity status)
+		value)))
+	(unless (and (stringp value)
+		     (string-match regexp value))
+	  (setq matched nil))
+	(setq rest (cdr rest))))
+    matched))
+
+(defun twittering-match-pattern-list (status pattern-list)
+  (let* ((rest pattern-list)
+	 (matched nil))
+    (while (and rest (not matched))
+      (let ((current (car rest)))
+	(when (twittering-match-pattern status current)
+	  (setq matched t))
+	(setq rest (cdr rest))))
+    matched))
 
 ;;;;
 ;;;; Retrieved statuses (timeline data)
@@ -4818,8 +4926,30 @@ referring the former ID."
 	   (let ((id1 (cdr (assq 'id status1)))
 		 (id2 (cdr (assq 'id status2))))
 	     (twittering-status-id< id2 id1))))))
+     ((eq type :single)
+      ;; The timeline spec '(:single) does not correspond to an ordinary
+      ;; timeline. It means an unordered set of tweets retrieved by the
+      ;; 'retrieve-single-tweet command of `twittering-call-api'.
+      ;; If this function is used with the spec '(:single), a specific tweet
+      ;; will be required with the user's intention.
+      ;; In this case, exclusion by patterns does not required.
+      (elt (gethash spec twittering-timeline-data-table) 2))
      (t
-      (elt (gethash spec twittering-timeline-data-table) 2)))))
+      (let ((statuses (elt (gethash spec twittering-timeline-data-table) 2))
+	    (pattern-list
+	     (twittering-get-filter-list-for-timeline-spec spec)))
+	(if pattern-list
+	    (remove
+	     nil
+	     (mapcar
+	      (lambda (status)
+		(if (twittering-match-pattern-list status pattern-list)
+		    (progn
+		      (debug-printf "Exclude the status: %s" status)
+		      nil)
+		  status))
+	      statuses))
+	  statuses))))))
 
 (defun twittering-remove-timeline-data (&optional spec)
   (let ((spec (or spec (twittering-current-timeline-spec))))

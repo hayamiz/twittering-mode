@@ -1,5 +1,21 @@
 2014-12-31  Tadashi MATSUO  <tad@mymail.twin.jp>
 
+	* twittering-mode.el: Hide tweets matched with one of filter
+	patterns. Filter patterns can be defined with the new variable
+	`twittering-filter-alist'.
+	(twittering-filter-alist): new variable for specifying filters.
+	(twittering-generate-composite-timeline): exclude tweets matched
+	with one of filter patterns.
+	(twittering-get-filter-list-for-timeline-spec-string): new
+	function that returns filter pattern list for the given timeline.
+	(twittering-get-filter-list-for-timeline-spec): likewise.
+	(twittering-match-pattern): new function that returns non-nil if
+	the given tweet matches with the given pattern.
+	(twittering-match-pattern-list): new function that returns non-nil
+	if the given tweet matches with one of the given patterns.
+	(twittering-current-timeline-data): exclude tweets matched with
+	one of filter patterns.
+
 	* twittering-mode.el: Add new commands `twittering-mute' and
 	`twittering-unmute'.
 	(twittering-call-api-with-account): add new APIs mute/unmute to

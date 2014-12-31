@@ -1,3 +1,15 @@
+2014-12-31  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: The timeline spec string "@" is equivalent
+	to ":mentions" instead of ":replies". "@" has been interpreted as
+	a shorten string of ":mentions", but
+	`twittering-timeline-spec-to-string' returned ":mentions" as the
+	shorten version of ":mentions".
+	(twittering-timeline-spec-to-string): interpret the timeline spec
+	string "@" as ":mentions" instead of ":replies".
+	* test/test-twittering-mode.el: The tests for timeline spec
+	strings related to "@" and ":mentions" are modified.
+
 2014-12-15  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Replace `sit-for' with `sleep-for' for

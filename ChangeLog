@@ -1,5 +1,14 @@
 2014-12-31  Tadashi MATSUO  <tad@mymail.twin.jp>
 
+	* twittering-mode.el: Add new commands `twittering-mute' and
+	`twittering-unmute'.
+	(twittering-call-api-with-account): add new APIs mute/unmute to
+	the docstring.
+	(twittering-call-api-with-account-in-api1.1): implement new APIs
+	mute/unmute.
+	(twittering-mute): new command.
+	(twittering-unmute): new command.
+
 	* twittering-mode.el: Add the CA certificates issued by Equifax as
 	embedded CA certificates. The added certificates are used for a
 	HTTPS connection for Google URL Shortener, `goo.gl'.

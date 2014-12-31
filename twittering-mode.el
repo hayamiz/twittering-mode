@@ -5575,6 +5575,18 @@ send-direct-message -- Send a direct message.
   Valid key symbols in ARGS-ALIST:
     username -- the username who the message is sent to.
     status -- the sent message.
+mute -- Mute a user.
+  Valid key symbols in ARGS-ALIST:
+    user-id -- the user-id that will be muted.
+    username -- the username who will be muted.
+  This command requires either of the above key. If both are given, `user-id'
+  will be used in REST API.
+unmute -- Un-mute a user.
+  Valid key symbols in ARGS-ALIST:
+    user-id -- the user-id that will be un-muted.
+    username -- the username who will be un-muted.
+  This command requires either of the above key. If both are given, `user-id'
+  will be used in REST API.
 block -- Block a user.
   Valid key symbols in ARGS-ALIST:
     user-id -- the user-id that will be blocked.
@@ -6231,6 +6243,20 @@ get-service-configuration -- Get the configuration of the server.
 	   (http-parameters
 	    `(("screen_name" . ,(cdr (assq 'username args-alist)))
 	      ("text" . ,(cdr (assq 'status args-alist)))))
+	   (format-str "json"))
+      (twittering-http-post account-info-alist host method http-parameters
+			    format-str additional-info)))
+   ((memq command '(mute unmute))
+    ;; Mute a user.
+    (let* ((user-id (cdr (assq 'user-id args-alist)))
+	   (username (cdr (assq 'username args-alist)))
+	   (host "api.twitter.com")
+	   (method
+	    (cdr (assq command '((mute . "1.1/mutes/users/create")
+				 (unmute . "1.1/mutes/users/destroy")))))
+	   (http-parameters (if user-id
+				`(("user_id" . ,user-id))
+			      `(("screen_name" . ,username))))
 	   (format-str "json"))
       (twittering-http-post account-info-alist host method http-parameters
 			    format-str additional-info)))
@@ -11437,6 +11463,42 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
 (defun twittering-unfavorite ()
   (interactive)
   (twittering-favorite t))
+
+(defun twittering-mute (&optional remove)
+  (interactive "P")
+  (let* ((method (if remove 'unmute 'mute))
+	 (mes (if remove "unmute" "mute"))
+	 (id (twittering-get-id-at))
+	 (status (when id (twittering-find-status id)))
+	 (username
+	  (cond
+	   ((assq 'retweeted-id status)
+	    (let* ((retweeting-username
+		    (cdr (assq 'retweeting-user-screen-name status)))
+		   (retweeted-username
+		    (cdr (assq 'retweeted-user-screen-name status)))
+		   (default (if remove
+				retweeting-username
+			      retweeted-username))
+		   (prompt (format "Who do you %s? (default:%s): "
+				   mes default))
+		   (candidates (list retweeted-username retweeting-username)))
+	      (twittering-completing-read prompt candidates nil t
+					  nil nil default)))
+	   (status
+	    (cdr (assq 'user-screen-name status)))
+	   (t
+	    (twittering-read-username-with-completion
+	     (format "Who do you %s? " mes) "" 'twittering-user-history)))))
+    (if (string= "" username)
+	(message "No user selected")
+      (if (y-or-n-p (format "%s %s? " (capitalize mes) username))
+	  (twittering-call-api method `((username . ,username)))
+	(message "Request canceled")))))
+
+(defun twittering-unmute ()
+  (interactive)
+  (twittering-mute t))
 
 (defun twittering-block ()
   "Block a user who posted the tweet at the current position."

@@ -1,3 +1,9 @@
+2015-01-04  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Move the footer line to the very end of the
+	file. The previous position were inconsistent with the conventions
+	of headers for Emacs libraries.
+
 2014-12-31  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Extract media entities from a JSON object.

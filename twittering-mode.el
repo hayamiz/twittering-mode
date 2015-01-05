@@ -396,6 +396,13 @@ Items:
  %t - text filled as one paragraph
  %' - truncated
  %FACE[face-name]{...} - strings decorated with the specified face.
+ %FIELD[format-str]{field-name}
+   - a value of the given field of a tweet formatted with format-str.
+     The format-str is optional. As a field-name, you can use
+     \"retweet_count\", \"favorite_count\" and so on.
+ %FIELD-IF-NONZERO[format-str]{field-name}
+   - similar to %FIELD[...]{...} except that this makes an empty string
+     if the field value is zero.
  %FILL[prefix]{...} - strings filled as a paragraph. The prefix is optional.
                       You can use any other specifiers in braces.
  %FOLD[prefix]{...} - strings folded within the frame width.
@@ -8832,6 +8839,31 @@ following symbols;
 	       (braced-body (car pair))
 	       (rest (cdr pair)))
 	  `((propertize (concat ,@braced-body) 'face ',face-sym)
+	    . ,rest)))
+       ((string-match "\\`FIELD\\(\\[\\([^]]*\\)\\]\\)?{\\([a-z_]*\\)}"
+		      following)
+	(let* ((format-str (or (match-string 2 following) "%s"))
+	       (field-raw-name (match-string 3 following))
+	       (field-name (replace-regexp-in-string "_" "-" field-raw-name))
+	       (field-symbol (intern field-name))
+	       (rest (substring following (match-end 0))))
+	  `((let* ((field-value (cdr (assq ',field-symbol ,status-sym))))
+	      (if field-value
+		  (format ,format-str field-value)
+		""))
+	    . ,rest)))
+       ((string-match "\\`FIELD-IF-NONZERO\\(\\[\\([^]]*\\)\\]\\)?{\\([a-z_]*\\)}"
+		      following)
+	(let* ((format-str (or (match-string 2 following) "%s"))
+	       (field-raw-name (match-string 3 following))
+	       (field-name (replace-regexp-in-string "_" "-" field-raw-name))
+	       (field-symbol (intern field-name))
+	       (rest (substring following (match-end 0))))
+	  `((let* ((field-value (cdr (assq ',field-symbol ,status-sym))))
+	      (if (and (integerp field-value)
+		       (not (zerop field-value)))
+		  (format ,format-str field-value)
+		""))
 	    . ,rest)))
        ((string-match "\\`\\(FILL\\|FOLD\\)\\(\\[\\([^]]*\\)\\]\\)?{"
 		      following)

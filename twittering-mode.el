@@ -1,13 +1,13 @@
 ;;; twittering-mode.el --- Major mode for Twitter
 
 ;; Copyright (C) 2007, 2009, 2010, 2015 Yuto Hayamizu.
-;;               2008 Tsuyoshi CHO
-;;               2014, 2015 Xavier Maillard
+;;		 2008 Tsuyoshi CHO
+;;		 2014, 2015 Xavier Maillard
 
 ;; Author: Y. Hayamizu <y.hayamizu@gmail.com>
-;;      Tsuyoshi CHO <Tsuyoshi.CHO+develop@Gmail.com>
-;;      Alberto Garcia <agarcia@igalia.com>
-;;      Xavier Maillard <xavier@maillard.im>
+;;	Tsuyoshi CHO <Tsuyoshi.CHO+develop@Gmail.com>
+;;	Alberto Garcia <agarcia@igalia.com>
+;;	Xavier Maillard <xavier@maillard.im>
 
 ;; Created: Sep 4, 2007
 ;; Version: HEAD
@@ -22,11 +22,11 @@
 
 ;; This file is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; along with GNU Emacs; see the file COPYING.	If not, write to
 ;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
@@ -103,7 +103,7 @@
   "://api.twitter.com/oauth/access_token")
 
 (defun twittering-mode-version ()
-  "Display a message for twittering-mode version."
+  "Display a message for `twittering-mode' version."
   (interactive)
   (let ((version-string
 	 (format "twittering-mode-v%s" twittering-mode-version)))
@@ -215,7 +215,8 @@ To use 'bit.ly or 'j.mp services, you have to configure `twittering-bitly-login'
 	"POST" nil
 	"http://to.ly/api.php"
 	(concat "longurl=" (twittering-percent-encode longurl))))))
-  "Alist of URL shortening services.
+  "A list of URL shortening services.
+
 The key is a symbol specifying the service.
 The value is a string or a list consisting of two elements at most.
 
@@ -282,7 +283,7 @@ DO NOT SET VALUE MANUALLY.")
 
 (defvar twittering-timer-interval-for-redisplaying 5.0
   "The interval of auto redisplaying statuses.
-Each time Emacs remains idle for the interval, twittering-mode updates parts
+Each time Emacs remains idle for the interval, `twittering-mode' updates parts
 requiring to be redrawn.")
 
 (defcustom twittering-username nil
@@ -301,6 +302,7 @@ dangerous."
 
 (defcustom twittering-initial-timeline-spec-string ":home"
   "*An initial timeline spec string or a list of timeline spec strings.
+
 This specifies one or more initial timeline spec strings, which are
 automatically visited when invoking `twittering-mode' or `twit'.
 
@@ -321,7 +323,7 @@ Each element is (NAME . SPEC-STRING), where NAME is a string and
 SPEC-STRING is a string or a function that returns a timeline spec string.
 
 The alias can be referred as \"$NAME\" or \"$NAME(ARG)\" in timeline spec
-string. If SPEC-STRING is a string, ARG is simply ignored.
+string.	 If SPEC-STRING is a string, ARG is simply ignored.
 If SPEC-STRING is a function, it is called with a string argument.
 For the style \"$NAME\", the function is called with nil.
 For the style \"$NAME(ARG)\", the function is called with a string ARG.
@@ -429,7 +431,7 @@ For the detail of the representation of tweets, see the variable
 
 (defvar twittering-active-mode nil
   "Non-nil if new statuses should be retrieved periodically.
-Do not modify this variable directly. Use `twittering-activate-buffer',
+Do not modify this variable directly.  Use `twittering-activate-buffer',
 `twittering-deactivate-buffer', `twittering-toggle-activate-buffer' or
 `twittering-set-active-flag-for-buffer'.")
 
@@ -451,7 +453,7 @@ Do not modify this variable directly. Use `twittering-activate-buffer',
 
 (defcustom twittering-status-format "%i %s,  %@:\n%FILL[  ]{%T // from %f%L%r%R}\n "
   "Format string for rendering statuses.
-Ex. \"%i %s,  %@:\\n%FILL{  %T // from %f%L%r%R}\n \"
+Ex.  \"%i %s,  %@:\\n%FILL{  %T // from %f%L%r%R}\n \"
 
 Items:
  %s - screen_name
@@ -464,10 +466,10 @@ Items:
  %r - \" in reply to user\" (use on other standard timeline)
  %R - \" (retweeted by user)\"
  %RT{...} - strings rendered only when the tweet is a retweet.
-            The braced strings are rendered with the information of the
-            retweet itself instead of that of the retweeted original tweet.
-            For example, %s for a retweet means who posted the original
-            tweet, but %RT{%s} means who retweeted it.
+	    The braced strings are rendered with the information of the
+	    retweet itself instead of that of the retweeted original tweet.
+	    For example, %s for a retweet means who posted the original
+	    tweet, but %RT{%s} means who retweeted it.
  %u - url
  %j - user.id
  %p - protected?
@@ -479,11 +481,11 @@ Items:
  %' - truncated
  %FACE[face-name]{...} - strings decorated with the specified face.
  %FILL[prefix]{...} - strings filled as a paragraph. The prefix is optional.
-                      You can use any other specifiers in braces.
+		      You can use any other specifiers in braces.
  %FOLD[prefix]{...} - strings folded within the frame width.
-                      The prefix is optional. This keeps newlines and does not
-                      squeeze a series of white spaces.
-                      You can use any other specifiers in braces.
+		      The prefix is optional. This keeps newlines and does not
+		      squeeze a series of white spaces.
+		      You can use any other specifiers in braces.
  %f - source
  %# - id"
   :type 'string
@@ -492,15 +494,15 @@ Items:
 (defcustom twittering-retweet-format '(nil _ " RT: %t (via @%s)")
   "*A format string or a skeleton for retweet.
 If the value is a string, it means a format string for generating an initial
-string of a retweet. The format string is converted with the below replacement
-table. And then, the cursor is placed on the next of the initial string.
+string of a retweet.  The format string is converted with the below replacement
+table.	And then, the cursor is placed on the next of the initial string.
 It is equivalent to the skeleton '(nil STRING _).
 Note that this string is inserted before the edit skeleton specified by
 `twittering-edit-skeleton' is performed.
 
 If the value is a list, it is treated as a skeleton used with
-`skeleton-insert'. The strings included in the list are converted with the
-following replacement table. And then, the list with converted strings is
+`skeleton-insert'.  The strings included in the list are converted with the
+following replacement table.  And then, the list with converted strings is
 inserted by `skeleton-insert'.
 Note that this skeleton is performed before the edit skeleton specified by
 `twittering-edit-skeleton' is performed.
@@ -694,16 +696,20 @@ which is a lambda expression without being compiled.")
 
 (defcustom twittering-update-status-function
   'twittering-update-status-from-pop-up-buffer
-  "The function used to posting a tweet. It takes 5 arguments,
-INIT-STR, REPLY-TO-ID, USERNAME, TWEET-TYPE, CURRENT-SPEC.
-The first argument INIT-STR is nil or an initial text to be edited.
-REPLY-TO-ID and USERNAME are an ID and a user-screen-name of a tweet to
-which you are going to reply. If the tweet is not a reply, they are nil.
-TWEET-TYPE is a symbol specifying a type of a tweet being edited. It must
-be one of 'direct-message, 'normal, 'organic-retweet and 'reply.
+  "Function used to post a tweet.
+
+It takes 5 arguments, INIT-STR, REPLY-TO-ID, USERNAME,
+TWEET-TYPE, CURRENT-SPEC.
+
+Where:
+INIT-STR is nil or an initial text to be edited.
+REPLY-TO-ID and USERNAME are an ID and a user-screen-name of a tweet to which you are going to
+reply. If the tweet is not a reply, they are nil.
+TWEET-TYPE is a symbol specifying a type of a tweet being edited. It must be
+one of 'direct-message, 'normal, 'organic-retweet and 'reply.
 CURRENT-SPEC means on which timeline the function is called.
 
-Twittering-mode provides two functions for updating status:
+`twittering-mode' provides two builtin functions:
 * `twittering-update-status-from-minibuffer': edit tweets in minibuffer
 * `twittering-update-status-from-pop-up-buffer': edit tweets in pop-up buffer"
   :type '(choice  (const :tag "built-in: from minibuffer" twittering-update-status-from-minibuffer)
@@ -1713,7 +1719,7 @@ CSqGSIb3DQEBBQUAA4GBABByUqkFFBkyCEHwxWsKzH4PIRnN5GfcX6kb5sroc50i
 (defun twittering-ensure-ca-cert ()
   "Return a full-path of the file including CA certificates.
 
-If it does not exist, create it. The directory includes root certificates
+If it does not exist, create it.  The directory includes root certificates
 in \"hash format\". In detail, see verify(1SSL)."
   (unless twittering-cert-file
     (let ((coding-system-for-write 'iso-safe)
@@ -2142,8 +2148,7 @@ How to perform the request is selected from TABLE according to the priority
 order ORDER. ORDER and TABLE are directly sent to
 `twittering-make-connection-info'.
 If ORDER is nil, `twittering-connection-type-order' is used in place of ORDER.
-If TABLE is nil, `twittering-connection-type-table' is used in place of TABLE.
-"
+If TABLE is nil, `twittering-connection-type-table' is used in place of TABLE."
   (let* ((order (or order twittering-connection-type-order))
 	 (table (or table twittering-connection-type-table))
 	 (connection-info
@@ -2419,7 +2424,7 @@ The method to perform the request is determined from
 ;;;;
 
 (defun twittering-find-curl-program ()
-  "Returns an appropriate `curl' program pathname or nil if not found."
+  "Return an appropriate `curl' program pathname or nil if not found."
   (or (executable-find "curl")
       (let ((windows-p (memq system-type '(windows-nt cygwin)))
 	    (curl.exe
@@ -2556,7 +2561,7 @@ The method to perform the request is determined from
 ;;;;
 
 (defun twittering-find-wget-program ()
-  "Returns an appropriate `wget' program pathname or nil if not found."
+  "Return an appropriate `wget' program pathname or nil if not found."
   (executable-find "wget"))
 
 (defun twittering-start-http-session-wget-p ()
@@ -2864,7 +2869,7 @@ ACCOUNT-INFO must be an alist that includes the following keys;
   "Return an error message generated from the arguments.
 HEADER-INFO must be an alist generated by `twittering-get-response-header'.
 CONNECTION-INFO must be an alist generated by
-`twittering-make-connection-info'. It may include some additional information
+`twittering-make-connection-info'.  It may include some additional information
 which is added by `twittering-send-http-request'.
 BUFFER must be nil or a HTTP response body, which includes error messages from
 the server when the HTTP status code equals to 400 or 403.
@@ -3702,13 +3707,13 @@ function."
 (defun twittering-oauth-get-access-token (request-token-url authorize-url-func access-token-url consumer-key consumer-secret consumer-name)
   "Return an alist of authorized access token.
 The function retrieves a request token from the site specified by
-REQUEST-TOKEN-URL. Then, The function asks a WWW browser to authorize the
-token by calling `browse-url'. The URL for authorization is calculated by
+REQUEST-TOKEN-URL.  Then, The function asks a WWW browser to authorize the
+token by calling `browse-url'.	The URL for authorization is calculated by
 calling AUTHORIZE-URL-FUNC with the request token as an argument.
 AUTHORIZE-URL-FUNC is called as `(funcal AUTHORIZE-URL-FUNC request-token)',
 where the request-token is a string.
 After calling `browse-url', the function waits for user to input the PIN code
-that is displayed in the browser. The request token is authorized by the
+that is displayed in the browser.  The request token is authorized by the
 PIN code, and then it is exchanged for the access token on the site
 specified by ACCESS-TOKEN-URL.
 CONSUMER-KEY and CONSUMER-SECRET specify the consumer.
@@ -3996,7 +4001,7 @@ This function requires `epa' or `alpaca' library."
 (defun twittering-ensure-private-info ()
   "Ensure that private information is loaded if necessary.
 Return non-nil if `twittering-use-master-password' is nil or private
-information has been already loaded. Also, return non-nil
+information has been already loaded.  Also, return non-nil
 if `twittering-use-master-password' is non-nil and this function succeeded
 in loading private information.
 Return nil if private information cannot be loaded."
@@ -4037,7 +4042,7 @@ Return nil if private information cannot be loaded."
   "*Delay from completing retrieval to invoking associated sentinels.
 Sentinels registered by `twittering-url-retrieve-async' will be invoked
 after retrieval is completed and Emacs remains idle a certain time, which
-this variable specifies. The unit is second.")
+this variable specifies.  The unit is second.")
 
 (defun twittering-remove-redundant-queries (queue)
   (remove nil
@@ -4112,7 +4117,7 @@ this variable specifies. The unit is second.")
 The request is placed at the last of queries queue. When the data has been
 retrieved and Emacs remains idle a certain time specified by
 `twittering-url-request-sentinel-delay', SENTINEL will be called as
- (funcall SENTINEL URL url-data).
+ (funcall SENTINEL URL `url-data').
 The retrieved data can be referred as (gethash URL twittering-url-data-hash)."
   (let ((data (gethash url twittering-url-data-hash)))
     (cond
@@ -4139,7 +4144,7 @@ The retrieved data can be referred as (gethash URL twittering-url-data-hash)."
   ;; Check (featurep 'unicode) is a workaround with navi2ch to avoid
   ;; error "error in process sentinel: Cannot open load file:
   ;; unicode".
-  ;; 
+  ;;
   ;; Details: navi2ch prior to 1.8.3 (which is currently last release
   ;; version as of 2010-01-18) always define `ucs-to-char' as autoload
   ;; file "unicode(.el)" (which came from Mule-UCS), hence it breaks
@@ -4218,10 +4223,10 @@ If STR includes surrogate pairs represented by code points from U+D800 to
 U+DFFF, decode them with CESU-8 and return the result.
 
 A character not in the Basic Multilingual Plane is represented by a surrogate
-pair in JSON (RFC4627). This is similar to CESU-8. But the function
-`json-read' in `json.el' does not correctly decode surrogate pairs. Therefore,
+pair in JSON (RFC4627).	 This is similar to CESU-8. But the function
+`json-read' in `json.el' does not correctly decode surrogate pairs.  Therefore,
 `json-read' may return a string including invalid code points from U+D800 to
-U+DFFF. This function decodes such invalid code points."
+U+DFFF.	 This function decodes such invalid code points."
   (let ((str str)
 	(prev 0)
 	(current 0)
@@ -4506,7 +4511,7 @@ Before calling this, you have to configure `twittering-bitly-login' and
 ;;; Timeline spec as S-expression
 ;;; - (user USER): timeline of the user whose name is USER. USER is a string.
 ;;; - (list USER LIST):
-;;;     the list LIST of the user USER. LIST and USER are strings.
+;;;	the list LIST of the user USER. LIST and USER are strings.
 ;;;
 ;;; - (direct_messages): received direct messages.
 ;;; - (direct_messages_sent): sent direct messages.
@@ -4515,7 +4520,7 @@ Before calling this, you have to configure `twittering-bitly-login' and
 ;;; - (friends): friends timeline.
 ;;; - (home): home timeline.
 ;;; - (mentions): mentions timeline.
-;;;     mentions (status containing @username) for the authenticating user.
+;;;	mentions (status containing @username) for the authenticating user.
 ;;; - (public): public timeline.
 ;;; - (replies): replies.
 ;;; - (retweeted_by_me): retweets posted by the authenticating user.
@@ -4523,17 +4528,17 @@ Before calling this, you have to configure `twittering-bitly-login' and
 ;;; - (retweeted_to_me): retweets posted by the authenticating user's friends.
 ;;; - (retweeted_to_user USER): retweets posted to the user.
 ;;; - (retweets_of_me):
-;;;     tweets of the authenticated user that have been retweeted by others.
+;;;	tweets of the authenticated user that have been retweeted by others.
 ;;; - (single ID): the single tweet specified by ID.
 ;;;
 ;;; - (search STRING): the result of searching with query STRING.
 ;;;
 ;;; - (exclude-if FUNC SPEC):
-;;;     the same timeline as SPEC, except that it does not include tweets
-;;;     that FUNC returns non-nil for.
+;;;	the same timeline as SPEC, except that it does not include tweets
+;;;	that FUNC returns non-nil for.
 ;;; - (exclude-re REGEXP-STRING SPEC):
-;;;     the same timeline as SPEC, except that it does not include tweets
-;;;     that matches the regular expression specified by REGEXP-STRING.
+;;;	the same timeline as SPEC, except that it does not include tweets
+;;;	that matches the regular expression specified by REGEXP-STRING.
 ;;;
 ;;; - (merge SPEC1 SPEC2 ...): result of merging timelines SPEC1 SPEC2 ...
 ;;;
@@ -4542,10 +4547,10 @@ Before calling this, you have to configure `twittering-bitly-login' and
 ;;;
 ;;; SPEC ::= PRIMARY | COMPOSITE
 ;;; PRIMARY ::= USER | LIST | DIRECT_MESSSAGES | DIRECT_MESSSAGES_SENT
-;;;             | FRIENDS | HOME | MENTIONS | PUBLIC | REPLIES
-;;;             | RETWEETED_BY_ME | RETWEETED_BY_USER
-;;;             | RETWEETED_TO_ME | RETWEETED_TO_USER | RETWEETS_OF_ME
-;;;             | SEARCH
+;;;		| FRIENDS | HOME | MENTIONS | PUBLIC | REPLIES
+;;;		| RETWEETED_BY_ME | RETWEETED_BY_USER
+;;;		| RETWEETED_TO_ME | RETWEETED_TO_USER | RETWEETS_OF_ME
+;;;		| SEARCH
 ;;; COMPOSITE ::= EXCLUDE-IF | EXCLUDE-RE | MERGE
 ;;;
 ;;; USER ::= /[a-zA-Z0-9_-]+/
@@ -5357,7 +5362,7 @@ Return nil if URL-STRING cannot be interpreted as a URL pointing a tweet."
 	 ;; This corresponds to 2010-11-04 01:42:54+00:00 in RFC3339.
 	 ;; The value comes from the following page.
 	 ;; https://github.com/twitter/snowflake/blob/6d4634aa490de26e22425538291fe0a03071a170/src/main/scala/com/twitter/service/snowflake/IdWorker.scala#L22
-	 ;; 22    val twepoch = 1288834974657L
+	 ;; 22	  val twepoch = 1288834974657L
 	 "1288834974657"))
     (let ((str
 	   (calc-eval `(,(concat "floor(10#" epoch-str "/10#1000)")
@@ -5398,7 +5403,7 @@ by Snowflake."
     ;; Nov 04 2010, the average number of tweets per day will exceed
     ;; 533 million.
     ;; ( 10^11 - 18,700,887,835 > 80,000,000,000
-    ;;   80 billion / 5 month (from Jul 16 to Nov 4) > 533 million / day )
+    ;;	 80 billion / 5 month (from Jul 16 to Nov 4) > 533 million / day )
     ;;
     ;; It is impossible.
     ;; So, I assume that an ID is generated by Snowflake if the ID consists of
@@ -5433,7 +5438,7 @@ by Snowflake."
 
 (defun twittering-time-to-id (time)
   "Return the ID corresponding to TIME by Snowflake.
-Bits other than timestamp are zero. The least significant 22 bits are zero.
+Bits other than timestamp are zero.  The least significant 22 bits are zero.
 TIME must be an Emacs internal representation as a return value of
 `current-time'."
   (require 'calc)
@@ -5513,7 +5518,7 @@ TIME must be an Emacs internal representation as a return value of
 
 (defun twittering-update-api-table (spec api-string)
   "Register a pair of a timeline spec and an API for retrieving the timeline.
-SPEC is a timeline spec. API-STRING is an identifier of an API for retrieving
+SPEC is a timeline spec.  API-STRING is an identifier of an API for retrieving
 the timeline."
   (let ((current (assoc spec twittering-timeline-spec-to-api-table)))
     (if (null current)
@@ -5552,8 +5557,8 @@ one bound to reset-time is an Emacs time (result of `seconds-to-time')."
 
 (defun twittering-update-rate-limit-info (api-string spec header-info)
   "Register rate-limit information.
-API-STRING is an identifier of an API. SPEC is a timeline spec that had been
-retrieved by the API. HEADER-INFO is an alist generated from the HTTP response
+API-STRING is an identifier of an API.	SPEC is a timeline spec that had been
+retrieved by the API.  HEADER-INFO is an alist generated from the HTTP response
 header of the API."
   (let* ((api-string
 	  (if (eq twittering-service-method 'twitter)
@@ -7376,8 +7381,8 @@ GAP-LIST must be generated by `twittering-make-gap-list'."
 	  nil)))
 
   (mapcar #'twittering-normalize-raw-status
- 	  ;; quirk to treat difference between xml.el in Emacs21 and Emacs22
- 	  ;; On Emacs22, there may be blank strings
+	  ;; quirk to treat difference between xml.el in Emacs21 and Emacs22
+	  ;; On Emacs22, there may be blank strings
 	  (remove nil (mapcar (lambda (x)
 				(if (consp x) x))
 			      xmltree))))
@@ -7385,10 +7390,10 @@ GAP-LIST must be generated by `twittering-make-gap-list'."
 (defun twittering-decode-entities-after-parsing-xml (encoded-str)
   "Decode ENCODED-STR retrieved by parsing XML and return the result.
 On Emacs 22 and later, `xml-parse-region' resolves numeric character
-references. It is redundant to resolve numeric character references
-again. However, in a XML response from Twitter, the two characters,
+references.  It is redundant to resolve numeric character references
+again.	However, in a XML response from Twitter, the two characters,
 \"<\" and \">\", are doubly escaped as \"&amp;lt;\" and \"&amp;gt;\",
-respectively. Then, they are represented as \"&lt;\" and \"&gt;\" in
+respectively.  Then, they are represented as \"&lt;\" and \"&gt;\" in
 the result of `xml-parse-region'. This function decodes them.
 
 On Emacs 21, `xml-parse-region' does not resolve numeric character
@@ -7878,7 +7883,7 @@ to the current one."
 	(twittering-toggle-activate-buffer buffer)))))
 
 (defun twittering-toggle-activate-buffer (&optional buffer)
-  "Toggle whether to retrieve timeline for the current buffer periodically."
+  "Toggle whether to retrieve timeline for the current BUFFER periodically."
   (interactive)
   (let ((buffer (or buffer (current-buffer))))
     (when (twittering-buffer-p buffer)
@@ -8509,7 +8514,7 @@ static char * disconnected[] = {
 (defun twittering-get-common-properties (pos)
   "Get a common property list of the tweet rendered at POS.
 The common property list is added to each rendered tweet irrespective
-of format. The common properties follows:
+of format.  The common properties follows:
  properites generated by `twittering-make-common-properties',
  `field' and `rendered-as' generated by `twittering-render-a-field' or
  `twittering-make-properties-of-popped-ancestors'."
@@ -8523,13 +8528,13 @@ of format. The common properties follows:
 
 (defun twittering-format-string (string prefix replacement-table)
   "Format STRING according to PREFIX and REPLACEMENT-TABLE.
-PREFIX is a regexp. REPLACEMENT-TABLE is a list of (FROM . TO) pairs,
+PREFIX is a regexp.  REPLACEMENT-TABLE is a list of (FROM . TO) pairs,
 where FROM is a regexp and TO is a string or a 2-parameter function.
 
 The pairs in REPLACEMENT-TABLE are stored in order of precedence.
 First, search PREFIX in STRING from left to right.
 If PREFIX is found in STRING, try to match the following string with
-FROM of each pair in the same order of REPLACEMENT-TABLE. If FROM in
+FROM of each pair in the same order of REPLACEMENT-TABLE.  If FROM in
 a pair is matched, replace the prefix and the matched string with a
 string generated from TO.
 If TO is a string, the matched string is replaced with TO.
@@ -10405,7 +10410,7 @@ been initialized yet."
    (twittering-account-authorized-p)))
 
 (defun twittering-ensure-preparation-for-api-invocation ()
-  "Ensure prerequisites for invoking APIs. Return non-nil in success.
+  "Ensure prerequisites for invoking APIs.  Return non-nil in success.
 If prerequisites has been already satisifed, just return non-nil.
 If prerequisites are not satisfied, this function try to satisfy them.
 Then, return non-nil if they has been satisfied and return nil otherwise."
@@ -10451,17 +10456,17 @@ current context matches with PRED.
 PRED is nil, a symbol or a function.
 If PRED is nil, the value is unconditionally performed.
 If PRED is a symbol, the value is performed only when it equals to the
-type of the tweet being edited. The type is one of 'direct-message, 'normal,
+type of the tweet being edited.	 The type is one of 'direct-message, 'normal,
 'organic-retweet and 'reply.
 If PRED is a function, the value is performed only when the predicate
-function PRED returns non-nil. PRED is invoked with three arguments
+function PRED returns non-nil.	PRED is invoked with three arguments
 TWEET-TYPE, IN-REPLY-TO-ID and CURRENT-SPEC.
 TWEET-TYPE is a symbol, which is one of 'direct-message, 'normal,
 'organic-retweet and 'reply, specifying which type of tweet will be edited.
 If the tweet will be edited as a reply or an organic retweet, IN-REPLY-TO-ID
-is a string specifying the replied tweet. Otherwise, IN-REPLY-TO-ID is nil.
+is a string specifying the replied tweet.  Otherwise, IN-REPLY-TO-ID is nil.
 CURRENT-SPEC specifies where the action of posting a tweet is performed.
-If the action is performed on a twittering-mode buffer, CURRENT-SPEC is
+If the action is performed on a `twittering-mode' buffer, CURRENT-SPEC is
 a timeline spec string of the buffer.
 If the action is performed on other buffers, CURRENT-SPEC is nil.
 If the option IGNORE-CURRENT-SPEC for `twittering-update-status' is non-nil,
@@ -11425,7 +11430,7 @@ The first argument INIT-STRING-OR-SKELETON is nil, an initial text or a
 skeleton to be inserted with `skeleton-insert'.
 REPLY-TO-ID is an ID of a tweet which you are going to cite or reply to.
 USERNAME is a recipient of a direct message.
-TWEET-TYPE is a symbol meaning the type of the tweet being edited. It must
+TWEET-TYPE is a symbol meaning the type of the tweet being edited.  It must
 be one of 'direct-message, 'normal, 'organic-retweet and 'reply.
 If TWEET-TYPE is nil, it is equivalent to 'normal, which means that a tweet
 is edited as a normal tweet.
@@ -12209,7 +12214,7 @@ and a tweet is pointed, the URI to the tweet is insteadly pushed."
 ;;;; Suspend
 
 (defun twittering-suspend ()
-  "Suspend twittering-mode then switch to another buffer."
+  "Suspend `twittering-mode' then switch to another buffer."
   (interactive)
   (switch-to-buffer (other-buffer)))
 
@@ -12254,10 +12259,10 @@ of the order of `windows.el' and the configuration."
    (twittering-revive:prop-get-value x 'twittering-timeline-spec-string)))
 
 (defun twittering-setup-revive ()
-  "Prepare the configuration of `revive.el' for twittering-mode.
+  "Prepare the configuration of `revive.el' for `twittering-mode'.
 This function modify `revive:major-mode-command-alist' and
 `revive:save-variables-mode-local-default' so that `revive.el' can restore
-the timeline buffers of twittering-mode.
+the timeline buffers of `twittering-mode'.
 
 This function must be invoked after loading `revive.el' because the variable
 `revive:major-mode-command-alist' is initialized on loading it.
@@ -12274,7 +12279,7 @@ Note that the current implementation assumes `revive.el' 2.19 ."
 
 ;;;###autoload
 (defun twit ()
-  "Start twittering-mode."
+  "Start `twittering-mode'."
   (interactive)
   (twittering-mode))
 

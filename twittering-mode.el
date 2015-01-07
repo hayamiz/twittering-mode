@@ -7998,7 +7998,12 @@ return nil."
 	  (default-directory temporary-file-directory))
       (insert image-data)
       (let* ((args
-	      `(,@(when (<= emacs-major-version 22)
+	      `(,@(when (string-match "gm\\(\\.exe\\)?$"
+				      twittering-convert-program)
+		    ;; Add command line convert option in case
+		    ;; GraphicsMagick is invoked.
+		    '("convert"))
+		,@(when (<= emacs-major-version 22)
 		    ;; Emacs22 and earlier raises "Color allocation error"
 		    ;; on decoding a XPM image with opacity. To ignore
 		    ;; opacity, the option "+matte" is added.

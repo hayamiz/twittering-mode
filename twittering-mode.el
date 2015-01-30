@@ -10106,6 +10106,7 @@ If FORCE is non-nil, all active buffers are updated forcibly."
       (define-key km (kbd "b") 'twittering-switch-to-previous-timeline)
       ;; (define-key km (kbd "j") 'next-line)
       ;; (define-key km (kbd "k") 'previous-line)
+      (define-key km (kbd "C-c f") 'twittering-favorite)
       (define-key km (kbd "j") 'twittering-goto-next-status)
       (define-key km (kbd "k") 'twittering-goto-previous-status)
       (define-key km (kbd "l") 'forward-char)

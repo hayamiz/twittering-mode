@@ -131,21 +131,20 @@ command included in `tls-program', which may be `openssl' or
 
 (defvar twittering-account-authorization nil
   "State of account authorization for `twittering-username' and
-`twittering-password'.	The value is one of the following symbols:
+`twittering-password'.  The value is one of the following symbols:
 nil -- The account have not been authorized yet.
 queried -- The authorization has been queried, but not finished yet.
 authorized -- The account has been authorized.")
 
 (defcustom twittering-oauth-use-ssl t
-  "When *non-nil*, use SSL authentication for OAuth.
+  "*If non-nil, use SSL authentication for OAuth.
 
 Twitter requires SSL on authorization via OAuth."
   :group 'twittering-mode
   :type 'boolean)
 
-
 (defcustom twittering-oauth-invoke-browser nil
-  "When *non-nil*, invoke a browser on authorization of access key automatically."
+  "*If non-nil, invoke a browser on authorization of access key automatically."
   :type 'boolean
   :group 'twittering-mode)
 
@@ -157,19 +156,19 @@ Twitter requires SSL on authorization via OAuth."
   "The maximum number of `twittering-number-of-tweets-on-retrieval'.")
 
 (defcustom twittering-number-of-tweets-on-retrieval 20
-  "Number of tweets which will be retrieved in one request.
+  "*Number of tweets which will be retrieved in one request.
 
 The upper limit is `twittering-max-number-of-tweets-on-retrieval'."
   :type 'integer
   :group 'twittering-mode)
 
 (defcustom twittering-tinyurl-service 'tinyurl
-  "Shorten URI service to use.
+  "*Shorten URI service to use.
 
 This must be one of key symbols of `twittering-tinyurl-services-map'.
 
-To use 'bit.ly or 'j.mp services, you have to configure `twittering-bitly-login' and
-`twittering-bitly-api-key'."
+To use bit.ly or j.mp services, you have to configure
+`twittering-bitly-login' and `twittering-bitly-api-key'."
   :type '(radio (symbol :tag "bit.ly"
 			:value bit.ly)
 		(symbol :tag "goo.gl"
@@ -238,7 +237,6 @@ THE-SECOND-ELEMENT service-symbol HTTP-reply-string)' and its result is used
 as a shortened URL."
   :type 'alist
   :group 'twittering-mode)
-
 
 (defcustom twittering-bitly-login nil
   "*The login name for URL shortening service bit.ly and j.mp."
@@ -330,11 +328,11 @@ For the style \"$NAME(ARG)\", the function is called with a string ARG.
 For example, if you specify
  `((\"FRIENDS\" . \"my-account/friends-list\")
    (\"related-to\" .
-	    ,(lambda (username)
-	       (if username
-		   (format \":search/to:%s OR from:%s OR @%s/\"
-			   username username username)
-		 \":home\")))),
+            ,(lambda (username)
+               (if username
+                   (format \":search/to:%s OR from:%s OR @%s/\"
+                           username username username)
+                 \":home\")))),
 then you can use \"$FRIENDS\" and \"$related-to(USER)\" as
 \"my-account/friends-list\" and \":search/to:USER OR from:USER OR @USER/\",
 respectively."
@@ -406,7 +404,7 @@ This variable is bound when invoking hooks registered with
 (defvar twittering-rendered-new-tweets nil
   "A list of newly rendered tweets.
 Hooks registered with `twittering-new-tweets-rendered-hook' can use this
-variable as a list of rendered tweets.	Each tweet is represented as an alist.
+variable as a list of rendered tweets. Each tweet is represented as an alist.
 You can refer to a property of a tweet alist as
  (cdr (assq PROPERTY-SYMBOL TWEET-ALIST)).
 Valid symbols are following; id, text, user-name, user-screen-name, user-id,
@@ -614,7 +612,7 @@ If nil, this is initialized with a list of valied entries extracted from
   :group 'twittering-mode)
 
 (defun twittering-connection-build-customize-option ()
-  "Generate a valid `defcustom' entry to buid `twittering-connection-type-table' variable."
+  "Generate a valid `defcustom' entry to build `twittering-connection-type-table' variable."
   (list 'repeat
 	(list
 	 'cons :tag "Connection"
@@ -643,40 +641,38 @@ If nil, this is initialized with a list of valied entries extracted from
 
 (defcustom twittering-connection-type-table
   '((native
-      (check . t)
-      (send-http-request . twittering-send-http-request-native)
-      (pre-process-buffer . twittering-pre-process-buffer-native))
-     (curl
-      (check . twittering-start-http-session-curl-p)
-      (https . twittering-start-http-session-curl-https-p)
-      (send-http-request . twittering-send-http-request-curl)
-      (pre-process-buffer . twittering-pre-process-buffer-curl))
-     (wget
-      (check . twittering-start-http-session-wget-p)
-      (https . ignore)
-      (send-http-request . twittering-send-http-request-wget)
-      (pre-process-buffer . twittering-pre-process-buffer-wget))
-     (urllib-http
-      (display-name . "urllib")
-      (check . twittering-start-http-session-urllib-p)
-      (https)
-      (send-http-request . twittering-send-http-request-urllib)
-      (pre-process-buffer . twittering-pre-process-buffer-urllib))
-     (urllib-https
-      (display-name . "urllib")
-      (check . twittering-start-http-session-urllib-p)
-      (https . twittering-start-http-session-urllib-https-p)
-      (send-http-request . twittering-send-http-request-urllib)
-      (pre-process-buffer . twittering-pre-process-buffer-urllib)))
+     (check . t)
+     (send-http-request . twittering-send-http-request-native)
+     (pre-process-buffer . twittering-pre-process-buffer-native))
+    (curl
+     (check . twittering-start-http-session-curl-p)
+     (https . twittering-start-http-session-curl-https-p)
+     (send-http-request . twittering-send-http-request-curl)
+     (pre-process-buffer . twittering-pre-process-buffer-curl))
+    (wget
+     (check . twittering-start-http-session-wget-p)
+     (https . ignore)
+     (send-http-request . twittering-send-http-request-wget)
+     (pre-process-buffer . twittering-pre-process-buffer-wget))
+    (urllib-http
+     (display-name . "urllib")
+     (check . twittering-start-http-session-urllib-p)
+     (https . nil)
+     (send-http-request . twittering-send-http-request-urllib)
+     (pre-process-buffer . twittering-pre-process-buffer-urllib))
+    (urllib-https
+     (display-name . "urllib")
+     (check . twittering-start-http-session-urllib-p)
+     (https . twittering-start-http-session-urllib-https-p)
+     (send-http-request . twittering-send-http-request-urllib)
+     (pre-process-buffer . twittering-pre-process-buffer-urllib)))
   "A list of alist of connection methods."
   :group 'twittering-mode
   :type (twittering-connection-build-customize-option))
 
-(defcustom twittering-format-status-function-source ""
-  "Status format string that has generated the current `twittering-format-status-function'."
-  :group 'twittering-mode
-  :type 'string)
-
+(defvar twittering-format-status-function-source ""
+  "The status format string that has generated the current
+`twittering-format-status-function'.")
 (defvar twittering-format-status-function nil
   "The formating function generated from `twittering-format-status-function-source'.")
 (defvar twittering-format-status-function-without-compile nil
@@ -686,17 +682,17 @@ which is a lambda expression without being compiled.")
 (defvar twittering-timeline-data-table (make-hash-table :test 'equal))
 
 (defcustom twittering-username-face 'twittering-username-face
-  "Face used to display USERNAME."
+  "*Face used to display USERNAME."
   :type 'face
   :group 'twittering-mode)
 
 (defcustom twittering-uri-face 'twittering-uri-face
-  "Face used to display URIs."
+  "*Face used to display URIs."
   :type 'face
   :group 'twittering-mode)
 
 (defcustom twittering-use-native-retweet nil
-  "If *non-nil* post retweet using native retweets."
+  "*If non-nil, post retweet using native retweets."
   :type 'boolean
   :group 'twittering-mode)
 
@@ -714,8 +710,10 @@ CURRENT-SPEC means on which timeline the function is called.
 Twittering-mode provides two functions for updating status:
 * `twittering-update-status-from-minibuffer': edit tweets in minibuffer
 * `twittering-update-status-from-pop-up-buffer': edit tweets in pop-up buffer"
-  :type '(choice  (const :tag "built-in: from minibuffer" twittering-update-status-from-minibuffer)
-		  (const :tag "built-in: from a popup buffer" twittering-update-status-from-pop-up-buffer)
+  :type '(choice  (const :tag "built-in: from minibuffer"
+			 twittering-update-status-from-minibuffer)
+		  (const :tag "built-in: from a popup buffer"
+			 twittering-update-status-from-pop-up-buffer)
 		  (function :tag "Your own function"))
   :group 'twittering-mode)
 
@@ -746,8 +744,7 @@ pop-up buffer."
 (defvar twittering-search-api-method "search")
 (defvar twittering-web-path-prefix "")
 
-;; FIXME: change alist to something more accurate
-(defcustom twittering-service-method-table
+(defconst twittering-service-method-table
   '((twitter (status-url . twittering-get-status-url-twitter)
 	     (search-url . twittering-get-search-url-twitter))
     (twitter-api-v1.1
@@ -755,9 +752,7 @@ pop-up buffer."
      (search-url . twittering-get-search-url-twitter))
     (statusnet (status-url . twittering-get-status-url-statusnet)
 	       (search-url . twittering-get-search-url-statusnet)))
-  "A list of alist of service methods."
-  :type 'alist
-  :group 'twittering-mode)
+  "A list of alist of service methods.")
 
 (defcustom twittering-service-method 'twitter-api-v1.1
   "*Service method for `twittering-mode'.
@@ -769,8 +764,8 @@ Default to `twitter-api-v1.1' which is an alias for `twitter'.
 
 See also `twittering-service-method-table'."
   :type (if (> (length (mapcar #'car twittering-service-method-table)) 0)
-	    `(choice ,@(mapcar (lambda (s) `(const ,s))
-			       (mapcar #'car twittering-service-method-table)))
+	    `(choice ,@(mapcar (lambda (entry) `(const ,(car entry)))
+			       twittering-service-method-table))
 	  'symbol)
   :group 'twittering-mode)
 
@@ -804,7 +799,8 @@ Its face is specified by `twittering-timeline-footer-face'."
   :type 'string
   :group 'twittering-mode)
 
-(defcustom twittering-pop-to-buffer-function 'twittering-pop-to-buffer-in-bottom-largest-window
+(defcustom twittering-pop-to-buffer-function
+  'twittering-pop-to-buffer-in-bottom-largest-window
   "*Function being invoked by `twittering-pop-to-buffer'.
 
 It will receive an argument, the buffer being selected.
@@ -1058,7 +1054,7 @@ as a list of a string on Emacs21."
   (defun twittering-assoc-string (key list &optional case-fold)
     "Like `assoc' but specifically for strings (and symbols).
 This returns the first element of LIST whose car matches the string or
-symbol KEY, or nil if no match exists.	When performing the
+symbol KEY, or nil if no match exists.  When performing the
 comparison, symbols are first converted to strings, and unibyte
 strings to multibyte.  If the optional arg CASE-FOLD is non-nil, case
 is ignored.
@@ -1141,7 +1137,7 @@ defined in Emacs21."
   :group 'twittering-mode)
 
 (defcustom twittering-proxy-use nil
-  "When non-nil, use PROXY.
+  "*If non-nil, use PROXY.
 
 See also `twittering-proxy-server' for documentation."
   :type 'boolean
@@ -1782,11 +1778,11 @@ in \"hash format\". In detail, see verify(1SSL)."
 TABLE is connection type table, which is an alist of type symbol and its
 item alist, such as
  '((native (check . t)
-	   (https . twittering-start-http-session-native-tls-p)
-	   (start . twittering-start-http-session-native))
+           (https . twittering-start-http-session-native-tls-p)
+           (start . twittering-start-http-session-native))
    (curl (check . twittering-start-http-session-curl-p)
-	 (https . twittering-start-http-session-curl-https-p)
-	 (start . twittering-start-http-session-curl))) .
+         (https . twittering-start-http-session-curl-https-p)
+         (start . twittering-start-http-session-curl))) .
 ORDER means the priority order of type symbols.
 If USE-SSL is nil, the item `https' is ignored.
 When the type `curl' has priority and is available for the above table,
@@ -3127,7 +3123,7 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
 	 ((string= status-code "404")
 	  (format "The tweet with ID %s does not exist." id))
 	 (twittering-notify-successful-http-get
-	  (format "Fetching %s.	 Success." id))
+	  (format "Fetching %s.  Success." id))
 	 (t
 	  nil))))
      (t
@@ -3433,7 +3429,7 @@ their multibyte data.  Most callers will want to use UTF-8
 encoding, which we can generate as follows:
 
   (let ((unibyte-key   (encode-coding-string key   'utf-8 t))
-	(unibyte-value (encode-coding-string value 'utf-8 t)))
+        (unibyte-value (encode-coding-string value 'utf-8 t)))
     (twittering-hmac-sha1 unibyte-key unibyte-value))
 
 For keys and values that are already unibyte, the
@@ -3458,8 +3454,8 @@ For keys and values that are already unibyte, the
 ;;; their multibyte data.  Most callers will want to use UTF-8
 ;;; encoding, which we can generate as follows:
 ;;;
-;;; (let ((unibyte-key	 (encode-coding-string key   'utf-8 t))
-;;;	  (unibyte-value (encode-coding-string value 'utf-8 t)))
+;;; (let ((unibyte-key   (encode-coding-string key   'utf-8 t))
+;;;       (unibyte-value (encode-coding-string value 'utf-8 t)))
 ;;; (hmac-sha1 unibyte-key unibyte-value))
 ;;;
 ;;; For keys and values that are already unibyte, the
@@ -3764,15 +3760,15 @@ like following:
 	   (propertize "Authorization via OAuth\n" 'face 'bold)
 	   "\n"
 	   "1.Allow access by " consumer-name " on the below site.\n"
-	   "\n	"
+	   "\n  "
 	   (propertize authorize-url 'url authorize-url 'face 'bold)
 	   "\n"
 	   "\n"
 	   (when twittering-oauth-invoke-browser
 	     (concat
-	      "	 Emacs invokes your browser by the function `browse-url'.\n"
-	      "	 If the site is not opened automatically, you have to open\n"
-	      "	 the site manually.\n"
+	      "  Emacs invokes your browser by the function `browse-url'.\n"
+	      "  If the site is not opened automatically, you have to open\n"
+	      "  the site manually.\n"
 	      "\n"))
 	   "2.After allowing access, the site will display the PIN code."
 	   "\n"
@@ -10037,7 +10033,7 @@ all of ancestor replied statuses have been already rendered, hide them by
 		(or (twittering-get-next-status-head pos)
 		    (point-max))))
 	     (field-id (twittering-make-field-id-from-id reply-id base-id))
-	     (prefix "	")
+	     (prefix "  ")
 	     (label "[RETRIEVING...]")
 	     (symbol-for-redisplay 'waiting-for-retrieval)
 	     (properties
@@ -10446,7 +10442,7 @@ If FORCE is non-nil, all active buffers are updated forcibly."
 ;;  0.1 t
 ;;  '(lambda ()
 ;;     (when (equal (buffer-name (current-buffer)) twittering-buffer)
-;;	 (message (twittering-keybind-message)))))
+;;       (message (twittering-keybind-message)))))
 
 
 ;;;;
@@ -10619,7 +10615,7 @@ Then, return non-nil if they has been satisfied and return nil otherwise."
 ;;;;
 
 (defcustom twittering-edit-skeleton-footer ""
-  "String to use as the SKELETON footer."
+  "*String to be used as the footer in the edit skeleton."
   :group 'twittering-mode
   :type 'string)
 
@@ -10681,19 +10677,19 @@ recipient."
   :group 'twittering-mode
   :type 'alist)
 
-
 (defcustom twittering-edit-skeleton 'none
   "*A symbol specifying an effective skeleton.
 
 The list of valid value is defined in `twittering-edit-skeleton-alist'.
-To be valid, an entry should be added to `twittering-edit-skeleton-alist' first.
+To be valid, an entry should be added to `twittering-edit-skeleton-alist'
+first.
 
 When entering `twittering-edit-mode', the skeletons in the specified
 entry in `twittering-edit-skeleton-alist' are performed."
   :group 'twittering-mode
   :type (if (> (length (mapcar #'car twittering-edit-skeleton-alist)) 0)
-	    `(choice ,@(mapcar (lambda (s) `(const ,s))
-			       (mapcar #'car twittering-edit-skeleton-alist)))
+	    `(choice ,@(mapcar (lambda (entry) `(const ,(car entry)))
+			       twittering-edit-skeleton-alist))
 	  'symbol))
 
 (defun twittering-switch-edit-skeleton ()
@@ -12470,9 +12466,9 @@ timeline buffers of `twittering-mode' by using this function.
 There are two ways of configurations as follows;
 1.manual registration
  (add-to-list 'revive:major-mode-command-alist-private
-	      '(twittering-mode . twittering-revive:twittering))
+              '(twittering-mode . twittering-revive:twittering))
  (add-to-list 'revive:save-variables-local-private
-	      '(twittering-mode twittering-timeline-spec-string))
+              '(twittering-mode twittering-timeline-spec-string))
  (require 'revive)
 
 2.automatic registration (for revive.el 2.19)

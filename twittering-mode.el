@@ -285,7 +285,7 @@ Each time Emacs remains idle for the interval, twittering-mode updates parts
 requiring to be redrawn.")
 
 (defcustom twittering-username nil
-  "*An username of your Twitter account."
+  "*A username of your Twitter account."
   :type '(choice (const nil)
 		 string)
   :group 'twittering-mode)
@@ -472,7 +472,7 @@ Items:
  %p - protected?
  %c - created_at (raw UTC string)
  %C{time-format-str} - created_at (formatted with time-format-str)
- %@ - X seconds ago
+ %@{time-format-str} - X seconds ago (formatted with time-format-str)
  %T - raw text
  %t - text filled as one paragraph
  %' - truncated
@@ -573,9 +573,9 @@ when it conflict with your input method (such as AquaSKK, etc.)"
 (defvar twittering-notify-successful-http-get t)
 
 (defcustom twittering-use-ssl t
-  "Use SSL connection if this variable is non-nil.
+  "*Use SSL connection if this variable is non-nil.
 
-SSL connections use 'curl' command as a backend."
+SSL connections use an external command as a backend."
   :type 'boolean
   :group 'twittering-mode)
 
@@ -698,8 +698,10 @@ which is a lambda expression without being compiled.")
 
 (defcustom twittering-update-status-function
   'twittering-update-status-from-pop-up-buffer
-  "The function used to posting a tweet. It takes 5 arguments,
-INIT-STR, REPLY-TO-ID, USERNAME, TWEET-TYPE, CURRENT-SPEC.
+  "*The function which is used to post a tweet.
+
+It takes the following 5 arguments, INIT-STR, REPLY-TO-ID, USERNAME,
+TWEET-TYPE and CURRENT-SPEC.
 The first argument INIT-STR is nil or an initial text to be edited.
 REPLY-TO-ID and USERNAME are an ID and a user-screen-name of a tweet to
 which you are going to reply. If the tweet is not a reply, they are nil.
@@ -718,13 +720,13 @@ Twittering-mode provides two functions for updating status:
   :group 'twittering-mode)
 
 (defcustom twittering-request-confirmation-on-posting nil
-  "*If *non-nil*, confirmation will be requested on posting a tweet edited in
+  "*If non-nil, confirmation will be requested on posting a tweet edited in
 pop-up buffer."
   :type 'boolean
   :group 'twittering-mode)
 
 (defcustom twittering-use-master-password nil
-  "*When *non-nil* store private information encrypted with a master password."
+  "*If non-nil, store private information encrypted with a master password."
   :type 'boolean
   :group 'twittering-mode)
 
@@ -1444,7 +1446,10 @@ SCHEME must be \"http\" or \"https\"."
 ;;;;
 
 (defcustom twittering-url-show-status nil
-  "*Whether to show a running total of bytes transferred."
+  "*If non-nil, show a running total of bytes transferred by urllib.
+
+This has effect only if either \"urllib-httpp\" or \"urllib-https\" is used
+as the connection method."
   :group 'twittering-mode
   :type 'boolean)
 
@@ -8158,20 +8163,23 @@ icon and the value is a hash. The key of the child hash is URL and its value
 is the display property for the icon.")
 
 (defcustom twittering-convert-program (executable-find "convert")
-  "Command to use to do image conversion. E.g \"convert\" (the default)."
+  "*A path of the command which is invoked for image conversion.
+
+The default is determined by searching \"convert\" in `exec-path'.
+The command must be compatible with \"convert\" of ImageMagick."
   :group 'twittering-mode
   :type 'file)
 
 (defcustom twittering-convert-fix-size 48
-  "Convert image to `twittering-convert-fix-size' size. If nil, image will be cropped."
+  "*Size of an icon image.
+
+If nil, an icon image is displayed as is."
   :group 'twittering-mode
   :type '(choice (const nil)
 		 integer))
 
 (defcustom twittering-use-convert (not (null twittering-convert-program))
-  "*This variable makes a sense only if `twittering-convert-fix-size'
-is non-nil. If this variable is non-nil, icon images are converted by
-invoking \"convert\". Otherwise, cropped images are displayed."
+  "*If non-nil, use \"convert\" for converting or resizing icon images."
   :group 'twittering-mode
   :type 'boolean)
 
@@ -9276,7 +9284,9 @@ If FORMAT-STR is invalid as a format, an error is signaled and
 
 (defun twittering-format-status (status &optional prefix)
   "Format a STATUS by using `twittering-format-status-function'.
-Specification of FORMAT-STR is described in the document for the
+PREFIX is the prefix that will be added to the result of this function.
+PREFIX is used in order to calculate appropriate width for filling texts.
+Specification of the format is described in the document for the
 variable `twittering-status-format'."
   (funcall twittering-format-status-function status prefix))
 

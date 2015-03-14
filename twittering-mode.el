@@ -10369,6 +10369,7 @@ If FORCE is non-nil, all active buffers are updated forcibly."
     (let ((km twittering-mode-map))
       (define-key km (kbd "C-c C-f") 'twittering-friends-timeline)
       (define-key km (kbd "C-c C-r") 'twittering-replies-timeline)
+      (define-key km (kbd "C-c C-n") 'twittering-mentions-timeline)
       (define-key km (kbd "C-c C-u") 'twittering-user-timeline)
       (define-key km (kbd "C-c C-d") 'twittering-direct-messages-timeline)
       (define-key km (kbd "C-c C-s") 'twittering-update-status-interactive)
@@ -10436,6 +10437,7 @@ If FORCE is non-nil, all active buffers are updated forcibly."
   (let ((important-commands
 	 '(("Timeline" . twittering-friends-timeline)
 	   ("Replies" . twittering-replies-timeline)
+	   ("Mentions" . twittering-mentions-timeline)
 	   ("Update status" . twittering-update-status-interactive)
 	   ("Next" . twittering-goto-next-status)
 	   ("Prev" . twittering-goto-previous-status))))
@@ -11487,6 +11489,10 @@ Pairs of a key symbol and an associated value are following:
 (defun twittering-replies-timeline ()
   (interactive)
   (twittering-visit-timeline '(replies)))
+
+(defun twittering-mentions-timeline ()
+  (interactive)
+  (twittering-visit-timeline '(mentions)))
 
 (defun twittering-public-timeline ()
   (interactive)

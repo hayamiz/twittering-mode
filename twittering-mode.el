@@ -6376,7 +6376,7 @@ get-service-configuration -- Get the configuration of the server.
 	    (cond
 	     ((eq spec-type 'user)
 	      (let ((username (elt spec 1)))
-		`("api.twitter.com"
+		`(,twittering-api-host
 		  "1.1/statuses/user_timeline"
 		  ("count" . ,number-str)
 		  ("include_entities" . "true")
@@ -6388,7 +6388,7 @@ get-service-configuration -- Get the configuration of the server.
 	     ((eq spec-type 'list)
 	      (let ((username (elt spec 1))
 		    (list-name (elt spec 2)))
-		`("api.twitter.com"
+		`(,twittering-api-host
 		  "1.1/lists/statuses"
 		  ("count" . ,number-str)
 		  ("include_entities" . "true")
@@ -6398,14 +6398,14 @@ get-service-configuration -- Get the configuration of the server.
 		  ,@(when since_id `(("since_id" . ,since_id)))
 		  ("slug" . ,list-name))))
 	     ((eq spec-type 'direct_messages)
-	      `("api.twitter.com"
+	      `(,twittering-api-host
 		"1.1/direct_messages"
 		("count" . ,number-str)
 		("include_entities" . "true")
 		,@(when max_id `(("max_id" . ,max_id)))
 		,@(when since_id `(("since_id" . ,since_id)))))
 	     ((eq spec-type 'direct_messages_sent)
-	      `("api.twitter.com"
+	      `(,twittering-api-host
 		"1.1/direct_messages/sent"
 		("count" . ,number-str)
 		("include_entities" . "true")
@@ -6413,7 +6413,7 @@ get-service-configuration -- Get the configuration of the server.
 		,@(when since_id `(("since_id" . ,since_id)))))
 	     ((eq spec-type 'favorites)
 	      (let ((user (elt spec 1)))
-		`("api.twitter.com"
+		`(,twittering-api-host
 		  "1.1/favorites/list"
 		  ("count" . ,number-str)
 		  ("include_entities" . "true")
@@ -6421,14 +6421,14 @@ get-service-configuration -- Get the configuration of the server.
 		  ,@(when user `(("screen_name" . ,user)))
 		  ,@(when since_id `(("since_id" . ,since_id))))))
 	     ((eq spec-type 'home)
-	      `("api.twitter.com"
+	      `(,twittering-api-host
 		"1.1/statuses/home_timeline"
 		("count" . ,number-str)
 		("include_entities" . "true")
 		,@(when max_id `(("max_id" . ,max_id)))
 		,@(when since_id `(("since_id" . ,since_id)))))
 	     ((eq spec-type 'mentions)
-	      `("api.twitter.com"
+	      `(,twittering-api-host
 		"1.1/statuses/mentions_timeline"
 		("count" . ,number-str)
 		("include_entities" . "true")
@@ -6448,7 +6448,7 @@ get-service-configuration -- Get the configuration of the server.
 	       spec)
 	      nil)
 	     ((eq spec-type 'retweets_of_me)
-	      `("api.twitter.com"
+	      `(,twittering-api-host
 		"1.1/statuses/retweets_of_me"
 		("count" . ,number-str)
 		("include_entities" . "true")
@@ -6456,13 +6456,13 @@ get-service-configuration -- Get the configuration of the server.
 		,@(when since_id `(("since_id" . ,since_id)))))
 	     ((eq spec-type 'single)
 	      (let ((id (elt spec 1)))
-		`("api.twitter.com"
+		`(,twittering-api-host
 		  "1.1/statuses/show"
 		  ("id" . ,id)
 		  ("include_entities" . "true"))))
 	     ((eq spec-type 'search)
 	      (let ((word (elt spec 1)))
-		`("api.twitter.com"
+		`(,twittering-api-host
 		  "1.1/search/tweets"
 		  ("count" . ,number-str)
 		  ("include_entities" . "true")
@@ -6534,7 +6534,7 @@ get-service-configuration -- Get the configuration of the server.
     ;; Get list names.
     (let* ((username (cdr (assq 'username args-alist)))
 	   (sentinel (cdr (assq 'sentinel args-alist)))
-	   (host "api.twitter.com")
+	   (host twittering-api-host)
 	   (method "1.1/lists/list")
 	   (http-parameters `(("screen_name" . ,username)))
 	   (format-str "json")
@@ -6545,7 +6545,7 @@ get-service-configuration -- Get the configuration of the server.
    ((eq command 'get-list-subscriptions)
     (let* ((username (cdr (assq 'username args-alist)))
 	   (sentinel (cdr (assq 'sentinel args-alist)))
-	   (host "api.twitter.com")
+	   (host twittering-api-host)
 	   (method "1.1/lists/subscriptions")
 	   (http-parameters
 	    `(("count" . "20")
@@ -6558,7 +6558,7 @@ get-service-configuration -- Get the configuration of the server.
    ((eq command 'create-friendships)
     ;; Create a friendship.
     (let* ((username (cdr (assq 'username args-alist)))
-	   (host "api.twitter.com")
+	   (host twittering-api-host)
 	   (method "1.1/friendships/create")
 	   (http-parameters
 	    `(("screen_name" . ,username)))
@@ -6568,7 +6568,7 @@ get-service-configuration -- Get the configuration of the server.
    ((eq command 'destroy-friendships)
     ;; Destroy a friendship
     (let* ((username (cdr (assq 'username args-alist)))
-	   (host "api.twitter.com")
+	   (host twittering-api-host)
 	   (method "1.1/friendships/destroy")
 	   (http-parameters
 	    `(("screen_name" . ,username)))
@@ -6578,7 +6578,7 @@ get-service-configuration -- Get the configuration of the server.
    ((eq command 'create-favorites)
     ;; Create a favorite.
     (let* ((id (cdr (assq 'id args-alist)))
-	   (host "api.twitter.com")
+	   (host twittering-api-host)
 	   (method "1.1/favorites/create")
 	   (http-parameters `(("id" . ,id)))
 	   (format-str "json"))
@@ -6587,7 +6587,7 @@ get-service-configuration -- Get the configuration of the server.
    ((eq command 'destroy-favorites)
     ;; Destroy a favorite.
     (let* ((id (cdr (assq 'id args-alist)))
-	   (host "api.twitter.com")
+	   (host twittering-api-host)
 	   (method "1.1/favorites/destroy")
 	   (http-parameters `(("id" . ,id)))
 	   (format-str "json"))
@@ -6597,7 +6597,7 @@ get-service-configuration -- Get the configuration of the server.
     ;; Post a tweet.
     (let* ((status (cdr (assq 'status args-alist)))
 	   (id (cdr (assq 'in-reply-to-status-id args-alist)))
-	   (host "api.twitter.com")
+	   (host twittering-api-host)
 	   (method "1.1/statuses/update")
 	   (http-parameters
 	    `(("status" . ,status)
@@ -6608,7 +6608,7 @@ get-service-configuration -- Get the configuration of the server.
    ((eq command 'destroy-status)
     ;; Destroy a status.
     (let* ((id (cdr (assq 'id args-alist)))
-	   (host "api.twitter.com")
+	   (host twittering-api-host)
 	   (method (format "1.1/statuses/destroy/%s" id))
 	   (http-parameters nil)
 	   (format-str "json"))
@@ -6618,7 +6618,7 @@ get-service-configuration -- Get the configuration of the server.
    ((eq command 'retweet)
     ;; Post a retweet.
     (let* ((id (cdr (assq 'id args-alist)))
-	   (host "api.twitter.com")
+	   (host twittering-api-host)
 	   (method (format "1.1/statuses/retweet/%s" id))
 	   (http-parameters nil)
 	   (format-str "json"))
@@ -6626,7 +6626,7 @@ get-service-configuration -- Get the configuration of the server.
 			    format-str additional-info)))
    ((eq command 'verify-credentials)
     ;; Verify the account.
-    (let* ((host "api.twitter.com")
+    (let* ((host twittering-api-host)
 	   (method "1.1/account/verify_credentials")
 	   (http-parameters nil)
 	   (format-str "json")
@@ -6637,7 +6637,7 @@ get-service-configuration -- Get the configuration of the server.
 			   sentinel clean-up-sentinel)))
    ((eq command 'send-direct-message)
     ;; Send a direct message.
-    (let* ((host "api.twitter.com")
+    (let* ((host twittering-api-host)
 	   (method "1.1/direct_messages/new")
 	   (http-parameters
 	    `(("screen_name" . ,(cdr (assq 'username args-alist)))
@@ -6649,7 +6649,7 @@ get-service-configuration -- Get the configuration of the server.
     ;; Mute a user.
     (let* ((user-id (cdr (assq 'user-id args-alist)))
 	   (username (cdr (assq 'username args-alist)))
-	   (host "api.twitter.com")
+	   (host twittering-api-host)
 	   (method
 	    (cdr (assq command '((mute . "1.1/mutes/users/create")
 				 (unmute . "1.1/mutes/users/destroy")))))
@@ -6663,7 +6663,7 @@ get-service-configuration -- Get the configuration of the server.
     ;; Block a user.
     (let* ((user-id (cdr (assq 'user-id args-alist)))
 	   (username (cdr (assq 'username args-alist)))
-	   (host "api.twitter.com")
+	   (host twittering-api-host)
 	   (method "1.1/blocks/create")
 	   (http-parameters (if user-id
 				`(("user_id" . ,user-id))
@@ -6675,7 +6675,7 @@ get-service-configuration -- Get the configuration of the server.
     ;; Report a user as a spammer and block him or her.
     (let* ((user-id (cdr (assq 'user-id args-alist)))
 	   (username (cdr (assq 'username args-alist)))
-	   (host "api.twitter.com")
+	   (host twittering-api-host)
 	   (method "1.1/users/report_spam")
 	   (http-parameters (if user-id
 				`(("user_id" . ,user-id))
@@ -6684,7 +6684,7 @@ get-service-configuration -- Get the configuration of the server.
       (twittering-http-post account-info-alist host method http-parameters
 			    format-str additional-info)))
    ((eq command 'get-service-configuration)
-    (let* ((host "api.twitter.com")
+    (let* ((host twittering-api-host)
 	   (method "1.1/help/configuration")
 	   (http-parameters nil)
 	   (format-str "json")

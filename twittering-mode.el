@@ -590,6 +590,9 @@ DO NOT SET VALUE MANUALLY.")
 (defvar twittering-curl-program-https-capability nil
   "Cache a result of `twittering-start-http-session-curl-https-p'.
 DO NOT SET VALUE MANUALLY.")
+(defvar twittering-curl-program-http2-capability nil
+  "Cache a result of `twittering-start-http-session-curl-http2-p'.
+DO NOT SET VALUE MANUALLY.")
 
 (defvar twittering-wget-program nil
   "Cache a result of `twittering-find-wget-program'.
@@ -2488,6 +2491,27 @@ The method to perform the request is determined from
 		  'incapable)))))
     (eq twittering-curl-program-https-capability 'capable)))
 
+(defun twittering-start-http-session-curl-http2-p ()
+  "Return t if the curl support HTTP2, otherwise nil."
+  (when (twittering-start-http-session-curl-p)
+    (unless twittering-curl-program-http2-capability
+      (with-temp-buffer
+	(let ((coding-system-for-read 'iso-safe)
+	      (coding-system-for-write 'iso-safe)
+	      ;; Bind `default-directory' to the temporary directory
+	      ;; because it is possible that the directory pointed by
+	      ;; `default-directory' has been already removed.
+	      (default-directory temporary-file-directory))
+	  (call-process twittering-curl-program
+			nil (current-buffer) nil
+			"--version")
+	  (goto-char (point-min))
+	  (setq twittering-curl-program-http2-capability
+		(if (search-forward-regexp "^Features:.* HTTP2" nil t)
+		    'capable
+		  'incapable)))))
+    (eq twittering-curl-program-http2-capability 'capable)))
+
 (defun twittering-send-http-request-curl (name buffer connection-info sentinel)
   (let* ((request (cdr (assq 'request connection-info)))
 	 (method (cdr (assq 'method request)))
@@ -2500,6 +2524,7 @@ The method to perform the request is determined from
 	 (proxy-user (cdr (assq 'proxy-user connection-info)))
 	 (proxy-password (cdr (assq 'proxy-password connection-info)))
 	 (use-ssl (cdr (assq 'use-ssl connection-info)))
+	 (use-http2 (twittering-start-http-session-curl-http2-p))
 	 (allow-insecure-server-cert
 	  (cdr (assq 'allow-insecure-server-cert connection-info)))
 	 (cacert-file-fullpath
@@ -2520,7 +2545,8 @@ The method to perform the request is determined from
 	    ;; http://www.escafrace.co.jp/blog/09/10/16/1008
 	    ("Expect" . "")))
 	 (curl-args
-	  `("--include" "--silent" "--compressed" "--http2"
+	  `("--include" "--silent" "--compressed"
+	    ,@(when use-http2 `("--http2"))
 	    ,@(apply 'append
 		     (mapcar
 		      (lambda (pair)

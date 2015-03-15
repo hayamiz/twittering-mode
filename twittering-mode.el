@@ -45,7 +45,8 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl)
+		   (require 'easymenu))
 (require 'xml)
 
 (eval-and-compile
@@ -89,6 +90,8 @@
 
 (defgroup twittering-mode nil
   "Settings for twittering-mode."
+  :link '(url-link "https://github.com/hayamiz/twittering-mode")
+  :prefix "twittering-"
   :group 'hypermedia)
 
 (defconst twittering-mode-version "HEAD")
@@ -12513,6 +12516,33 @@ Note that the current implementation assumes `revive.el' 2.19 ."
    (t
     (error "`revive' has not been loaded yet")
     nil)))
+
+(easy-menu-define twittering-mode-menu twittering-mode-map
+  "Menu used when Twittering major mode is active."
+  '("Twit"
+    ["Post a Tweet" twittering-update-status-interactive
+     :help "Create a new Tweet"]
+    "---"
+    ["Open timeline of user" twittering-other-user-timeline
+     :help "Open a various timeline"]
+    ["Open various timelines" twittering-visit-timeline
+     :help "Open a various timeline"]
+    "---"
+    ["Search..." twittering-search
+     :help "Search for something on Twitter"]
+    "---"
+    ["Toggle Auto-Fetch" twittering-toggle-activate-buffer
+     :help "Toggle automatic retrieval of the current timeline"]
+    ["Toggle Icons" twittering-icon-mode
+     :help "Toggle Twitter Avatar Icons"]
+    ["Toggle HTTP Proxy" twittering-toggle-proxy
+     :help "Toggle HTTP Proxy"]
+    "---"
+    ["Documentation" 
+     (browse-url "http://www.emacswiki.org/emacs-en/TwitteringMode")
+     :help "EmacsWiki help page"]
+    ["Settings" (customize-group 'twittering-mode)
+     :help "Twittering-mode settings"]))
 
 ;;;###autoload
 (defun twit ()

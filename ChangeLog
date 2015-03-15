@@ -1,3 +1,138 @@
+2015-02-01  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: twittering-mode.el: Fix docstrings.
+
+2015-01-31  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix indentation and tabs in docstrings.
+
+2015-01-31  Xavier Maillard  <xavier@maillard.im>
+
+	* twittering-mode.el: Install customize as much as
+	possible. Change many docstrings. Try to silent (a bit) checkdoc
+	checker tool. Update credits/copyrights.
+
+2015-01-31  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Update copyright.
+
+2015-01-05  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Add new format specifiers "%FIELD" and
+	"%FIELD-IF-NONZERO" to render a field of tweet.
+	(twittering-status-format): update docstring.
+	(twittering-generate-formater-for-first-spec): add new format
+	specifiers "%FIELD[...]{...}" and "%FIELD-IF-NONZERO[...]{...}".
+
+2015-01-04  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Move the footer line to the very end of the
+	file. The previous position were inconsistent with the conventions
+	of headers for Emacs libraries.
+
+2014-12-31  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Extract media entities from a JSON object.
+	(twittering-extract-common-element-from-json): extract media
+	entities.
+
+	* twittering-mode.el: Hide tweets matched with one of filter
+	patterns. Filter patterns can be defined with the new variable
+	`twittering-filter-alist'.
+	(twittering-filter-alist): new variable for specifying filters.
+	(twittering-generate-composite-timeline): exclude tweets matched
+	with one of filter patterns.
+	(twittering-get-filter-list-for-timeline-spec-string): new
+	function that returns filter pattern list for the given timeline.
+	(twittering-get-filter-list-for-timeline-spec): likewise.
+	(twittering-match-pattern): new function that returns non-nil if
+	the given tweet matches with the given pattern.
+	(twittering-match-pattern-list): new function that returns non-nil
+	if the given tweet matches with one of the given patterns.
+	(twittering-current-timeline-data): exclude tweets matched with
+	one of filter patterns.
+
+	* twittering-mode.el: Add new commands `twittering-mute' and
+	`twittering-unmute'.
+	(twittering-call-api-with-account): add new APIs mute/unmute to
+	the docstring.
+	(twittering-call-api-with-account-in-api1.1): implement new APIs
+	mute/unmute.
+	(twittering-mute): new command.
+	(twittering-unmute): new command.
+
+	* twittering-mode.el: Add the CA certificates issued by Equifax as
+	embedded CA certificates. The added certificates are used for a
+	HTTPS connection for Google URL Shortener, `goo.gl'.
+	(twittering-ca-cert-list): update CA certificates.
+	* update-cert.sh: Retrieve CA certificates issued by Equifax in
+	addition to those issued by Verisign.
+
+	* twittering-mode.el: Update embedded CA certificates.
+	(twittering-ca-cert-list): update CA certificates.
+
+	* twittering-mode.el: The timeline spec string "@" is equivalent
+	to ":mentions" instead of ":replies". "@" has been interpreted as
+	a shorten string of ":mentions", but
+	`twittering-timeline-spec-to-string' returned ":mentions" as the
+	shorten version of ":mentions".
+	(twittering-timeline-spec-to-string): interpret the timeline spec
+	string "@" as ":mentions" instead of ":replies".
+	* test/test-twittering-mode.el: The tests for timeline spec
+	strings related to "@" and ":mentions" are modified.
+
+2014-12-15  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Replace `sit-for' with `sleep-for' for
+	avoiding an infinite loop. On rare occasions, `sit-for' may return
+	immediately even when no input is available (See the document of
+	`input-pending-p'). Since Emacs does not update status of an
+	asynchronous process in those cases, a loop which uses `sit-for'
+	and waits for a finish of a process will wait infinitely. To avoid
+	the situation, invocations of `sit-for' are replaced with those of
+	`sleep-for'. Thanks to Ikumi Keita, who investigates the problem
+	and writes this patch.
+	(twittering-wait-while): use `sleep-for' instead of `sit-for'.
+	(twittering-oauth-get-token-alist-url): likewise.
+
+2014-04-21  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Normalize text properties of a tweet with
+	the Normalization Form Canonical Composition (NFC) defined in
+	Unicode Standard Annex #15.
+	(twittering-normalize-string): new function.
+	(twittering-make-gap-list): takes account of the normalization of
+	a tweet text with NFC.
+	(twittering-extract-common-element-from-json): normalize a tweet
+	text with NFC.
+	(twittering-json-object-to-a-status-base): normalize a source,
+	name, location and description of a tweet with NFC.
+
+2014-03-31  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Remove 'flet'.
+	(twittering-normalize-raw-status): replace 'flet' with a
+	combination of 'let' and 'lambda'.
+
+	* twittering-mode.el: Add marks and a script for updating CA
+	certificates automatically.
+	(twittering-ca-cert-list): add marks for updating CA certificates
+	automatically.
+	* update-cert.sh: Add a script to update CA certificates
+	automatically. This script retrieves certificates distributed on
+	the site of cURL.
+	* cert/*: Removed.
+
+	* twittering-mode.el: Update embedded CA certificates.
+	(twittering-ca-cert-list): update CA certificates.
+
+	* twittering-mode.el: Replace images that had been imported from
+	other softwares.
+	(twittering-ssl-indicator-image): replaced with an original
+	image.
+	(twittering-active-indicator-image): likewise.
+	(twittering-inactive-indicator-image): likewise.
+
 2013-12-12  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Embed root CA certificates to follow the

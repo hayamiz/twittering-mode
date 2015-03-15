@@ -187,12 +187,12 @@
     "(user+(user/mylist+(@))+:exclude-re/WORD/(USER2+:mentions))"
     '(merge (user "user")
 	    (merge (list "user" "mylist")
-		   (merge (replies)))
+		   (merge (mentions)))
 	    (exclude-re "WORD" (merge (user "USER2")
 				      (mentions))))
     '(merge (user "user")
 	    (list "user" "mylist")
-	    (replies)
+	    (mentions)
 	    (exclude-re "WORD" (merge (user "USER2")
 				      (mentions)))))
    '(t t))
@@ -253,10 +253,10 @@
     ":exclude-if/(lambda (tweet) (string-match \"test\\\\.\" (cdr (assq 'text tweet))))/@"
     '(exclude-if (lambda (tweet)
 		   (string-match "test\\." (cdr (assq 'text tweet))))
-		 (replies))
+		 (mentions))
     '(exclude-if (lambda (tweet)
 		   (string-match "test\\." (cdr (assq 'text tweet))))
-		 (replies)))
+		 (mentions)))
    '(t t))
 
   (test-assert-equal
@@ -350,13 +350,13 @@
   (test-assert-equal
    (let ((spec (twittering-string-to-timeline-spec "(:home+@+(@+:home))")))
      (twittering-get-primary-base-timeline-specs spec))
-   '((home) (replies)))
+   '((home) (mentions)))
 
   (test-assert-equal
    (let ((spec (twittering-string-to-timeline-spec
 		"(:home+@+:exclude-if/(lambda (x) t)/(@+:home+USER))")))
      (twittering-get-primary-base-timeline-specs spec))
-   '((home) (replies) (user "USER")))
+   '((home) (mentions) (user "USER")))
   )
 
 (defun format-status (status format-str)

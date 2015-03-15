@@ -1,14 +1,17 @@
 ;;; twittering-mode.el --- Major mode for Twitter
 
-;; Copyright (C) 2007, 2009, 2010 Yuto Hayamizu.
+;; Copyright (C) 2009-2015 Tadashi MATSUO
+;;               2007, 2009-2011 Yuto Hayamizu.
 ;;               2008 Tsuyoshi CHO
+;;               2014, 2015 Xavier Maillard
 
-;; Author: Y. Hayamizu <y.hayamizu@gmail.com>
+;; Author: Tadashi MATSUO <tad@mymail.twin.ne.jp>
+;;	Y. Hayamizu <y.hayamizu@gmail.com>
 ;;	Tsuyoshi CHO <Tsuyoshi.CHO+develop@Gmail.com>
 ;;	Alberto Garcia <agarcia@igalia.com>
+;;	Xavier Maillard <xavier@maillard.im>
 ;; Created: Sep 4, 2007
-;; Version: 20130616.1818
-;; X-Original-Version: HEAD
+;; Version: HEAD
 ;; Identity: $Id$
 ;; Keywords: twitter web
 ;; URL: http://twmode.sf.net/
@@ -85,24 +88,14 @@
       ad-do-it)))
 (require 'url)
 
-(defun twittering-mode-version ()
-  "Display a message for twittering-mode version."
-  (interactive)
-  (let ((version-string
-	 (format "twittering-mode-v%s" twittering-mode-version)))
-    (if (interactive-p)
-	(message "%s" version-string)
-      version-string)))
+(defgroup twittering-mode nil
+  "Settings for twittering-mode."
+  :link '(url-link "https://github.com/hayamiz/twittering-mode")
+  :prefix "twittering-"
+  :group 'hypermedia)
 
 (defconst twittering-mode-version "HEAD")
 (defconst twittering-mode-identity "$Id$")
-
-(defgroup twittering nil
-  "Twittering-mode enables you to twit on Emacsen."
-  :link '(url-link "https://github.com/hayamiz/twittering-mode")
-  :prefix "twittering-"
-  :group 'external)
-
 (defvar twittering-api-host "api.twitter.com")
 (defvar twittering-api-search-host "search.twitter.com")
 (defvar twittering-web-host "twitter.com")
@@ -113,14 +106,31 @@
 (defvar twittering-oauth-access-token-url-without-scheme
   "://api.twitter.com/oauth/access_token")
 
-(defvar twittering-auth-method 'oauth
-  "*Authentication method for `twittering-mode'.
-The symbol `basic' means Basic Authentication. The symbol `oauth' means
-OAuth Authentication. The symbol `xauth' means xAuth Authentication.
+(defun twittering-mode-version ()
+  "Display a message for twittering-mode version."
+  (interactive)
+  (let ((version-string
+	 (format "twittering-mode-v%s" twittering-mode-version)))
+    (if (interactive-p)
+	(message "%s" version-string)
+      version-string)))
+
+(defcustom twittering-auth-method 'oauth
+  "*Authentication method to use with `twittering-mode'.
+
+Choose between symbols `oauth' (default), `basic' or `xauth'.
+
 OAuth Authentication requires `twittering-oauth-consumer-key' and
-`twittering-oauth-consumer-secret'. Additionally, it requires an external
-command `curl' or another command included in `tls-program', which may be
-`openssl' or `gnutls-cli', for SSL.")
+`twittering-oauth-consumer-secret'.
+
+Additionally, it requires an external command `curl' or another
+command included in `tls-program', which may be `openssl' or
+`gnutls-cli', for SSL."
+  :group 'twittering-mode
+  :type '(choice :tag "Twitter authentication method"
+		 (const :tag "Basic authentication" :value basic)
+		 (const :tag "OAuth authentication" :value oauth)
+		 (const :tag "xAuth authentication" :value xauth)))
 
 (defvar twittering-account-authorization nil
   "State of account authorization for `twittering-username' and
@@ -129,11 +139,17 @@ nil -- The account have not been authorized yet.
 queried -- The authorization has been queried, but not finished yet.
 authorized -- The account has been authorized.")
 
-(defvar twittering-oauth-use-ssl t
-  "*Whether to use SSL on authentication via OAuth. Twitter requires SSL
-on authorization via OAuth.")
-(defvar twittering-oauth-invoke-browser nil
-  "*Whether to invoke a browser on authorization of access key automatically.")
+(defcustom twittering-oauth-use-ssl t
+  "*If non-nil, use SSL authentication for OAuth.
+
+Twitter requires SSL on authorization via OAuth."
+  :group 'twittering-mode
+  :type 'boolean)
+
+(defcustom twittering-oauth-invoke-browser nil
+  "*If non-nil, invoke a browser on authorization of access key automatically."
+  :type 'boolean
+  :group 'twittering-mode)
 
 (defvar twittering-oauth-consumer-key nil)
 (defvar twittering-oauth-consumer-secret nil)
@@ -142,13 +158,37 @@ on authorization via OAuth.")
 (defconst twittering-max-number-of-tweets-on-retrieval 200
   "The maximum number of `twittering-number-of-tweets-on-retrieval'.")
 
-(defvar twittering-tinyurl-service 'tinyurl
-  "*The service to shorten URI.
-This must be one of key symbols of `twittering-tinyurl-services-map'.
-To use 'bit.ly or 'j.mp, you have to configure `twittering-bitly-login' and
-`twittering-bitly-api-key'.")
+(defcustom twittering-number-of-tweets-on-retrieval 20
+  "*Number of tweets which will be retrieved in one request.
 
-(defvar twittering-tinyurl-services-map
+The upper limit is `twittering-max-number-of-tweets-on-retrieval'."
+  :type 'integer
+  :group 'twittering-mode)
+
+(defcustom twittering-tinyurl-service 'tinyurl
+  "*Shorten URI service to use.
+
+This must be one of key symbols of `twittering-tinyurl-services-map'.
+
+To use bit.ly or j.mp services, you have to configure
+`twittering-bitly-login' and `twittering-bitly-api-key'."
+  :type '(radio (symbol :tag "bit.ly"
+			:value bit.ly)
+		(symbol :tag "goo.gl"
+			:value goo.gl)
+		(symbol :tag "is.gd"
+			:value is.gd)
+		(symbol :tag "j.mp"
+			:value j.mp)
+		(symbol :tag "migre.me"
+			:value migre.me)
+		(symbol :tag "tinyurl"
+			:value tinyurl)
+		(symbol :tag "toly"
+			:value toly))
+  :group 'twittering-mode)
+
+(defcustom twittering-tinyurl-services-map
   '((bit.ly twittering-make-http-request-for-bitly
 	    (lambda (service reply)
 	      (if (string-match "\n\\'" reply)
@@ -197,21 +237,222 @@ request.
 If the second element is nil, the reply is directly used as a shortened URL.
 If the second element is a function, it is called as `(funcall
 THE-SECOND-ELEMENT service-symbol HTTP-reply-string)' and its result is used
-as a shortened URL.")
+as a shortened URL."
+  :type 'alist
+  :group 'twittering-mode)
 
 (defcustom twittering-bitly-login nil
   "*The login name for URL shortening service bit.ly and j.mp."
-  :group 'twittering
-  :type '(string))
+  :type '(choice (const nil)
+		 string)
+  :group 'twittering-mode)
 
 (defcustom twittering-bitly-api-key nil
-  "*The API key for URL shortening service bit.ly and j.mp."
-  :group 'twittering
-  :type '(string))
+  "*API key for `bit.ly' and `j.mp' URL shortening services."
+  :type '(choice (const nil)
+		 string)
+  :group 'twittering-mode)
 
-(defcustom twittering-status-format 
-  "%i %s,  %@:\n%FILL[  ]{%T // from %f%L%r%R}\n "
-  "Format string for rendering statuses. 
+(defvar twittering-mode-map (make-sparse-keymap))
+(defvar twittering-mode-menu-on-uri-map (make-sparse-keymap "Twittering Mode"))
+(defvar twittering-mode-on-uri-map (make-sparse-keymap))
+
+(defvar twittering-tweet-history nil)
+(defvar twittering-user-history nil)
+(defvar twittering-timeline-history nil)
+(defvar twittering-hashtag-history nil)
+(defvar twittering-search-history nil)
+
+(defvar twittering-current-hashtag nil
+  "A hash tag string currently set. You can set it by calling
+`twittering-set-current-hashtag'.")
+
+(defvar twittering-timer nil
+  "Timer object for timeline refreshing will be stored here.
+DO NOT SET VALUE MANUALLY.")
+
+(defcustom twittering-timer-interval 90
+  "Number of seconds to wait before an auto-reload occurs.
+
+Number of API calls per hour is limited so this value should be 60 or more."
+  :type 'integer
+  :group 'twittering-mode)
+
+(defvar twittering-timer-for-redisplaying nil
+  "Timer object for timeline redisplay statuses will be stored here.
+DO NOT SET VALUE MANUALLY.")
+
+(defvar twittering-timer-interval-for-redisplaying 5.0
+  "The interval of auto redisplaying statuses.
+Each time Emacs remains idle for the interval, twittering-mode updates parts
+requiring to be redrawn.")
+
+(defcustom twittering-username nil
+  "*A username of your Twitter account."
+  :type '(choice (const nil)
+		 string)
+  :group 'twittering-mode)
+
+(defcustom twittering-password nil
+  "*A password of your Twitter account. Leave it blank is the
+recommended way because writing a password in .emacs file is so
+dangerous."
+  :type '(choice (const nil)
+		 string)
+  :group 'twittering-mode)
+
+(defcustom twittering-initial-timeline-spec-string ":home"
+  "*An initial timeline spec string or a list of timeline spec strings.
+This specifies one or more initial timeline spec strings, which are
+automatically visited when invoking `twittering-mode' or `twit'.
+
+If it is a string, it specifies a timeline spec string.
+If it is a list of strings, it specifies multiple timeline spec strings."
+  :type '(choice (const nil)
+		 string)
+  :group 'twittering-mode)
+
+(defvar twittering-timeline-spec nil
+  "The timeline spec for the current buffer.")
+(defvar twittering-timeline-spec-string ""
+  "The timeline spec string for the current buffer.")
+
+(defcustom twittering-timeline-spec-alias nil
+  "*Alist for aliases of timeline spec.
+Each element is (NAME . SPEC-STRING), where NAME is a string and
+SPEC-STRING is a string or a function that returns a timeline spec string.
+
+The alias can be referred as \"$NAME\" or \"$NAME(ARG)\" in timeline spec
+string. If SPEC-STRING is a string, ARG is simply ignored.
+If SPEC-STRING is a function, it is called with a string argument.
+For the style \"$NAME\", the function is called with nil.
+For the style \"$NAME(ARG)\", the function is called with a string ARG.
+
+For example, if you specify
+ `((\"FRIENDS\" . \"my-account/friends-list\")
+   (\"related-to\" .
+            ,(lambda (username)
+               (if username
+                   (format \":search/to:%s OR from:%s OR @%s/\"
+                           username username username)
+                 \":home\")))),
+then you can use \"$FRIENDS\" and \"$related-to(USER)\" as
+\"my-account/friends-list\" and \":search/to:USER OR from:USER OR @USER/\",
+respectively."
+  :type 'alist
+  :group 'twittering-mode)
+
+(defvar twittering-current-timeline-spec-string nil
+  "The current timeline spec string. This variable should not be referred
+directly. Use `twittering-current-timeline-spec-string' or
+`twittering-current-timeline-spec'.")
+(defvar twittering-list-index-retrieved nil)
+
+(defvar twittering-process-info-alist nil
+  "Alist of active process and timeline spec retrieved by the process.")
+
+(defvar twittering-server-info-alist nil
+  "Alist of server information.")
+
+(defvar twittering-api-limit-info-alist '()
+  "Alist of an API identifier and an alist representing rate limit for the API.")
+
+(defvar twittering-timeline-spec-to-api-table '()
+  "Alist of a timeline spec and an API identifier for retrieving the timeline.")
+
+(defcustom twittering-mode-init-hook nil
+  "*Hook run after initializing global variables for `twittering-mode'."
+  :type 'hook
+  :group 'twittering-mode)
+
+(defcustom twittering-mode-hook nil
+  "*Hook run every time a buffer is initialized as a `twittering-mode' buffer."
+  :type 'hook
+  :group 'twittering-mode)
+
+(defvar twittering-cookie-alist nil
+  "Alist for stroing cookies for each account.
+This variable stores an alist.
+A key of the alist is a string that is a screen name of an account.
+A value of the alist is a cookie alist which corresponds to a list of
+a pair of a cookie name and value.")
+
+(defvar twittering-new-tweets-count 0
+  "Number of new tweets when `twittering-new-tweets-hook' is run.")
+(defvar twittering-new-tweets-spec nil
+  "Timeline spec, which new tweets belong to, when
+`twittering-new-tweets-hook' is run.")
+(defvar twittering-new-tweets-statuses nil
+  "New tweet status messages, when
+`twittering-new-tweets-hook' is run.")
+
+(defcustom twittering-new-tweets-hook nil
+  "*Hook run when new tweets are received.
+
+You can read `twittering-new-tweets-count' or `twittering-new-tweets-spec'
+to get the number of new tweets received when this hook is run."
+  :type 'hook
+  :group 'twittering-mode)
+
+(defvar twittering-rendered-new-tweets-spec nil
+  "A timeline spec of newly rendered tweets.
+This variable is bound when invoking hooks registered with
+`twittering-new-tweets-rendered-hook'.")
+
+(defvar twittering-rendered-new-tweets-spec-string nil
+  "A timeline spec string of newly rendered tweets.
+This variable is bound when invoking hooks registered with
+`twittering-new-tweets-rendered-hook'.")
+
+(defvar twittering-rendered-new-tweets nil
+  "A list of newly rendered tweets.
+Hooks registered with `twittering-new-tweets-rendered-hook' can use this
+variable as a list of rendered tweets. Each tweet is represented as an alist.
+You can refer to a property of a tweet alist as
+ (cdr (assq PROPERTY-SYMBOL TWEET-ALIST)).
+Valid symbols are following; id, text, user-name, user-screen-name, user-id,
+ source, source-uri.
+In the list, tweets are placed in order of time.  The car of the list is the
+latest one, and the last is the oldest one.")
+
+(defcustom twittering-new-tweets-rendered-hook nil
+  "*Hook run when new tweets are rendered.
+When the registered functions are called, the current buffer is the buffer
+that the new tweets are just rendered on.
+The functions can refer to the timeline spec and timeline spec string as
+`twittering-rendered-new-tweets-spec' and
+`twittering-rendered-new-tweets-spec-string', repectively.
+Hooks can also use the local variable `twittering-rendered-new-tweets' as a
+list of rendered tweets.
+For the detail of the representation of tweets, see the variable
+`twittering-rendered-new-tweets'."
+  :type 'hook
+  :group 'twittering-mode)
+
+(defvar twittering-active-mode nil
+  "Non-nil if new statuses should be retrieved periodically.
+Do not modify this variable directly. Use `twittering-activate-buffer',
+`twittering-deactivate-buffer', `twittering-toggle-activate-buffer' or
+`twittering-set-active-flag-for-buffer'.")
+
+(defvar twittering-jojo-mode nil)
+(defcustom twittering-reverse-mode nil
+  "*Non-nil means tweets are aligned in reverse order of `http://twitter.com/'."
+  :type 'boolean
+  :group 'twittering-mode)
+
+(defcustom twittering-display-remaining nil
+  "*If non-nil, display remaining of rate limit on the mode-line."
+  :type 'boolean
+  :group 'twittering-mode)
+
+(defcustom twittering-display-connection-method t
+  "*If non-nil, display the current connection method on the mode-line."
+  :type 'boolean
+  :group 'twittering-mode)
+
+(defcustom twittering-status-format "%i %s,  %@:\n%FILL[  ]{%T // from %f%L%r%R}\n "
+  "Format string for rendering statuses.
 Ex. \"%i %s,  %@:\\n%FILL{  %T // from %f%L%r%R}\n \"
 
 Items:
@@ -234,11 +475,18 @@ Items:
  %p - protected?
  %c - created_at (raw UTC string)
  %C{time-format-str} - created_at (formatted with time-format-str)
- %@ - X seconds ago
+ %@{time-format-str} - X seconds ago (formatted with time-format-str)
  %T - raw text
  %t - text filled as one paragraph
  %' - truncated
  %FACE[face-name]{...} - strings decorated with the specified face.
+ %FIELD[format-str]{field-name}
+   - a value of the given field of a tweet formatted with format-str.
+     The format-str is optional. As a field-name, you can use
+     \"retweet_count\", \"favorite_count\" and so on.
+ %FIELD-IF-NONZERO[format-str]{field-name}
+   - similar to %FIELD[...]{...} except that this makes an empty string
+     if the field value is zero.
  %FILL[prefix]{...} - strings filled as a paragraph. The prefix is optional.
                       You can use any other specifiers in braces.
  %FOLD[prefix]{...} - strings folded within the frame width.
@@ -246,11 +494,9 @@ Items:
                       squeeze a series of white spaces.
                       You can use any other specifiers in braces.
  %f - source
- %# - id
-"
-  :group 'twittering
-  :type '(string)
-)
+ %# - id"
+  :type 'string
+  :group 'twittering-mode)
 
 (defcustom twittering-retweet-format '(nil _ " RT: %t (via @%s)")
   "*A format string or a skeleton for retweet.
@@ -274,240 +520,72 @@ Replacement table:
  %u - The URL of the cited tweet.
  %# - The ID of the cited tweet.
  %% - % itself."
-  :group 'twittering
-  :type '(string))
+  :type 'sexp
+  :group 'twittering-mode)
 
-(defcustom twittering-convert-fix-size 48
-  "Set the Icon size."
-  :group 'twittering)
+(defcustom twittering-fill-column nil
+  "*The `fill-column' used for \"%FILL{...}\" in `twittering-status-format'.
+If nil, the fill-column is automatically calculated."
+  :type '(choice (const nil)
+		 integer)
+  :group 'twittering-mode)
 
-(defcustom twittering-use-icon-storage nil
-  "*Whether to use the persistent icon storage.
-If this variable is non-nil, icon images are stored to the file specified
-by `twittering-icon-storage-file'."
-  :group 'twittering)
-
-(defcustom twittering-timer-interval 90
-  "The interval of auto reloading. You should use 60 or more
-seconds for this variable because the number of API call is
-limited by the hour."
-  :group 'twittering)
-
-(defcustom twittering-number-of-tweets-on-retrieval 20
-  "The number of tweets which will be retrieved in one request.
-The upper limit is `twittering-max-number-of-tweets-on-retrieval'."
-  :group 'twittering)
-
-(defcustom twittering-use-master-password nil
-  "Wheter to store private information encrypted with a master password."
-  :group 'twittering)
-
-(defvar twittering-mode-map (make-sparse-keymap))
-(defvar twittering-mode-menu-on-uri-map (make-sparse-keymap "Twittering Mode"))
-(defvar twittering-mode-on-uri-map (make-sparse-keymap))
-
-(defvar twittering-tweet-history nil)
-(defvar twittering-user-history nil)
-(defvar twittering-timeline-history nil)
-(defvar twittering-hashtag-history nil)
-(defvar twittering-search-history nil)
-
-(defvar twittering-current-hashtag nil
-  "A hash tag string currently set. You can set it by calling
-`twittering-set-current-hashtag'.")
-
-(defvar twittering-timer nil
-  "Timer object for timeline refreshing will be stored here.
-DO NOT SET VALUE MANUALLY.")
-
-(defvar twittering-timer-for-redisplaying nil
-  "Timer object for timeline redisplay statuses will be stored here.
-DO NOT SET VALUE MANUALLY.")
-
-(defvar twittering-timer-interval-for-redisplaying 5.0
-  "The interval of auto redisplaying statuses.
-Each time Emacs remains idle for the interval, twittering-mode updates parts
-requiring to be redrawn.")
-
-(defvar twittering-username nil
-  "*An username of your Twitter account.")
-
-(defvar twittering-password nil
-  "*A password of your Twitter account. Leave it blank is the
-recommended way because writing a password in .emacs file is so
-dangerous.")
-
-(defvar twittering-initial-timeline-spec-string ":home"
-  "*An initial timeline spec string or a list of timeline spec strings.
-This specifies one or more initial timeline spec strings, which are
-automatically visited when invoking `twittering-mode' or `twit'.
-
-If it is a string, it specifies a timeline spec string.
-If it is a list of strings, it specifies multiple timeline spec strings.")
-
-(defvar twittering-timeline-spec nil
-  "The timeline spec for the current buffer.")
-(defvar twittering-timeline-spec-string ""
-  "The timeline spec string for the current buffer.")
-
-(defvar twittering-timeline-spec-alias nil
-  "*Alist for aliases of timeline spec.
-Each element is (NAME . SPEC-STRING), where NAME is a string and
-SPEC-STRING is a string or a function that returns a timeline spec string.
-
-The alias can be referred as \"$NAME\" or \"$NAME(ARG)\" in timeline spec
-string. If SPEC-STRING is a string, ARG is simply ignored.
-If SPEC-STRING is a function, it is called with a string argument.
-For the style \"$NAME\", the function is called with nil.
-For the style \"$NAME(ARG)\", the function is called with a string ARG.
-
-For example, if you specify
- `((\"FRIENDS\" . \"my-account/friends-list\")
-   (\"related-to\" .
-            ,(lambda (username)
-               (if username
-                   (format \":search/to:%s OR from:%s OR @%s/\"
-                           username username username)
-                 \":home\")))),
-then you can use \"$FRIENDS\" and \"$related-to(USER)\" as
-\"my-account/friends-list\" and \":search/to:USER OR from:USER OR @USER/\",
-respectively.")
-
-(defvar twittering-current-timeline-spec-string nil
-  "The current timeline spec string. This variable should not be referred
-directly. Use `twittering-current-timeline-spec-string' or
-`twittering-current-timeline-spec'.")
-(defvar twittering-list-index-retrieved nil)
-
-(defvar twittering-process-info-alist nil
-  "Alist of active process and timeline spec retrieved by the process.")
-
-(defvar twittering-server-info-alist nil
-  "Alist of server information.")
-
-(defvar twittering-api-limit-info-alist '()
-  "Alist of an API identifier and an alist representing rate limit for the API.")
-
-(defvar twittering-timeline-spec-to-api-table '()
-  "Alist of a timeline spec and an API identifier for retrieving the timeline.")
-
-
-(defvar twittering-mode-init-hook nil
-  "*Hook run after initializing global variables for `twittering-mode'.")
-(defvar twittering-mode-hook nil
-  "*Hook run every time a buffer is initialized as a twittering-mode buffer.")
-
-(defvar twittering-cookie-alist nil
-  "Alist for stroing cookies for each account.
-This variable stores an alist.
-A key of the alist is a string that is a screen name of an account.
-A value of the alist is a cookie alist which corresponds to a list of
-a pair of a cookie name and value.")
-
-(defvar twittering-new-tweets-count 0
-  "Number of new tweets when `twittering-new-tweets-hook' is run.")
-(defvar twittering-new-tweets-spec nil
-  "Timeline spec, which new tweets belong to, when
-`twittering-new-tweets-hook' is run.")
-(defvar twittering-new-tweets-statuses nil
-  "New tweet status messages, when
-`twittering-new-tweets-hook' is run.")
-
-(defvar twittering-new-tweets-hook nil
-  "*Hook run when new tweets are received.
-
-You can read `twittering-new-tweets-count' or `twittering-new-tweets-spec'
-to get the number of new tweets received when this hook is run.")
-
-(defvar twittering-rendered-new-tweets-spec nil
-  "A timeline spec of newly rendered tweets.
-This variable is bound when invoking hooks registered with
-`twittering-new-tweets-rendered-hook'.")
-
-(defvar twittering-rendered-new-tweets-spec-string nil
-  "A timeline spec string of newly rendered tweets.
-This variable is bound when invoking hooks registered with
-`twittering-new-tweets-rendered-hook'.")
-
-(defvar twittering-rendered-new-tweets nil
-  "A list of newly rendered tweets.
-Hooks registered with `twittering-new-tweets-rendered-hook' can use this
-variable as a list of rendered tweets. Each tweet is represented as an alist.
-You can refer to a property of a tweet alist as
- (cdr (assq PROPERTY-SYMBOL TWEET-ALIST)).
-Valid symbols are following; id, text, user-name, user-screen-name, user-id,
- source, source-uri.
-In the list, tweets are placed in order of time. The car of the list is the
-latest one, and the last is the oldest one.")
-
-(defvar twittering-new-tweets-rendered-hook nil
-  "*Hook run when new tweets are rendered.
-When the registered functions are called, the current buffer is the buffer
-that the new tweets are just rendered on.
-The functions can refer to the timeline spec and timeline spec string as
-`twittering-rendered-new-tweets-spec' and
-`twittering-rendered-new-tweets-spec-string', repectively.
-Hooks can also use the local variable `twittering-rendered-new-tweets' as a
-list of rendered tweets.
-For the detail of the representation of tweets, see the variable
-`twittering-rendered-new-tweets'.")
-
-(defvar twittering-active-mode nil
-  "Non-nil if new statuses should be retrieved periodically.
-Do not modify this variable directly. Use `twittering-activate-buffer',
-`twittering-deactivate-buffer', `twittering-toggle-activate-buffer' or
-`twittering-set-active-flag-for-buffer'.")
-
-(defvar twittering-jojo-mode nil)
-(defvar twittering-reverse-mode nil
-  "*Non-nil means tweets are aligned in reverse order of `http://twitter.com/'.")
-(defvar twittering-display-remaining nil
-  "*If non-nil, display remaining of rate limit on the mode-line.")
-(defvar twittering-display-connection-method t
-  "*If non-nil, display the current connection method on the mode-line.")
-
-
-(defvar twittering-fill-column nil
-  "*The fill-column used for \"%FILL{...}\" in `twittering-status-format'.
-If nil, the fill-column is automatically calculated.")
-
-(defvar twittering-show-replied-tweets t
+(defcustom twittering-show-replied-tweets t
   "*The number of replied tweets which will be showed in one tweet.
 
 If the value is not a number and is non-nil, show all replied tweets
 which is already fetched.
-If the value is nil, doesn't show replied tweets.")
+If the value is nil, doesn't show replied tweets."
 
-(defvar twittering-default-show-replied-tweets nil
-  "*The number of default replied tweets which will be showed in one tweet.
+  :type '(choice (const :tag "Do not show replied tweets"
+			:value nil)
+		 (const :tag "Show all replied tweets"
+			:value t)
+		 (integer :tag "Number of replied tweet"))
+  :group 'twittering-mode)
+
+(defcustom twittering-default-show-replied-tweets nil
+  "*The number of default replied tweets which will be shown in one tweet.
 This value will be used only when showing new tweets.
 
-See `twittering-show-replied-tweets' for more details.")
+See `twittering-show-replied-tweets' for more details."
+  :type '(choice (const nil)
+		 integer)
+  :group 'twittering-mode)
 
-(defvar twittering-disable-overlay-on-too-long-string nil
+(defcustom twittering-disable-overlay-on-too-long-string nil
   "*If non-nil, disable overlay on too long string on edit buffer.
 
 If nil, `twittering-edit-mode' puts an overlay `twittering-warning-overlay' on
 characters following the 140th character.
 
 On some environments, some input methods seem to interfere the update of the
-overlay. In such case, you may avoid the problems by setting this variable to
-non-nil.")
+overlay.  In such case, you may avoid the problems by setting this variable to
+non-nil."
+  :type 'boolean
+  :group 'twittering-mode)
 
-(defvar twittering-use-show-minibuffer-length t
+(defcustom twittering-use-show-minibuffer-length t
   "*Show current length of minibuffer if this variable is non-nil.
 
 We suggest that you should set to nil to disable the showing function
-when it conflict with your input method (such as AquaSKK, etc.)")
+when it conflict with your input method (such as AquaSKK, etc.)"
+  :type 'boolean
+  :group 'twittering-mode)
 
 (defvar twittering-notify-successful-http-get t)
 
-(defvar twittering-use-ssl t
-  "Use SSL connection if this variable is non-nil.
+(defcustom twittering-use-ssl t
+  "*Use SSL connection if this variable is non-nil.
 
-SSL connections use 'curl' command as a backend.")
-(defvar twittering-allow-insecure-server-cert nil
-  "*If non-nil, twittering-mode allows insecure server certificates.")
+SSL connections use an external command as a backend."
+  :type 'boolean
+  :group 'twittering-mode)
+
+(defcustom twittering-allow-insecure-server-cert nil
+  "*If non-nil, `twittering-mode' allows insecure server certificates."
+  :type 'boolean
+  :group 'twittering-mode)
 
 (defvar twittering-curl-program nil
   "Cache a result of `twittering-find-curl-program'.
@@ -520,31 +598,65 @@ DO NOT SET VALUE MANUALLY.")
   "Cache a result of `twittering-find-wget-program'.
 DO NOT SET VALUE MANUALLY.")
 
-(defvar twittering-tls-program nil
+(defcustom twittering-tls-program nil
   "*List of strings containing commands to start TLS stream to a host.
 Each entry in the list is tried until a connection is successful.
 %h is replaced with server hostname, %p with port to connect to.
 Also see `tls-program'.
 If nil, this is initialized with a list of valied entries extracted from
-`tls-program'.")
+`tls-program'."
+  :type '(repeat string)
+  :group 'twittering-mode)
 
-(defvar twittering-connection-type-order
-  '(curl wget urllib-http native urllib-https))
+(defcustom twittering-connection-type-order
+  '(curl wget urllib-http native urllib-https)
   "*A list of connection methods in the preferred order."
+  :type 'list
+  :group 'twittering-mode)
 
-(defvar twittering-connection-type-table
-  '((native (check . t)
-	    (https . twittering-start-http-session-native-tls-p)
-	    (send-http-request . twittering-send-http-request-native)
-	    (pre-process-buffer . twittering-pre-process-buffer-native))
-    (curl (check . twittering-start-http-session-curl-p)
-	  (https . twittering-start-http-session-curl-https-p)
-	  (send-http-request . twittering-send-http-request-curl)
-	  (pre-process-buffer . twittering-pre-process-buffer-curl))
-    (wget (check . twittering-start-http-session-wget-p)
-	  (https . t)
-	  (send-http-request . twittering-send-http-request-wget)
-	  (pre-process-buffer . twittering-pre-process-buffer-wget))
+(defun twittering-connection-build-customize-option ()
+  "Generate a valid `defcustom' entry to build `twittering-connection-type-table' variable."
+  (list 'repeat
+	(list
+	 'cons :tag "Connection"
+	 '(symbol :tag "Name" :value "")
+	 '(repeat
+	   :tag "Connection method definition"
+	   (choice
+	    (cons :tag "Check test method"
+		  (const :format "" check)
+		  (choice :value t (const :tag "Do not check" t)
+			  (function :tag "Check function")))
+	    (cons :tag "Display name"
+		  (const :format "" display-name)
+		  string)
+	    (cons :tag "HTTPS connection method"
+		  (const :format "" https)
+		  (choice :value nil (const :tag "None" nil)
+			  (const :tag "True" t)
+			  (function :tag "HTTPS test function")))
+	    (cons :tag "Send HTTP request function"
+		  (const :format "" send-http-request)
+		  function)
+	    (cons :tag "Pre process buffer"
+		  (const :format "" pre-process-buffer)
+		  function))))))
+
+(defcustom twittering-connection-type-table
+  '((native
+     (check . t)
+     (send-http-request . twittering-send-http-request-native)
+     (pre-process-buffer . twittering-pre-process-buffer-native))
+    (curl
+     (check . twittering-start-http-session-curl-p)
+     (https . twittering-start-http-session-curl-https-p)
+     (send-http-request . twittering-send-http-request-curl)
+     (pre-process-buffer . twittering-pre-process-buffer-curl))
+    (wget
+     (check . twittering-start-http-session-wget-p)
+     (https . ignore)
+     (send-http-request . twittering-send-http-request-wget)
+     (pre-process-buffer . twittering-pre-process-buffer-wget))
     (urllib-http
      (display-name . "urllib")
      (check . twittering-start-http-session-urllib-p)
@@ -557,7 +669,9 @@ If nil, this is initialized with a list of valied entries extracted from
      (https . twittering-start-http-session-urllib-https-p)
      (send-http-request . twittering-send-http-request-urllib)
      (pre-process-buffer . twittering-pre-process-buffer-urllib)))
-  "A list of alist of connection methods.")
+  "A list of alist of connection methods."
+  :group 'twittering-mode
+  :type (twittering-connection-build-customize-option))
 
 (defvar twittering-format-status-function-source ""
   "The status format string that has generated the current
@@ -570,16 +684,27 @@ which is a lambda expression without being compiled.")
 
 (defvar twittering-timeline-data-table (make-hash-table :test 'equal))
 
-(defvar twittering-username-face 'twittering-username-face)
-(defvar twittering-uri-face 'twittering-uri-face)
+(defcustom twittering-username-face 'twittering-username-face
+  "*Face used to display USERNAME."
+  :type 'face
+  :group 'twittering-mode)
 
-(defvar twittering-use-native-retweet nil
-  "Post retweets using native retweets if this variable is non-nil.")
+(defcustom twittering-uri-face 'twittering-uri-face
+  "*Face used to display URIs."
+  :type 'face
+  :group 'twittering-mode)
 
-(defvar twittering-update-status-function
+(defcustom twittering-use-native-retweet nil
+  "*If non-nil, post retweet using native retweets."
+  :type 'boolean
+  :group 'twittering-mode)
+
+(defcustom twittering-update-status-function
   'twittering-update-status-from-pop-up-buffer
-  "The function used to posting a tweet. It takes 5 arguments,
-INIT-STR, REPLY-TO-ID, USERNAME, TWEET-TYPE, CURRENT-SPEC.
+  "*The function which is used to post a tweet.
+
+It takes the following 5 arguments, INIT-STR, REPLY-TO-ID, USERNAME,
+TWEET-TYPE and CURRENT-SPEC.
 The first argument INIT-STR is nil or an initial text to be edited.
 REPLY-TO-ID and USERNAME are an ID and a user-screen-name of a tweet to
 which you are going to reply. If the tweet is not a reply, they are nil.
@@ -589,16 +714,32 @@ CURRENT-SPEC means on which timeline the function is called.
 
 Twittering-mode provides two functions for updating status:
 * `twittering-update-status-from-minibuffer': edit tweets in minibuffer
-* `twittering-update-status-from-pop-up-buffer': edit tweets in pop-up buffer")
+* `twittering-update-status-from-pop-up-buffer': edit tweets in pop-up buffer"
+  :type '(choice  (const :tag "built-in: from minibuffer"
+			 twittering-update-status-from-minibuffer)
+		  (const :tag "built-in: from a popup buffer"
+			 twittering-update-status-from-pop-up-buffer)
+		  (function :tag "Your own function"))
+  :group 'twittering-mode)
 
-(defvar twittering-request-confirmation-on-posting nil
-  "*If *non-nil*, confirmation will be requested on posting a tweet edited in
-pop-up buffer.")
+(defcustom twittering-request-confirmation-on-posting nil
+  "*If non-nil, confirmation will be requested on posting a tweet edited in
+pop-up buffer."
+  :type 'boolean
+  :group 'twittering-mode)
 
-(defvar twittering-private-info-file
-  (expand-file-name "~/.twittering-mode.gpg")
-  "*File for storing encrypted private information when
-`twittering-use-master-password' is non-nil.")
+(defcustom twittering-use-master-password nil
+  "*If non-nil, store private information encrypted with a master password."
+  :type 'boolean
+  :group 'twittering-mode)
+
+(defcustom twittering-private-info-file (expand-file-name "~/.twittering-mode.gpg")
+  "*File for storing encrypted private information.
+
+ Only used when `twittering-use-master-password' is non-nil."
+  :group 'twittering-mode
+  :type 'file)
+
 (defvar twittering-private-info-file-loaded nil
   "Whether the private info file has been loaded or not.")
 (defvar twittering-variables-stored-with-encryption
@@ -608,12 +749,7 @@ pop-up buffer.")
 (defvar twittering-search-api-method "search")
 (defvar twittering-web-path-prefix "")
 
-(defvar twittering-service-method 'twitter-api-v1.1
-  "*Service method for `twittering-mode'.
-The symbol `twitter' means Twitter Service. The symbol `statusnet' means
-StatusNet Service.")
-
-(defvar twittering-service-method-table
+(defconst twittering-service-method-table
   '((twitter (status-url . twittering-get-status-url-twitter)
 	     (search-url . twittering-get-search-url-twitter))
     (twitter-api-v1.1
@@ -623,32 +759,66 @@ StatusNet Service.")
 	       (search-url . twittering-get-search-url-statusnet)))
   "A list of alist of service methods.")
 
-(defvar twittering-timeline-header-face 'twittering-timeline-header-face
-  "*Face for the header on `twittering-mode'.
-The face is used for rendering `twittering-timeline-header'.")
-(defvar twittering-timeline-footer-face 'twittering-timeline-footer-face
-  "*Face for the footer on `twittering-mode'.
-The face is used for rendering `twittering-timeline-footer'.")
-(defvar twittering-timeline-header "-- Press Enter here to update --\n"
-  "*Timeline header string on `twittering-mode'.
-The string is rendered on the beginning of a `twittering-mode' buffer.
-Its face is specified by `twittering-timeline-header-face'.")
-(defvar twittering-timeline-footer "-- Press Enter here to update --"
-  "*Timeline footer string on `twittering-mode'.
-The string is rendered on the end of a `twittering-mode' buffer.
-Its face is specified by `twittering-timeline-footer-face'.")
+(defcustom twittering-service-method 'twitter-api-v1.1
+  "*Service method for `twittering-mode'.
 
-(defvar twittering-pop-to-buffer-function
+The symbol `twitter' means Twitter Service.
+The symbol `statusnet' means StatusNet Service.
+
+Default to `twitter-api-v1.1' which is an alias for `twitter'.
+
+See also `twittering-service-method-table'."
+  :type (if (> (length (mapcar #'car twittering-service-method-table)) 0)
+	    `(choice ,@(mapcar (lambda (entry) `(const ,(car entry)))
+			       twittering-service-method-table))
+	  'symbol)
+  :group 'twittering-mode)
+
+(defcustom twittering-timeline-header-face 'twittering-timeline-header-face
+  "*Face for the header on `twittering-mode'.
+
+The face is used for rendering `twittering-timeline-header'."
+  :type 'face
+  :group 'twittering-mode)
+
+(defcustom twittering-timeline-footer-face 'twittering-timeline-footer-face
+  "*Face for the footer on `twittering-mode'.
+
+The face is used for rendering `twittering-timeline-footer'."
+  :type 'face
+  :group 'twittering-mode)
+
+(defcustom twittering-timeline-header "-- Press Enter here to update --\n"
+  "*Timeline header string on `twittering-mode'.
+
+The string is rendered on the beginning of a `twittering-mode' buffer.
+Its face is specified by `twittering-timeline-header-face'."
+  :type 'string
+  :group 'twittering-mode)
+
+(defcustom twittering-timeline-footer "-- Press Enter here to update --"
+  "*Timeline footer string on `twittering-mode'.
+
+The string is rendered on the end of a `twittering-mode' buffer.
+Its face is specified by `twittering-timeline-footer-face'."
+  :type 'string
+  :group 'twittering-mode)
+
+(defcustom twittering-pop-to-buffer-function
   'twittering-pop-to-buffer-in-bottom-largest-window
   "*Function being invoked by `twittering-pop-to-buffer'.
+
 It will receive an argument, the buffer being selected.
 For example, the following functions can be used; `pop-to-buffer',
 `twittering-pop-to-buffer-simple',
 `twittering-pop-to-buffer-in-current-window',
 `twittering-pop-to-buffer-in-largest-window', and
-`twittering-pop-to-buffer-in-bottom-largest-window'.")
+`twittering-pop-to-buffer-in-bottom-largest-window'."
+  :type 'function
+  :group 'twittering-mode)
 
-(defvar twittering-relative-retrieval-interval-alist
+;; FIXME: change to something better than alist
+(defcustom twittering-relative-retrieval-interval-alist
   '(("\\`:direct.*\\'" 4)
     (":home" ":mentions" 1)
     (t 1))
@@ -670,10 +840,44 @@ An interval for a timeline is determined as follows;
    RELATIVE-INTERVAL times as long as `twittering-timer-interval'.
 
    If RELATIVE-INTERVAL is zero, the interval is infinity.
-   The timeline is not retrieved automatically.")
+   The timeline is not retrieved automatically."
+  :type 'alist
+  :group 'twittering-mode)
 
 (defvar twittering-relative-retrieval-count-alist '()
   "An alist for counting retrieval of primary timelines.")
+
+(defvar twittering-filter-alist '()
+  "*An alist of hidden tweet patterns for each primary timeline.
+Each element looks like:
+ (TIMELINE-SPECIFIER (SYM1 . REGEXP1) (SYM2 . REGEXP2) ...).
+
+TIMELINE-SPECIFIER must be a string or a list of strings.
+Each string is a regexp for specifying primary timelines.
+Note that you cannot specify composite timelines such as \":merge\",
+\":exclude-if\" or \":exclude-re\".
+Following regexps (REGEXP1, REGEXP2, ...) specify which tweet should
+be hidden in a certain timeline.
+
+In a timeline that matches TIMELINE-SPECIFIER, a tweet is hidden if
+its elements specified by SYM1, SYM2, ... match corresponding REGEXP1, REGEXP2,
+... respectively.
+
+If a timeline matches multiple specifiers, all regexps of matched elements
+are effective.
+
+For example, if you specify
+ '(((\":home\" \":mentions\") (text . \"http://\"))
+   (\"^[^:]\" (text . \"sample\") (user-screen-name . \"\\`FOO\\'\"))
+   (\"twitter/.*\" (text . \"^aa\"))),
+the following tweets are hidden.
+
+- tweets including \"http://\" in the home timeline and the mentions timeline,
+- tweets that are posted by the user FOO and include \"sample\"
+  in user timelines and list timelines,
+- tweets including \"aa\" at a beginning of a line in list timelines of
+  twitter, such as \"twitter/media\" or \"twitter/support\".")
+
 
 ;;;;
 ;;;; Macro and small utility function
@@ -713,7 +917,7 @@ the value of the last form in TIMEOUT-FORMS."
 		 (current 0.0))
      (while (and ,@(when timeout '((< current timeout)))
 		 ,condition)
-       (sit-for interval)
+       (sleep-for interval)
        (setq current (+ current interval)))
      ,(when (or form timeout-forms)
 	(if (null timeout)
@@ -795,6 +999,11 @@ unknown are returned as nil."
       (setq sym-list (cdr sym-list)))
     (reverse result)))
 
+(defun twittering-normalize-string (str)
+  (if (require 'ucs-normalize nil t)
+      (ucs-normalize-NFC-string str)
+    str))
+
 ;;;;
 ;;;; Utility for portability
 ;;;;
@@ -820,14 +1029,14 @@ as a list of a string on Emacs21."
   ;; completing-read() of Emacs21 does not accepts candidates as
   ;; a list. Candidates must be given as an alist.
   (let* ((collection (twittering-remove-duplicates collection))
-         (collection
-          (if (and (> 22 emacs-major-version)
-                   (listp collection)
-                   (stringp (car collection)))
-              (mapcar (lambda (x) (cons x nil)) collection)
-            collection)))
+	 (collection
+	  (if (and (> 22 emacs-major-version)
+		   (listp collection)
+		   (stringp (car collection)))
+	      (mapcar (lambda (x) (cons x nil)) collection)
+	    collection)))
     (completing-read prompt collection predicate require-match
-                     initial-input hist def inherit-input-method)))
+		     initial-input hist def inherit-input-method)))
 
 (defun twittering-add-to-history (history-var elt &optional maxelt keep-all)
   (if (functionp 'add-to-history)
@@ -928,42 +1137,65 @@ defined in Emacs21."
 ;;;; Proxy setting / functions
 ;;;;
 
-(defvar twittering-proxy-use nil)
-(defvar twittering-proxy-server nil
+(defgroup twittering-proxy nil
+  "Subgroup handling `twittering-mode' proxy setup."
+  :group 'twittering-mode)
+
+(defcustom twittering-proxy-use nil
+  "*If non-nil, use PROXY.
+
+See also `twittering-proxy-server' for documentation."
+  :type 'boolean
+  :group 'twittering-mode)
+
+(defcustom twittering-proxy-server nil
   "*Proxy server for `twittering-mode'.
+
 If both `twittering-proxy-server' and `twittering-proxy-port' are
 non-nil, the variables `twittering-proxy-*' have priority over other
 variables `twittering-http-proxy-*' or `twittering-https-proxy-*'
 regardless of HTTP or HTTPS.
 
 To use individual proxies for HTTP and HTTPS, both `twittering-proxy-server'
-and `twittering-proxy-port' must be nil.")
-(defvar twittering-proxy-port nil
+and `twittering-proxy-port' must be nil."
+  :group 'twittering-proxy
+  :type '(choice (const nil) string))
+
+(defcustom twittering-proxy-port nil
   "*Port number for `twittering-mode'.
+
 If both `twittering-proxy-server' and `twittering-proxy-port' are
 non-nil, the variables `twittering-proxy-*' have priority over other
 variables `twittering-http-proxy-*' or `twittering-https-proxy-*'
 regardless of HTTP or HTTPS.
 
 To use individual proxies for HTTP and HTTPS, both `twittering-proxy-server'
-and `twittering-proxy-port' must be nil.")
+and `twittering-proxy-port' must be nil."
+  :group 'twittering-proxy
+  :type '(choice (const nil)
+		 integer))
+
 (defvar twittering-proxy-keep-alive nil)
-(defvar twittering-proxy-user nil
+(defcustom twittering-proxy-user nil
   "*Username for `twittering-proxy-server'.
 
 NOTE: If both `twittering-proxy-server' and `twittering-proxy-port' are
 non-nil, the variables `twittering-proxy-*' have priority over other
 variables `twittering-http-proxy-*' or `twittering-https-proxy-*'
 regardless of HTTP or HTTPS.")
-(defvar twittering-proxy-password nil
+
+(defcustom twittering-proxy-password nil
   "*Password for `twittering-proxy-server'.
 
 NOTE: If both `twittering-proxy-server' and `twittering-proxy-port' are
 non-nil, the variables `twittering-proxy-*' have priority over other
 variables `twittering-http-proxy-*' or `twittering-https-proxy-*'
-regardless of HTTP or HTTPS.")
+regardless of HTTP or HTTPS."
+  :group 'twittering-proxy
+  :type '(choice (const nil)
+		 string))
 
-(defvar twittering-http-proxy-server nil
+(defcustom twittering-http-proxy-server nil
   "*HTTP proxy server for `twittering-mode'.
 If nil, it is initialized on entering `twittering-mode'.
 The port number is specified by `twittering-http-proxy-port'.
@@ -973,8 +1205,12 @@ and `twittering-https-proxy-port' is used.
 NOTE: If both `twittering-proxy-server' and `twittering-proxy-port' are
 non-nil, the variables `twittering-proxy-*' have priority over other
 variables `twittering-http-proxy-*' or `twittering-https-proxy-*'
-regardless of HTTP or HTTPS.")
-(defvar twittering-http-proxy-port nil
+regardless of HTTP or HTTPS."
+  :group 'twittering-proxy
+  :type '(choice (const nil)
+		 string))
+
+(defcustom twittering-http-proxy-port nil
   "*Port number of a HTTP proxy server for `twittering-mode'.
 If nil, it is initialized on entering `twittering-mode'.
 The server is specified by `twittering-http-proxy-server'.
@@ -984,25 +1220,39 @@ and `twittering-https-proxy-port' is used.
 NOTE: If both `twittering-proxy-server' and `twittering-proxy-port' are
 non-nil, the variables `twittering-proxy-*' have priority over other
 variables `twittering-http-proxy-*' or `twittering-https-proxy-*'
-regardless of HTTP or HTTPS.")
-(defvar twittering-http-proxy-keep-alive nil
-  "*If non-nil, the Keep-alive is enabled. This is experimental.")
-(defvar twittering-http-proxy-user nil
+regardless of HTTP or HTTPS."
+  :group 'twittering-proxy
+  :type '(choice (const nil)
+		 integer))
+
+(defcustom twittering-http-proxy-keep-alive nil
+  "*If non-nil, the Keep-alive is enabled.  This is experimental."
+  :group 'twittering-proxy
+  :type 'boolean)
+
+(defcustom twittering-http-proxy-user nil
   "*Username for `twittering-http-proxy-server'.
 
 NOTE: If both `twittering-proxy-server' and `twittering-proxy-port' are
 non-nil, the variables `twittering-proxy-*' have priority over other
 variables `twittering-http-proxy-*' or `twittering-https-proxy-*'
-regardless of HTTP or HTTPS.")
-(defvar twittering-http-proxy-password nil
+regardless of HTTP or HTTPS."
+  :group 'twittering-proxy
+  :type '(choice (const nil)
+		 string))
+
+(defcustom twittering-http-proxy-password nil
   "*Password for `twittering-http-proxy-server'.
 
 NOTE: If both `twittering-proxy-server' and `twittering-proxy-port' are
 non-nil, the variables `twittering-proxy-*' have priority over other
 variables `twittering-http-proxy-*' or `twittering-https-proxy-*'
-regardless of HTTP or HTTPS.")
+regardless of HTTP or HTTPS."
+  :group 'twittering-proxy
+  :type '(choice (const nil)
+		 string))
 
-(defvar twittering-https-proxy-server nil
+(defcustom twittering-https-proxy-server nil
   "*HTTPS proxy server for `twittering-mode'.
 If nil, it is initialized on entering `twittering-mode'.
 The port number is specified by `twittering-https-proxy-port'.
@@ -1012,8 +1262,12 @@ and `twittering-http-proxy-port' is used.
 NOTE: If both `twittering-proxy-server' and `twittering-proxy-port' are
 non-nil, the variables `twittering-proxy-*' have priority over other
 variables `twittering-http-proxy-*' or `twittering-https-proxy-*'
-regardless of HTTP or HTTPS.")
-(defvar twittering-https-proxy-port nil
+regardless of HTTP or HTTPS."
+  :group 'twittering-proxy
+  :type '(choice (const nil)
+		 string))
+
+(defcustom twittering-https-proxy-port nil
   "*Port number of a HTTPS proxy server for `twittering-mode'.
 If nil, it is initialized on entering `twittering-mode'.
 The server is specified by `twittering-https-proxy-server'.
@@ -1023,23 +1277,37 @@ and `twittering-http-proxy-port' is used.
 NOTE: If both `twittering-proxy-server' and `twittering-proxy-port' are
 non-nil, the variables `twittering-proxy-*' have priority over other
 variables `twittering-http-proxy-*' or `twittering-https-proxy-*'
-regardless of HTTP or HTTPS.")
-(defvar twittering-https-proxy-keep-alive nil
-  "*If non-nil, the Keep-alive is enabled. This is experimental.")
-(defvar twittering-https-proxy-user nil
+regardless of HTTP or HTTPS."
+  :group 'twittering-proxy
+  :type '(choice (const nil)
+		 integer))
+
+(defcustom twittering-https-proxy-keep-alive nil
+  "*If non-nil, the Keep-alive is enabled.  This is experimental."
+  :group 'twittering-proxy
+  :type 'boolean)
+
+(defcustom twittering-https-proxy-user nil
   "*Username for `twittering-https-proxy-server'.
 
 NOTE: If both `twittering-proxy-server' and `twittering-proxy-port' are
 non-nil, the variables `twittering-proxy-*' have priority over other
 variables `twittering-http-proxy-*' or `twittering-https-proxy-*'
-regardless of HTTP or HTTPS.")
-(defvar twittering-https-proxy-password nil
+regardless of HTTP or HTTPS."
+  :group 'twittering-proxy
+  :type '(choice (const nil)
+		 string))
+
+(defcustom twittering-https-proxy-password nil
   "*Password for `twittering-https-proxy-server'.
 
 NOTE: If both `twittering-proxy-server' and `twittering-proxy-port' are
 non-nil, the variables `twittering-proxy-*' have priority over other
 variables `twittering-http-proxy-*' or `twittering-https-proxy-*'
-regardless of HTTP or HTTPS.")
+regardless of HTTP or HTTPS."
+  :group 'twittering-proxy
+  :type '(choice (const nil)
+		 string))
 
 (defun twittering-normalize-proxy-vars ()
   "Normalize the type of `twittering-http-proxy-port' and
@@ -1119,26 +1387,26 @@ SCHEME must be \"http\" or \"https\"."
    ((require 'url-methods nil t)
     (url-scheme-register-proxy scheme)
     (let* ((proxy-service (assoc scheme url-proxy-services))
-           (proxy (if proxy-service (cdr proxy-service) nil)))
+	   (proxy (if proxy-service (cdr proxy-service) nil)))
       (if (and proxy
-               (string-match "^\\([^:]+\\):\\([0-9]+\\)$" proxy))
-          (let ((host (match-string 1 proxy))
+	       (string-match "^\\([^:]+\\):\\([0-9]+\\)$" proxy))
+	  (let ((host (match-string 1 proxy))
 		(port (string-to-number (match-string 2 proxy))))
-            (cons host port))
-        nil)))
+	    (cons host port))
+	nil)))
    (t
     (let* ((env-var (concat scheme "_proxy"))
-           (env-proxy (or (getenv (upcase env-var))
-                          (getenv (downcase env-var))))
+	   (env-proxy (or (getenv (upcase env-var))
+			  (getenv (downcase env-var))))
 	   (default-port (if (string= "https" scheme) "443" "80")))
       (if (and env-proxy
 	       (string-match
 		"^\\(https?://\\)?\\([^:/]+\\)\\(:\\([0-9]+\\)\\)?/?$"
 		env-proxy))
-          (let* ((host (match-string 2 env-proxy))
+	  (let* ((host (match-string 2 env-proxy))
 		 (port-str (or (match-string 4 env-proxy) default-port))
 		 (port (string-to-number port-str)))
-            (cons host port))
+	    (cons host port))
 	nil)))))
 
 (defun twittering-setup-proxy ()
@@ -1180,8 +1448,13 @@ SCHEME must be \"http\" or \"https\"."
 ;;;; Functions for URL library
 ;;;;
 
-(defvar twittering-url-show-status nil
-  "*Whether to show a running total of bytes transferred.")
+(defcustom twittering-url-show-status nil
+  "*If non-nil, show a running total of bytes transferred by urllib.
+
+This has effect only if either \"urllib-httpp\" or \"urllib-https\" is used
+as the connection method."
+  :group 'twittering-mode
+  :type 'boolean)
 
 ;;;;
 ;;;; CA certificate
@@ -1192,15 +1465,15 @@ SCHEME must be \"http\" or \"https\"."
 servers on SSL.")
 
 (defconst twittering-ca-cert-list
-  '(;; issuer= /C=US/O=Equifax/OU=Equifax Secure Certificate Authority
+  '(
+;; #BEGIN-CERTIFICATE
+;; Equifax Secure CA
+;; issuer= /C=US/O=Equifax/OU=Equifax Secure Certificate Authority
 ;; subject= /C=US/O=Equifax/OU=Equifax Secure Certificate Authority
 ;; serial=35DEF4CF
 ;; SHA1 Fingerprint=D2:32:09:AD:23:D3:14:23:21:74:E4:0D:7F:9D:62:13:97:86:63:3A
 ;; notBefore=Aug 22 16:41:51 1998 GMT
 ;; notAfter=Aug 22 16:41:51 2018 GMT
-;; 
-;; URL: https://www.geotrust.com/resources/root_certificates/certificates/Equifax_Secure_Certificate_Authority.pem
-;; Retrieved-at: 2013-12-11 17:47:48+00:00
 "-----BEGIN CERTIFICATE-----
 MIIDIDCCAomgAwIBAgIENd70zzANBgkqhkiG9w0BAQUFADBOMQswCQYDVQQGEwJV
 UzEQMA4GA1UEChMHRXF1aWZheDEtMCsGA1UECxMkRXF1aWZheCBTZWN1cmUgQ2Vy
@@ -1221,47 +1494,13 @@ A4GBAFjOKer89961zgK5F7WF0bnj4JXMJTENAKaSbn+2kmOeUJXRmm/kEd5jhW6Y
 1voqZiegDfqnc1zqcPGUIWVEX/r87yloqaKHee9570+sB3c4
 -----END CERTIFICATE-----
 "
-
-;; issuer= /C=US/O=GeoTrust Inc./CN=GeoTrust Global CA
-;; subject= /C=US/O=GeoTrust Inc./CN=GeoTrust Global CA
-;; serial=023456
-;; SHA1 Fingerprint=DE:28:F4:A4:FF:E5:B9:2F:A3:C5:03:D1:A3:49:A7:F9:96:2A:82:12
-;; notBefore=May 21 04:00:00 2002 GMT
-;; notAfter=May 21 04:00:00 2022 GMT
-;; 
-;; URL: https://www.geotrust.com/resources/root_certificates/certificates/GeoTrust_Global_CA.pem
-;; Retrieved-at: 2013-12-11 17:47:48+00:00
-"-----BEGIN CERTIFICATE-----
-MIIDVDCCAjygAwIBAgIDAjRWMA0GCSqGSIb3DQEBBQUAMEIxCzAJBgNVBAYTAlVT
-MRYwFAYDVQQKEw1HZW9UcnVzdCBJbmMuMRswGQYDVQQDExJHZW9UcnVzdCBHbG9i
-YWwgQ0EwHhcNMDIwNTIxMDQwMDAwWhcNMjIwNTIxMDQwMDAwWjBCMQswCQYDVQQG
-EwJVUzEWMBQGA1UEChMNR2VvVHJ1c3QgSW5jLjEbMBkGA1UEAxMSR2VvVHJ1c3Qg
-R2xvYmFsIENBMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2swYYzD9
-9BcjGlZ+W988bDjkcbd4kdS8odhM+KhDtgPpTSEHCIjaWC9mOSm9BXiLnTjoBbdq
-fnGk5sRgprDvgOSJKA+eJdbtg/OtppHHmMlCGDUUna2YRpIuT8rxh0PBFpVXLVDv
-iS2Aelet8u5fa9IAjbkU+BQVNdnARqN7csiRv8lVK83Qlz6cJmTM386DGXHKTubU
-1XupGc1V3sjs0l44U+VcT4wt/lAjNvxm5suOpDkZALeVAjmRCw7+OC7RHQWa9k0+
-bw8HHa8sHo9gOeL6NlMTOdReJivbPagUvTLrGAMoUgRx5aszPeE4uwc2hGKceeoW
-MPRfwCvocWvk+QIDAQABo1MwUTAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBTA
-ephojYn7qwVkDBF9qn1luMrMTjAfBgNVHSMEGDAWgBTAephojYn7qwVkDBF9qn1l
-uMrMTjANBgkqhkiG9w0BAQUFAAOCAQEANeMpauUvXVSOKVCUn5kaFOSPeCpilKIn
-Z57QzxpeR+nBsqTP3UEaBU6bS+5Kb1VSsyShNwrrZHYqLizz/Tt1kL/6cdjHPTfS
-tQWVYrmm3ok9Nns4d0iXrKYgjy6myQzCsplFAMfOEVEiIuCl6rYVSAlk6l5PdPcF
-PseKUgzbFbS9bZvlxrFUaKnjaZC2mqUPuLk/IH2uSrW4nOQdtqvmlKXBx4Ot2/Un
-hw4EbNX/3aBd7YdStysVAq45pmp06drE57xNNB6pXE0zX5IJL4hmXXeXxx12E6nV
-5fEWCRE11azbJHFwLJhWC9kXtNHjUStedejV0NxPNO3CBWaAocvmMw==
------END CERTIFICATE-----
-"
-
+;; Verisign Class 3 Public Primary Certification Authority - G2
 ;; issuer= /C=US/O=VeriSign, Inc./OU=Class 3 Public Primary Certification Authority - G2/OU=(c) 1998 VeriSign, Inc. - For authorized use only/OU=VeriSign Trust Network
 ;; subject= /C=US/O=VeriSign, Inc./OU=Class 3 Public Primary Certification Authority - G2/OU=(c) 1998 VeriSign, Inc. - For authorized use only/OU=VeriSign Trust Network
 ;; serial=7DD9FE07CFA81EB7107967FBA78934C6
 ;; SHA1 Fingerprint=85:37:1C:A6:E5:50:14:3D:CE:28:03:47:1B:DE:3A:09:E8:F8:77:0F
 ;; notBefore=May 18 00:00:00 1998 GMT
 ;; notAfter=Aug  1 23:59:59 2028 GMT
-;; 
-;; URL: http://www.verisign.com/repository/roots/root-certificates/PCA-3G2.pem
-;; Retrieved-at: 2013-12-11 17:47:48+00:00
 "-----BEGIN CERTIFICATE-----
 MIIDAjCCAmsCEH3Z/gfPqB63EHln+6eJNMYwDQYJKoZIhvcNAQEFBQAwgcExCzAJ
 BgNVBAYTAlVTMRcwFQYDVQQKEw5WZXJpU2lnbiwgSW5jLjE8MDoGA1UECxMzQ2xh
@@ -1282,41 +1521,125 @@ F6YM40AIOw7n60RzKprxaZLvcRTDOaxxp5EJb+RxBrO6WVcmeQD2+A2iMzAo1KpY
 oJ2daZH9
 -----END CERTIFICATE-----
 "
-
-;; issuer= /C=US/O=VeriSign, Inc./OU=Class 3 Public Primary Certification Authority
-;; subject= /C=US/O=VeriSign, Inc./OU=Class 3 Public Primary Certification Authority
-;; serial=3C9131CB1FF6D01B0E9AB8D044BF12BE
-;; SHA1 Fingerprint=A1:DB:63:93:91:6F:17:E4:18:55:09:40:04:15:C7:02:40:B0:AE:6B
-;; notBefore=Jan 29 00:00:00 1996 GMT
-;; notAfter=Aug  2 23:59:59 2028 GMT
-;; 
-;; URL: http://www.verisign.com/repository/roots/root-certificates/PCA-3.pem
-;; Retrieved-at: 2013-12-11 17:47:48+00:00
+;; Verisign Class 3 Public Primary Certification Authority - G3
+;; issuer= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 1999 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 3 Public Primary Certification Authority - G3
+;; subject= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 1999 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 3 Public Primary Certification Authority - G3
+;; serial=9B7E0649A33E62B9D5EE90487129EF57
+;; SHA1 Fingerprint=13:2D:0D:45:53:4B:69:97:CD:B2:D5:C3:39:E2:55:76:60:9B:5C:C6
+;; notBefore=Oct  1 00:00:00 1999 GMT
+;; notAfter=Jul 16 23:59:59 2036 GMT
 "-----BEGIN CERTIFICATE-----
-MIICPDCCAaUCEDyRMcsf9tAbDpq40ES/Er4wDQYJKoZIhvcNAQEFBQAwXzELMAkG
-A1UEBhMCVVMxFzAVBgNVBAoTDlZlcmlTaWduLCBJbmMuMTcwNQYDVQQLEy5DbGFz
-cyAzIFB1YmxpYyBQcmltYXJ5IENlcnRpZmljYXRpb24gQXV0aG9yaXR5MB4XDTk2
-MDEyOTAwMDAwMFoXDTI4MDgwMjIzNTk1OVowXzELMAkGA1UEBhMCVVMxFzAVBgNV
-BAoTDlZlcmlTaWduLCBJbmMuMTcwNQYDVQQLEy5DbGFzcyAzIFB1YmxpYyBQcmlt
-YXJ5IENlcnRpZmljYXRpb24gQXV0aG9yaXR5MIGfMA0GCSqGSIb3DQEBAQUAA4GN
-ADCBiQKBgQDJXFme8huKARS0EN8EQNvjV69qRUCPhAwL0TPZ2RHP7gJYHyX3KqhE
-BarsAx94f56TuZoAqiN91qyFomNFx3InzPRMxnVx0jnvT0Lwdd8KkMaOIG+YD/is
-I19wKTakyYbnsZogy1Olhec9vn2a/iRFM9x2Fe0PonFkTGUugWhFpwIDAQABMA0G
-CSqGSIb3DQEBBQUAA4GBABByUqkFFBkyCEHwxWsKzH4PIRnN5GfcX6kb5sroc50i
-2JhucwNhkcV8sEVAbkSdjbCxlnRhLQ2pRdKkkirWmnWXbj9T/UWZYB2oK0z5XqcJ
-2HUw19JlYD1n1khVdWk/kfVIC0dpImmClr7JyDiGSnoscxlIaU5rfGW/D/xwzoiQ
+MIIEGjCCAwICEQCbfgZJoz5iudXukEhxKe9XMA0GCSqGSIb3DQEBBQUAMIHKMQsw
+CQYDVQQGEwJVUzEXMBUGA1UEChMOVmVyaVNpZ24sIEluYy4xHzAdBgNVBAsTFlZl
+cmlTaWduIFRydXN0IE5ldHdvcmsxOjA4BgNVBAsTMShjKSAxOTk5IFZlcmlTaWdu
+LCBJbmMuIC0gRm9yIGF1dGhvcml6ZWQgdXNlIG9ubHkxRTBDBgNVBAMTPFZlcmlT
+aWduIENsYXNzIDMgUHVibGljIFByaW1hcnkgQ2VydGlmaWNhdGlvbiBBdXRob3Jp
+dHkgLSBHMzAeFw05OTEwMDEwMDAwMDBaFw0zNjA3MTYyMzU5NTlaMIHKMQswCQYD
+VQQGEwJVUzEXMBUGA1UEChMOVmVyaVNpZ24sIEluYy4xHzAdBgNVBAsTFlZlcmlT
+aWduIFRydXN0IE5ldHdvcmsxOjA4BgNVBAsTMShjKSAxOTk5IFZlcmlTaWduLCBJ
+bmMuIC0gRm9yIGF1dGhvcml6ZWQgdXNlIG9ubHkxRTBDBgNVBAMTPFZlcmlTaWdu
+IENsYXNzIDMgUHVibGljIFByaW1hcnkgQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkg
+LSBHMzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMu6nFL8eB8aHm8b
+N3O9+MlrlBIwT/A2R/XQkQr1F8ilYcEWQE37imGQ5XYgwREGfassbqb1EUGO+i2t
+KmFZpGcmTNDovFJbcCAEWNF6yaRpvIMXZK0Fi7zQWM6NjPXr8EJJC52XJ2cybuGu
+kxUccLwgTS8Y3pKI6GyFVxEa6X7jJhFUokWWVYPKMIno3Nij7SqAP395ZVc+FSBm
+CC+Vk7+qRy+oRpfwEuL+wgorUeZ25rdGt+INpsyow0xZVYnm6FNcHOqd8GIWC6fJ
+Xwzw3sJ2zq/3avL6QaaiMxTJ5Xpj055iN9WFZZ4O5lMkdBteHRJTW8cs54NJOxWu
+imi5V5cCAwEAATANBgkqhkiG9w0BAQUFAAOCAQEAERSWwauSCPc/L8my/uRan2Te
+2yFPhpk0djZX3dAVL8WtfxUfN2JzPtTnX84XA9s1+ivbrmAJXx5fj267Cz3qWhMe
+DGBvtcC1IyIuBwvLqXTLR7sdwdela8wv0kL9Sd2nic9TutoAWii/gt/4uhMdUIaC
+/Y4wjylGsB49Ndo4YhYYSq3mtlFs3q9i6wHQHiT+eo8SGhJouPtmmRQURVyu565p
+F4ErWjfJXir0xuKhXFSbplQAz/DxwceYMBo7Nhbbo27q/a2ywtrvAkcTisDxszGt
+TxzhT5yvDwyd93gN2PQ1VoDat20Xj50egWTh/sVFuq1ruQp6Tk9LhO5L8X3dEQ==
 -----END CERTIFICATE-----
 "
-
+;; Verisign Class 4 Public Primary Certification Authority - G3
+;; issuer= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 1999 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 4 Public Primary Certification Authority - G3
+;; subject= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 1999 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 4 Public Primary Certification Authority - G3
+;; serial=ECA0A78B6E756A01CFC47CCC2F945ED7
+;; SHA1 Fingerprint=C8:EC:8C:87:92:69:CB:4B:AB:39:E9:8D:7E:57:67:F3:14:95:73:9D
+;; notBefore=Oct  1 00:00:00 1999 GMT
+;; notAfter=Jul 16 23:59:59 2036 GMT
+"-----BEGIN CERTIFICATE-----
+MIIEGjCCAwICEQDsoKeLbnVqAc/EfMwvlF7XMA0GCSqGSIb3DQEBBQUAMIHKMQsw
+CQYDVQQGEwJVUzEXMBUGA1UEChMOVmVyaVNpZ24sIEluYy4xHzAdBgNVBAsTFlZl
+cmlTaWduIFRydXN0IE5ldHdvcmsxOjA4BgNVBAsTMShjKSAxOTk5IFZlcmlTaWdu
+LCBJbmMuIC0gRm9yIGF1dGhvcml6ZWQgdXNlIG9ubHkxRTBDBgNVBAMTPFZlcmlT
+aWduIENsYXNzIDQgUHVibGljIFByaW1hcnkgQ2VydGlmaWNhdGlvbiBBdXRob3Jp
+dHkgLSBHMzAeFw05OTEwMDEwMDAwMDBaFw0zNjA3MTYyMzU5NTlaMIHKMQswCQYD
+VQQGEwJVUzEXMBUGA1UEChMOVmVyaVNpZ24sIEluYy4xHzAdBgNVBAsTFlZlcmlT
+aWduIFRydXN0IE5ldHdvcmsxOjA4BgNVBAsTMShjKSAxOTk5IFZlcmlTaWduLCBJ
+bmMuIC0gRm9yIGF1dGhvcml6ZWQgdXNlIG9ubHkxRTBDBgNVBAMTPFZlcmlTaWdu
+IENsYXNzIDQgUHVibGljIFByaW1hcnkgQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkg
+LSBHMzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAK3LpRFpxlmr8Y+1
+GQ9Wzsy1HyDkniYlS+BzZYlZ3tCD5PUPtbut8XzoIfzk6AzufEUiGXaStBO3IFsJ
++mGuqPKljYXCKtbeZjbSmwL0qJJgfJxptI8kHtCGUvYynEFYHiK9zUVilQhu0Gbd
+U6LM8BDcVHOLBKFGMzNcF0C5nk3T875Vg+ixiY5afJqWIpA7iCXy0lOIAgwLePLm
+NxdLMEYH5IBtptiWLugs+BGzOA1mppvqySNb247i8xOOGlktqgLw7KSHZtzBP/XY
+ufTsgsbSPZUd5cBPhMnZo0QoBmrXRazwa2rvTl/4EYIeOGM0ZlDUPpNz+jDDZq3/
+ky2X7wMCAwEAATANBgkqhkiG9w0BAQUFAAOCAQEAj/ola09b5KROJ1WrIhVZPMq1
+CtRK26vdoV9TxaBXOcLORyu+OshWv8LZJxA6sQU8wHcxuzrTBXttmhwwjIDLk5Mq
+g6sFUYICABFna/OIYUdfA5PVWw3g8dShMjWFsjrbsIKr0csKvE+MW8VLADsfKoKm
+fjaF3H48ZwC15DtS4KjrXRX5xm3wrR0OhbepmnMUWluPQSjA1egtTaRezarZ7c7c
+2NU8Qh0XwRJdRTjDOPP8hS6DRkiy1yBfkjaP53kPmF6Z6PDQpLv1U70qzlmwr25/
+bLvSHgCwIe34QWKCudiyxLtGUPMxxY8BqHTr9Xgn2uf3ZkPznoM+IKrDNWCRzg==
+-----END CERTIFICATE-----
+"
+;; Equifax Secure Global eBusiness CA
+;; issuer= /C=US/O=Equifax Secure Inc./CN=Equifax Secure Global eBusiness CA-1
+;; subject= /C=US/O=Equifax Secure Inc./CN=Equifax Secure Global eBusiness CA-1
+;; serial=01
+;; SHA1 Fingerprint=7E:78:4A:10:1C:82:65:CC:2D:E1:F1:6D:47:B4:40:CA:D9:0A:19:45
+;; notBefore=Jun 21 04:00:00 1999 GMT
+;; notAfter=Jun 21 04:00:00 2020 GMT
+"-----BEGIN CERTIFICATE-----
+MIICkDCCAfmgAwIBAgIBATANBgkqhkiG9w0BAQQFADBaMQswCQYDVQQGEwJVUzEc
+MBoGA1UEChMTRXF1aWZheCBTZWN1cmUgSW5jLjEtMCsGA1UEAxMkRXF1aWZheCBT
+ZWN1cmUgR2xvYmFsIGVCdXNpbmVzcyBDQS0xMB4XDTk5MDYyMTA0MDAwMFoXDTIw
+MDYyMTA0MDAwMFowWjELMAkGA1UEBhMCVVMxHDAaBgNVBAoTE0VxdWlmYXggU2Vj
+dXJlIEluYy4xLTArBgNVBAMTJEVxdWlmYXggU2VjdXJlIEdsb2JhbCBlQnVzaW5l
+c3MgQ0EtMTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAuucXkAJlsTRVPEnC
+UdXfp9E3j9HngXNBUmCbnaEXJnitx7HoJpQytd4zjTov2/KaelpzmKNc6fuKcxtc
+58O/gGzNqfTWK8D3+ZmqY6KxRwIP1ORROhI8bIpaVIRw28HFkM9yRcuoWcDNM50/
+o5brhTMhHD4ePmBudpxnhcXIw2ECAwEAAaNmMGQwEQYJYIZIAYb4QgEBBAQDAgAH
+MA8GA1UdEwEB/wQFMAMBAf8wHwYDVR0jBBgwFoAUvqigdHJQa0S3ySPY+6j/s1dr
+aGwwHQYDVR0OBBYEFL6ooHRyUGtEt8kj2Puo/7NXa2hsMA0GCSqGSIb3DQEBBAUA
+A4GBADDiAVGqx+pf2rnQZQ8w1j7aDRRJbpGTJxQx78T3LUX47Me/okENI7SS+RkA
+Z70Br83gcfxaz2TE4JaY0KNA4gGK7ycH8WUBikQtBmV1UsCGECAhX2xrD2yuCRyv
+8qIYNMR1pHMc8Y3c7635s3a0kr/clRAevsvIO1qEYBlWlKlV
+-----END CERTIFICATE-----
+"
+;; Equifax Secure eBusiness CA 1
+;; issuer= /C=US/O=Equifax Secure Inc./CN=Equifax Secure eBusiness CA-1
+;; subject= /C=US/O=Equifax Secure Inc./CN=Equifax Secure eBusiness CA-1
+;; serial=04
+;; SHA1 Fingerprint=DA:40:18:8B:91:89:A3:ED:EE:AE:DA:97:FE:2F:9D:F5:B7:D1:8A:41
+;; notBefore=Jun 21 04:00:00 1999 GMT
+;; notAfter=Jun 21 04:00:00 2020 GMT
+"-----BEGIN CERTIFICATE-----
+MIICgjCCAeugAwIBAgIBBDANBgkqhkiG9w0BAQQFADBTMQswCQYDVQQGEwJVUzEc
+MBoGA1UEChMTRXF1aWZheCBTZWN1cmUgSW5jLjEmMCQGA1UEAxMdRXF1aWZheCBT
+ZWN1cmUgZUJ1c2luZXNzIENBLTEwHhcNOTkwNjIxMDQwMDAwWhcNMjAwNjIxMDQw
+MDAwWjBTMQswCQYDVQQGEwJVUzEcMBoGA1UEChMTRXF1aWZheCBTZWN1cmUgSW5j
+LjEmMCQGA1UEAxMdRXF1aWZheCBTZWN1cmUgZUJ1c2luZXNzIENBLTEwgZ8wDQYJ
+KoZIhvcNAQEBBQADgY0AMIGJAoGBAM4vGbwXt3fek6lfWg0XTzQaDJj0ItlZ1MRo
+RvC0NcWFAyDGr0WlIVFFQesWWDYyb+JQYmT5/VGcqiTZ9J2DKocKIdMSODRsjQBu
+WqDZQu4aIZX5UkxVWsUPOE9G+m34LjXWHXzr4vCwdYDIqROsvojvOm6rXyo4YgKw
+Env+j6YDAgMBAAGjZjBkMBEGCWCGSAGG+EIBAQQEAwIABzAPBgNVHRMBAf8EBTAD
+AQH/MB8GA1UdIwQYMBaAFEp4MlIR21kWNl7fwRQ2QGpHfEyhMB0GA1UdDgQWBBRK
+eDJSEdtZFjZe38EUNkBqR3xMoTANBgkqhkiG9w0BAQQFAAOBgQB1W6ibAxHm6VZM
+zfmpTMANmvPMZWnmJXbMWbfWVMMdzZmsGd20hdXgPfxiIKeES1hl8eL5lSE/9dR+
+WB5Hh1Q+WKG1tfgq73HnvMP2sUlG4tega+VWeponmHxGYhTnyfxuAxJ5gDgdSIKN
+/Bf+KpYrtWKmpj29f5JZzVoqgrI3eQ==
+-----END CERTIFICATE-----
+"
+;; VeriSign Class 3 Public Primary Certification Authority - G5
 ;; issuer= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 2006 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 3 Public Primary Certification Authority - G5
 ;; subject= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 2006 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 3 Public Primary Certification Authority - G5
 ;; serial=18DAD19E267DE8BB4A2158CDCC6B3B4A
 ;; SHA1 Fingerprint=4E:B6:D5:78:49:9B:1C:CF:5F:58:1E:AD:56:BE:3D:9B:67:44:A5:E5
 ;; notBefore=Nov  8 00:00:00 2006 GMT
 ;; notAfter=Jul 16 23:59:59 2036 GMT
-;; 
-;; URL: http://www.verisign.com/repository/roots/root-certificates/PCA-3G5.pem
-;; Retrieved-at: 2013-12-11 17:47:48+00:00
 "-----BEGIN CERTIFICATE-----
 MIIE0zCCA7ugAwIBAgIQGNrRniZ96LtKIVjNzGs7SjANBgkqhkiG9w0BAQUFADCB
 yjELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDlZlcmlTaWduLCBJbmMuMR8wHQYDVQQL
@@ -1346,209 +1669,13 @@ WE9gyn6CagsCqiUXObXbf+eEZSqVir2G3l6BFoMtEMze/aiCKm0oHw0LxOXnGiYZ
 hnacRHr2lVz2XTIIM6RUthg/aFzyQkqFOFSDX9HoLPKsEdao7WNq
 -----END CERTIFICATE-----
 "
-
-;; issuer= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 1999 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 3 Public Primary Certification Authority - G3
-;; subject= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 1999 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 3 Public Primary Certification Authority - G3
-;; serial=9B7E0649A33E62B9D5EE90487129EF57
-;; SHA1 Fingerprint=13:2D:0D:45:53:4B:69:97:CD:B2:D5:C3:39:E2:55:76:60:9B:5C:C6
-;; notBefore=Oct  1 00:00:00 1999 GMT
-;; notAfter=Jul 16 23:59:59 2036 GMT
-;; 
-;; URL: http://www.verisign.com/repository/roots/root-certificates/PCA-3G3.pem
-;; Retrieved-at: 2013-12-11 17:47:48+00:00
-"-----BEGIN CERTIFICATE-----
-MIIEGjCCAwICEQCbfgZJoz5iudXukEhxKe9XMA0GCSqGSIb3DQEBBQUAMIHKMQsw
-CQYDVQQGEwJVUzEXMBUGA1UEChMOVmVyaVNpZ24sIEluYy4xHzAdBgNVBAsTFlZl
-cmlTaWduIFRydXN0IE5ldHdvcmsxOjA4BgNVBAsTMShjKSAxOTk5IFZlcmlTaWdu
-LCBJbmMuIC0gRm9yIGF1dGhvcml6ZWQgdXNlIG9ubHkxRTBDBgNVBAMTPFZlcmlT
-aWduIENsYXNzIDMgUHVibGljIFByaW1hcnkgQ2VydGlmaWNhdGlvbiBBdXRob3Jp
-dHkgLSBHMzAeFw05OTEwMDEwMDAwMDBaFw0zNjA3MTYyMzU5NTlaMIHKMQswCQYD
-VQQGEwJVUzEXMBUGA1UEChMOVmVyaVNpZ24sIEluYy4xHzAdBgNVBAsTFlZlcmlT
-aWduIFRydXN0IE5ldHdvcmsxOjA4BgNVBAsTMShjKSAxOTk5IFZlcmlTaWduLCBJ
-bmMuIC0gRm9yIGF1dGhvcml6ZWQgdXNlIG9ubHkxRTBDBgNVBAMTPFZlcmlTaWdu
-IENsYXNzIDMgUHVibGljIFByaW1hcnkgQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkg
-LSBHMzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMu6nFL8eB8aHm8b
-N3O9+MlrlBIwT/A2R/XQkQr1F8ilYcEWQE37imGQ5XYgwREGfassbqb1EUGO+i2t
-KmFZpGcmTNDovFJbcCAEWNF6yaRpvIMXZK0Fi7zQWM6NjPXr8EJJC52XJ2cybuGu
-kxUccLwgTS8Y3pKI6GyFVxEa6X7jJhFUokWWVYPKMIno3Nij7SqAP395ZVc+FSBm
-CC+Vk7+qRy+oRpfwEuL+wgorUeZ25rdGt+INpsyow0xZVYnm6FNcHOqd8GIWC6fJ
-Xwzw3sJ2zq/3avL6QaaiMxTJ5Xpj055iN9WFZZ4O5lMkdBteHRJTW8cs54NJOxWu
-imi5V5cCAwEAATANBgkqhkiG9w0BAQUFAAOCAQEAERSWwauSCPc/L8my/uRan2Te
-2yFPhpk0djZX3dAVL8WtfxUfN2JzPtTnX84XA9s1+ivbrmAJXx5fj267Cz3qWhMe
-DGBvtcC1IyIuBwvLqXTLR7sdwdela8wv0kL9Sd2nic9TutoAWii/gt/4uhMdUIaC
-/Y4wjylGsB49Ndo4YhYYSq3mtlFs3q9i6wHQHiT+eo8SGhJouPtmmRQURVyu565p
-F4ErWjfJXir0xuKhXFSbplQAz/DxwceYMBo7Nhbbo27q/a2ywtrvAkcTisDxszGt
-TxzhT5yvDwyd93gN2PQ1VoDat20Xj50egWTh/sVFuq1ruQp6Tk9LhO5L8X3dEQ==
------END CERTIFICATE-----
-"
-
-;; issuer= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 2007 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 3 Public Primary Certification Authority - G4
-;; subject= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 2007 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 3 Public Primary Certification Authority - G4
-;; serial=2F80FE238C0E220F486712289187ACB3
-;; SHA1 Fingerprint=22:D5:D8:DF:8F:02:31:D1:8D:F7:9D:B7:CF:8A:2D:64:C9:3F:6C:3A
-;; notBefore=Nov  5 00:00:00 2007 GMT
-;; notAfter=Jan 18 23:59:59 2038 GMT
-;; 
-;; URL: http://www.verisign.com/repository/roots/root-certificates/PCA-3G4.pem
-;; Retrieved-at: 2013-12-11 17:47:48+00:00
-"-----BEGIN CERTIFICATE-----
-MIIDhDCCAwqgAwIBAgIQL4D+I4wOIg9IZxIokYesszAKBggqhkjOPQQDAzCByjEL
-MAkGA1UEBhMCVVMxFzAVBgNVBAoTDlZlcmlTaWduLCBJbmMuMR8wHQYDVQQLExZW
-ZXJpU2lnbiBUcnVzdCBOZXR3b3JrMTowOAYDVQQLEzEoYykgMjAwNyBWZXJpU2ln
-biwgSW5jLiAtIEZvciBhdXRob3JpemVkIHVzZSBvbmx5MUUwQwYDVQQDEzxWZXJp
-U2lnbiBDbGFzcyAzIFB1YmxpYyBQcmltYXJ5IENlcnRpZmljYXRpb24gQXV0aG9y
-aXR5IC0gRzQwHhcNMDcxMTA1MDAwMDAwWhcNMzgwMTE4MjM1OTU5WjCByjELMAkG
-A1UEBhMCVVMxFzAVBgNVBAoTDlZlcmlTaWduLCBJbmMuMR8wHQYDVQQLExZWZXJp
-U2lnbiBUcnVzdCBOZXR3b3JrMTowOAYDVQQLEzEoYykgMjAwNyBWZXJpU2lnbiwg
-SW5jLiAtIEZvciBhdXRob3JpemVkIHVzZSBvbmx5MUUwQwYDVQQDEzxWZXJpU2ln
-biBDbGFzcyAzIFB1YmxpYyBQcmltYXJ5IENlcnRpZmljYXRpb24gQXV0aG9yaXR5
-IC0gRzQwdjAQBgcqhkjOPQIBBgUrgQQAIgNiAASnVnp8Utpkmw4tXNherJI9/gHm
-GUo9FANL+mAnINmDiWn6VMaaGF5VKmTeBvaNSjutEDxlPZCIBIngMGGzrl0Bp3ve
-fLK+ymVhAIau2o970ImtTR1ZmkGxvEeA3J5iw/mjgbIwga8wDwYDVR0TAQH/BAUw
-AwEB/zAOBgNVHQ8BAf8EBAMCAQYwbQYIKwYBBQUHAQwEYTBfoV2gWzBZMFcwVRYJ
-aW1hZ2UvZ2lmMCEwHzAHBgUrDgMCGgQUj+XTGoasjY5rw8+AatRIGCx7GS4wJRYj
-aHR0cDovL2xvZ28udmVyaXNpZ24uY29tL3ZzbG9nby5naWYwHQYDVR0OBBYEFLMW
-kf3upm7ktS5Jj4d4gYDs5bG1MAoGCCqGSM49BAMDA2gAMGUCMGYhDBgmYFo4e1ZC
-4Kf8NoRRkSAsdk1DPcQdhCPQrNZ8NQbOzWm9kA3bbEhCHQ6qQgIxAJw9SDkjOVga
-FRJZap7v1VmyHVIsmXHNxynfGyphe3HR3vPA5Q06Sqotp9iGKt0uEA==
------END CERTIFICATE-----
-"
-
-;; issuer= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 1999 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 2 Public Primary Certification Authority - G3
-;; subject= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 1999 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 2 Public Primary Certification Authority - G3
-;; serial=6170CB498C5F984529E7B0A6D9505B7A
-;; SHA1 Fingerprint=61:EF:43:D7:7F:CA:D4:61:51:BC:98:E0:C3:59:12:AF:9F:EB:63:11
-;; notBefore=Oct  1 00:00:00 1999 GMT
-;; notAfter=Jul 16 23:59:59 2036 GMT
-;; 
-;; URL: http://www.verisign.com/repository/roots/root-certificates/PCA-2G3.pem
-;; Retrieved-at: 2013-12-11 17:47:48+00:00
-"-----BEGIN CERTIFICATE-----
-MIIEGTCCAwECEGFwy0mMX5hFKeewptlQW3owDQYJKoZIhvcNAQEFBQAwgcoxCzAJ
-BgNVBAYTAlVTMRcwFQYDVQQKEw5WZXJpU2lnbiwgSW5jLjEfMB0GA1UECxMWVmVy
-aVNpZ24gVHJ1c3QgTmV0d29yazE6MDgGA1UECxMxKGMpIDE5OTkgVmVyaVNpZ24s
-IEluYy4gLSBGb3IgYXV0aG9yaXplZCB1c2Ugb25seTFFMEMGA1UEAxM8VmVyaVNp
-Z24gQ2xhc3MgMiBQdWJsaWMgUHJpbWFyeSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0
-eSAtIEczMB4XDTk5MTAwMTAwMDAwMFoXDTM2MDcxNjIzNTk1OVowgcoxCzAJBgNV
-BAYTAlVTMRcwFQYDVQQKEw5WZXJpU2lnbiwgSW5jLjEfMB0GA1UECxMWVmVyaVNp
-Z24gVHJ1c3QgTmV0d29yazE6MDgGA1UECxMxKGMpIDE5OTkgVmVyaVNpZ24sIElu
-Yy4gLSBGb3IgYXV0aG9yaXplZCB1c2Ugb25seTFFMEMGA1UEAxM8VmVyaVNpZ24g
-Q2xhc3MgMiBQdWJsaWMgUHJpbWFyeSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eSAt
-IEczMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArwoNwtUs22e5LeWU
-J92lvuCwTY+zYVY81nzD9M0+hsuiiOLh2KRpxbXiv8GmR1BeRjmL1Za6tW8UvxDO
-JxOeBUebMXoT2B/Z0wI3i60sR/COgQanDTAM6/c8DyAd3HJG7qUCyFvDyVZpTMUY
-wZF7C9UTAJu878NIPkZgIIUq1ZC2zYugzDLdt/1AVbJQHFauzI13TccgTacxdu9o
-koqQHgiBVrKtaaNS0MscxCM9H5n+TOgWY47GCI72MfbS+uV23bUckqNJzc0BzWjN
-qWm6o+sdDZykIKbBoMXRRkwXbdKsZj+WjOCE1Db/IlnF+RFgqF8EffIa9iVCYQ/E
-Srg+iQIDAQABMA0GCSqGSIb3DQEBBQUAA4IBAQA0JhU8wI1NQ0kdvekhktdmnLfe
-xbjQ5F1fdiLAJvmEOjr5jLX77GDx6M4EsMjdpwOPMPOY36TmpDHf0xwLRtxyID+u
-7gU8pDM/CzmscHhzS5kr3zDCVLCoO1Wh/hYozUK9dG6A2ydEp85EXdQbkJgNHkKU
-sQAsBNB0owIFImNjzYO1+8FtYmtpdf1dcEG59b98377BMnMiIYtYgXsVkXq642RI
-sH/7NiXaldDxJBQX3RiAa0YjOVT1jmIJBB2UkKab5iXiQkWquJCtvgiPqQtCGJTP
-cjnhsUPgKM+351psE2tJs//jGHyJizNdrDPXp/naOlXJWBD5qu9ats9LS98q
------END CERTIFICATE-----
-"
-
-;; issuer= /C=US/O=VeriSign, Inc./OU=Class 2 Public Primary Certification Authority - G2/OU=(c) 1998 VeriSign, Inc. - For authorized use only/OU=VeriSign Trust Network
-;; subject= /C=US/O=VeriSign, Inc./OU=Class 2 Public Primary Certification Authority - G2/OU=(c) 1998 VeriSign, Inc. - For authorized use only/OU=VeriSign Trust Network
-;; serial=B92F60CC889FA17A4609B85B706C8AAF
-;; SHA1 Fingerprint=B3:EA:C4:47:76:C9:C8:1C:EA:F2:9D:95:B6:CC:A0:08:1B:67:EC:9D
-;; notBefore=May 18 00:00:00 1998 GMT
-;; notAfter=Aug  1 23:59:59 2028 GMT
-;; 
-;; URL: http://www.verisign.com/repository/roots/root-certificates/PCA-2G2.pem
-;; Retrieved-at: 2013-12-11 17:47:49+00:00
-"-----BEGIN CERTIFICATE-----
-MIIDAzCCAmwCEQC5L2DMiJ+hekYJuFtwbIqvMA0GCSqGSIb3DQEBBQUAMIHBMQsw
-CQYDVQQGEwJVUzEXMBUGA1UEChMOVmVyaVNpZ24sIEluYy4xPDA6BgNVBAsTM0Ns
-YXNzIDIgUHVibGljIFByaW1hcnkgQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkgLSBH
-MjE6MDgGA1UECxMxKGMpIDE5OTggVmVyaVNpZ24sIEluYy4gLSBGb3IgYXV0aG9y
-aXplZCB1c2Ugb25seTEfMB0GA1UECxMWVmVyaVNpZ24gVHJ1c3QgTmV0d29yazAe
-Fw05ODA1MTgwMDAwMDBaFw0yODA4MDEyMzU5NTlaMIHBMQswCQYDVQQGEwJVUzEX
-MBUGA1UEChMOVmVyaVNpZ24sIEluYy4xPDA6BgNVBAsTM0NsYXNzIDIgUHVibGlj
-IFByaW1hcnkgQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkgLSBHMjE6MDgGA1UECxMx
-KGMpIDE5OTggVmVyaVNpZ24sIEluYy4gLSBGb3IgYXV0aG9yaXplZCB1c2Ugb25s
-eTEfMB0GA1UECxMWVmVyaVNpZ24gVHJ1c3QgTmV0d29yazCBnzANBgkqhkiG9w0B
-AQEFAAOBjQAwgYkCgYEAp4gBIXQs5xoD8JjhlzwPIQjxnNuX6Zr8wgQGE75fUsjM
-HiwSViy4AWkszJkfrbCWrnkE8hM5wXuYuggs6MKEEyyqaekJ9MepAqRCwiNPStjw
-DqL7MWzJ5m+ZJwf15vRMeJ5t60aG+rmGyVTyssSv1EYcWskVMP8NbPUtDm3Of3cC
-AwEAATANBgkqhkiG9w0BAQUFAAOBgQByLvl/0fFx+8Se9sVeUYpAmLho+Jscg9ji
-nb3/7aHmZuovCfTK1+qlK5X2JGCGTUQug6XELaDTrnhpb3LabK4I8GOSN+a7xDAX
-rXfMSTWqz9iP0b63GJZHc2pUIjRkLbYWm1lbtFFZOrMLFPQS32eg9K0yZF6xRnIn
-jBJ7xUS0rg==
------END CERTIFICATE-----
-"
-
-;; issuer= /C=US/O=VeriSign, Inc./OU=Class 1 Public Primary Certification Authority
-;; subject= /C=US/O=VeriSign, Inc./OU=Class 1 Public Primary Certification Authority
-;; serial=CDBA7F56F0DFE4BC54FE22ACB372AA55
-;; SHA1 Fingerprint=90:AE:A2:69:85:FF:14:80:4C:43:49:52:EC:E9:60:84:77:AF:55:6F
-;; notBefore=Jan 29 00:00:00 1996 GMT
-;; notAfter=Aug  1 23:59:59 2028 GMT
-;; 
-;; URL: http://www.verisign.com/repository/roots/root-certificates/PCA-1.pem
-;; Retrieved-at: 2013-12-11 17:47:49+00:00
-"-----BEGIN CERTIFICATE-----
-MIICPTCCAaYCEQDNun9W8N/kvFT+IqyzcqpVMA0GCSqGSIb3DQEBAgUAMF8xCzAJ
-BgNVBAYTAlVTMRcwFQYDVQQKEw5WZXJpU2lnbiwgSW5jLjE3MDUGA1UECxMuQ2xh
-c3MgMSBQdWJsaWMgUHJpbWFyeSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eTAeFw05
-NjAxMjkwMDAwMDBaFw0yODA4MDEyMzU5NTlaMF8xCzAJBgNVBAYTAlVTMRcwFQYD
-VQQKEw5WZXJpU2lnbiwgSW5jLjE3MDUGA1UECxMuQ2xhc3MgMSBQdWJsaWMgUHJp
-bWFyeSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eTCBnzANBgkqhkiG9w0BAQEFAAOB
-jQAwgYkCgYEA5Rm/baNWYS2ZSHH2Z965jeu3noaACpEO+jglr0aIguVzqKCbJF0N
-H8xlbgyw0FaEGIeaBpsQoXPftFg5a27B9hXVqKg/qhIGjTGsf7A01480Z4gJzRQR
-4k5FVmkfeAKA2txHkSm7NsljXMXg1y2He6G3MrB7MLoqLzGq7qNn2tsCAwEAATAN
-BgkqhkiG9w0BAQIFAAOBgQBMP7iLxmjf7kMzDl3ppssHhE16M/+SG/Q2rdiVIjZo
-EWx8QszznC7EBz8UsA9P/5CSdvnivErpj82ggAr3xSnxgiJduLHdgSOjeyUVRjB5
-FvjqBUuUfx3CHMjjt/QQQDwTw18fU+hI5Ia0e6E1sHslurjTjqs/OJ0ANACY89Fx
-lA==
------END CERTIFICATE-----
-"
-
-;; issuer= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 1999 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 1 Public Primary Certification Authority - G3
-;; subject= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 1999 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 1 Public Primary Certification Authority - G3
-;; serial=8B5B75568454850B00CFAF3848CEB1A4
-;; SHA1 Fingerprint=20:42:85:DC:F7:EB:76:41:95:57:8E:13:6B:D4:B7:D1:E9:8E:46:A5
-;; notBefore=Oct  1 00:00:00 1999 GMT
-;; notAfter=Jul 16 23:59:59 2036 GMT
-;; 
-;; URL: http://www.verisign.com/repository/roots/root-certificates/PCA-1G3.pem
-;; Retrieved-at: 2013-12-11 17:47:49+00:00
-"-----BEGIN CERTIFICATE-----
-MIIEGjCCAwICEQCLW3VWhFSFCwDPrzhIzrGkMA0GCSqGSIb3DQEBBQUAMIHKMQsw
-CQYDVQQGEwJVUzEXMBUGA1UEChMOVmVyaVNpZ24sIEluYy4xHzAdBgNVBAsTFlZl
-cmlTaWduIFRydXN0IE5ldHdvcmsxOjA4BgNVBAsTMShjKSAxOTk5IFZlcmlTaWdu
-LCBJbmMuIC0gRm9yIGF1dGhvcml6ZWQgdXNlIG9ubHkxRTBDBgNVBAMTPFZlcmlT
-aWduIENsYXNzIDEgUHVibGljIFByaW1hcnkgQ2VydGlmaWNhdGlvbiBBdXRob3Jp
-dHkgLSBHMzAeFw05OTEwMDEwMDAwMDBaFw0zNjA3MTYyMzU5NTlaMIHKMQswCQYD
-VQQGEwJVUzEXMBUGA1UEChMOVmVyaVNpZ24sIEluYy4xHzAdBgNVBAsTFlZlcmlT
-aWduIFRydXN0IE5ldHdvcmsxOjA4BgNVBAsTMShjKSAxOTk5IFZlcmlTaWduLCBJ
-bmMuIC0gRm9yIGF1dGhvcml6ZWQgdXNlIG9ubHkxRTBDBgNVBAMTPFZlcmlTaWdu
-IENsYXNzIDEgUHVibGljIFByaW1hcnkgQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkg
-LSBHMzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAN2E1Lm0+afY8wR4
-nN493GwTFtl63SRRZsDHJlkNrAYIwpTRMx/wgzUfbhvI3qpuFU5UJ+/EbRrsC+MO
-8ESlV8dAWB6jRx9x7GD2bZTIGDnt/kIYVt/kTEkQeE4BdjVjEjbdZrwBBDajVWjV
-ojYJrKshJlQGrT/KFOCsyq0GHZXi+J3x4GD/wn91K0zM2v6HmSHquv4+VNfSWXjb
-PG7PoBMAGrgnoeS+Z5bKoMWznN3JdZ7rMJpfo83ZrngZPyPpXNspva1VyBtUjGP2
-6KbqxzcSXKMpHgLZ2x87tNcPVkeBFQRKr4Mn0cVYiMHd9qqnoxjaaKptEVHhv2Vr
-n5Z20T0CAwEAATANBgkqhkiG9w0BAQUFAAOCAQEAq2aN17O6x5q25lXQBfGfMY1a
-qtmqRiYPce2lrVNWYgFHKkTp/j90CxObufRNG7LRX7K20ohcs5/Ny9Sn2WCVhDr4
-wTcdYcrnsMXlkdpUpqwxga6X3s0IrLjAl4B/bnKk52kTlWUfxJM8/XmPBNQ+T+r3
-ns7NZ3xPZQL/kYVUc8f/NveGLezQXk//EZ9yBta4GvFMDSZl4kSAHsef493oCtrs
-pSCAaWihT37ha88HQfqDjrw43bAuEbFrskLMmrz5SCJ5ShkPshw+IHTZasO+8ih4
-E1Z5T21Q6huwtVexN2ZYI/PcD98Kh8TvhgXVOBRgmaNL3gaWcSzy27YfpO8/7g==
------END CERTIFICATE-----
-"
-
+;; VeriSign Universal Root Certification Authority
 ;; issuer= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 2008 VeriSign, Inc. - For authorized use only/CN=VeriSign Universal Root Certification Authority
 ;; subject= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 2008 VeriSign, Inc. - For authorized use only/CN=VeriSign Universal Root Certification Authority
 ;; serial=401AC46421B31321030EBBE4121AC51D
 ;; SHA1 Fingerprint=36:79:CA:35:66:87:72:30:4D:30:A5:FB:87:3B:0F:A7:7B:B7:0D:54
 ;; notBefore=Apr  2 00:00:00 2008 GMT
 ;; notAfter=Dec  1 23:59:59 2037 GMT
-;; 
-;; URL: http://www.verisign.com/repository/roots/root-certificates/PCA-universal.pem
-;; Retrieved-at: 2013-12-11 17:47:49+00:00
 "-----BEGIN CERTIFICATE-----
 MIIEuTCCA6GgAwIBAgIQQBrEZCGzEyEDDrvkEhrFHTANBgkqhkiG9w0BAQsFADCB
 vTELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDlZlcmlTaWduLCBJbmMuMR8wHQYDVQQL
@@ -1578,111 +1705,37 @@ lRQOfc2VNNnSj3BzgXucfr2YYdhFh5iQxeuGMMY1v/D/w1WIg0vvBZIGcfK4mJO3
 7M2CYfE45k+XmCpajQ==
 -----END CERTIFICATE-----
 "
-
-;; issuer= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 1999 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 4 Public Primary Certification Authority - G3
-;; subject= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 1999 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 4 Public Primary Certification Authority - G3
-;; serial=ECA0A78B6E756A01CFC47CCC2F945ED7
-;; SHA1 Fingerprint=C8:EC:8C:87:92:69:CB:4B:AB:39:E9:8D:7E:57:67:F3:14:95:73:9D
-;; notBefore=Oct  1 00:00:00 1999 GMT
-;; notAfter=Jul 16 23:59:59 2036 GMT
-;; 
-;; URL: http://www.verisign.com/repository/roots/root-certificates/PCA-4G3.pem
-;; Retrieved-at: 2013-12-11 17:47:49+00:00
+;; VeriSign Class 3 Public Primary Certification Authority - G4
+;; issuer= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 2007 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 3 Public Primary Certification Authority - G4
+;; subject= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 2007 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 3 Public Primary Certification Authority - G4
+;; serial=2F80FE238C0E220F486712289187ACB3
+;; SHA1 Fingerprint=22:D5:D8:DF:8F:02:31:D1:8D:F7:9D:B7:CF:8A:2D:64:C9:3F:6C:3A
+;; notBefore=Nov  5 00:00:00 2007 GMT
+;; notAfter=Jan 18 23:59:59 2038 GMT
 "-----BEGIN CERTIFICATE-----
-MIIEGjCCAwICEQDsoKeLbnVqAc/EfMwvlF7XMA0GCSqGSIb3DQEBBQUAMIHKMQsw
-CQYDVQQGEwJVUzEXMBUGA1UEChMOVmVyaVNpZ24sIEluYy4xHzAdBgNVBAsTFlZl
-cmlTaWduIFRydXN0IE5ldHdvcmsxOjA4BgNVBAsTMShjKSAxOTk5IFZlcmlTaWdu
-LCBJbmMuIC0gRm9yIGF1dGhvcml6ZWQgdXNlIG9ubHkxRTBDBgNVBAMTPFZlcmlT
-aWduIENsYXNzIDQgUHVibGljIFByaW1hcnkgQ2VydGlmaWNhdGlvbiBBdXRob3Jp
-dHkgLSBHMzAeFw05OTEwMDEwMDAwMDBaFw0zNjA3MTYyMzU5NTlaMIHKMQswCQYD
-VQQGEwJVUzEXMBUGA1UEChMOVmVyaVNpZ24sIEluYy4xHzAdBgNVBAsTFlZlcmlT
-aWduIFRydXN0IE5ldHdvcmsxOjA4BgNVBAsTMShjKSAxOTk5IFZlcmlTaWduLCBJ
-bmMuIC0gRm9yIGF1dGhvcml6ZWQgdXNlIG9ubHkxRTBDBgNVBAMTPFZlcmlTaWdu
-IENsYXNzIDQgUHVibGljIFByaW1hcnkgQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkg
-LSBHMzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAK3LpRFpxlmr8Y+1
-GQ9Wzsy1HyDkniYlS+BzZYlZ3tCD5PUPtbut8XzoIfzk6AzufEUiGXaStBO3IFsJ
-+mGuqPKljYXCKtbeZjbSmwL0qJJgfJxptI8kHtCGUvYynEFYHiK9zUVilQhu0Gbd
-U6LM8BDcVHOLBKFGMzNcF0C5nk3T875Vg+ixiY5afJqWIpA7iCXy0lOIAgwLePLm
-NxdLMEYH5IBtptiWLugs+BGzOA1mppvqySNb247i8xOOGlktqgLw7KSHZtzBP/XY
-ufTsgsbSPZUd5cBPhMnZo0QoBmrXRazwa2rvTl/4EYIeOGM0ZlDUPpNz+jDDZq3/
-ky2X7wMCAwEAATANBgkqhkiG9w0BAQUFAAOCAQEAj/ola09b5KROJ1WrIhVZPMq1
-CtRK26vdoV9TxaBXOcLORyu+OshWv8LZJxA6sQU8wHcxuzrTBXttmhwwjIDLk5Mq
-g6sFUYICABFna/OIYUdfA5PVWw3g8dShMjWFsjrbsIKr0csKvE+MW8VLADsfKoKm
-fjaF3H48ZwC15DtS4KjrXRX5xm3wrR0OhbepmnMUWluPQSjA1egtTaRezarZ7c7c
-2NU8Qh0XwRJdRTjDOPP8hS6DRkiy1yBfkjaP53kPmF6Z6PDQpLv1U70qzlmwr25/
-bLvSHgCwIe34QWKCudiyxLtGUPMxxY8BqHTr9Xgn2uf3ZkPznoM+IKrDNWCRzg==
+MIIDhDCCAwqgAwIBAgIQL4D+I4wOIg9IZxIokYesszAKBggqhkjOPQQDAzCByjEL
+MAkGA1UEBhMCVVMxFzAVBgNVBAoTDlZlcmlTaWduLCBJbmMuMR8wHQYDVQQLExZW
+ZXJpU2lnbiBUcnVzdCBOZXR3b3JrMTowOAYDVQQLEzEoYykgMjAwNyBWZXJpU2ln
+biwgSW5jLiAtIEZvciBhdXRob3JpemVkIHVzZSBvbmx5MUUwQwYDVQQDEzxWZXJp
+U2lnbiBDbGFzcyAzIFB1YmxpYyBQcmltYXJ5IENlcnRpZmljYXRpb24gQXV0aG9y
+aXR5IC0gRzQwHhcNMDcxMTA1MDAwMDAwWhcNMzgwMTE4MjM1OTU5WjCByjELMAkG
+A1UEBhMCVVMxFzAVBgNVBAoTDlZlcmlTaWduLCBJbmMuMR8wHQYDVQQLExZWZXJp
+U2lnbiBUcnVzdCBOZXR3b3JrMTowOAYDVQQLEzEoYykgMjAwNyBWZXJpU2lnbiwg
+SW5jLiAtIEZvciBhdXRob3JpemVkIHVzZSBvbmx5MUUwQwYDVQQDEzxWZXJpU2ln
+biBDbGFzcyAzIFB1YmxpYyBQcmltYXJ5IENlcnRpZmljYXRpb24gQXV0aG9yaXR5
+IC0gRzQwdjAQBgcqhkjOPQIBBgUrgQQAIgNiAASnVnp8Utpkmw4tXNherJI9/gHm
+GUo9FANL+mAnINmDiWn6VMaaGF5VKmTeBvaNSjutEDxlPZCIBIngMGGzrl0Bp3ve
+fLK+ymVhAIau2o970ImtTR1ZmkGxvEeA3J5iw/mjgbIwga8wDwYDVR0TAQH/BAUw
+AwEB/zAOBgNVHQ8BAf8EBAMCAQYwbQYIKwYBBQUHAQwEYTBfoV2gWzBZMFcwVRYJ
+aW1hZ2UvZ2lmMCEwHzAHBgUrDgMCGgQUj+XTGoasjY5rw8+AatRIGCx7GS4wJRYj
+aHR0cDovL2xvZ28udmVyaXNpZ24uY29tL3ZzbG9nby5naWYwHQYDVR0OBBYEFLMW
+kf3upm7ktS5Jj4d4gYDs5bG1MAoGCCqGSM49BAMDA2gAMGUCMGYhDBgmYFo4e1ZC
+4Kf8NoRRkSAsdk1DPcQdhCPQrNZ8NQbOzWm9kA3bbEhCHQ6qQgIxAJw9SDkjOVga
+FRJZap7v1VmyHVIsmXHNxynfGyphe3HR3vPA5Q06Sqotp9iGKt0uEA==
 -----END CERTIFICATE-----
 "
-
-;; issuer= /C=US/O=Symantec Corporation/OU=Symantec Trust Network/CN=Symantec Class 1 Public Primary Certification Authority - G6
-;; subject= /C=US/O=Symantec Corporation/OU=Symantec Trust Network/CN=Symantec Class 1 Public Primary Certification Authority - G6
-;; serial=243275F21D2FD20933F7B46ACAD0F398
-;; SHA1 Fingerprint=51:7F:61:1E:29:91:6B:53:82:FB:72:E7:44:D9:8D:C3:CC:53:6D:64
-;; notBefore=Oct 18 00:00:00 2011 GMT
-;; notAfter=Dec  1 23:59:59 2037 GMT
-;; 
-;; URL: http://www.verisign.com/repository/roots/root-certificates/PCA_1_G6.pem
-;; Retrieved-at: 2013-12-11 17:47:49+00:00
-"-----BEGIN CERTIFICATE-----
-MIID9jCCAt6gAwIBAgIQJDJ18h0v0gkz97RqytDzmDANBgkqhkiG9w0BAQsFADCB
-lDELMAkGA1UEBhMCVVMxHTAbBgNVBAoTFFN5bWFudGVjIENvcnBvcmF0aW9uMR8w
-HQYDVQQLExZTeW1hbnRlYyBUcnVzdCBOZXR3b3JrMUUwQwYDVQQDEzxTeW1hbnRl
-YyBDbGFzcyAxIFB1YmxpYyBQcmltYXJ5IENlcnRpZmljYXRpb24gQXV0aG9yaXR5
-IC0gRzYwHhcNMTExMDE4MDAwMDAwWhcNMzcxMjAxMjM1OTU5WjCBlDELMAkGA1UE
-BhMCVVMxHTAbBgNVBAoTFFN5bWFudGVjIENvcnBvcmF0aW9uMR8wHQYDVQQLExZT
-eW1hbnRlYyBUcnVzdCBOZXR3b3JrMUUwQwYDVQQDEzxTeW1hbnRlYyBDbGFzcyAx
-IFB1YmxpYyBQcmltYXJ5IENlcnRpZmljYXRpb24gQXV0aG9yaXR5IC0gRzYwggEi
-MA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDHOddJZKmZgiJM6kXZBxbje/SD
-6Jlz+muxNuCad6BAwoGNAcfMjL2Pffd543pMA03Z+/2HOCgs3ZqLVAjbZ/sbjP4o
-ki++t7JIp4Gh2F6Iw8w5QEFa0dzl2hCfL9oBTf0uRnz5LicKaTfukaMbasxEvxvH
-w9QRslBglwm9LiL1QYRmn81ApqkAgMEflZKf3vNI79sdd2H8f9/ulqRy0LY+/3gn
-r8uSFWkI22MQ4uaXrG7crPaizh5HmbmJtxLmodTNWRFnw2+F2EJOKL5ZVVkElauP
-N4C/DfD8HzpkMViBeNfiNfYgPym4jxZuPkjctUwH4fIa6n4KedaovetdhitNAgMB
-AAGjQjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQW
-BBQzQejIORIVk0jyljIuWvXalF9TYDANBgkqhkiG9w0BAQsFAAOCAQEAFeNzV7EX
-tl9JaUSm9l56Z6zS3nVJq/4lVcc6yUQVEG6/MWvL2QeTfxyFYwDjMhLgzMv7OWyP
-4lPiPEAz2aSMR+atWPuJr+PehilWNCxFuBL6RIluLRQlKCQBZdbqUqwFblYSCT3Q
-dPTXvQbKqDqNVkL6jXI+dPEDct+HG14OelWWLDi3mIXNTTNEyZSPWjEwN0ujOhKz
-5zbRIWhLLTjmU64cJVYIVgNnhJ3Gw84kYsdMNs+wBkS39V8C3dlU6S+QTnrIToNA
-DJqXPDe/v+z28LSFdyjBC8hnghAXOKK3Buqbvzr46SMHv3TgmDgVVXjucgBcGaP0
-0jPg/73RVDkpDw==
------END CERTIFICATE-----
-"
-
-;; issuer= /C=US/O=Symantec Corporation/OU=Symantec Trust Network/CN=Symantec Class 2 Public Primary Certification Authority - G6
-;; subject= /C=US/O=Symantec Corporation/OU=Symantec Trust Network/CN=Symantec Class 2 Public Primary Certification Authority - G6
-;; serial=64829EFC371E745DFC97FF97C8B1FF41
-;; SHA1 Fingerprint=40:B3:31:A0:E9:BF:E8:55:BC:39:93:CA:70:4F:4E:C2:51:D4:1D:8F
-;; notBefore=Oct 18 00:00:00 2011 GMT
-;; notAfter=Dec  1 23:59:59 2037 GMT
-;; 
-;; URL: http://www.verisign.com/repository/roots/root-certificates/PCA_2_G6.pem
-;; Retrieved-at: 2013-12-11 17:47:49+00:00
-"-----BEGIN CERTIFICATE-----
-MIID9jCCAt6gAwIBAgIQZIKe/DcedF38l/+XyLH/QTANBgkqhkiG9w0BAQsFADCB
-lDELMAkGA1UEBhMCVVMxHTAbBgNVBAoTFFN5bWFudGVjIENvcnBvcmF0aW9uMR8w
-HQYDVQQLExZTeW1hbnRlYyBUcnVzdCBOZXR3b3JrMUUwQwYDVQQDEzxTeW1hbnRl
-YyBDbGFzcyAyIFB1YmxpYyBQcmltYXJ5IENlcnRpZmljYXRpb24gQXV0aG9yaXR5
-IC0gRzYwHhcNMTExMDE4MDAwMDAwWhcNMzcxMjAxMjM1OTU5WjCBlDELMAkGA1UE
-BhMCVVMxHTAbBgNVBAoTFFN5bWFudGVjIENvcnBvcmF0aW9uMR8wHQYDVQQLExZT
-eW1hbnRlYyBUcnVzdCBOZXR3b3JrMUUwQwYDVQQDEzxTeW1hbnRlYyBDbGFzcyAy
-IFB1YmxpYyBQcmltYXJ5IENlcnRpZmljYXRpb24gQXV0aG9yaXR5IC0gRzYwggEi
-MA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDNzOkFyGOFyz9AYxe9GPo15gRn
-V2WYKaRPyVyPDzTS+NqoE2KquB5QZ3iwFkygOakVeq7t0qLA8JA3KRgmXOgNPLZs
-ST/B4NzZS7YUGQum05bh1gnjGSYc+R9lS/kaQxwAg9bQqkmi1NvmYji6UBRDbfkx
-+FYW2TgCkc/rbN27OU6Z4TBnRfHU8I3D3/7yOAchfQBeVkSz5GC9kSucq1sEcg+y
-KNlyqwUgQiWpWwNqIBDMMfAr2jUs0Pual07wgksr2F82owstr2MNHSV/oW5cYqGN
-KD6h/Bwg+AEvulWaEbAZ0shQeWsOagXXqgQ2sqPy4V93p3ec5R7c6d9qwWVdAgMB
-AAGjQjBAMA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQW
-BBSHjCCVyJhK0daABkqQNETfHE2/sDANBgkqhkiG9w0BAQsFAAOCAQEAgY6ypWaW
-tyGltu9vI1pf24HFQqV4wWn99DzX+VxrcHIa/FqXTQCAiIiCisNxDY7FiZss7Y0L
-0nJU9X3UXENX6fOupQIR9nYrgVfdfdp0MP1UR/bgFm6mtApI5ud1Bw8pGTnOefS2
-bMVfmdUfS/rfbSw8DVSAcPCIC4DPxmiiuB1w2XaM/O6lyc+tHc+ZJVdaYkXLFmu9
-Sc2lo4xpeSWuuExsi0BmSxY/zwIa3eFsawdhanYVKZl/G92IgMG/tY9zxaaWI4Sm
-KIYkM2oBLldzJbZev4/mHWGoQClnHYebHX+bn5nNMdZUvmK7OaxoEkiRIKXLsd3+
-b/xa5IJVWa8xqQ==
------END CERTIFICATE-----
-"))
+;; #END-CERTIFICATE
+))
 
 (defun twittering-delete-ca-cert ()
   (when (and twittering-cert-file
@@ -2041,8 +2094,8 @@ The alist consists of pairs of field-name and field-value, such as
 '((\"Content-Type\" . \"application/xml\; charset=utf-8\")
   (\"Content-Length\" . \"2075\"))."
   (let* ((lines (split-string header-str "\r?\n"))
-         (status-line (car lines))
-         (header-lines (cdr lines)))
+	 (status-line (car lines))
+	 (header-lines (cdr lines)))
     (when (string-match
 	   "^\\(HTTP/1\.[01]\\) \\([0-9][0-9][0-9]\\) \\(.*\\)$"
 	   status-line)
@@ -3390,29 +3443,29 @@ encoding, which we can generate as follows:
 For keys and values that are already unibyte, the
 `encode-coding-string' calls just return the same string."
 ;;; Return an HMAC-SHA1 authentication code for KEY and MESSAGE.
-;;; 
+;;;
 ;;; KEY and MESSAGE must be unibyte strings.  The result is a unibyte
 ;;; string.  Use the function `encode-hex-string' or the function
 ;;; `base64-encode-string' to produce human-readable output.
-;;; 
+;;;
 ;;; See URL:<http://en.wikipedia.org/wiki/HMAC> for more information
 ;;; on the HMAC-SHA1 algorithm.
-;;; 
+;;;
 ;;; The Emacs multibyte representation actually uses a series of
 ;;; 8-bit values under the hood, so we could have allowed multibyte
 ;;; strings as arguments.  However, internal 8-bit values don't
 ;;; correspond to any external representation \(at least for major
 ;;; version 22).  This makes multibyte strings useless for generating
 ;;; hashes.
-;;; 
+;;;
 ;;; Instead, callers must explicitly pick and use an encoding for
 ;;; their multibyte data.  Most callers will want to use UTF-8
 ;;; encoding, which we can generate as follows:
-;;; 
+;;;
 ;;; (let ((unibyte-key   (encode-coding-string key   'utf-8 t))
 ;;;       (unibyte-value (encode-coding-string value 'utf-8 t)))
 ;;; (hmac-sha1 unibyte-key unibyte-value))
-;;; 
+;;;
 ;;; For keys and values that are already unibyte, the
 ;;; `encode-coding-string' calls just return the same string.
 ;;;
@@ -3614,7 +3667,7 @@ function."
 			(twittering-oauth-get-response-alist response-buffer))
 		  )))))
 	(while (eq result 'queried)
-	  (sit-for 0.1))
+	  (sleep-for 0.1))
 	(unless twittering-debug-mode
 	  (kill-buffer buffer))
 	result))))
@@ -4271,7 +4324,7 @@ numeric character reference."
 
 (defun twittering-set-window-end (window pos)
   (let* ((height (window-text-height window))
-         (n (- (- height 1))))
+	 (n (- (- height 1))))
     (while (progn (setq n (1+ n))
 		  (set-window-start
 		   window
@@ -4587,9 +4640,9 @@ If SHORTEN is non-nil, the abbreviated expression will be used."
 	":favorites"))
      ((eq type 'friends) ":friends")
      ((eq type 'home) (if shorten "~" ":home"))
-     ((eq type 'mentions) ":mentions")
+     ((eq type 'mentions) (if shorten "@" ":mentions"))
      ((eq type 'public) ":public")
-     ((eq type 'replies) (if shorten "@" ":replies"))
+     ((eq type 'replies) ":replies")
      ((eq type 'retweeted_by_me) ":retweeted_by_me")
      ((eq type 'retweeted_by_user) (concat ":retweeted_by_user/" (car value)))
      ((eq type 'retweeted_to_me) ":retweeted_to_me")
@@ -4954,7 +5007,21 @@ If SPEC is a primary timeline and does not equal BASE-SPEC, return nil."
     (cond
      ((twittering-timeline-spec-primary-p spec)
       (if (equal spec base-spec)
-	  base-statuses
+	  (let ((pattern-list
+		 (twittering-get-filter-list-for-timeline-spec
+		  spec)))
+	    (if pattern-list
+		(remove
+		 nil
+		 (mapcar
+		  (lambda (status)
+		    (if (twittering-match-pattern-list status pattern-list)
+			(progn
+			  (debug-printf "Exclude the status: %s" status)
+			  nil)
+		      status))
+		  base-statuses))
+	      base-statuses))
 	nil))
      ((eq type 'exclude-if)
       (let* ((direct-base (car (twittering-get-base-timeline-specs spec)))
@@ -4999,6 +5066,68 @@ If SPEC is a primary timeline and does not equal BASE-SPEC, return nil."
 	   (twittering-status-id< id2 id1)))))
      (t
       nil))))
+
+;;;;
+;;;; Filter
+;;;;
+
+(defun twittering-get-filter-list-for-timeline-spec-string (spec-string)
+  (let ((entry-list twittering-filter-alist))
+    (remove
+     nil
+     (mapcar
+      (lambda (entry)
+	(let ((spec-regexp
+	       (if (listp (car entry))
+		   (concat "\\(?:"
+			   (mapconcat 'identity (car entry) "\\|")
+			   "\\)")
+		 (car entry)))
+	      (pattern-list (cdr entry)))
+	  (when (string-match spec-regexp spec-string)
+	    pattern-list)))
+      entry-list))))
+
+(defun twittering-get-filter-list-for-timeline-spec (spec)
+  (when twittering-filter-alist
+    (let* ((spec-string (twittering-timeline-spec-to-string spec))
+	   (short-spec-string (twittering-timeline-spec-to-string spec t))
+	   (regexp-list
+	    (twittering-get-filter-list-for-timeline-spec-string
+	     spec-string)))
+      (if (string= spec-string short-spec-string)
+	  regexp-list
+	(append regexp-list
+		(twittering-get-filter-list-for-timeline-spec-string
+		 short-spec-string))))))
+
+(defun twittering-match-pattern (status pattern)
+  (let* ((rest pattern)
+	 (matched t))
+    (while (and rest matched)
+      (let* ((current (car rest))
+	     (sym (car current))
+	     (regexp (cdr current))
+	     (value (cdr (assq sym status)))
+	     (value
+	      (if (eq sym 'text)
+		  (twittering-make-fontified-tweet-text-with-entity status)
+		value)))
+	(unless (and (stringp value)
+		     (string-match regexp value))
+	  (setq matched nil))
+	(setq rest (cdr rest))))
+    matched))
+
+(defun twittering-match-pattern-list (status pattern-list)
+  (let* ((rest pattern-list)
+	 (matched nil))
+    (while (and rest (not matched))
+      (let ((current (car rest)))
+	(when (twittering-match-pattern status current)
+	  (setq matched t))
+	(setq rest (cdr rest))))
+    matched))
 
 ;;;;
 ;;;; Retrieved statuses (timeline data)
@@ -5069,8 +5198,30 @@ referring the former ID."
 	   (let ((id1 (cdr (assq 'id status1)))
 		 (id2 (cdr (assq 'id status2))))
 	     (twittering-status-id< id2 id1))))))
+     ((eq type :single)
+      ;; The timeline spec '(:single) does not correspond to an ordinary
+      ;; timeline. It means an unordered set of tweets retrieved by the
+      ;; 'retrieve-single-tweet command of `twittering-call-api'.
+      ;; If this function is used with the spec '(:single), a specific tweet
+      ;; will be required with the user's intention.
+      ;; In this case, exclusion by patterns does not required.
+      (elt (gethash spec twittering-timeline-data-table) 2))
      (t
-      (elt (gethash spec twittering-timeline-data-table) 2)))))
+      (let ((statuses (elt (gethash spec twittering-timeline-data-table) 2))
+	    (pattern-list
+	     (twittering-get-filter-list-for-timeline-spec spec)))
+	(if pattern-list
+	    (remove
+	     nil
+	     (mapcar
+	      (lambda (status)
+		(if (twittering-match-pattern-list status pattern-list)
+		    (progn
+		      (debug-printf "Exclude the status: %s" status)
+		      nil)
+		  status))
+	      statuses))
+	  statuses))))))
 
 (defun twittering-remove-timeline-data (&optional spec)
   (let ((spec (or spec (twittering-current-timeline-spec))))
@@ -5826,6 +5977,18 @@ send-direct-message -- Send a direct message.
   Valid key symbols in ARGS-ALIST:
     username -- the username who the message is sent to.
     status -- the sent message.
+mute -- Mute a user.
+  Valid key symbols in ARGS-ALIST:
+    user-id -- the user-id that will be muted.
+    username -- the username who will be muted.
+  This command requires either of the above key. If both are given, `user-id'
+  will be used in REST API.
+unmute -- Un-mute a user.
+  Valid key symbols in ARGS-ALIST:
+    user-id -- the user-id that will be un-muted.
+    username -- the username who will be un-muted.
+  This command requires either of the above key. If both are given, `user-id'
+  will be used in REST API.
 block -- Block a user.
   Valid key symbols in ARGS-ALIST:
     user-id -- the user-id that will be blocked.
@@ -6485,6 +6648,20 @@ get-service-configuration -- Get the configuration of the server.
 	   (format-str "json"))
       (twittering-http-post account-info-alist host method http-parameters
 			    format-str additional-info)))
+   ((memq command '(mute unmute))
+    ;; Mute a user.
+    (let* ((user-id (cdr (assq 'user-id args-alist)))
+	   (username (cdr (assq 'username args-alist)))
+	   (host "api.twitter.com")
+	   (method
+	    (cdr (assq command '((mute . "1.1/mutes/users/create")
+				 (unmute . "1.1/mutes/users/destroy")))))
+	   (http-parameters (if user-id
+				`(("user_id" . ,user-id))
+			      `(("screen_name" . ,username))))
+	   (format-str "json"))
+      (twittering-http-post account-info-alist host method http-parameters
+			    format-str additional-info)))
    ((eq command 'block)
     ;; Block a user.
     (let* ((user-id (cdr (assq 'user-id args-alist)))
@@ -7078,29 +7255,45 @@ If the authorization failed, return nil."
   (let ((entry-list
 	 (apply 'append
 		(mapcar (lambda (x)
-		 	  (if (eq (car-safe x) 'entry) `(,x) nil))
+			  (if (eq (car-safe x) 'entry) `(,x) nil))
 			(cdar atom-xmltree)))))
     (mapcar 'twittering-atom-xmltree-to-status-datum
 	    entry-list)))
 
 (eval-and-compile
   (defsubst twittering-make-gap-list (text)
-    "Return a list representing index gaps between TEXT and the encoded text.
-Indices included in entities in XML response from Twitter mean the positions
-of characters in the encoded text, where \"<\" and \">\" are encoded as
-\"&lt;\" and \"&gt;\" respectively.
-Therefore, the indices differ from the positions in the decoded text.
+    "Return a list representing index gaps between TEXT and the decoded and normalized text.
+Indices included in entities in a response from Twitter are calculated
+with the assumption that \"<\" and \">\" are encoded as \"&lt;\" and \"&gt;\"
+respectively and a Unicode combining character is considered as a character.
+On rendering a tweet, twittering-mode decode \"&lt;\" and \"&gt;\".
+And also twittering-mode normalize its text into canonically equivalent text
+without combining characters.
+Therefore, the indices in entities differ from the indices of the corresponding
+positions in the decoded text.
+In addition, the normalization to NFC also makes additional gaps between
+the indices in entities and the corresponding positions.
 
-This function calculates the gaps from TEXT, which is assumed to be decoded.
+This function assumes that TEXT is already decoded but not normalized.
+From TEXT, the function calculates the gaps between the encoded text and the
+decoded and normalized text.
 This function returns a list of pairs representing the gaps.
-For each pair, the car means the position in the encoded text and the cdr
-means the gap. The (car pair)-th character in the encoded text corresponds
-to the (- (car pair) (cdr pair))-th character in the decoded text."
+For each pair, the car means the position in the original TEXT and the cdr
+means the gap. The (car pair)-th character in the original TEXT corresponds
+to the (- (car pair) (cdr pair))-th character in the decoded and normalized
+text."
     (let ((result nil)
+	  (regexp
+	   (if (require 'ucs-normalize nil t)
+	       (concat "\\(?:\\([<>]\\)\\|\\("
+		       ucs-normalize-combining-chars-regexp "\\)\\)")
+	     "\\([<>]\\)"))
 	  (pos 0)
 	  (gap 0))
-      (while (string-match "[<>]" text pos)
-	(let ((shift 3))
+      (while (string-match regexp text pos)
+	(let ((shift (if (match-beginning 1)
+			 3
+		       1)))
 	  (setq result
 		(cons `(,(+ gap (match-end 0)) . ,(+ gap shift)) result))
 	  (setq gap (+ shift gap)))
@@ -7156,14 +7349,14 @@ GAP-LIST must be generated by `twittering-make-gap-list'."
 		   . ,value)))
 	     retweeting-status))))
      (t
-      (flet ((assq-get (item seq)
-		       (car (cddr (assq item seq)))))
+      (let ((assq-get (lambda (item seq)
+			(car (cddr (assq item seq))))))
 	`(,@(mapcar
 	     (lambda (entry)
 	       (let* ((sym (elt entry 0))
 		      (sym-in-data (elt entry 1))
 		      (encoded (elt entry 2))
-		      (data (assq-get sym-in-data status-data)))
+		      (data (funcall assq-get sym-in-data status-data)))
 		 `(,sym . ,(if encoded
 			       (twittering-decode-entities-after-parsing-xml
 				data)
@@ -7177,14 +7370,16 @@ GAP-LIST must be generated by `twittering-make-gap-list'."
 	       (text text t)
 	       ))
 	  ;; created_at
-	  (created-at . ,(date-to-time (assq-get 'created_at status-data)))
+	  (created-at
+	   . ,(date-to-time (funcall assq-get 'created_at status-data)))
 	  ;; Replace "true" and "false" into t and nil.
 	  ,@(mapcar (lambda (sym)
-		      `(,sym . ,(string= "true" (assq-get sym status-data))))
+		      `(,sym . ,(string= "true"
+					 (funcall assq-get sym status-data))))
 		    '(favorited truncated))
 	  ;; Entities.
 	  ,(let* ((entity-data (cddr (assq 'entities status-data)))
-		  (encoded-text (assq-get 'text status-data))
+		  (encoded-text (funcall assq-get 'text status-data))
 		  (text
 		   (twittering-decode-entities-after-parsing-xml encoded-text))
 		  (gap-list (twittering-make-gap-list text)))
@@ -7266,7 +7461,7 @@ GAP-LIST must be generated by `twittering-make-gap-list'."
 			(assq 'urls entity-data))))))
 	  ;; Source.
 	  ,@(let ((source (twittering-decode-html-entities
-			   (assq-get 'source status-data))))
+			   (funcall assq-get 'source status-data))))
 	      (if (and source
 		       (string-match "<a href=\"\\(.*?\\)\".*?>\\(.*\\)</a>"
 				     source))
@@ -7283,7 +7478,7 @@ GAP-LIST must be generated by `twittering-make-gap-list'."
 		 (let* ((sym (elt entry 0))
 			(sym-in-user-data (elt entry 1))
 			(encoded (elt entry 2))
-			(value (assq-get sym-in-user-data user-data)))
+			(value (funcall assq-get sym-in-user-data user-data)))
 		   `(,sym . ,(if encoded
 				 (twittering-decode-html-entities value)
 			       value))))
@@ -7299,8 +7494,9 @@ GAP-LIST must be generated by `twittering-make-gap-list'."
 	  ,@(let ((user-data (cddr (assq 'user status-data))))
 	      (mapcar (lambda (entry)
 			`(,(car entry)
-			  . ,(string= "true"
-				      (assq-get (cdr entry) user-data))))
+			  . ,(string=
+			      "true"
+			      (funcall assq-get (cdr entry) user-data))))
 		      '((user-protected . protected))))))))))
 
 (defun twittering-xmltree-to-status (xmltree)
@@ -7417,8 +7613,16 @@ to JSON objects from ordinary timeline and search timeline."
 	 (entities (cdr (assq 'entities json-object)))
 	 (urls (cdr (assq 'urls entities)))
 	 (hashtags (cdr (assq 'hashtags entities)))
-	 (mentions (cdr (assq 'user_mentions entities))))
-    `((text . ,text)
+	 (mentions (cdr (assq 'user_mentions entities)))
+	 (media (cdr (assq 'media entities)))
+	 (func
+	  (lambda (entry sym-table)
+	    (mapcar (lambda (sym-entry)
+		      (let ((sym (car sym-entry))
+			    (target (cdr sym-entry)))
+			`(,sym . ,(cdr (assq target entry)))))
+		    sym-table))))
+    `((text . ,(twittering-normalize-string text))
       (created-at
        . ,(apply 'encode-time
 		 (parse-time-string (cdr (assq 'created_at json-object)))))
@@ -7431,7 +7635,9 @@ to JSON objects from ordinary timeline and search timeline."
 				      (twittering-get-gap start gap-list)))
 				`((start . ,(- start gap))
 				  (end . ,(- end gap))
-				  (text . ,(cdr (assq 'text entry))))))
+				  (text
+				   . ,(twittering-normalize-string
+				       (cdr (assq 'text entry)))))))
 			    hashtags))
        (mentions . ,(mapcar (lambda (entry)
 			      (let* ((indices (cdr (assq 'indices entry)))
@@ -7442,7 +7648,9 @@ to JSON objects from ordinary timeline and search timeline."
 				`((start . ,(- start gap))
 				  (end . ,(- end gap))
 				  (id . ,(cdr (assq 'id_str entry)))
-				  (name . ,(cdr (assq 'name entry)))
+				  (name
+				   . ,(twittering-normalize-string
+				       (cdr (assq 'name entry))))
 				  (screen-name
 				   . ,(cdr (assq 'screen_name entry))))))
 			    mentions))
@@ -7458,7 +7666,21 @@ to JSON objects from ordinary timeline and search timeline."
 			       . ,(cdr (assq 'display_url entry)))
 			      (expanded-url
 			       . ,(cdr (assq 'expanded_url entry))))))
-			urls)))
+			urls))
+       (media . ,(mapcar (lambda (entry)
+			  (let* ((indices (cdr (assq 'indices entry)))
+				 (start (elt indices 0))
+				 (end (elt indices 1))
+				 (gap (twittering-get-gap start gap-list)))
+			    `((start . ,(- start gap))
+			      (end . ,(- end gap))
+			      (url . ,(cdr (assq 'url entry)))
+			      (raw-entry . ,entry)
+			      ,@(funcall func entry
+					 '((media-url . media_url)
+					   (display-url . display_url)
+					   (expanded-url . expanded_url))))))
+			 media)))
       (retweet-count . ,(cdr (assq 'retweet_count json-object)))
       (favorite-count . ,(cdr (assq 'favorite_count json-object)))
       )))
@@ -7537,9 +7759,9 @@ To convert a JSON object from a search timeline, use
 				 source))
 	      (let ((uri (match-string-no-properties 1 source))
 		    (caption (match-string-no-properties 2 source)))
-		`((source . ,caption)
+		`((source . ,(twittering-normalize-string caption))
 		  (source-uri . ,uri)))
-	    `((source . ,source)
+	    `((source . ,(twittering-normalize-string source))
 	      (source-uri . ""))))
       ;; user data
       ,@(let ((symbol-table
@@ -7556,10 +7778,14 @@ To convert a JSON object from a search timeline, use
 			    (let* ((sym (car entry))
 				   (value (cdr entry))
 				   (value
-				    (if (and (eq sym 'protected)
-					     (eq value :json-false))
-					nil
-				      value)))
+				    (cond
+				     ((and (eq sym 'protected)
+					   (eq value :json-false))
+				      nil)
+				     ((memq sym '(name location description))
+				      (twittering-normalize-string value))
+				     (t
+				      value))))
 			      (when value
 				(let ((dest (cdr (assq sym symbol-table))))
 				  (when dest
@@ -7939,38 +8165,68 @@ icon mode; otherwise, turn off icon mode."
 icon and the value is a hash. The key of the child hash is URL and its value
 is the display property for the icon.")
 
-(defvar twittering-convert-program (executable-find "convert"))
+(defcustom twittering-convert-program (executable-find "convert")
+  "*A path of the command which is invoked for image conversion.
 
-(defvar twittering-use-convert (not (null twittering-convert-program))
-  "*This variable makes a sense only if `twittering-convert-fix-size'
-is non-nil. If this variable is non-nil, icon images are converted by
-invoking \"convert\". Otherwise, cropped images are displayed.")
+The default is determined by searching \"convert\" in `exec-path'.
+The command must be compatible with \"convert\" of ImageMagick."
+  :group 'twittering-mode
+  :type 'file)
 
-(defvar twittering-fallback-image-format 'xpm
+(defcustom twittering-convert-fix-size 48
+  "*Size of an icon image.
+
+If nil, an icon image is displayed as is."
+  :group 'twittering-mode
+  :type '(choice (const nil)
+		 integer))
+
+(defcustom twittering-use-convert (not (null twittering-convert-program))
+  "*If non-nil, use \"convert\" for converting or resizing icon images."
+  :group 'twittering-mode
+  :type 'boolean)
+
+(defcustom twittering-fallback-image-format 'xpm
   "*Fallback format used for displaying an image without a supproted format.
 Images which Emacs does not supports are converted into the fallback image
-format.")
+format."
+  :group 'twittering-mode
+  :type 'symbol)
 
-(defvar twittering-use-profile-image-api nil
+(defcustom twittering-use-profile-image-api nil
   "*Whether to use `profile_image' API for retrieving scaled icon images.
-NOTE: This API is rate limited and is obsolete in the Twitter REST API v1.1.")
+NOTE: This API is rate limited and is obsolete in the Twitter REST API v1.1."
+  :group 'twittering-mode
+  :type 'boolean)
 
-(defvar twittering-icon-storage-file
+(defcustom twittering-icon-storage-file
   (expand-file-name "~/.twittering-mode-icons.gz")
   "*The file to which icon images are stored.
 `twittering-icon-storage-limit' determines the number icons stored in the
 file.
-The file is loaded with `with-auto-compression-mode'.")
+The file is loaded with `with-auto-compression-mode'."
+  :group 'twittering-mode
+  :type 'file)
+
+(defcustom twittering-use-icon-storage nil
+  "*Whether to use the persistent icon storage.
+If this variable is non-nil, icon images are stored to the file specified
+by `twittering-icon-storage-file'."
+  :group 'twittering-mode
+  :type 'boolean)
 
 (defvar twittering-icon-storage-recent-icons nil
   "List of recently rendered icons.")
 
-(defvar twittering-icon-storage-limit 500
+(defcustom twittering-icon-storage-limit 500
   "*How many icons are stored in the persistent storage.
 If `twittering-use-icon-storage' is nil, this variable is ignored.
 If a positive integer N, `twittering-save-icon-properties' saves N icons that
 have been recently rendered.
-If nil, the function saves all icons.")
+If nil, the function saves all icons."
+  :group 'twittering-mode
+  :type '(choice (const nil)
+		 integer))
 
 (defconst twittering-error-icon-data-pair
   '(xpm . "/* XPM */
@@ -8275,68 +8531,28 @@ image are displayed."
 	    :ascent center
 	    :data
 	    "/* XPM */
-/*
- * Copyright (C) 2003 Yuuichi Teranishi <teranisi@gohome.org>
- * Copyright (C) 2003 Kazu Yamamoto <kazu@Mew.org>
- * Copyright (C) 2004 Yoshifumi Nishida <nishida@csl.sony.co.jp>
- * Copyright notice is the same as Mew's one.
- */
-static char * yellow3_xpm[] = {
-\"14 14 7 1\",
+static char * lock[] = {
+\"16 16 3 1\",
 \" 	c None\",
-\".	c #B07403\",
-\"+	c #EFEE38\",
-\"@	c #603300\",
-\"#	c #D0A607\",
-\"$	c #FAFC90\",
-\"%	c #241100\",
-\"    .++++@    \",
-\"   .+@...+@   \",
-\"  .+@    .+@  \",
-\"  .+@    .+@  \",
-\"  .+@    .+@  \",
-\"++########@@@@\",
-\"+$$++++++++#@@\",
-\"+$++++%@+++#@@\",
-\"+$+++%%%@++#@@\",
-\"+$+++%%%@++#@@\",
-\"+$++++%@+++#@@\",
-\"+$++++%@+++#@@\",
-\"+$+++++++++#@@\",
-\"++@@@@@@@@@@@@\"};
+\".	c #000000\",
+\"#	c #FFFFFF\",
+\"                \",
+\"                \",
+\"    ........    \",
+\"   ..######..   \",
+\"   .##....##.   \",
+\"   .#..  ..#.   \",
+\"   .#.    .#.   \",
+\"  ..#......#..  \",
+\"  .##########.  \",
+\"  .##########.  \",
+\"  .####..####.  \",
+\"  .###....###.  \",
+\"  .###....###.  \",
+\"  .##########.  \",
+\"  ............  \",
+\"                \"};
 "
-;;; The above image is copied from `mew-lock.xpm' distributed with Mew.
-;;; The copyright of the image is below, which is copied from `mew.el'.
-
-;;; Copyright Notice:
-
-;; Copyright (C) 1994-2009 Mew developing team.
-;; All rights reserved.
-
-;; Redistribution and use in source and binary forms, with or without
-;; modification, are permitted provided that the following conditions
-;; are met:
-;;
-;; 1. Redistributions of source code must retain the above copyright
-;;    notice, this list of conditions and the following disclaimer.
-;; 2. Redistributions in binary form must reproduce the above copyright
-;;    notice, this list of conditions and the following disclaimer in the
-;;    documentation and/or other materials provided with the distribution.
-;; 3. Neither the name of the team nor the names of its contributors
-;;    may be used to endorse or promote products derived from this software
-;;    without specific prior written permission.
-;;
-;; THIS SOFTWARE IS PROVIDED BY THE TEAM AND CONTRIBUTORS ``AS IS'' AND
-;; ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-;; PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE TEAM OR CONTRIBUTORS BE
-;; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-;; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-;; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
-;; BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-;; WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
-;; OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-;; IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	    ))
   "Image for indicator of SSL state.")
 
@@ -8354,51 +8570,29 @@ static char * yellow3_xpm[] = {
 	    :ascent center
 	    :data
 	    "/* XPM */
-static char *plugged[] = {
-\"32 12 8 1\",
-\"  c None\",
-\". c #a6caf0\",
-\"# c #8fa5cf\",
-\"a c #717171\",
-\"b c #5d5d97\",
-\"c c #8488ca\",
-\"d c #9f9f9f\",
-\"e c #7f8080\",
-\"            ...                 \",
-\"           .ccb....             \",
-\"           accb####.            \",
-\"          .accb#####..          \",
-\"   eeeeeeeeaccb#####.eeeeeeee   \",
-\"   dddddddcaccb#####.dedddddd   \",
-\"   dddddddcaccb#####.dedddddd   \",
-\"   eeeeeeeeaccb#####.eeeeeeee   \",
-\"          aaccb####aaa          \",
-\"           accbaaaaa            \",
-\"           aaaaaaaa             \",
-\"            aaa                 \"
-};
+static char * connected[] = {
+\"16 16 3 1\",
+\" 	c None\",
+\".	c #000000\",
+\"#	c #FFFFFF\",
+\"      .##. ...  \",
+\"      .##. .#.  \",
+\"      .##...#.. \",
+\"      .##..###..\",
+\"      .##..###..\",
+\"      .##.#####.\",
+\"  ... .##.#.#.#.\",
+\"  .#. ..#...#...\",
+\"...#...#.. .#.  \",
+\".#.#.#.##. .#.  \",
+\".#####.##. ...  \",
+\"..### .##.      \",
+\" .###..##.      \",
+\" ..#...##.      \",
+\"  .#. .##.      \",
+\"  ... .##.      \"};
 "))
   "Image for indicator of active state."
-;;; The above image is copied from `plugged.xpm' distributed with Wanderlust
-;;; by Yuuichi Teranishi <teranisi@gohome.org>.
-;;; The copyright of the image is below, which is copied from `COPYING' of
-;;; Wanderlust 2.14.
-;; Copyright (C) 1998-2001 Yuuichi Teranishi <teranisi@gohome.org>
-;;
-;;    This program is free software; you can redistribute it and/or modify
-;;    it under the terms of the GNU General Public License as published by
-;;    the Free Software Foundation; either version 2, or (at your option)
-;;    any later version.
-;;
-;;    This program is distributed in the hope that it will be useful,
-;;    but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;    GNU General Public License for more details.
-;;
-;;    You should have received a copy of the GNU General Public License
-;;    along with GNU Emacs; see the file COPYING.  If not, write to the
-;;    Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;    Boston, MA 02111-1307, USA.
 )
 
 (defconst twittering-inactive-indicator-image
@@ -8407,52 +8601,29 @@ static char *plugged[] = {
 	    :ascent center
 	    :data
 	    "/* XPM */
-static char * unplugged_xpm[] = {
-\"32 12 9 1\",
-\" 	s None	c None\",
-\".	c tomato\",
-\"X	c #a6caf0\",
-\"o	c #8488ca\",
-\"O	c #5d5d97\",
-\"+	c #8fa5cf\",
-\"@	c #717171\",
-\"#	c #7f8080\",
-\"$	c #9f9f9f\",
-\"          XXX......             \",
-\"           ...    ...           \",
-\"          ..O     ....X         \",
-\"         ..oO    ...+..XX       \",
-\"   ######.ooO   ...+++.X#####   \",
-\"   $$$$$o.ooO  ...@+++.X$#$$$   \",
-\"   $$$$$o.ooO ... @+++.X$#$$$   \",
-\"   ######.ooO...  @+++.X#####   \",
-\"         ..o...   @++..@@       \",
-\"          ....    @@..@         \",
-\"           ...    ...@          \",
-\"             ......             \"
-};
+static char * disconnected[] = {
+\"16 16 3 1\",
+\" 	c None\",
+\".	c #000000\",
+\"#	c #FFFFFF\",
+\"      .##.      \",
+\"      .##.      \",
+\"    . .##.      \",
+\"    ...##.      \",
+\"     ..##.      \",
+\"      ..#.      \",
+\"    .. ...      \",
+\"     .. ..      \",
+\"      .. ..     \",
+\"      ... ..    \",
+\"      .#..      \",
+\"      .##..     \",
+\"      .##...    \",
+\"      .##. .    \",
+\"      .##.      \",
+\"      .##.      \"};
 "))
   "Image for indicator of inactive state."
-;;; The above image is copied from `unplugged.xpm' distributed with Wanderlust
-;;; by Yuuichi Teranishi <teranisi@gohome.org>.
-;;; The copyright of the image is below, which is copied from `COPYING' of
-;;; Wanderlust 2.14.
-;; Copyright (C) 1998-2001 Yuuichi Teranishi <teranisi@gohome.org>
-;;
-;;    This program is free software; you can redistribute it and/or modify
-;;    it under the terms of the GNU General Public License as published by
-;;    the Free Software Foundation; either version 2, or (at your option)
-;;    any later version.
-;;
-;;    This program is distributed in the hope that it will be useful,
-;;    but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;    GNU General Public License for more details.
-;;
-;;    You should have received a copy of the GNU General Public License
-;;    along with GNU Emacs; see the file COPYING.  If not, write to the
-;;    Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;    Boston, MA 02111-1307, USA.
 )
 
 (defconst twittering-modeline-properties
@@ -8959,6 +9130,31 @@ following symbols;
 	       (rest (cdr pair)))
 	  `((propertize (concat ,@braced-body) 'face ',face-sym)
 	    . ,rest)))
+       ((string-match "\\`FIELD\\(\\[\\([^]]*\\)\\]\\)?{\\([a-z_]*\\)}"
+		      following)
+	(let* ((format-str (or (match-string 2 following) "%s"))
+	       (field-raw-name (match-string 3 following))
+	       (field-name (replace-regexp-in-string "_" "-" field-raw-name))
+	       (field-symbol (intern field-name))
+	       (rest (substring following (match-end 0))))
+	  `((let* ((field-value (cdr (assq ',field-symbol ,status-sym))))
+	      (if field-value
+		  (format ,format-str field-value)
+		""))
+	    . ,rest)))
+       ((string-match "\\`FIELD-IF-NONZERO\\(\\[\\([^]]*\\)\\]\\)?{\\([a-z_]*\\)}"
+		      following)
+	(let* ((format-str (or (match-string 2 following) "%s"))
+	       (field-raw-name (match-string 3 following))
+	       (field-name (replace-regexp-in-string "_" "-" field-raw-name))
+	       (field-symbol (intern field-name))
+	       (rest (substring following (match-end 0))))
+	  `((let* ((field-value (cdr (assq ',field-symbol ,status-sym))))
+	      (if (and (integerp field-value)
+		       (not (zerop field-value)))
+		  (format ,format-str field-value)
+		""))
+	    . ,rest)))
        ((string-match "\\`\\(FILL\\|FOLD\\)\\(\\[\\([^]]*\\)\\]\\)?{"
 		      following)
 	(let* ((str-after-brace (substring following (match-end 0)))
@@ -9091,7 +9287,9 @@ If FORMAT-STR is invalid as a format, an error is signaled and
 
 (defun twittering-format-status (status &optional prefix)
   "Format a STATUS by using `twittering-format-status-function'.
-Specification of FORMAT-STR is described in the document for the
+PREFIX is the prefix that will be added to the result of this function.
+PREFIX is used in order to calculate appropriate width for filling texts.
+Specification of the format is described in the document for the
 variable `twittering-status-format'."
   (funcall twittering-format-status-function status prefix))
 
@@ -10429,9 +10627,14 @@ Then, return non-nil if they has been satisfied and return nil otherwise."
 ;;;; Edit mode skeleton
 ;;;;
 
-(defvar twittering-edit-skeleton-footer "")
+(defcustom twittering-edit-skeleton-footer ""
+  "*String to be used as the footer in the edit skeleton."
+  :group 'twittering-mode
+  :type 'string)
+
 (defvar twittering-edit-skeleton-footer-history nil)
-(defvar twittering-edit-skeleton-alist
+
+(defcustom twittering-edit-skeleton-alist
   '((none . nil)
     (footer . ((nil _ twittering-edit-skeleton-footer)))
     (footer-only-normal
@@ -10483,12 +10686,24 @@ If the value is a vector, each element is performed in order of elements
 in the vector.
 
 Note that the effective skeleton is invoked after inserting a
-recipient.")
-(defvar twittering-edit-skeleton 'none
+recipient."
+  :group 'twittering-mode
+  :type 'alist)
+
+(defcustom twittering-edit-skeleton 'none
   "*A symbol specifying an effective skeleton.
-It must be one of a symbol in `twittering-edit-skeleton-alist'.
+
+The list of valid value is defined in `twittering-edit-skeleton-alist'.
+To be valid, an entry should be added to `twittering-edit-skeleton-alist'
+first.
+
 When entering `twittering-edit-mode', the skeletons in the specified
-entry in `twittering-edit-skeleton-alist' are performed.")
+entry in `twittering-edit-skeleton-alist' are performed."
+  :group 'twittering-mode
+  :type (if (> (length (mapcar #'car twittering-edit-skeleton-alist)) 0)
+	    `(choice ,@(mapcar (lambda (entry) `(const ,(car entry)))
+			       twittering-edit-skeleton-alist))
+	  'symbol))
 
 (defun twittering-switch-edit-skeleton ()
   (interactive)
@@ -11742,6 +11957,42 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
   (interactive)
   (twittering-favorite t))
 
+(defun twittering-mute (&optional remove)
+  (interactive "P")
+  (let* ((method (if remove 'unmute 'mute))
+	 (mes (if remove "unmute" "mute"))
+	 (id (twittering-get-id-at))
+	 (status (when id (twittering-find-status id)))
+	 (username
+	  (cond
+	   ((assq 'retweeted-id status)
+	    (let* ((retweeting-username
+		    (cdr (assq 'retweeting-user-screen-name status)))
+		   (retweeted-username
+		    (cdr (assq 'retweeted-user-screen-name status)))
+		   (default (if remove
+				retweeting-username
+			      retweeted-username))
+		   (prompt (format "Who do you %s? (default:%s): "
+				   mes default))
+		   (candidates (list retweeted-username retweeting-username)))
+	      (twittering-completing-read prompt candidates nil t
+					  nil nil default)))
+	   (status
+	    (cdr (assq 'user-screen-name status)))
+	   (t
+	    (twittering-read-username-with-completion
+	     (format "Who do you %s? " mes) "" 'twittering-user-history)))))
+    (if (string= "" username)
+	(message "No user selected")
+      (if (y-or-n-p (format "%s %s? " (capitalize mes) username))
+	  (twittering-call-api method `((username . ,username)))
+	(message "Request canceled")))))
+
+(defun twittering-unmute ()
+  (interactive)
+  (twittering-mute t))
+
 (defun twittering-block ()
   "Block a user who posted the tweet at the current position."
   (interactive)
@@ -12031,16 +12282,16 @@ Otherwise, return a positive integer less than POS."
   "Go to previous status of user."
   (interactive)
   (let ((user-name (twittering-get-username-at-pos (point)))
-        (prev-pos (point))
+	(prev-pos (point))
 	(pos (twittering-get-previous-status-head (point))))
     (while (and (not (eq pos nil))
-                (not (eq pos prev-pos))
+		(not (eq pos prev-pos))
 		(not (equal (twittering-get-username-at-pos pos) user-name)))
       (setq prev-pos pos)
       (setq pos (twittering-get-previous-status-head pos)))
     (if (and pos
-             (not (eq pos prev-pos))
-             (equal (twittering-get-username-at-pos pos) user-name))
+	     (not (eq pos prev-pos))
+	     (equal (twittering-get-username-at-pos pos) user-name))
 	(goto-char pos)
       (if user-name
 	  (message "Start of %s's status." user-name)
@@ -12222,7 +12473,7 @@ and a tweet is pointed, the URI to the tweet is insteadly pushed."
       `(cdr (assq ,y (nth 5 ,x))))))
 
 (defun twittering-revive:twittering ()
-  "Restore twittering-mode timeline buffer with `revive.el'.
+  "Restore `twittering-mode' timeline buffer with `revive.el'.
 The Emacs LISP program `revive.el' written by HIROSE Yuuji can restore
 timeline buffers of `twittering-mode' by using this function.
 There are two ways of configurations as follows;
@@ -12266,7 +12517,6 @@ Note that the current implementation assumes `revive.el' 2.19 ."
     (error "`revive' has not been loaded yet")
     nil)))
 
-
 (easy-menu-define twittering-mode-menu twittering-mode-map
   "Menu used when Twittering major mode is active."
   '("Twit"
@@ -12291,9 +12541,8 @@ Note that the current implementation assumes `revive.el' 2.19 ."
     ["Documentation" 
      (browse-url "http://www.emacswiki.org/emacs-en/TwitteringMode")
      :help "EmacsWiki help page"]
-    ["Settings" (customize-group 'twittering)
+    ["Settings" (customize-group 'twittering-mode)
      :help "Twittering-mode settings"]))
-
 
 ;;;###autoload
 (defun twit ()
@@ -12307,7 +12556,6 @@ Note that the current implementation assumes `revive.el' 2.19 ."
 ;; End:
 
 (provide 'twittering-mode)
-;;; twittering-mode.el ends here
 
                   (progn  (when  (
                    boundp  (  intern (
@@ -12335,3 +12583,5 @@ Note that the current implementation assumes `revive.el' 2.19 ."
            49 87 116 100 73 101                  106 82 107 67 113  90 49
           75 68  99  52  79 120                   80 89  91  51  79 85 71
          110 101  110 91  49                      100 49   58  71)))))) )))
+
+;;; twittering-mode.el ends here

@@ -11859,6 +11859,7 @@ Otherwise use `browse-url'."
   (let* ((username (get-text-property (point) 'username))
 	 (id (twittering-get-id-at (point)))
 	 (uri (get-text-property (point) 'uri))
+	 (goto-spec (get-text-property (point) 'goto-spec))
 	 (expanded-uri (or (get-text-property (point) 'expanded-uri) uri ""))
 	 (tweet-type
 	  (cond
@@ -11891,6 +11892,8 @@ Otherwise use `browse-url'."
 	    (twittering-goto-first-normal-field)
 	  (twittering-goto-last-normal-field))
 	(twittering-get-and-render-timeline nil oldest-id)))
+     (goto-spec
+      (twittering-visit-timeline goto-spec))
      (screen-name-in-text
       (twittering-update-status initial-str
 				id screen-name-in-text tweet-type))

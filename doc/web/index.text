@@ -15,14 +15,14 @@ and [more](./screenshot.html)
 
 ## Download
 
-* Latest release (2011/4/22): [twittering-mode-2.0.0](http://sourceforge.net/projects/twmode/files/)
+* Latest release (2013/5/7): [twittering-mode-3.0.0](http://sourceforge.net/projects/twmode/files/)
 * Development version: [GitHub repository](http://github.com/hayamiz/twittering-mode/)
 
 See the [history](http://github.com/hayamiz/twittering-mode/commits/master/twittering-mode.el).
 
 ## Documentation
-
-* will be available soon
+For the latest release, see [README.markdown](http://github.com/hayamiz/twittering-mode/blob/3.0.x/README.markdown).
+For the development version, see [README.markdown](http://github.com/hayamiz/twittering-mode/blob/master/README.markdown).
 
 ## Getting involved
 
@@ -30,7 +30,7 @@ See [how to contribute](./how-to-contribute.html) for detailed information.
 
 ### Mailing lists
 
-Join [twittering-mode ML](http://sourceforge.net/mail/?group_id=288615).
+Join [twittering-mode ML](http://sourceforge.net/p/twmode/mailman/?source=navbar).
 
 ### Repository
 

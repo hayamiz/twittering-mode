@@ -6,6 +6,29 @@
 ------------------
 
 ### Important notice
+* Posting a native retweet of a native retweet.
+  When the function `twittering-native-retweet' bound to "C-u C-c C-m"
+  is invoked on a native retweet, the current version of
+  twittering-mode posts a native retweet of the retweet. The
+  previous version posted a native retweet of the original tweet
+  that had been retweeted. The behavior is changed so that
+  notifications from Twitter will be sent to the user who has posted
+  the retweet earlier.
+
+### Improvements
+* Embedding all VeriSign Root CA Certificates.
+  All active root CA certificates available at
+  https://www.symantec.com/page.jsp?id=roots
+  are embedded in `twittering-mode.el'.
+
+### Bug fixes
+* Fix of invoking a hook twice for the same timeline.
+* Fix a URL for a native retweet.
+
+ 3.0.0: 2013-04-21
+------------------
+
+### Important notice
 * Obsolete implicit sign string feature.
   The function `twittering-sign-string-function' and the variable
   `twittering-sign-simple-string' are now obsolete. The `edit
@@ -15,6 +38,16 @@
   is equivalent to the following one;
   (setq twittering-edit-skeleton-footer " [footer]")
   (setq twittering-edit-skeleton 'footer)
+* Obsolete variable `twittering-scroll-mode'
+  The variable `twittering-scroll-mode' is obsolete. The current
+  version of twittering-mode always behaves as the previous version
+  does on scroll-mode. To track the latest tweet, put the cursor on
+  the header or footer that is rendered on the latest end.
+* A new key binding for "C-cC-w", future replacement for "C-cD".
+  "C-cD" has been bound to `twittering-delete-status`, the function to
+  delete a tweet. But the binding violates the Emacs Key Binding
+  Conventions. "C-cC-w" is bound to the function. The old binding is
+  also valid, but the new one is recommended.
 
 ### Improvements
 * Edit skeleton according to the current timeline.
@@ -70,13 +103,11 @@
   string considered as a hashtag in twittering-mode may not be treated
   as a hashtag in the Twitter web UI.
 * Rendering the t.co wrapped link as the original URL.
-  If a tweet on a timeline except a search timeline includes a link
-  wrapped by the t.co service, it is rendered as the original URL. But
-  the link will be opened as the wrapped URL when you invoke
-  `twittering-enter' (bound to `C-m' in default). On a search
-  timeline, it is rendered as a URL wrapped by the t.co service
-  because the search API of Twitter does not provide additional
-  information (entities) of tweets.
+  If a tweet includes a link wrapped by the t.co service, it is
+  rendered as the original URL. If `json.el' is unavailable, a link on
+  a search timeline is rendered as the wrapped URL. But the link will
+  be opened as the wrapped URL when you invoke `twittering-enter'
+  (bound to `C-m' in default).
 * Posting a tweet consiting of mentions from pop-up buffer.
   From pop-up buffer, you can post a tweet consisting of
   mentions.
@@ -99,6 +130,10 @@
   Since the Emacs LISP program `windows.el' written by HIROSE Yuuji
   implicitly loads `revive.el' if possible, you should also take care
   of the order of loading `windows.el' and the configuration.
+* New format specifier "%u" for `twittering-retweet-format'.
+  "%u" is added as a new format specifier for
+  `twittering-retweet-format'. It is replaced with the URL of the
+  cited tweet.
 * Skeleton for initializing an organic retweet.
   You can use a skeleton as the variable `twittering-retweet-format'
   for initializing an organic retweet. This means that you can also
@@ -106,11 +141,13 @@
   skeleton are converted with the below replacement table and then the
   skeleton is inserted with `skeleton-insert'.
   The replacement table is as follows.
-    %s: screen_name
-    %t: text
-    %%: %
-  This is equivalent to the previous rule applied for
-  `twittering-retweet-format'.
+    %s - The screen-name of the cited tweet.
+    %t - The text of the cited tweet.
+    %u - The URL of the cited tweet.
+    %# - The ID of the cited tweet.
+    %% - % itself.
+  This is equivalent to the rule applied for
+  `twittering-retweet-format' as a string.
   Note that it is inserted before the edit skeleton specified by
   `twittering-edit-skeleton' is performed.
 * Tweet type of edit skeleton for an organic retweet.
@@ -120,6 +157,129 @@
   retweets. Note that edit skeletons cannot refer to the tweet being
   retweeted in the current implementation.
 * Support for list names including non-ASCII characters.
+* Display of replied tweets on a search timeline.
+  If `json.el' is available, twittering-mode can retrieve an ID which
+  a tweet on a search timeline replies to. If so, replied tweets can
+  be displayed by `twittering-toggle-show-replied-statuses' bound to
+  "r" in default.
+* Header and footer on a timeline buffer.
+  On a timeline buffer, the header and footer are rendered. They are
+  special field and do not correspond to tweets. If you press the
+  enter key (or invoking `twittering-enter') on the header or footer,
+  the timeline buffer will be extended by retrieving more tweets
+  according to whether the cursor is placed on the latest end or
+  oldest one.
+  You can track the latest tweet by putting the cursor on the latest
+  side of the header and footer.
+  You can customize the header and footer strings with the variables
+  `twittering-timeline-header' and `twittering-timeline-footer',
+  respectively. Their face can also be customized with the variables
+  `twittering-timeline-header-face' and
+  `twittering-timeline-footer-face'.
+* Support for exclude-if timelines.
+  ":exclude-if/FUNC/SPEC" is added as a new timeline spec. The
+  timeline equals SPEC, except that it does not include tweets that
+  the function FUNC returns non-nil for. FUNC must be a function that
+  receives an alist corresponding to a tweet as an argument. A lambda
+  expression and a symbol bound to a function are valid as FUNC. But a
+  symbol name must not include two special characters, "(" or "/". You
+  can specify any timeline spec for SPEC. For example, you can ignore
+  tweets including "WORD" from the home  timeline by the following
+  timeline spec; ":exclude-if/(lambda (tweet) (string-match \"WORD\"
+  (cdr (assq 'text tweet))))/:home".
+* Support for merge timelines.
+  Merge timelines such as "(SPEC1+SPEC2)" or "(SPEC1+SPEC2+SPEC3)" and
+  so on, are added as new timeline specs. The merge timeline consists
+  of all tweets in the specified timelines. You can specify any
+  timeline spec for constituents. For example, you can see all direct
+  messages, which you have sent or received, on a buffer by the
+  following timeline spec;
+  "(:direct_messages+:direct_messages_sent)".
+* New hook invoked when rendering tweets.
+  A new hook variable `twittering-new-tweets-rendered-hook' is
+  added. The hook is invoked when new tweets are rendered. It is not
+  invoked when rendering tweets that are retrieved formerly. Since the
+  existing hook `twittering-new-tweets-hook' is invoked for each
+  successful retrieval of tweets, it may be invoked for tweets that
+  are not rendered in composite timelines such as exclude-if and merge
+  timelines. The new hook works well for composite timelines.
+  In the new hook, you can use `twittering-rendered-new-tweets' as a
+  list of new tweets. `twittering-rendered-new-tweets-spec' and
+  `twittering-rendered-new-tweets-spec-string' can be used as the
+  timeline spec and the timeline spec string. For detail, see the
+  docstring of the new hook variable.
+* New hook invoked after initializing global variables.
+  A new hook variable `twittering-mode-init-hook' is added. The hook
+  is invoked after initializing global variables. Unlike
+  `twittering-mode-hook', which is invoked every time a buffer is
+  generated for twittering-mode, the new hook invoked only once.
+* Description on a pop-up edit buffer.
+  The description is rendered on the top of the pop-up edit
+  buffer. Which the tweet is a reply, a direct message or an
+  independent ordinary tweet is explicitly displayed. You can also
+  copy the tweet being replied.
+* Switch of a reply and a normal tweet on a pop-up edit buffer.
+  You can toggle whether the tweet being edited will be sent as a
+  reply or a normal tweet by invoking `twittering-edit-toggle-reply'
+  bound to "C-c C-r" in default.
+* Support for exclude-re timelines.
+  ":exclude-re/REGEXP/SPEC" is added as a new timeline spec. The
+  timeline equals SPEC, except that it does not include tweets that
+  match the regular expression REGEXP. In REGEXP, a slash must be
+  escaped with a backslash. For example, tweets including a slash are
+  excluded from the timeline corresponding to the Emacs string literal
+  ":exclude-re/\\//:home".
+* Iterative retrieval of a series of replies.
+  You can trace back a series of replies by a new function
+  `twittering-toggle-or-retrieve-replied-statuses' bound to "R" in
+  default. The function behaves as follows:
+  - If some of tweets in the series of replies pointed by the cursor
+    have not been rendered, try to show them as possible. If some of
+    them have not been retrieved yet, retrieve the latest one and show
+    it.
+  - If all tweets in the series of replies pointed by the cursor
+    have been rendered, hide them.
+  - If the cursor does not point to one of tweets in a series of
+    replies, do nothing.
+* Configuration of how to open a window for an edit buffer.
+  A new variable `twittering-pop-to-buffer-function' is added. It
+  specifies how to open a window for an edit buffer. The default value
+  is `twittering-pop-to-buffer-in-bottom-largest-window', which opens
+  a window by splitting the largest window on the bottom of the
+  current frame. You can also use the function
+  `twittering-pop-to-buffer-in-current-window', which splits the
+  current window.
+* Support for `single tweet' timelines.
+  ":single/ID" is added as a new timeline spec. The timeline consists
+  of a tweet specified by ID. You can read a very old tweet by using
+  the timeline spec.
+* Single tweet timeline from a URL in a tweet.
+  You can visit a `single tweet' timeline from a URL pointing to the
+  tweet by invoking `twittering-other-user-timeline' on the URL. The
+  function is bound to "v" in default.
+* New command to get tweets before a specific time.
+  By using the new command `twittering-get-tweets-before', you can get
+  tweets of the current timeline before a specific time.
+* Support for backward retrieval of favorites timeline.
+* Different intervals of retrieving timelines.
+  An interval of retrieving each timeline can be configured by the new
+  variable `twittering-relative-retrieval-interval-alist'. The alist
+  consists of pairs of a regexp and a relative interval. The regexp
+  specifies timelines and they are retrieved at intervals that are the
+  relative interval times as long as the variable
+  `twittering-timer-interval'.
+* Support for the Twitter REST API v1.1.
+  The default value of `twittering-service-method' is changed to
+  `twitter-api-v1.1'. The configuration means that twittering-mode
+  uses the Twitter REST API v1.1. The service method requires SSL
+  connection and JSON parser. Note that the former requires cURL with
+  OpenSSL, GNU Wget with OpenSSL, OpenSSL or GnuTLS and the latter
+  requires `json.el' that is not distributed with Emacs 22 or
+  earlier.
+  In addition, some timelines are obsolete in the Twitter REST API
+  v1.1. The obsolete timeline spec strings follow; ":friends",
+  ":replies", ":public", ":retweeted_by_me", ":retweeted_to_me",
+  ":retweeted_by_user/USER", ":retweeted_to_user/USER".
 
 ### Bug fixes
 * Fix of displaying a message of authorization.
@@ -145,6 +305,31 @@
   `twittering-convert-fix-size' was nil. The bug has been fixed.
   Thanks to HufflepuffBR who reported this problem about the former
   variable `twittering-icon-storage-limit'.
+* Fix of unconditional addition of `load-path' on byte-compilation.
+  On byte-compilation, the directories `emacs21' and `url-emacs21',
+  which are included in the repository of twittering-mode, were
+  unconditionally added into `load-path'. Due to this bug, some macros
+  were embedded as obsolete definitions for Emacs21 in the result of
+  byte-compilation. Some functions in the result cause errors on Emacs
+  22 or later because the obsolete definitions conflict with Emacs
+  newer than 21. On Emacs 22 or later, the directories are no longer
+  added to `load-path' on byte-compilation. The bug has been fixed.
+  Thanks to HKey who has discovered the bug.
+* Fix of the strange motion of the cursor.
+  The cursor motion based on logical lines had caused non-intuitive
+  behavior by interfering text property attaced to tweets. The problem
+  did not appear when the motion was based on display line. The bug
+  has been fixed.
+  Thanks to lemit who reported the problem.
+* Deletion of a tweet from a buffer after the API is succeeded.
+  A tweet is deleted from a buffer after receiving a successful
+  response of the `destroy-status' API. If the API ends in failure,
+  you can try to delete the status again because the status remains on
+  the buffer.
+* Fix of the escape of a query string in a search timeline spec.
+* Fix of errors raised by asynchronous sentinels.
+  Previously, an error might be raised from a sentinel when a timeline of
+  non-existent user was requested. The bug has been fixed.
 
  2.0.0: 2011-04-22
 ------------------

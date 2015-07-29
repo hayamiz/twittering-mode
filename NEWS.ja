@@ -6,6 +6,28 @@
 ------------------
 
 ### 重要なお知らせ
+* 公式ReTweetに対する公式ReTweet
+  公式ReTweet上で関数`twittering-native-retweet'(デフォルトでは"C-u
+  C-c C-m"にbindされています)を実行した場合に、その公式ReTweetに対する
+  公式ReTweetを投稿するようになりました。以前のバージョンでは、公式
+  ReTweetそのものではなく、ReTweetされたオリジナルのtweetに対する公式
+  ReTweetを投稿していました。これは対象ReTweetを投稿していたユーザに、
+  さらにReTweetが行われたことの通知がTwitterから正しく送信されるように
+  するための変更です。
+
+### 改良
+* 全てのVeriSign Root CA証明書を内蔵
+  https://www.symantec.com/page.jsp?id=roots で提供されている有効な
+  Root CA証明書を全て`twittering-mode.el'に内蔵しました。
+
+### バグ修正
+* 同一のtimelineに対してhookが二重に実行されるバグを修正
+* 公式ReTweetに対するURLを修正
+
+ 3.0.0: 2013-04-21
+------------------
+
+### 重要なお知らせ
 * 暗黙に署名を付加する機能の廃止
   関数`twittering-sign-string-function'と変数
   `twittering-sign-simple-string'の機能は廃止されました。同様の機能は
@@ -15,6 +37,16 @@
   は、以下の設定で置き換えられます。
   (setq twittering-edit-skeleton-footer " [footer]")
   (setq twittering-edit-skeleton 'footer)
+* 変数`twittering-scroll-mode'の廃止
+  変数`twittering-scroll-mode'は廃止されました。現在の版は、過去の版で
+  scroll-modeが有効であったときのように振舞います。最新のtweetに追従す
+  るには、timelineバッファの最新側のヘッダもしくはフッタ上にカーソルを
+  置いてください。
+* "C-cD"の代替として"C-cC-w"を導入
+  これまで、"C-cD"がtweet削除用関数'twittering-delete-status'にbindさ
+  れていました。しかしこのキーはEmacsのKey Binding Conventionsに則って
+  いません。そこでその代替として"C-cC-w"を同関数にbindしました。"C-cD"
+  も有効ですが、"C-cC-w"の使用を推奨します。
 
 ### 改良
 * 現在のtimelineに応じたedit skeleton
@@ -69,11 +101,11 @@
   twittering-mode上でハッシュタグと見なされる文字列がTwitterのweb UIで
   はハッシュタグとは見なされない恐れはあります。
 * t.coで短縮されたリンクを短縮前のURLで表示
-  search timeline以外のtimeline上ではTwitter公式のt.coサービスで短縮さ
-  れたリンクが短縮前のURLとして描画されるようになりました。但し、リン
-  ク上で`twittering-enter'(デフォルトでは`C-m')を実行した場合は短縮URL
-  経由で開かれます。Twitterのsearch APIではtweetに付随する情報が取得で
-  きないため、search timeline上では短縮されたURLとして描画されます。
+  Twitter公式のt.coサービスで短縮されたリンクが短縮前のURLとして描画さ
+  れるようになりました。但し`json.el'が利用不可の場合はsearch timeline
+  上ではt.coで生成されたURLがそのまま描画されます。また、リンク上で
+  `twittering-enter'(デフォルトでは`C-m')を実行した場合は短縮URL経由で
+  開かれます
 * mentionのみからなるtweetの投稿
   ポップアップバッファからであれば、mentionのみからなるtweetも投稿でき
   るようになりました。
@@ -96,6 +128,9 @@
   また、同じくHIROSE Yuujiさん作のEmacs LISPプログラム`windows.el'は
   `revive.el'を暗黙にloadしますので、`windows.el'をloadするタイミング
   にも注意してください。
+* `twittering-retweet-format'用の新しい書式指定子"%u"
+  `twittering-retweet-format'で指定できる書式指定子として"%u"が追加さ
+  れました。これは引用されるtweetを指すURLと置き換えられます。
 * skeletonによる非公式ReTweetの初期文字列設定
   非公式ReTweetを編集する際の初期文字列を指定する変数
   `twittering-retweet-format'にskeletonを指定できるようになりました。
@@ -103,11 +138,12 @@
   れる文字列を下記の対応表によって変換してから、関数`skeleton-insert'
   で挿入します。
   対応表は以下の通りです。
-    %s: screen_name
-    %t: text
-    %%: %
-  この表は従来から`twittering-retweet-format'に適用されていた規則と同
-  じです。
+    %s - 引用されるtweetの投稿者のscreen-name
+    %t - 引用されるtweetの内容
+    %u - 引用されるtweetを指すURL
+    %# - 引用されるtweetのID
+    %% - %自身
+  この表は`twittering-retweet-format'に適用される規則と同じです。
   この変数`twittering-retweet-format'による初期文字列の挿入後に変数
   `twittering-edit-skeleton'で指定されたedit skeletonが適用される点に
   注意してください。
@@ -117,6 +153,126 @@
   skeletonを定義できます。但し、現在の実装ではedit skeleton側から非公
   式ReTweetされようとしているtweetの内容を参照することはできません。
 * 非ASCII文字を含むリスト名に対応
+* search timeline上での返信先tweetの表示
+  `json.el'が使用可能な場合には、search timelineにおいても返信先tweet
+  のIDが取得できるようになりました。`json.el'が使用可能であれば関数
+  `twittering-toggle-show-replied-statuses'(デフォルトでは"r"にbindさ
+  れています)を呼び出すことで返信先tweetを表示できます。
+* ヘッダとフッタの表示
+  timelineバッファにヘッダとフッタが表示されるようになりました。これら
+  はtweetとは独立の特別な行として描画されます。ヘッダやフッタ上でEnter
+  キーを押す(もしくは`twittering-enter'を実行する)と、それがtimelineの
+  時系列で最新の側か過去の側かに応じてtweetを取得して描画します。
+  また、ヘッダとフッタの内の最新側にカーソルを置いておくと、常にカーソ
+  ル行の近くに最新tweetを描画するようにできます。
+  ヘッダ、フッタとして表示される文字列は、`twittering-timeline-header'、
+  `twittering-timeline-footer'という変数で変更できます。また、表示する
+  際のfaceは`twittering-timeline-header-face'と
+  `twittering-timeline-footer-face'で変更できます。
+* exclude-if timelineに対応
+  新しく":exclude-if/FUNC/SPEC"というtimelineに対応しました。この
+  timelineはSPECで表されるものとほぼ同じですが、関数FUNCがnon-nilを返
+  すようなtweetは除外されている点が異なります。FUNCはひとつのtweetに対
+  応した連想リストをひとつ受け取る関数でなければなりません。FUNCとして
+  はλ式もしくは関数に対応するシンボルが指定できます。但しシンボルで指
+  定する場合、名前に"("や"/"を含むものは指定できません。SPECには任意の
+  timeline specを指定できます。例えば、home timelineから"WORD"を含む
+  tweetを除外したtimelineは下記のtimeline specで指定できます。
+  ":exclude-if/(lambda (tweet) (string-match \"WORD\" (cdr (assq 'text
+  tweet))))/:home"
+* merge timelineに対応
+  新しく"(SPEC1+SPEC2)"や"(SPEC1+SPEC2+SPEC3)"といった形式のtimelineに
+  対応しました。merge timelineは指定したtimelineのtweetを全て含む
+  timelineです。任意のtimeline specを構成要素にできます。例えば、
+  "(:direct_messages+:direct_messages_sent)"というtimeline specを使え
+  ばこれまでに送ったり受け取ったりしたdirect messageの全てをひとつのバッ
+  ファに表示できます。
+* tweet描画時に実行される新しいhookの追加
+  新しいhook変数`twittering-new-tweets-rendered-hook'を追加しました。
+  このhookは実際に新しいtweetを描画したときに実行されます。以前に取得
+  したtweetを再描画する際には実行されません。既存のhook変数
+  `twittering-new-tweets-hook'はtweetの取得に成功するたびに実行される
+  ので、exclude-if timelineやmerge timelineのような複合timelineに含ま
+  れる実際には描画されないtweetについてもhookを実行します。新しいhook
+  は複合timelineについてもうまく動作します。
+  hook内では、`twittering-rendered-new-tweets'という変数で描画された
+  tweetのリストを参照できます。他にも描画されたtimelineを表すtimeline
+  specとtimeline spec文字列を`twittering-rendered-new-tweets-spec'と
+  `twittering-rendered-new-tweets-spec-string'という変数で参照できます。
+  詳細は`twittering-new-tweets-rendered-hook'のdocstringを参照してくだ
+  さい。
+* 大域変数初期化時に実行される新しいhookの追加
+  新しいhook変数`twittering-mode-init-hook'を追加しました。このhookは
+  大域変数を初期化した後に実行されます。twittering-mode用のbufferを作
+  成するたびに実行される`twittering-mode-hook'とは異なり、新しいhookは
+  一度しか実行されません。
+* 編集バッファ上でのtweet種別の表示
+  編集中のtweetについての情報が編集バッファの先頭に表示されるようにな
+  りました。編集中のtweetがreplyなのか、direct messageなのか、あるいは
+  通常のtweetなのかが確認できます。reply先のtweet内容のコピーもできま
+  す。
+* 編集中のtweetをreplyとして送るかどうかの切り替え
+  編集中のtweetをreplyとして送るかどうかを編集バッファ上で切り替えられ
+  るようになりました。関数`twittering-edit-toggle-reply'(デフォルトでは
+  "C-c C-r"にbindされています)を呼ぶたびにreplyとして送るかどうかが切
+  り替わります。
+* exclude-re timelineに対応
+  新しく":exclude-re/REGEXP/SPEC"というtimelineに対応しました。この
+  timelineはSPECで表されるものとほぼ同じですが、正規表現REGEXPにマッチ
+  するようなtweetは除外されている点が異なります。REGEXP内で / を指定す
+  る際は \ でエスケープする必要があります。例えば、Emacsの文字列リテラ
+  ル":exclude-re/\\//:home"で表されるtimelineでは、 / を含むtweetが除
+  外されています。
+* replyの系列の逐次取得
+  新しい関数`twittering-toggle-or-retrieve-replied-statuses'(デフォル
+  トでは"R"にbindされています)を使って、replyを遡って取得できるように
+  なりました。この関数の動作は下記の通りです。
+  - カーソルがreply、もしくは展開表示されたreply先のいずれかを指してい
+    て、そのreplyの系列の一部がまだ表示されていない場合、そのreply系列
+    を可能な限り表示します。reply系列内のいくつかのtweetが未取得の場合
+    には、その内の最新のものを取得し、表示します。
+  - カーソルがreply、もしくは展開表示されたreply先のいずれかを指してい
+    て、そのreplyの系列が全て展開表示されている場合、展開表示をとりや
+    めます。
+  - カーソルがreply系列内のtweetを指していない場合、何もしません。
+* 編集バッファ用を開く方法の設定
+  新たに変数`twittering-pop-to-buffer-function'を追加しました。この変
+  数は編集バッファを開く方法を指定するものです。デフォルトの値は関数
+  `twittering-pop-to-buffer-in-bottom-largest-window'となっています。
+  この関数は現在のフレーム内で最下段にあるウィンドウの内、面積最大のも
+  のを分割することで編集バッファ用のウィンドウを確保します。他にも、関
+  数`twittering-pop-to-buffer-in-current-window'を指定することもできま
+  す。この関数は現在のウィンドウを分割してウィンドウを確保します。
+* single tweet timelineに対応
+  新しく":single/ID"というtimelineに対応しました。このtimelineはIDで
+  指定されたtweetのみからなるtimelineです。非常に古いtweet等にアクセス
+  するのに利用できます。
+* tweetに含まれるURLからのsingle tweet timeline取得
+  特定のtweetを指すURL上で関数`twittering-other-user-timeline'を呼ぶこ
+  とで、そのtweetに対応したsingle tweet timelineを開けるようになりまし
+  た。この関数はデフォルトでは"v"にbindされています。
+* 特定日時以前のtweetを取得するコマンドを追加
+  現在のtimelineの、指定した日時以前のtweetを取得できる新しいコマンド
+  `twittering-get-tweets-before'が追加されました。
+* favorites timelineで過去のtweetの遡って取得する機能を追加
+* timelineごとに異なる取得間隔
+  新しい変数`twittering-relative-retrieval-interval-alist'で、timeline
+  ごとに取得間隔を変更できるようになりました。この変数は正規表現と相対
+  間隔からなる連想リストです。この正規表現にマッチするtimelineは、
+  `twittering-timer-interval'を「相対間隔」倍した間隔で更新されるよう
+  になります。
+* Twitter REST API v1.1に対応
+  変数`twittering-service-method'の値を`twitter-api-v1.1'に変更しまし
+  た。この設定でtwittering-modeはTwitter REST API v1.1を使うようになり
+  ます。この場合、SSL接続とJSON解析器が必要です。SSL接続にはcURL with
+  OpenSSL, GNU Wget with OpenSSL, OpenSSLとGnuTLSのいずれかが必要で、
+  さらにJSON解析器として`json.el'が必要となる点に注意してください。
+  Emacs22とそれ以前のEmacsでは`json.el'が同梱されていませんので別途用
+  意する必要があります。
+  また、Twitter REST API v1.1ではいくつかのtimelineが廃止されています。
+  廃止されたtimelineに対応するtimeline spec文字列は":friends",
+  ":replies", ":public", ":retweeted_by_me", ":retweeted_to_me",
+  ":retweeted_by_user/USER", ":retweeted_to_user/USER"です。
 
 ### バグ修正
 * 認証成功・失敗についてのメッセージが表示されるよう修正
@@ -141,6 +297,28 @@
   がnilの場合に、アイコンが正しく保存できていなかったのを修正しました。
   Thanks to HufflepuffBR who reported this problem about the former
   variable `twittering-icon-storage-limit'.
+* byte-compile時、`load-path'に無条件でパスが追加される問題を解消
+  twittering-modeのrepositoryに含まれているディレクトリ`emacs21',
+  `url-emacs21'がbyte-compile時に無条件で`load-path'に加えられており、
+  byte-compile時にいくつかのマクロがEmacs21用の古い定義として取り込ま
+  れていました。古い定義は22以降のEmacs上で使うことができませんので
+  byte-compileによって正しく動作しないファイルが生成される状態になって
+  いました。そこでbyte-compile時にもEmacs 22以降ではパスが追加されない
+  よう変更して、この問題を解消しました。
+  Thanks to HKey who has discovered the bug.
+* カーソル移動がおかしくなる問題を解消
+  tweetに割り当てたtext propertyが干渉して、twittering-modeのbuffer内
+  での論理行単位のカーソル移動がおかしくなっていました。この問題を解消
+  しました。
+  Thanks to lemit who reported the problem.
+* bufferからtweetを消すのをtweet削除APIが成功した後に変更
+  bufferからtweetを消去するタイミングを`destroy-status' APIが成功した
+  という応答を受け取った後に変更しました。APIが失敗に終わった場合、
+  対象tweetはbufferに残っているので再度削除を試みることができます。
+* search timeline spec内の検索文字列のエスケープを修正
+* 非同期実行される関数がエラーを起こしていたのを修正
+  存在しないユーザのtimelineを取得しようとすると非同期実行される関数が
+  エラーを起こしてしまっていましたので、修正しました。
 
  2.0.0: 2011-04-22
 ------------------

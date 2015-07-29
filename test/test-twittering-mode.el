@@ -105,22 +105,6 @@
   (test-assert-ok twittering-icon-mode)
   )
 
-(defcase test-scroll-mode nil nil
-  (setq twittering-scroll-mode nil)
-  (twittering-scroll-mode)
-  (test-assert-ok twittering-scroll-mode)
-  (twittering-scroll-mode)
-  (test-assert-ok (not twittering-scroll-mode))
-  (twittering-scroll-mode nil)
-  (test-assert-ok twittering-scroll-mode)
-  (twittering-scroll-mode t)
-  (test-assert-ok twittering-scroll-mode)
-  (twittering-scroll-mode 1)
-  (test-assert-ok twittering-scroll-mode)
-  (twittering-scroll-mode -1)
-  (test-assert-ok (not twittering-scroll-mode)))
-  
-
 (defcase test-percent-encode nil nil
   (test-assert-string-equal "Rinko"
     (twittering-percent-encode "Rinko"))
@@ -194,63 +178,123 @@
 	    normalized-spec)
      (equal normalized-spec spec-from-str))))
 
+(defun test-exclude-if-function (status)
+  (string-match "test" (cdr (assq 'text status))))
+
 (defcase timeline-spec nil nil
   (test-assert-equal
    (test-restore-timeline-spec
-    "(user+(user/mylist+(@))+:filter/WORD/(USER2+:mentions))"
+    "(user+(user/mylist+(@))+:exclude-re/WORD/(USER2+:mentions))"
     '(merge (user "user")
 	    (merge (list "user" "mylist")
-		   (merge (replies)))
-	    (filter "WORD" (merge (user "USER2")
-				  (mentions))))
+		   (merge (mentions)))
+	    (exclude-re "WORD" (merge (user "USER2")
+				      (mentions))))
     '(merge (user "user")
 	    (list "user" "mylist")
-	    (replies)
-	    (filter "WORD" (merge (user "USER2")
-				  (mentions)))))
+	    (mentions)
+	    (exclude-re "WORD" (merge (user "USER2")
+				      (mentions)))))
    '(t t))
   (test-assert-equal
    (test-restore-timeline-spec
-    "(user-A+~+((user-B))+(:filter/R+/user-C+(:filter/R3\\//USER-D+:public)))"
+    "(user-A+~+((user-B))+(:exclude-re/R+/user-C+(:exclude-re/R3\\//USER-D+:public)))"
     '(merge (user "user-A")
 	    (home)
 	    (merge (user "user-B")
-		   (filter "R+" (user "user-C")))
-	    (filter "R3/" (user "USER-D"))
+		   (exclude-re "R+" (user "user-C")))
+	    (exclude-re "R3/" (user "USER-D"))
 	    (public))
     '(merge (user "user-A")
 	    (home)
 	    (user "user-B")
-	    (filter "R+" (user "user-C"))
-	    (filter "R3/" (user "USER-D"))
+	    (exclude-re "R+" (user "user-C"))
+	    (exclude-re "R3/" (user "USER-D"))
 	    (public)))
    '(t t))
 
+  ;; Duplicates in a merge timeline are removed.
   (test-assert-equal
    (test-restore-timeline-spec
-    ":filter/ABC/user/mylist"
-    '(filter "ABC" (list "user" "mylist"))
-    '(filter "ABC" (list "user" "mylist")))
-   '(t t))
-  (test-assert-equal
-   (test-restore-timeline-spec
-    ":filter/ABC\\/user/mylist"
-    '(filter "ABC/user" (user "mylist"))
-    '(filter "ABC/user" (user "mylist")))
+    "(ABC+user/mylist+user/mylist+ABC)"
+    '(merge (user "ABC") (list "user" "mylist"))
+    '(merge (user "ABC") (list "user" "mylist")))
    '(t t))
 
   (test-assert-equal
    (test-restore-timeline-spec
-    ":filter/ABC\\\\/user/mylist"
-    '(filter "ABC\\\\" (list "user" "mylist"))
-    '(filter "ABC\\\\" (list "user" "mylist")))
+    ":search/ABC/"
+    '(search "ABC")
+    '(search "ABC"))
+   '(t t))
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ":search/AB\\\\C\\/aaa\\\\/"
+    '(search "AB\\C/aaa\\")
+    '(search "AB\\C/aaa\\"))
    '(t t))
 
   (test-assert-equal
    (test-restore-timeline-spec
-    ":filter/\\\\/user/mylist"
-    '(filter "\\\\" (list "user" "mylist"))
-    '(filter "\\\\" (list "user" "mylist")))
+    ":exclude-if/test-exclude-if-function/:home"
+    '(exclude-if test-exclude-if-function (home))
+    '(exclude-if test-exclude-if-function (home)))
+   '(t t))
+
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ":exclude-if/(lambda (x) t)/:home"
+    '(exclude-if (lambda (x) t) (home))
+    '(exclude-if (lambda (x) t) (home)))
+   '(t t))
+
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ":exclude-if/(lambda (tweet) (string-match \"test\\\\.\" (cdr (assq 'text tweet))))/@"
+    '(exclude-if (lambda (tweet)
+		   (string-match "test\\." (cdr (assq 'text tweet))))
+		 (mentions))
+    '(exclude-if (lambda (tweet)
+		   (string-match "test\\." (cdr (assq 'text tweet))))
+		 (mentions)))
+   '(t t))
+
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ":exclude-if/(lambda (tweet) (string-match \"\\\\\\\\\" (cdr (assq 'text tweet))))/:exclude-if/(lambda (tw) (assq 'retweeting-id tw))/user/mylist"
+    '(exclude-if (lambda (tweet)
+		   (string-match "\\\\" (cdr (assq 'text tweet))))
+		 (exclude-if (lambda (tw) (assq 'retweeting-id tw))
+			     (list "user" "mylist")))
+    '(exclude-if (lambda (tweet)
+		   (string-match "\\\\" (cdr (assq 'text tweet))))
+		 (exclude-if (lambda (tw) (assq 'retweeting-id tw))
+			     (list "user" "mylist"))))
+   '(t t))
+
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ":exclude-re/ABC/user"
+    '(exclude-re "ABC" (user "user"))
+    '(exclude-re "ABC" (user "user")))
+   '(t t))
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ":exclude-re/ABC/user/mylist"
+    '(exclude-re "ABC" (list "user" "mylist"))
+    '(exclude-re "ABC" (list "user" "mylist")))
+   '(t t))
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ":exclude-re/ABC\\\\/user/mylist"
+    '(exclude-re "ABC\\\\" (list "user" "mylist"))
+    '(exclude-re "ABC\\\\" (list "user" "mylist")))
+   '(t t))
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ":exclude-re/ABC\\/\\(word\\|123\\)/user"
+    '(exclude-re "ABC/\\(word\\|123\\)" (user "user"))
+    '(exclude-re "ABC/\\(word\\|123\\)" (user "user")))
    '(t t))
 
   (test-assert-equal
@@ -289,6 +333,30 @@
     '(list "USER" "non-ASCIIリスト")
     '(list "USER" "non-ASCIIリスト"))
    '(t t))
+
+  (test-assert-equal
+   (test-restore-timeline-spec
+    ;; An example from
+    ;; https://dev.twitter.com/docs/api/1/get/statuses/home_timeline ,
+    ;; which is posted by cindy li.
+    ":single/18700887835"
+    '(single "18700887835")
+    '(single "18700887835"))
+   '(t t))
+  )
+
+(defcase timeline-spec-dependence nil nil
+  ;; Duplicates in a merge timeline are removed.
+  (test-assert-equal
+   (let ((spec (twittering-string-to-timeline-spec "(:home+@+(@+:home))")))
+     (twittering-get-primary-base-timeline-specs spec))
+   '((home) (mentions)))
+
+  (test-assert-equal
+   (let ((spec (twittering-string-to-timeline-spec
+		"(:home+@+:exclude-if/(lambda (x) t)/(@+:home+USER))")))
+     (twittering-get-primary-base-timeline-specs spec))
+   '((home) (mentions) (user "USER")))
   )
 
 (defun format-status (status format-str)
@@ -359,18 +427,28 @@
 
     (test-assert-string-equal ""
       (format-status status "%p"))
-    (setcdr (assoc 'user-protected status) "true")
+    (setcdr (assoc 'user-protected status) t)
     (test-assert-string-equal "[x]"
       (format-status status "%p"))
-    (setcdr (assoc 'user-protected status) "false")
+    (setcdr (assoc 'user-protected status) nil)
     (test-assert-string-equal ""
       (format-status status "%p"))
 
-    (test-assert-string-equal "created at Wed Dec 09 00:44:57 +0000 2009"
-      (format-status status "created at %c"))
+    (test-assert-string-equal
+     "created at Wed Dec 09 00:44:57 +0000 2009"
+     (let ((tz (current-time-zone)))
+       (set-time-zone-rule t)
+       (prog1
+	   (format-status status "created at %c")
+	 (set-time-zone-rule (cddr tz)))))
 
-    (test-assert-string-equal "created at 2009/12/09 09:44:57"
-      (format-status status "created at %C{%Y/%m/%d %H:%M:%S}"))
+    (test-assert-string-equal
+     "created at 2009/12/09 09:44:57"
+     (let ((tz (current-time-zone)))
+       (set-time-zone-rule "JST-9")
+       (prog1
+	   (format-status status "created at %C{%Y/%m/%d %H:%M:%S}")
+	 (set-time-zone-rule (cddr tz)))))
 
     ;; (test-assert-string-equal "09:44 午前 12月 09, 2009"
     ;;   (format-status status "%@"))
@@ -378,13 +456,13 @@
     (test-assert-string-equal "Help protect and support Free Software and the GNU Project by joining the Free Software Foundation! http://www.fsf.org/join?referrer=7019"
       (format-status status "%T"))
 
-    (setcdr (assoc 'truncated status) "false")
+    (setcdr (assoc 'truncated status) nil)
     (test-assert-string-equal ""
       (format-status status "%'"))
-    (setcdr (assoc 'truncated status) "true")
+    (setcdr (assoc 'truncated status) t)
     (test-assert-string-equal "..."
       (format-status status "%'"))
-    (setcdr (assoc 'truncated status) "false")
+    (setcdr (assoc 'truncated status) nil)
 
     (test-assert-string-equal "web"
       (format-status status "%f"))
@@ -702,3 +780,114 @@
       oauth-params))
    "OAuth oauth_nonce=\"oElnnMTQIZvqvlfXM56aBLAf5noGD0AQR3Fmi7Q6Y\",oauth_signature_method=\"HMAC-SHA1\",oauth_timestamp=\"1272325550\",oauth_consumer_key=\"GDdmIQH6jhtmLUypg82g\",oauth_token=\"819797-Jxq8aYUDRmykzVKrgoLhXSq67TEa5ruc4GJC2rWimw\",oauth_version=\"1.0\",oauth_signature=\"yOahq5m0YjDDjfjxHaXEsW9D%2BX0%3D\"")
   )
+
+(defun find-least-unsupported-code-point (from to)
+  (let ((n from)
+        (c nil))
+    (while (and (<= n to)
+		(decode-char 'ucs n))
+      (setq n (1+ n)))
+    (when (<= n to)
+      n)))
+
+(defun encode-char-for-json (code-point)
+  ;; According to RFC4627 http://www.ietf.org/rfc/rfc4627 ,
+  ;; characters in the Basic Multilingual Plane (U+0000
+  ;; through U+FFFF) are escaped as
+  ;; "a six-character sequence: a reverse solidus, followed
+  ;;  by the lowercase letter u, followed by four hexadecimal
+  ;;  digits that encode the character's code point."
+  ;; "To escape an extended character that is not in the Basic
+  ;;  Multilingual Plane, the character is represented as a
+  ;;  twelve-character sequence, encoding the UTF-16 surrogate
+  ;;  pair."
+  (cond
+   ((< code-point #xFFFF)
+    (format "\\u%04X" code-point))
+   (t
+    ;; a character not in the Basic Multilingual Plane
+    (let* ((c (decode-char 'ucs unsupported-code-point))
+	   (str (encode-coding-char c 'utf-16be)))
+      (apply 'format "\\u%02X%02X\\u%02X%02X"
+	     (string-to-list str))))))
+
+(defun test-read-json-with-unsupported-code-point ()
+  (let ((unsupported-code-point
+	 (or (find-least-unsupported-code-point #x0000 #xD7FF)
+	     (find-least-unsupported-code-point #xE000 #x10FFFF))))
+    (cond
+     ((null unsupported-code-point)
+      t)
+     (t
+      (let* ((str (encode-char-for-json unsupported-code-point))
+	     (quoted-str (concat "\"" str "\""))
+	     (result (with-temp-buffer
+		       (insert quoted-str)
+		       (goto-char (point-min))
+		       (condition-case err
+			   (twittering-json-read)
+			 (error
+			  nil)))))
+	(if (and result
+		 (stringp result)
+		 (string= result
+			  (string twittering-unicode-replacement-char)))
+	    t
+	  (format "failed to decode %s!" quoted-str)))))))
+
+(when (require 'json nil t)
+  (defcase test-json-read nil nil
+    (test-assert-eq t (test-read-json-with-unsupported-code-point))))
+
+(defun test-read-xml-with-unsupported-code-point ()
+  (let ((unsupported-code-point
+	 (or (find-least-unsupported-code-point #x0000 #xD7FF)
+	     (find-least-unsupported-code-point #xE000 #x10FFFF))))
+    (cond
+     ((null unsupported-code-point)
+      t)
+     (t
+      (let* ((xml-template
+	      ;; example from http://www.w3.org/TR/xhtml1/#strict
+	      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">
+<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">
+  <head>
+    <title>test</title>
+  </head>
+  <body>
+    <p>%s</p>
+  </body>
+</html>")
+	     (encoded-str (format "&#%d;" unsupported-code-point))
+	     (xml-str (format xml-template encoded-str))
+	     (replacement-str
+	      (string twittering-unicode-replacement-char))
+	     (result
+	      (with-temp-buffer
+		(insert xml-str)
+		(condition-case err
+		    (let* ((xml
+			    (twittering-xml-parse-region (point-min)
+							 (point-max)))
+			   (str
+			    (elt (assq 'p (assq 'body (assq 'html xml))) 2)))
+		      (if (< emacs-major-version 22)
+			  ;; On Emacs 21, `xml-parse-region' does not resolve
+			  ;; numeric character references.
+			  (twittering-decode-entities-after-parsing-xml str)
+			str))
+		  (error
+		   nil))))
+	     (expected-result replacement-str))
+	(cond
+	 ((null result)
+	  (format "failed to decode %s with an error" encoded-str))
+	 ((equal result expected-result)
+	  t)
+	 (t
+	  (format "failed to decode %s without errors" encoded-str))))))))
+
+(when (require 'xml nil t)
+  (defcase test-xml-parse nil nil
+    (test-assert-eq t (test-read-xml-with-unsupported-code-point))))

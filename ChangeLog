@@ -8,6 +8,12 @@
 	latest http://curl.haxx.se/ca/cacert.pem .
 	(twittering-ca-cert-list): update the CA certificates.
 
+	* twittering-mode.el: Add the CA certificates issued by DigiCert
+	as embedded CA certificates according to the update of the server
+	certificate of Twitter.
+	(twittering-ca-cert-list): update the CA certificates.
+	* update-cert.sh: Retrieve CA certificates issued by DigiCert.
+
 2015-03-15  David A. Shamma <aymanshamma@gmail.com>
 
 	* twittering-mode.el: Add a pretty menubar menu. The keywords

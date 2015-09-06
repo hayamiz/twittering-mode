@@ -1,3 +1,10 @@
+2015-03-15  David A. Shamma <aymanshamma@gmail.com>
+
+	* twittering-mode.el: Add a pretty menubar menu. The keywords
+	`:link' and `:prefix' are also added to the definition of the
+	customization group of twittering-mode.
+	(twittering-mode-menu): new menu.
+
 2015-02-01  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix docstrings.

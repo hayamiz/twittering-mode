@@ -4,6 +4,10 @@
 	(twittering-mode-menu): fix the help message for the menu item
 	`twittering-other-user-timeline'.
 
+	* twittering-mode.el: Update the embedded CA certificates with the
+	latest http://curl.haxx.se/ca/cacert.pem .
+	(twittering-ca-cert-list): update the CA certificates.
+
 2015-03-15  David A. Shamma <aymanshamma@gmail.com>
 
 	* twittering-mode.el: Add a pretty menubar menu. The keywords

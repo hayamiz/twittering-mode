@@ -12524,7 +12524,7 @@ Note that the current implementation assumes `revive.el' 2.19 ."
      :help "Create a new Tweet"]
     "---"
     ["Open timeline of user" twittering-other-user-timeline
-     :help "Open a various timeline"]
+     :help "Open a timeline specified by the cursor"]
     ["Open various timelines" twittering-visit-timeline
      :help "Open a various timeline"]
     "---"
@@ -12538,7 +12538,7 @@ Note that the current implementation assumes `revive.el' 2.19 ."
     ["Toggle HTTP Proxy" twittering-toggle-proxy
      :help "Toggle HTTP Proxy"]
     "---"
-    ["Documentation" 
+    ["Documentation"
      (browse-url "http://www.emacswiki.org/emacs-en/TwitteringMode")
      :help "EmacsWiki help page"]
     ["Settings" (customize-group 'twittering-mode)

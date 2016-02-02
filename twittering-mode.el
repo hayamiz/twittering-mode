@@ -2053,7 +2053,7 @@ The alist consists of pairs of field-name and field-value, such as
 	 (status-line (car lines))
 	 (header-lines (cdr lines)))
     (when (string-match
-	   "^\\(HTTP/1\.[01]\\) \\([0-9][0-9][0-9]\\) \\(.*\\)$"
+	   "^\\(HTTP/[12]\.[01]\\) \\([0-9][0-9][0-9]\\)\\(.*\\)$"
 	   status-line)
       (append `((status-line . ,status-line)
 		(http-version . ,(match-string 1 status-line))
@@ -3580,7 +3580,7 @@ function."
   (with-current-buffer buffer
     (goto-char (point-min))
     (when (search-forward-regexp
-	   "\\`\\(\\(HTTP/1\.[01]\\) \\([0-9][0-9][0-9]\\) \\(.*?\\)\\)\r?\n"
+	   "\\`\\(\\(HTTP/[12]\.[01]\\) \\([0-9][0-9][0-9]\\)\\(.*?\\)\\)\r?\n"
 	   nil t)
       (let ((status-line (match-string 1))
 	    (http-version (match-string 2))

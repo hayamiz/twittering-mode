@@ -1,3 +1,27 @@
+2016-02-07  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Import the patches by WJ Liu (multiSnow)
+	originally commited at 2015-03-15. The contribution follows:
+	binding "C-cC-n" to visit the mention timeline, replacing literal
+	strings of the Twitter host with a reference to a variable, and
+	using HTTP/2 if available.
+	(twittering-mentions-timeline): new function.
+	(twittering-mode-map): bind "C-cC-n" to the function
+	`twittering-mentions-timeline'.
+	(twittering-keybind-message): add a reference to
+	`twittering-mentions-timeline'.
+	(twittering-call-api-with-account-in-api1.1): replace a literal
+	string "api.twitter.com" with the global variable
+	`twittering-api-host'.
+	(twittering-make-header-info-alist): update a regexp so that it
+	also matches with a response in HTTP/2.
+	(twittering-pre-process-buffer-curl): likewise.
+	(twittering-oauth-get-response-alist): likewise.
+	(twittering-start-http-session-curl-http2-p): new function that
+	returns non-nil if HTTP/2 is available via the curl program.
+	(twittering-send-http-request-curl): add "--http2" option to
+	`curl-args' if HTTP/2 is available.
+
 2015-09-07  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix a help message of a menu item.

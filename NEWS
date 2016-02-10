@@ -20,6 +20,8 @@
   All active root CA certificates available at
   https://www.symantec.com/page.jsp?id=roots
   are embedded in `twittering-mode.el'.
+* Menu.
+  A pretty menu is added to the menubar.
 
 ### Bug fixes
 * Fix of invoking a hook twice for the same timeline.

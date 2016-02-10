@@ -8,7 +8,7 @@ EMBEDDED_CERTS=`mktemp`
 
 curl http://curl.haxx.se/ca/cacert.pem > ${BUNDLE_FILE}
 (grep --before-context=1 '^=' ${BUNDLE_FILE} | sed -ne '/^[^-=]/p' \
-| grep -i verisign \
+| egrep -i '(verisign|equifax|DigiCert High Assurance EV Root CA)' \
 | while read CERT ; do
     echo ";; ${CERT}";
     NUM=`grep -c "^${CERT}\$" ${BUNDLE_FILE}`;

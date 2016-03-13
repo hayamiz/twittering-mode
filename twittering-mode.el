@@ -11038,6 +11038,7 @@ Pairs of a key symbol and an associated value are following:
 					(reply . reply)))))
 	    (direct-message-recipient . ,username)))
     (twittering-edit-setup-help)
+    (twittering-edit-length-check) ;; Update mode-line
     (setq buffer-undo-list nil)
     (goto-char (twittering-edit-get-help-end))
     (if (eq tweet-type 'direct-message)

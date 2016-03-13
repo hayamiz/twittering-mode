@@ -7262,11 +7262,12 @@ If the authorization failed, return nil."
 (eval-and-compile
   (defsubst twittering-make-gap-list (text)
     "Return a list representing index gaps between TEXT and the decoded and normalized text.
-Indices included in entities in a response from Twitter are calculated
-with the assumption that \"<\" and \">\" are encoded as \"&lt;\" and \"&gt;\"
-respectively and a Unicode combining character is considered as a character.
-On rendering a tweet, twittering-mode decode \"&lt;\" and \"&gt;\".
-And also twittering-mode normalize its text into canonically equivalent text
+Indices of a text in a response from Twitter are calculated with the
+assumption that \"&\", \"<\" and \">\" are encoded as \"&amp;\", \"&lt;\"
+and \"&gt;\" respectively and a Unicode combining character is considered
+as a character.
+On rendering a tweet, twittering-mode decode \"&amp;\", \"&lt;\" and \"&gt;\".
+And twittering-mode also normalize its text into canonically equivalent text
 without combining characters.
 Therefore, the indices in entities differ from the indices of the corresponding
 positions in the decoded text.
@@ -7284,15 +7285,18 @@ text."
     (let ((result nil)
 	  (regexp
 	   (if (require 'ucs-normalize nil t)
-	       (concat "\\(?:\\([<>]\\)\\|\\("
+	       (concat "\\(?:\\([<>&]\\)\\|\\("
 		       ucs-normalize-combining-chars-regexp "\\)\\)")
-	     "\\([<>]\\)"))
+	     "\\([<>&]\\)"))
 	  (pos 0)
 	  (gap 0))
       (while (string-match regexp text pos)
-	(let ((shift (if (match-beginning 1)
-			 3
-		       1)))
+	(let* ((str (match-string 1 text))
+	       (shift (if str
+			  (if (string= str "&")
+			      4
+			    3)
+			1)))
 	  (setq result
 		(cons `(,(+ gap (match-end 0)) . ,(+ gap shift)) result))
 	  (setq gap (+ shift gap)))
@@ -7590,10 +7594,12 @@ references. This function decodes them."
 		     (twittering-ucs-to-char
 		      (string-to-number number-entity))) result))
 		  (letter-entity
-		   (cond ((string= "gt" letter-entity) (list-push ">" result))
-			 ((string= "lt" letter-entity) (list-push "<" result))
-			 ((string= "quot" letter-entity) (list-push "\"" result))
-			 (t (list-push "?" result))))
+		   (cond
+		    ((string= "amp" letter-entity) (list-push "&" result))
+		    ((string= "gt" letter-entity) (list-push ">" result))
+		    ((string= "lt" letter-entity) (list-push "<" result))
+		    ((string= "quot" letter-entity) (list-push "\"" result))
+		    (t (list-push "?" result))))
 		  (t (list-push "?" result)))
 	    (setq cursor (match-end 0))))
 	(list-push (substring encoded-str cursor) result)
@@ -7607,7 +7613,8 @@ Return an alist including text, created_at and entities, which are common
 to JSON objects from ordinary timeline and search timeline."
   (let* ((encoded-text (cdr (assq 'text json-object)))
 	 (text
-	  (twittering-decode-entities-after-parsing-xml encoded-text))
+	  (twittering-decode-html-entities
+	   (twittering-decode-entities-after-parsing-xml encoded-text)))
 	 (gap-list (twittering-make-gap-list text))
 	 (entities (cdr (assq 'entities json-object)))
 	 (urls (cdr (assq 'urls entities)))

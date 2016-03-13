@@ -37,6 +37,20 @@
   You can see the quoted tweet itself by executing
   `twittering-other-user-timeline' (which is bound to "v" in default)
   on the timestamp of the quoted tweet.
+* Rendering an ampersand in a posted text as "&" correctly.
+  If a tweet includes a character "&",  it is encoded to "&amp;" in
+  the corresponding JSON object, which is retrieved as a part of a
+  timeline. The current version of twittering-mode decodes it.
+  Note that counting a effective length of a tweet including an
+  ampersand may not work well. There are some uncertain behaviors of
+  the Twitter server;
+  - A tweet consisting of 120 ampersands can be posted without errors,
+    but a tweet consisting of 121 ampersands causes the following
+    error; "Status is over 140 characters."
+  - A tweet consisting of 115 ampersands and 25 numeric characters
+    can be posted without errors, a tweet consisting of 116 and 24
+    numeric characters causes the following error;
+    "Status is over 140 characters."
 
 ### Bug fixes
 * Fix of invoking a hook twice for the same timeline.

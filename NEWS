@@ -14,6 +14,11 @@
   that had been retweeted. The behavior is changed so that
   notifications from Twitter will be sent to the user who has posted
   the retweet earlier.
+* Updating default format for rendering a tweet.
+  The default value of the variable `twittering-status-format' is
+  changed so that newlines are kept and a quoted tweet is rendered.
+  You can restore it to the previous version by customizing the
+  variable as "%i %s,  %@:\n%FILL[  ]{%T // from %f%L%r%R}\n ".
 
 ### Improvements
 * Embedding all VeriSign Root CA Certificates.

@@ -14,6 +14,11 @@
   ReTweetを投稿していました。これは対象ReTweetを投稿していたユーザに、
   さらにReTweetが行われたことの通知がTwitterから正しく送信されるように
   するための変更です。
+* デフォルトのtweet描画書式の変更
+  変数`twittering-status-format'のデフォルト値が変更され、tweet中の改
+  行がそのまま描画され、また引用先tweetが描画されるようになりました。
+  以前の描画形式に戻すには変数`twittering-status-format'の値を
+  "%i %s,  %@:\n%FILL[  ]{%T // from %f%L%r%R}\n "に設定してください。
 
 ### 改良
 * 全てのVeriSign Root CA証明書を内蔵

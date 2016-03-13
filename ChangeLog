@@ -31,6 +31,12 @@
 	(twittering-generate-formater-for-first-spec):  add new format
 	specifiers "%QT{...}".
 
+	* twittering-mode.el: Update the format for rendering a tweet. You
+	can restore it to the previous version by customizing the variable
+	`twittering-status-format' as
+	"%i %s,  %@:\n%FILL[  ]{%T // from %f%L%r%R}\n ".
+	(twittering-status-format): update the format.
+
 2016-02-07  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Import the patches by WJ Liu (multiSnow)

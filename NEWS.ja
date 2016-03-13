@@ -19,6 +19,7 @@
 * 全てのVeriSign Root CA証明書を内蔵
   https://www.symantec.com/page.jsp?id=roots で提供されている有効な
   Root CA証明書を全て`twittering-mode.el'に内蔵しました。
+* 140文字以上のdirect messageに対応
 
 ### バグ修正
 * 同一のtimelineに対してhookが二重に実行されるバグを修正

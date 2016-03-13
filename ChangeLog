@@ -10,6 +10,18 @@
 	(twittering-service-configuration-default): update the default
 	value.
 
+	* twittering-mode.el: Update the maximum length of a direct
+	message.
+	(twittering-service-configuration-default): add the default value
+	of the maximum length of a direct message.
+	(twittering-update-service-configuration-sentinel): retrieve the
+	value of `dm_text_character_limit'.
+	(twittering-get-maximum-message-length): new function.
+	(twittering-edit-length-check): retrieve the maximum length by the
+	new function `twittering-get-maximum-message-length'.
+	(twittering-edit-post-status): likewise.
+	(twittering-update-status-from-minibuffer): likewise.
+
 2016-02-07  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Import the patches by WJ Liu (multiSnow)

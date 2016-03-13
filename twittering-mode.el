@@ -557,7 +557,7 @@ See `twittering-show-replied-tweets' for more details."
   "*If non-nil, disable overlay on too long string on edit buffer.
 
 If nil, `twittering-edit-mode' puts an overlay `twittering-warning-overlay' on
-characters following the 140th character.
+characters exceeding the maximum length.
 
 On some environments, some input methods seem to interfere the update of the
 overlay.  In such case, you may avoid the problems by setting this variable to
@@ -6687,7 +6687,8 @@ get-service-configuration -- Get the configuration of the server.
 ;;;;
 
 (defconst twittering-service-configuration-default
-  '((short_url_length . 23)
+  '((dm_text_character_limit . 10000)
+    (short_url_length . 23)
     (short_url_length_https . 23))
   "Default value of `twittering-service-configuration'.")
 (defvar twittering-service-configuration nil
@@ -6746,7 +6747,8 @@ get-service-configuration -- Get the configuration of the server.
 	       (t
 		(error "Format \"%s\" is not supported" format)
 		nil)))
-	     (entries '(short_url_length short_url_length_https)))
+	     (entries '(dm_text_character_limit
+			short_url_length short_url_length_https)))
 	(setq twittering-service-configuration
 	      `((time . ,(current-time))
 		,@(mapcar (lambda (entry)
@@ -6774,6 +6776,17 @@ get-service-configuration -- Get the configuration of the server.
 (defun twittering-update-service-configuration-clean-up-sentinel (proc status connection-info)
   (when (not (twittering-process-alive-p proc))
     (setq twittering-service-configuration-queried nil)))
+
+(defun twittering-get-maximum-message-length (&optional tweet-type)
+  "Return the maximum message length of TWEET-TYPE.
+If TWEET-TYPE is a symbol `direct-message', return the value of the
+ service configuration `dm_text_character_limit'.
+Otherwise, return 140."
+  (let ((max-length
+	 (if (eq tweet-type 'direct-message)
+	     (twittering-get-service-configuration 'dm_text_character_limit)
+	   140)))
+    max-length))
 
 ;;;;
 ;;;; Account authorization
@@ -10898,7 +10911,8 @@ instead."
 
 (defun twittering-edit-length-check (&optional beg end len)
   (let* ((status (twittering-edit-extract-status))
-	 (maxlen 140)
+	 (tweet-type (cdr (assq 'tweet-type twittering-edit-mode-info)))
+	 (maxlen (twittering-get-maximum-message-length tweet-type))
 	 (length (twittering-effective-length status)))
     (setq mode-name
 	  (format "twmode-status-edit[%d/%d]" length maxlen))
@@ -11067,11 +11081,12 @@ Pairs of a key symbol and an associated value are following:
 	 (cited-username (cdr (assq 'user-screen-name cited-tweet)))
 	 (direct-message-recipient
 	  (cdr (assq 'direct-message-recipient twittering-edit-mode-info)))
-	 (tweet-type (cdr (assq 'tweet-type twittering-edit-mode-info))))
+	 (tweet-type (cdr (assq 'tweet-type twittering-edit-mode-info)))
+	 (max-length (twittering-get-maximum-message-length tweet-type)))
     (cond
      ((string-match "\\` *\\'" status)
       (message "Empty tweet!"))
-     ((< 140 (twittering-effective-length status))
+     ((< max-length (twittering-effective-length status))
       (message "Tweet is too long!"))
      ((cond
        ((and (eq tweet-type 'reply)
@@ -11224,8 +11239,10 @@ Pairs of a key symbol and an associated value are following:
     (unwind-protect
 	(while not-posted-p
 	  (setq status (read-from-minibuffer prompt status map nil 'twittering-tweet-history nil t))
-	  (let ((status status))
-	    (if (< 140 (twittering-effective-length status))
+	  (let ((status status)
+		(max-length
+		 (twittering-get-maximum-message-length tweet-type)))
+	    (if (< max-length (twittering-effective-length status))
 		(setq prompt "status (too long): ")
 	      (setq prompt "status: ")
 	      (when (twittering-status-not-blank-p status)

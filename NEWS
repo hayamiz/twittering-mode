@@ -22,6 +22,7 @@
   are embedded in `twittering-mode.el'.
 * Menu.
   A pretty menu is added to the menubar.
+* Support for direct messages longer than 140 characters.
 
 ### Bug fixes
 * Fix of invoking a hook twice for the same timeline.

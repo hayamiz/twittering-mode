@@ -23,6 +23,15 @@
 * Menu.
   A pretty menu is added to the menubar.
 * Support for direct messages longer than 140 characters.
+* New format specifier "%QT{...}" for `twittering-status-format'.
+  In `twittering-status-format', you can use "%QT{...}" to render a
+  quoted tweet. The quoted tweet is rendered with the format string in
+  the braces. For example, "%QT{%s}" means the author of the quoted
+  tweet. The specifier is rendered only when the tweet quotes another
+  tweet. 
+  You can see the quoted tweet itself by executing
+  `twittering-other-user-timeline' (which is bound to "v" in default)
+  on the timestamp of the quoted tweet.
 
 ### Bug fixes
 * Fix of invoking a hook twice for the same timeline.

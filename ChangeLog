@@ -22,6 +22,15 @@
 	(twittering-edit-post-status): likewise.
 	(twittering-update-status-from-minibuffer): likewise.
 
+	* twittering-mode.el: Add a new format specifier "%QT{...}" to
+	render a quoted tweet.
+	(twittering-status-format): update the docstring.
+	(twittering-json-object-to-a-status-base): add a quoted tweet as
+	`quoted-status' to an alist if the given json object has a quoted
+	tweet.
+	(twittering-generate-formater-for-first-spec):  add new format
+	specifiers "%QT{...}".
+
 2016-02-07  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Import the patches by WJ Liu (multiSnow)

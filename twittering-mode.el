@@ -470,6 +470,10 @@ Items:
             retweet itself instead of that of the retweeted original tweet.
             For example, %s for a retweet means who posted the original
             tweet, but %RT{%s} means who retweeted it.
+ %QT{...} - strings rendered only when the tweet quotes a tweet.
+            The braced strings are rendered with the information of the
+            quoted tweet. For example, %QT{%s} means the author of the
+            quoted tweet.
  %u - url
  %j - user.id
  %p - protected?
@@ -7724,7 +7728,11 @@ To convert a JSON object from a search timeline, use
       (twittering-json-object-to-a-status-base json-object)))))
 
 (defun twittering-json-object-to-a-status-base (json-object)
-  (let ((user-data (cdr (assq 'user json-object))))
+  (let* ((user-data (cdr (assq 'user json-object)))
+	 (raw-quoted-status (cdr (assq 'quoted_status json-object)))
+	 (quoted-status
+	  (when raw-quoted-status
+	    (twittering-json-object-to-a-status raw-quoted-status))))
     `(,@(twittering-extract-common-element-from-json json-object)
       ,@(let ((symbol-table
 	       '((favorited . favorited)
@@ -7785,7 +7793,11 @@ To convert a JSON object from a search timeline, use
 				(let ((dest (cdr (assq sym symbol-table))))
 				  (when dest
 				    `(,dest . ,value))))))
-			  user-data))))))
+			  user-data)))
+      ;; Quoted status.
+      ,(when quoted-status
+	 `(quoted-status . ,quoted-status))
+      )))
 
 (defun twittering-json-object-to-a-status-on-search (json-object)
   "Convert JSON-OBJECT representing a tweet into an alist representation.
@@ -9185,6 +9197,16 @@ following symbols;
 							     (match-end 0)))))
 				     (cons new-key value)))))
 			     ,status-sym)))
+		(concat ,@braced-body)))
+	    . ,rest)))
+       ((string-match "\\`QT{" following)
+	(let* ((str-after-brace (substring following (match-end 0)))
+	       (pair (twittering-generate-formater-for-current-level
+		      str-after-brace 'quoted prefix-sym))
+	       (braced-body (car pair))
+	       (rest (cdr pair)))
+	  `((when (assq 'quoted-status ,status-sym)
+	      (let ((quoted (cdr (assq 'quoted-status ,status-sym))))
 		(concat ,@braced-body)))
 	    . ,rest)))
        ((string-match regexp following)

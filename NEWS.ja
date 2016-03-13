@@ -20,6 +20,16 @@
   https://www.symantec.com/page.jsp?id=roots で提供されている有効な
   Root CA証明書を全て`twittering-mode.el'に内蔵しました。
 * 140文字以上のdirect messageに対応
+* 引用先tweetを描画する新しい書式指定子"%QT{...}"
+  `twittering-status-format'で使える書式指定子として引用先tweetを描画
+  する"%QT{...}"を追加しました。括弧の中には任意の文字列と書式指定子を
+  入れることができ、括弧内の書式指定子は引用されたtweetの情報を使って
+  描画されます。例えば、"%QT{%s}"は引用されたtweetの投稿者の
+  screen_nameとなります。"%QT{...}"は対象となるtweetが別のtweetを引用
+  しているときだけ描画されます。
+  引用されたtweet自体を表示したい場合はそのtweetのタイムスタンプ上で
+  `twittering-other-user-timeline'(デフォルトでは"v"にbindされています)を
+  実行してください。
 
 ### バグ修正
 * 同一のtimelineに対してhookが二重に実行されるバグを修正

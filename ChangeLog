@@ -11,6 +11,10 @@
 	(twittering-extract-common-element-from-json): decode character
 	entity references in a text of the given tweet.
 
+	* twittering-mode.el: Fix decoding of a text in XML objects.
+	(twittering-normalize-raw-status): decode character entity
+	references in a text.
+
 2016-03-13  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Initialize the mode-line on generating the

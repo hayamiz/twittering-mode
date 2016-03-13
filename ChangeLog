@@ -5,6 +5,11 @@
 	(twittering-update-status-from-pop-up-buffer): call the function
 	`twittering-edit-length-check' to initialize the mode-line.
 
+	* twittering-mode.el: Update the default value of the service
+	configuration.
+	(twittering-service-configuration-default): update the default
+	value.
+
 2016-02-07  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Import the patches by WJ Liu (multiSnow)

@@ -6687,8 +6687,8 @@ get-service-configuration -- Get the configuration of the server.
 ;;;;
 
 (defconst twittering-service-configuration-default
-  '((short_url_length . 19)
-    (short_url_length_https . 20))
+  '((short_url_length . 23)
+    (short_url_length_https . 23))
   "Default value of `twittering-service-configuration'.")
 (defvar twittering-service-configuration nil
   "Current server configuration.")

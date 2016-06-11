@@ -14,6 +14,11 @@
   that had been retweeted. The behavior is changed so that
   notifications from Twitter will be sent to the user who has posted
   the retweet earlier.
+* Updating default format for rendering a tweet.
+  The default value of the variable `twittering-status-format' is
+  changed so that newlines are kept and a quoted tweet is rendered.
+  You can restore it to the previous version by customizing the
+  variable as "%i %s,  %@:\n%FILL[  ]{%T // from %f%L%r%R}\n ".
 
 ### Improvements
 * Embedding all VeriSign Root CA Certificates.
@@ -22,6 +27,30 @@
   are embedded in `twittering-mode.el'.
 * Menu.
   A pretty menu is added to the menubar.
+* Support for direct messages longer than 140 characters.
+* New format specifier "%QT{...}" for `twittering-status-format'.
+  In `twittering-status-format', you can use "%QT{...}" to render a
+  quoted tweet. The quoted tweet is rendered with the format string in
+  the braces. For example, "%QT{%s}" means the author of the quoted
+  tweet. The specifier is rendered only when the tweet quotes another
+  tweet. 
+  You can see the quoted tweet itself by executing
+  `twittering-other-user-timeline' (which is bound to "v" in default)
+  on the timestamp of the quoted tweet.
+* Rendering an ampersand in a posted text as "&" correctly.
+  If a tweet includes a character "&",  it is encoded to "&amp;" in
+  the corresponding JSON object, which is retrieved as a part of a
+  timeline. The current version of twittering-mode decodes it.
+  Note that counting a effective length of a tweet including an
+  ampersand may not work well. There are some uncertain behaviors of
+  the Twitter server;
+  - A tweet consisting of 120 ampersands can be posted without errors,
+    but a tweet consisting of 121 ampersands causes the following
+    error; "Status is over 140 characters."
+  - A tweet consisting of 115 ampersands and 25 numeric characters
+    can be posted without errors, a tweet consisting of 116 and 24
+    numeric characters causes the following error;
+    "Status is over 140 characters."
 
 ### Bug fixes
 * Fix of invoking a hook twice for the same timeline.

@@ -1,3 +1,9 @@
+2016-06-17  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: You can retweet your own tweets.
+	(twittering-native-retweet): retweet the given tweet without
+	regard to its author.
+
 2016-03-14  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Render an ampersand as it is posted. An

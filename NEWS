@@ -51,6 +51,8 @@
     can be posted without errors, a tweet consisting of 116 and 24
     numeric characters causes the following error;
     "Status is over 140 characters."
+* Retweeting your own tweet.
+  You can retweet your own tweet.
 
 ### Bug fixes
 * Fix of invoking a hook twice for the same timeline.

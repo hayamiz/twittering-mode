@@ -10299,7 +10299,7 @@ FUNC is called as (apply FUNC ARGS)."
   (when twittering-timer-for-redisplaying
     (when twittering-idle-timer-for-redisplay
       (cancel-timer twittering-idle-timer-for-redisplay)
-      (setq twittering-idle-timer-for-redisplay))
+      (setq twittering-idle-timer-for-redisplay nil))
     (cancel-timer twittering-timer-for-redisplaying)
     (setq twittering-timer-for-redisplaying nil)))
 

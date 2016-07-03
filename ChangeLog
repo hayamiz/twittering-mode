@@ -7,6 +7,12 @@
 	(twittering-pre-process-buffer-curl): likewise.
 	(twittering-oauth-get-response-alist): likewise.
 
+	* twittering-mode.el: Fix regular expressions including a literal
+	period ".".
+	(twittering-make-header-info-alist): fix a regexp.
+	(twittering-pre-process-buffer-curl): likewise.
+	(twittering-oauth-get-response-alist): likewise.
+
 2016-06-17  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: You can retweet your own tweets.

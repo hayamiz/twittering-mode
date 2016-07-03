@@ -2060,7 +2060,7 @@ The alist consists of pairs of field-name and field-value, such as
 	 (status-line (car lines))
 	 (header-lines (cdr lines)))
     (when (string-match
-	   "^\\(HTTP/1\.[01]\\|HTTP/2\\) \\([0-9][0-9][0-9]\\)\\(.*\\)$"
+	   "^\\(HTTP/1\\.[01]\\|HTTP/2\\) \\([0-9][0-9][0-9]\\)\\(.*\\)$"
 	   status-line)
       (append `((status-line . ,status-line)
 		(http-version . ,(match-string 1 status-line))
@@ -2560,10 +2560,10 @@ The method to perform the request is determined from
 	  (goto-char (point-min))
 	  (let ((first-regexp
 		 ;; successful HTTP response
-		 "\\`HTTP/\\(1\.[01]\\|2\\) 2[0-9][0-9].*?\r?\n")
+		 "\\`HTTP/\\(1\\.[01]\\|2\\) 2[0-9][0-9].*?\r?\n")
 		(next-regexp
 		 ;; following HTTP response
-		 "^\\(\r?\n\\)HTTP/\\(1\.[01]\\|2\\) [0-9][0-9][0-9].*?\r?\n"))
+		 "^\\(\r?\n\\)HTTP/\\(1\\.[01]\\|2\\) [0-9][0-9][0-9].*?\r?\n"))
 	    (when (and (search-forward-regexp first-regexp nil t)
 		       (search-forward-regexp next-regexp nil t))
 	      (let ((beg (point-min))
@@ -3610,7 +3610,7 @@ function."
   (with-current-buffer buffer
     (goto-char (point-min))
     (when (search-forward-regexp
-	   "\\`\\(\\(HTTP/1\.[01]\\|HTTP/2\\) \\([0-9][0-9][0-9]\\)\\(.*?\\)\\)\r?\n"
+	   "\\`\\(\\(HTTP/1\\.[01]\\|HTTP/2\\) \\([0-9][0-9][0-9]\\)\\(.*?\\)\\)\r?\n"
 	   nil t)
       (let ((status-line (match-string 1))
 	    (http-version (match-string 2))

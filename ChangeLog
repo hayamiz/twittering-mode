@@ -1,3 +1,12 @@
+2016-07-03  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Import the patches by nabeo. The regular
+	expressions of HTTP/2 responses are updated so that it works well
+	with the latest version of curl.
+	(twittering-make-header-info-alist): update the regexp.
+	(twittering-pre-process-buffer-curl): likewise.
+	(twittering-oauth-get-response-alist): likewise.
+
 2016-06-17  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: You can retweet your own tweets.

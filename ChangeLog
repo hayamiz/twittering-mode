@@ -8,6 +8,12 @@
 	* update-cert.sh: Remove 'equifax', which is no longer included in
 	the CA certificates.
 
+	* twittering-mode.el: Add the CA certificate of GeoTrust Global CA
+	as one of embedded CA certificates. The added certificate is used
+	for a HTTPS connection for Google URL Shortener, `goo.gl'.
+	(twittering-ca-cert-list): update CA certificates.
+	* update-cert.sh: Retrieve CA certificates of GeoTrust Global CA.
+
 2016-07-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Import the patches by nabeo. The regular

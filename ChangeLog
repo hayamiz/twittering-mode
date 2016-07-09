@@ -1,3 +1,7 @@
+2016-07-10  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* update-cert.sh: Update the URL of the CA certificates.
+
 2016-07-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Import the patches by nabeo. The regular

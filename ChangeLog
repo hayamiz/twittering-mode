@@ -2,6 +2,12 @@
 
 	* update-cert.sh: Update the URL of the CA certificates.
 
+	* twittering-mode.el: Update the embedded CA certificates with the
+	latest https://curl.haxx.se/ca/cacert.pem .
+	(twittering-ca-cert-list): update the CA certificates.
+	* update-cert.sh: Remove 'equifax', which is no longer included in
+	the CA certificates.
+
 2016-07-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Import the patches by nabeo. The regular

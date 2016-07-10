@@ -11097,11 +11097,6 @@ Pairs of a key symbol and an associated value are following:
      ((< max-length (twittering-effective-length status))
       (message "Tweet is too long!"))
      ((cond
-       ((and (eq tweet-type 'reply)
-	     (not (string-match
-		   (concat "@" cited-username "\\(?:[\n\r \t]+\\)*") status)))
-	(y-or-n-p
-	 "Send this tweet without mentions as a normal tweet (not a reply)? "))
        (twittering-request-confirmation-on-posting
 	(y-or-n-p "Send this tweet? "))
        (t

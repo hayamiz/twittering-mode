@@ -4,6 +4,10 @@
 	(twittering-render-timeline): render a retweet if it is posted by
 	the current account.
 
+	* twittering-mode.el: Post a reply without confirmation even if
+	the reply does not include mentions.
+	(twittering-edit-post-status): remove confirmation.
+
 2016-07-10  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* update-cert.sh: Update the URL of the CA certificates.

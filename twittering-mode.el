@@ -9515,6 +9515,7 @@ This function returns a list of the statuses newly rendered by the invocation."
     (let* ((spec (twittering-get-timeline-spec-for-buffer buffer))
 	   (referring-id-table
 	    (twittering-current-timeline-referring-id-table spec))
+	   (current-user (twittering-get-username))
 	   (timeline-data
 	    ;; Collect visible statuses.
 	    (let ((prev-id nil))
@@ -9536,6 +9537,12 @@ This function returns a list of the statuses newly rendered by the invocation."
 			     (twittering-status-id=
 			      id (gethash retweeted-id referring-id-table)))
 			;; `status' is the first retweet.
+			status)
+		       ((and retweeted-id
+			     (string= (cdr (assq 'retweeting-user-screen-name
+						 status))
+				      current-user))
+			;; `status' is retweeted by the current account.
 			status)
 		       ((null (gethash retweeted-id referring-id-table))
 			;; If the first ID referring the retweet is unknown,

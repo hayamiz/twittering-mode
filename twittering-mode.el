@@ -6342,6 +6342,7 @@ get-service-configuration -- Get the configuration of the server.
 		  ,@(when max_id `(("max_id" . ,max_id)))
 		  ("screen_name" . ,username)
 		  ,@(when since_id `(("since_id" . ,since_id)))
+		  ("tweet_mode" . "extended")
 		  )))
 	     ((eq spec-type 'list)
 	      (let ((username (elt spec 1))
@@ -6354,21 +6355,26 @@ get-service-configuration -- Get the configuration of the server.
 		  ,@(when max_id `(("max_id" . ,max_id)))
 		  ("owner_screen_name" . ,username)
 		  ,@(when since_id `(("since_id" . ,since_id)))
-		  ("slug" . ,list-name))))
+		  ("slug" . ,list-name)
+		  ("tweet_mode" . "extended")
+		  )))
 	     ((eq spec-type 'direct_messages)
 	      `(,twittering-api-host
 		"1.1/direct_messages"
 		("count" . ,number-str)
 		("include_entities" . "true")
 		,@(when max_id `(("max_id" . ,max_id)))
-		,@(when since_id `(("since_id" . ,since_id)))))
+		,@(when since_id `(("since_id" . ,since_id)))
+		("tweet_mode" . "extended")))
 	     ((eq spec-type 'direct_messages_sent)
 	      `(,twittering-api-host
 		"1.1/direct_messages/sent"
 		("count" . ,number-str)
 		("include_entities" . "true")
 		,@(when max_id `(("max_id" . ,max_id)))
-		,@(when since_id `(("since_id" . ,since_id)))))
+		,@(when since_id `(("since_id" . ,since_id)))
+		("tweet_mode" . "extended")
+		))
 	     ((eq spec-type 'favorites)
 	      (let ((user (elt spec 1)))
 		`(,twittering-api-host
@@ -6377,21 +6383,27 @@ get-service-configuration -- Get the configuration of the server.
 		  ("include_entities" . "true")
 		  ,@(when max_id `(("max_id" . ,max_id)))
 		  ,@(when user `(("screen_name" . ,user)))
-		  ,@(when since_id `(("since_id" . ,since_id))))))
+		  ,@(when since_id `(("since_id" . ,since_id)))
+		  ("tweet_mode" . "extended")
+		  )))
 	     ((eq spec-type 'home)
 	      `(,twittering-api-host
 		"1.1/statuses/home_timeline"
 		("count" . ,number-str)
 		("include_entities" . "true")
 		,@(when max_id `(("max_id" . ,max_id)))
-		,@(when since_id `(("since_id" . ,since_id)))))
+		,@(when since_id `(("since_id" . ,since_id)))
+		("tweet_mode" . "extended")
+		))
 	     ((eq spec-type 'mentions)
 	      `(,twittering-api-host
 		"1.1/statuses/mentions_timeline"
 		("count" . ,number-str)
 		("include_entities" . "true")
 		,@(when max_id `(("max_id" . ,max_id)))
-		,@(when since_id `(("since_id" . ,since_id)))))
+		,@(when since_id `(("since_id" . ,since_id)))
+		("tweet_mode" . "extended")
+		))
 	     ((eq spec-type 'public)
 	      (error
 	       "Timeline spec %s is not supported in the Twitter REST API v1.1"
@@ -6411,13 +6423,17 @@ get-service-configuration -- Get the configuration of the server.
 		("count" . ,number-str)
 		("include_entities" . "true")
 		,@(when max_id `(("max_id" . ,max_id)))
-		,@(when since_id `(("since_id" . ,since_id)))))
+		,@(when since_id `(("since_id" . ,since_id)))
+		("tweet_mode" . "extended")
+		))
 	     ((eq spec-type 'single)
 	      (let ((id (elt spec 1)))
 		`(,twittering-api-host
 		  "1.1/statuses/show"
 		  ("id" . ,id)
-		  ("include_entities" . "true"))))
+		  ("include_entities" . "true")
+		  ("tweet_mode" . "extended")
+		  )))
 	     ((eq spec-type 'search)
 	      (let ((word (elt spec 1)))
 		`(,twittering-api-host
@@ -6427,7 +6443,9 @@ get-service-configuration -- Get the configuration of the server.
 		  ,@(when max_id `(("max_id" . ,max_id)))
 		  ("q" . ,word)
 		  ("result_type" . "recent")
-		  ,@(when since_id `(("since_id" . ,since_id))))))
+		  ,@(when since_id `(("since_id" . ,since_id)))
+		  ("tweet_mode" . "extended")
+		  )))
 	     (t
 	      (error
 	       "Timeline spec %s is unknown"
@@ -7583,7 +7601,9 @@ references. This function decodes them."
   "Extract common parameters of a tweet from JSON-OBJECT.
 Return an alist including text, created_at and entities, which are common
 to JSON objects from ordinary timeline and search timeline."
-  (let* ((encoded-text (cdr (assq 'text json-object)))
+  (let* ((encoded-text
+	  (cdr (or (assq 'text json-object)
+		   (assq 'full_text json-object))))
 	 (text
 	  (twittering-decode-html-entities
 	   (twittering-decode-entities-after-parsing-xml encoded-text)))

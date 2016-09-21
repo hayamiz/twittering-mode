@@ -1,3 +1,11 @@
+2016-09-22  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Retrieve tweets in extended mode.
+	(twittering-call-api-with-account-in-api1.1): add a parameter
+	`tweet_mode=extended' when calling an API which returns tweets.
+	(twittering-extract-common-element-from-json): use `full_text'
+	field if the given JSON object lacks `text' field.
+
 2016-07-11  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Render retweets posted by yourself.

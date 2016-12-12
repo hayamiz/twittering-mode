@@ -8225,7 +8225,7 @@ The file is loaded with `with-auto-compression-mode'."
   :group 'twittering-mode
   :type 'file)
 
-(defcustom twittering-use-icon-storage nil
+(defcustom twittering-use-icon-storage t
   "*Whether to use the persistent icon storage.
 If this variable is non-nil, icon images are stored to the file specified
 by `twittering-icon-storage-file'."
@@ -8235,7 +8235,7 @@ by `twittering-icon-storage-file'."
 (defvar twittering-icon-storage-recent-icons nil
   "List of recently rendered icons.")
 
-(defcustom twittering-icon-storage-limit 500
+(defcustom twittering-icon-storage-limit 1000
   "*How many icons are stored in the persistent storage.
 If `twittering-use-icon-storage' is nil, this variable is ignored.
 If a positive integer N, `twittering-save-icon-properties' saves N icons that
@@ -8314,19 +8314,25 @@ return nil."
 		    ;; on decoding a XPM image with opacity. To ignore
 		    ;; opacity, the option "+matte" is added.
 		    '("+matte"))
-		,@(unless (fboundp 'create-animated-image)
-		    '("-flatten"))
-		,(if src-type (format "%s:-" src-type) "-")
-		,@(when (integerp twittering-convert-fix-size)
-		    `("-resize"
-		      ,(format "%dx%d" twittering-convert-fix-size
-			       twittering-convert-fix-size)))
-		,(format "%s:-" dest-type)))
+		;; ,@(unless (fboundp 'create-animated-image)
+		;;     '("-flatten"))
+		;;,(if src-type (format "%s:-" src-type) "-")
+		;; ,@(when (integerp twittering-convert-fix-size)
+		;;     `(,(format "-W %d -H %d" twittering-convert-fix-size twittering-convert-fix-size)))
+
+		"-S"
+		"-W"
+		,(format "%s" twittering-convert-fix-size)
+		"-H"
+		,(format "%s" twittering-convert-fix-size)
+		;,(format "%s:-" dest-type)
+		))
 	     (exit-status
 	      (apply 'call-process-region (point-min) (point-max)
 		     twittering-convert-program t `(t nil) nil args)))
 	(if (equal 0 exit-status)
-	    (buffer-string)
+	    (progn
+	      (buffer-string))
 	  ;; failed to convert the image.
 	  nil)))))
 
@@ -10306,7 +10312,7 @@ FUNC is called as (apply FUNC ARGS)."
   (when twittering-timer-for-redisplaying
     (when twittering-idle-timer-for-redisplay
       (cancel-timer twittering-idle-timer-for-redisplay)
-      (setq twittering-idle-timer-for-redisplay))
+      (setq twittering-idle-timer-for-redisplay nil))
     (cancel-timer twittering-timer-for-redisplaying)
     (setq twittering-timer-for-redisplaying nil)))
 
@@ -10534,20 +10540,7 @@ been initialized yet."
     (twittering-update-status-format)
     (when twittering-use-convert
       (if (null twittering-convert-program)
-	  (setq twittering-use-convert nil)
-	(with-temp-buffer
-	  (let ((coding-system-for-read 'iso-safe)
-		(coding-system-for-write 'iso-safe)
-		;; Bind `default-directory' to the temporary directory
-		;; because it is possible that the directory pointed by
-		;; `default-directory' has been already removed.
-		(default-directory temporary-file-directory))
-	    (call-process twittering-convert-program nil (current-buffer) nil
-			  "-version")
-	    (goto-char (point-min))
-	    (if (null (search-forward-regexp "\\(Image\\|Graphics\\)Magick"
-					     nil t))
-		(setq twittering-use-convert nil))))))
+	  (setq twittering-use-convert nil)))
     (twittering-setup-proxy)
     (when twittering-use-icon-storage
       (cond

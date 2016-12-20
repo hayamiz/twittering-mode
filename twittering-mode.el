@@ -3858,7 +3858,7 @@ like following:
 
 (defun twittering-capable-of-encryption-p ()
   (and (or (require 'epa nil t) (require 'alpaca nil t))
-       (executable-find "gpg")))
+       (or (executable-find "gpg") (executable-find "gpg2"))))
 
 (eval-when-compile
   (require 'epa nil t)

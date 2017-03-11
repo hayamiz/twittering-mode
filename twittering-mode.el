@@ -895,6 +895,7 @@ the following tweets are hidden.
   (cdr (assoc item alist)))
 
 (defmacro list-push (value listvar)
+  "Add VALUE to the start of LISTVAR."
   `(setq ,listvar (cons ,value ,listvar)))
 
 (defmacro case-string (str &rest clauses)

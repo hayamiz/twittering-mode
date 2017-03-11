@@ -891,9 +891,6 @@ the following tweets are hidden.
 ;;;; Macro and small utility function
 ;;;;
 
-(defun assocref (item alist)
-  (cdr (assoc item alist)))
-
 (defmacro list-push (value listvar)
   "Add VALUE to the start of LISTVAR."
   `(setq ,listvar (cons ,value ,listvar)))

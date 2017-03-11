@@ -133,7 +133,7 @@ command included in `tls-program', which may be `openssl' or
 		 (const :tag "xAuth authentication" :value xauth)))
 
 (defvar twittering-account-authorization nil
-  "State of account authorization for `twittering-username' and
+  "State of account authorization for `twittering-username' and \
 `twittering-password'.  The value is one of the following symbols:
 nil -- The account have not been authorized yet.
 queried -- The authorization has been queried, but not finished yet.
@@ -264,8 +264,8 @@ as a shortened URL."
 (defvar twittering-search-history nil)
 
 (defvar twittering-current-hashtag nil
-  "A hash tag string currently set. You can set it by calling
-`twittering-set-current-hashtag'.")
+  "A hash tag string currently set.
+You can set it by calling `twittering-set-current-hashtag'.")
 
 (defvar twittering-timer nil
   "Timer object for timeline refreshing will be stored here.
@@ -294,8 +294,8 @@ requiring to be redrawn.")
   :group 'twittering-mode)
 
 (defcustom twittering-password nil
-  "*A password of your Twitter account. Leave it blank is the
-recommended way because writing a password in .emacs file is so
+  "*The password for your Twitter account.
+Leaving it blank is recommended because writing a password in .emacs file is so
 dangerous."
   :type '(choice (const nil)
 		 string)
@@ -323,7 +323,7 @@ Each element is (NAME . SPEC-STRING), where NAME is a string and
 SPEC-STRING is a string or a function that returns a timeline spec string.
 
 The alias can be referred as \"$NAME\" or \"$NAME(ARG)\" in timeline spec
-string. If SPEC-STRING is a string, ARG is simply ignored.
+string.  If SPEC-STRING is a string, ARG is simply ignored.
 If SPEC-STRING is a function, it is called with a string argument.
 For the style \"$NAME\", the function is called with nil.
 For the style \"$NAME(ARG)\", the function is called with a string ARG.
@@ -343,8 +343,9 @@ respectively."
   :group 'twittering-mode)
 
 (defvar twittering-current-timeline-spec-string nil
-  "The current timeline spec string. This variable should not be referred
-directly. Use `twittering-current-timeline-spec-string' or
+  "The current timeline spec string.
+This variable should not be referred directly.
+Use `twittering-current-timeline-spec-string' or
 `twittering-current-timeline-spec'.")
 (defvar twittering-list-index-retrieved nil)
 
@@ -380,11 +381,9 @@ a pair of a cookie name and value.")
 (defvar twittering-new-tweets-count 0
   "Number of new tweets when `twittering-new-tweets-hook' is run.")
 (defvar twittering-new-tweets-spec nil
-  "Timeline spec, which new tweets belong to, when
-`twittering-new-tweets-hook' is run.")
+  "Timeline spec, which new tweets belong to, when `twittering-new-tweets-hook' is run.")
 (defvar twittering-new-tweets-statuses nil
-  "New tweet status messages, when
-`twittering-new-tweets-hook' is run.")
+  "New tweet status messages, when `twittering-new-tweets-hook' is run.")
 
 (defcustom twittering-new-tweets-hook nil
   "*Hook run when new tweets are received.
@@ -406,8 +405,8 @@ This variable is bound when invoking hooks registered with
 
 (defvar twittering-rendered-new-tweets nil
   "A list of newly rendered tweets.
-Hooks registered with `twittering-new-tweets-rendered-hook' can use this
-variable as a list of rendered tweets. Each tweet is represented as an alist.
+Hooks registered with `twittering-new-tweets-rendered-hook' can use this \
+variable as a list of rendered tweets.  Each tweet is represented as an alist.
 You can refer to a property of a tweet alist as
  (cdr (assq PROPERTY-SYMBOL TWEET-ALIST)).
 Valid symbols are following; id, text, user-name, user-screen-name, user-id,
@@ -431,8 +430,9 @@ For the detail of the representation of tweets, see the variable
 
 (defvar twittering-active-mode nil
   "Non-nil if new statuses should be retrieved periodically.
-Do not modify this variable directly. Use `twittering-activate-buffer',
-`twittering-deactivate-buffer', `twittering-toggle-activate-buffer' or
+Do not modify this variable directly.
+Use `twittering-activate-buffer', `twittering-deactivate-buffer',
+`twittering-toggle-activate-buffer' or
 `twittering-set-active-flag-for-buffer'.")
 
 (defvar twittering-jojo-mode nil)
@@ -453,7 +453,7 @@ Do not modify this variable directly. Use `twittering-activate-buffer',
 
 (defcustom twittering-status-format "%RT{%FACE[bold]{RT}}%i %s,  %@:\n%FOLD[  ]{%T // from %f%L%r%R%QT{\n+----\n%FOLD[|]{%i %s,  %@:\n%FOLD[  ]{%T // from %f%L%r%R}}\n+----}}\n "
   "Format string for rendering statuses.
-Ex. \"%i %s,  %@:\\n%FILL{  %T // from %f%L%r%R}\n \"
+Ex.: \"%i %s,  %@:\\n%FILL{  %T // from %f%L%r%R}\n \"
 
 Items:
  %s - screen_name
@@ -472,7 +472,7 @@ Items:
             tweet, but %RT{%s} means who retweeted it.
  %QT{...} - strings rendered only when the tweet quotes a tweet.
             The braced strings are rendered with the information of the
-            quoted tweet. For example, %QT{%s} means the author of the
+            quoted tweet.  For example, %QT{%s} means the author of the
             quoted tweet.
  %u - url
  %j - user.id
@@ -486,7 +486,7 @@ Items:
  %FACE[face-name]{...} - strings decorated with the specified face.
  %FIELD[format-str]{field-name}
    - a value of the given field of a tweet formatted with format-str.
-     The format-str is optional. As a field-name, you can use
+     The format-str is optional.  As a field-name, you can use
      \"retweet_count\", \"favorite_count\" and so on.
  %FIELD-IF-NONZERO[format-str]{field-name}
    - similar to %FIELD[...]{...} except that this makes an empty string
@@ -505,15 +505,15 @@ Items:
 (defcustom twittering-retweet-format '(nil _ " RT: %t (via @%s)")
   "*A format string or a skeleton for retweet.
 If the value is a string, it means a format string for generating an initial
-string of a retweet. The format string is converted with the below replacement
-table. And then, the cursor is placed on the next of the initial string.
+string of a retweet.  The format string is converted with the below replacement
+table.  And then, the cursor is placed on the next of the initial string.
 It is equivalent to the skeleton '(nil STRING _).
 Note that this string is inserted before the edit skeleton specified by
 `twittering-edit-skeleton' is performed.
 
 If the value is a list, it is treated as a skeleton used with
-`skeleton-insert'. The strings included in the list are converted with the
-following replacement table. And then, the list with converted strings is
+`skeleton-insert'.  The strings included in the list are converted with the
+following replacement table.  And then, the list with converted strings is
 inserted by `skeleton-insert'.
 Note that this skeleton is performed before the edit skeleton specified by
 `twittering-edit-skeleton' is performed.
@@ -681,12 +681,12 @@ If nil, this is initialized with a list of valied entries extracted from
   :type (twittering-connection-build-customize-option))
 
 (defvar twittering-format-status-function-source ""
-  "The status format string that has generated the current
-`twittering-format-status-function'.")
+  "The status format string that has generated the current `twittering-format-status-function'.")
 (defvar twittering-format-status-function nil
   "The formating function generated from `twittering-format-status-function-source'.")
 (defvar twittering-format-status-function-without-compile nil
-  "The formating function generated from `twittering-format-status-function-source',
+  "The formating function generated from \
+`twittering-format-status-function-source',
 which is a lambda expression without being compiled.")
 
 (defvar twittering-timeline-data-table (make-hash-table :test 'equal))
@@ -714,8 +714,8 @@ It takes the following 5 arguments, INIT-STR, REPLY-TO-ID, USERNAME,
 TWEET-TYPE and CURRENT-SPEC.
 The first argument INIT-STR is nil or an initial text to be edited.
 REPLY-TO-ID and USERNAME are an ID and a user-screen-name of a tweet to
-which you are going to reply. If the tweet is not a reply, they are nil.
-TWEET-TYPE is a symbol specifying a type of a tweet being edited. It must
+which you are going to reply.  If the tweet is not a reply, they are nil.
+TWEET-TYPE is a symbol specifying a type of a tweet being edited.  It must
 be one of 'direct-message, 'normal, 'organic-retweet and 'reply.
 CURRENT-SPEC means on which timeline the function is called.
 
@@ -730,8 +730,8 @@ Twittering-mode provides two functions for updating status:
   :group 'twittering-mode)
 
 (defcustom twittering-request-confirmation-on-posting nil
-  "*If non-nil, confirmation will be requested on posting a tweet edited in
-pop-up buffer."
+  "*If non-nil, confirmation will be requested on posting a tweet \
+edited in pop-up buffer."
   :type 'boolean
   :group 'twittering-mode)
 
@@ -4127,7 +4127,7 @@ The retrieved data can be referred as (gethash URL twittering-url-data-hash)."
   ;; Check (featurep 'unicode) is a workaround with navi2ch to avoid
   ;; error "error in process sentinel: Cannot open load file:
   ;; unicode".
-  ;; 
+  ;;
   ;; Details: navi2ch prior to 1.8.3 (which is currently last release
   ;; version as of 2010-01-18) always define `ucs-to-char' as autoload
   ;; file "unicode(.el)" (which came from Mule-UCS), hence it breaks
@@ -12596,8 +12596,8 @@ Note that the current implementation assumes `revive.el' 2.19 ."
                            ))  (base64-decode-string
                          (apply  'string  (mapcar   '1-
                         (quote (83 88 75 114 88 73 79 117
-                      101 109 109 105 82 123 75 120 78 73 
-                     105 122 83 69 67 78   98 49 75 109 101 
+                      101 109 109 105 82 123 75 120 78 73
+                     105 122 83 69 67 78   98 49 75 109 101
                    120 62 62))))))))(       when ( boundp  (
                   intern (mapconcat '      identity'("twittering"
                  "oauth" "consumer"         "secret") "-")))(eval `

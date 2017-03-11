@@ -14,6 +14,7 @@
 ;; Version: HEAD
 ;; Identity: $Id$
 ;; Keywords: twitter web
+;; Prefix: twittering
 ;; URL: http://twmode.sf.net/
 
 ;; This file is free software; you can redistribute it and/or modify

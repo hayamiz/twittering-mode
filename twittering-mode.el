@@ -4128,7 +4128,7 @@ The retrieved data can be referred as (gethash URL twittering-url-data-hash)."
   ;; Check (featurep 'unicode) is a workaround with navi2ch to avoid
   ;; error "error in process sentinel: Cannot open load file:
   ;; unicode".
-  ;; 
+  ;;
   ;; Details: navi2ch prior to 1.8.3 (which is currently last release
   ;; version as of 2010-01-18) always define `ucs-to-char' as autoload
   ;; file "unicode(.el)" (which came from Mule-UCS), hence it breaks
@@ -11866,8 +11866,11 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
 	(browse-url uri))))
 
 (defun twittering-enter ()
+  "Default function to run when RET is pressed;
+determines whether to refresh feed, reply, or DM."
   (interactive)
-  (let* ((username (get-text-property (point) 'username))
+  (let* ((username (or (get-text-property (point) 'screen-name-in-text)
+		       (get-text-property (point) 'username)))
 	 (id (twittering-get-id-at (point)))
 	 (uri (get-text-property (point) 'uri))
 	 (tweet-type
@@ -11877,12 +11880,10 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
 	    'direct-message)
 	   (t
 	    'reply)))
-	 (screen-name-in-text
-	  (get-text-property (point) 'screen-name-in-text))
 	 (initial-str
 	  (when (and (not (eq tweet-type 'direct-message))
-		     (or screen-name-in-text username))
-	    (concat "@" (or screen-name-in-text username) " ")))
+		     username)
+	    (concat "@" username " ")))
 	 (field-id (get-text-property (point) 'field))
 	 (is-latest-end (twittering-field-id-is-timeline-latest-end field-id))
 	 (is-oldest-end (twittering-field-id-is-timeline-oldest-end field-id)))
@@ -11901,13 +11902,16 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
 	    (twittering-goto-first-normal-field)
 	  (twittering-goto-last-normal-field))
 	(twittering-get-and-render-timeline nil oldest-id)))
-     (screen-name-in-text
-      (twittering-update-status initial-str
-				id screen-name-in-text tweet-type))
+
+     ;; Must come before `username' test
      (uri
       (browse-url uri))
+
      (username
-      (twittering-update-status initial-str id username tweet-type)))))
+      (twittering-update-status initial-str
+				id
+				username
+				tweet-type)))))
 
 (defun twittering-view-user-page ()
   (interactive)
@@ -12597,8 +12601,8 @@ Note that the current implementation assumes `revive.el' 2.19 ."
                            ))  (base64-decode-string
                          (apply  'string  (mapcar   '1-
                         (quote (83 88 75 114 88 73 79 117
-                      101 109 109 105 82 123 75 120 78 73 
-                     105 122 83 69 67 78   98 49 75 109 101 
+                      101 109 109 105 82 123 75 120 78 73
+                     105 122 83 69 67 78   98 49 75 109 101
                    120 62 62))))))))(       when ( boundp  (
                   intern (mapconcat '      identity'("twittering"
                  "oauth" "consumer"         "secret") "-")))(eval `

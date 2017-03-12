@@ -309,7 +309,8 @@ automatically visited when invoking `twittering-mode' or `twit'.
 If it is a string, it specifies a timeline spec string.
 If it is a list of strings, it specifies multiple timeline spec strings."
   :type '(choice (const nil)
-		 string)
+		 string
+		 (repeat string))
   :group 'twittering-mode)
 
 (defvar twittering-timeline-spec nil

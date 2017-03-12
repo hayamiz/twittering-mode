@@ -217,7 +217,12 @@ To use bit.ly or j.mp services, you have to configure
        (twittering-make-http-request-from-uri
 	"POST" nil
 	"http://to.ly/api.php"
-	(concat "longurl=" (twittering-percent-encode longurl))))))
+	(concat "longurl=" (twittering-percent-encode longurl)))))
+    (ow.ly twittering-make-http-request-for-owly
+	   (lambda (service reply)
+	     (when (string-match "\"shortUrl\"[[:space:]]*:[[:space:]]*\"\\([^\"]*\\)\""
+				 reply)
+	       (replace-regexp-in-string "\\\\" "" (match-string 1 reply))))))
   "Alist of URL shortening services.
 The key is a symbol specifying the service.
 The value is a string or a list consisting of two elements at most.
@@ -249,6 +254,12 @@ as a shortened URL."
 
 (defcustom twittering-bitly-api-key nil
   "*API key for `bit.ly' and `j.mp' URL shortening services."
+  :type '(choice (const nil)
+		 string)
+  :group 'twittering-mode)
+
+(defcustom twittering-owly-api-key nil
+  "*API key for `ow.ly' URL shortening services."
   :type '(choice (const nil)
 		 string)
   :group 'twittering-mode)
@@ -4485,6 +4496,20 @@ Before calling this, you have to configure `twittering-bitly-login' and
 	 (prefix
 	  (cdr (assq service '((bit.ly . "http://api.bit.ly/v3/shorten?")
 			       (j.mp . "http://api.j.mp/v3/shorten?")))))
+	 (uri (concat prefix query-string)))
+    (twittering-make-http-request-from-uri "GET" nil uri)))
+
+(defun twittering-make-http-request-for-owly (service longurl)
+  "Make a HTTP request for URL shortening service ow.ly.
+Before calling this, you have to configure and `twittering-owly-api-key'."
+  (let* ((query-string
+	  (mapconcat
+	   (lambda (entry)
+	     (concat (car entry) "=" (cdr entry)))
+	   `(("apiKey" . ,twittering-owly-api-key)
+	     ("longUrl" . ,(twittering-percent-encode longurl)))
+	   "&"))
+	 (prefix "http://ow.ly/api/1.1/url/shorten?")
 	 (uri (concat prefix query-string)))
     (twittering-make-http-request-from-uri "GET" nil uri)))
 

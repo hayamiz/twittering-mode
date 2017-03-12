@@ -21,6 +21,10 @@
   variable as "%i %s,  %@:\n%FILL[  ]{%T // from %f%L%r%R}\n ".
 
 ### Improvements
+* Support for new URL shortening services.
+  You can use `ow.ly' as URL shortening service by the following.
+  (setq twittering-tinyurl-service 'ow.ly) ;; for ow.ly
+  (setq twittering-owly-api-key "YOUR API KEY")
 * Embedding all VeriSign Root CA Certificates.
   All active root CA certificates available at
   https://www.symantec.com/page.jsp?id=roots

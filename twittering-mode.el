@@ -14,6 +14,7 @@
 ;; Version: HEAD
 ;; Identity: $Id$
 ;; Keywords: twitter web
+;; Prefix: twittering
 ;; URL: http://twmode.sf.net/
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -891,13 +892,11 @@ the following tweets are hidden.
 ;;;; Macro and small utility function
 ;;;;
 
-(defun assocref (item alist)
-  (cdr (assoc item alist)))
-
-(defmacro list-push (value listvar)
+(defmacro twittering-list-push (value listvar)
+  "Add VALUE to the start of LISTVAR."
   `(setq ,listvar (cons ,value ,listvar)))
 
-(defmacro case-string (str &rest clauses)
+(defmacro twittering-case-string (str &rest clauses)
   `(cond
     ,@(mapcar
        (lambda (clause)
@@ -2935,7 +2934,7 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
 	(status-code (cdr (assq 'status-code header-info)))
 	(format
 	 (twittering-get-content-subtype-symbol-from-header-info header-info)))
-    (case-string
+    (twittering-case-string
      status-code
      (("200")
       (debug-printf "connection-info=%s" connection-info)
@@ -3023,7 +3022,7 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
 	(status-code (cdr (assq 'status-code header-info)))
 	(format
 	 (twittering-get-content-subtype-symbol-from-header-info header-info)))
-    (case-string
+    (twittering-case-string
      status-code
      (("200" "403" "404")
       (debug-printf "connection-info=%s" connection-info)
@@ -3101,7 +3100,7 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
 	  (twittering-get-content-subtype-symbol-from-header-info header-info))
 	 (indexes nil)
 	 (mes nil))
-     (case-string
+     (twittering-case-string
       status-code
       (("200")
        (cond
@@ -3201,7 +3200,7 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
 (defun twittering-http-post-default-sentinel (proc status connection-info header-info)
   (let ((status-line (cdr (assq 'status-line header-info)))
 	(status-code (cdr (assq 'status-code header-info))))
-    (case-string
+    (twittering-case-string
      status-code
      (("200")
       "Success: Post.")
@@ -3215,7 +3214,7 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
 	(status-code (cdr (assq 'status-code header-info)))
 	(format
 	 (twittering-get-content-subtype-symbol-from-header-info header-info)))
-    (case-string
+    (twittering-case-string
      status-code
      (("200")
       (let* ((params
@@ -3643,7 +3642,7 @@ function."
 	      (lambda (proc status connection-info header-info)
 		(let ((status-line (cdr (assq 'status-line header-info)))
 		      (status-code (cdr (assq 'status-code header-info))))
-		  (case-string
+		  (twittering-case-string
 		   status-code
 		   (("200")
 		    (when twittering-debug-mode
@@ -4424,7 +4423,7 @@ If WIN is nil, the selected window is splitted."
 		(lambda (proc status connection-info header-info)
 		  (let ((status-line (cdr (assq 'status-line header-info)))
 			(status-code (cdr (assq 'status-code header-info))))
-		    (case-string
+		    (twittering-case-string
 		     status-code
 		     (("200")
 		      (setq result (buffer-string))
@@ -6722,7 +6721,7 @@ get-service-configuration -- Get the configuration of the server.
 	(status-code (cdr (assq 'status-code header-info)))
 	(format
 	 (twittering-get-content-subtype-symbol-from-header-info header-info)))
-    (case-string
+    (twittering-case-string
      status-code
      (("200")
       (let* ((conf-alist
@@ -7044,7 +7043,7 @@ If the authorization failed, return nil."
 	  (twittering-get-from-account-info "screen_name" account-info))
 	 (password
 	  (twittering-get-from-account-info "password" account-info)))
-    (case-string
+    (twittering-case-string
      status-code
      (("200")
       (twittering-register-account-info account-info)
@@ -7576,24 +7575,24 @@ references. This function decodes them."
 		     (string-match "&\\(#\\([0-9]+\\)\\|\\([a-zA-Z]+\\)\\);"
 				   encoded-str cursor))
 	  (when (> found-at cursor)
-	    (list-push (substring encoded-str cursor found-at) result))
+	    (twittering-list-push (substring encoded-str cursor found-at) result))
 	  (let ((number-entity (match-string-no-properties 2 encoded-str))
 		(letter-entity (match-string-no-properties 3 encoded-str)))
 	    (cond (number-entity
-		   (list-push
+		   (twittering-list-push
 		    (char-to-string
 		     (twittering-ucs-to-char
 		      (string-to-number number-entity))) result))
 		  (letter-entity
 		   (cond
-		    ((string= "amp" letter-entity) (list-push "&" result))
-		    ((string= "gt" letter-entity) (list-push ">" result))
-		    ((string= "lt" letter-entity) (list-push "<" result))
-		    ((string= "quot" letter-entity) (list-push "\"" result))
-		    (t (list-push "?" result))))
-		  (t (list-push "?" result)))
+		    ((string= "amp" letter-entity) (twittering-list-push "&" result))
+		    ((string= "gt" letter-entity) (twittering-list-push ">" result))
+		    ((string= "lt" letter-entity) (twittering-list-push "<" result))
+		    ((string= "quot" letter-entity) (twittering-list-push "\"" result))
+		    (t (twittering-list-push "?" result))))
+		  (t (twittering-list-push "?" result)))
 	    (setq cursor (match-end 0))))
-	(list-push (substring encoded-str cursor) result)
+	(twittering-list-push (substring encoded-str cursor) result)
 	(apply 'concat (nreverse result)))
     ""))
 

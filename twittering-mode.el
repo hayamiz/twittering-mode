@@ -1,4 +1,5 @@
 ;;; twittering-mode.el --- Major mode for Twitter
+;;; -*- indent-tabs-mode: t; tab-width: 8 -*-
 
 ;; Copyright (C) 2009-2015 Tadashi MATSUO
 ;;               2007, 2009-2011 Yuto Hayamizu.

@@ -10716,7 +10716,7 @@ recipient."
   :group 'twittering-mode
   :type 'alist)
 
-(defcustom twittering-edit-skeleton 'none
+(defcustom twittering-edit-skeleton 'inherit-mentions
   "*A symbol specifying an effective skeleton.
 
 The list of valid value is defined in `twittering-edit-skeleton-alist'.

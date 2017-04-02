@@ -21,6 +21,10 @@
   variable as "%i %s,  %@:\n%FILL[  ]{%T // from %f%L%r%R}\n ".
 
 ### Improvements
+
+* By default, replies now inherit mentions.  This can be changed by
+  customizing the `twittering-edit-skeleton' custom variable.
+
 * Embedding all VeriSign Root CA Certificates.
   All active root CA certificates available at
   https://www.symantec.com/page.jsp?id=roots
@@ -33,7 +37,7 @@
   quoted tweet. The quoted tweet is rendered with the format string in
   the braces. For example, "%QT{%s}" means the author of the quoted
   tweet. The specifier is rendered only when the tweet quotes another
-  tweet. 
+  tweet.
   You can see the quoted tweet itself by executing
   `twittering-other-user-timeline' (which is bound to "v" in default)
   on the timestamp of the quoted tweet.

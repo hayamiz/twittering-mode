@@ -78,16 +78,17 @@
       '("http_proxy=http://proxy1.example.com:8080/"))))))
 
 (defcase test-user-agent nil nil
-  (test-assert-string-equal (format "Emacs/%d.%d Twittering-mode/%s"
-				    emacs-major-version
-				    emacs-minor-version
-				    twittering-mode-version)
-    (twittering-user-agent))
-  (setq twittering-user-agent-function
-	(lambda () "foo user agent"))
-  (test-assert-string-equal "foo user agent"
-    (twittering-user-agent))
-  )
+  (progn
+    (setq twittering-user-agent-function 'twittering-user-agent-default-function)
+    (test-assert-string-equal (format "Emacs/%d.%d Twittering-mode/%s"
+                                      emacs-major-version
+                                      emacs-minor-version
+                                      twittering-mode-version)
+                              (twittering-user-agent)))
+  (progn
+    (setq twittering-user-agent-function (lambda () "foo user agent"))
+    (test-assert-string-equal "foo user agent"
+                              (twittering-user-agent))))
 
 (defcase test-icon-mode nil nil
   (setq twittering-icon-mode nil)
@@ -132,7 +133,7 @@
     (case-string "Manaka"
       (("Rinko") "Kobayakawa")
       (t "unknown")))
-  
+
   (test-assert-string-equal "Kobayakawa"
     (case-string "Rinko"
       (("Manaka") "Takane")
@@ -367,10 +368,9 @@
   (defcase test-format-status nil nil
     (test-assert-string-equal "hello world"
       (format-status status "hello world"))
+
     (test-assert-string-equal "%"
       (format-status status "%%"))
-
-
 
     (test-assert-string-equal "something like emacs"
       (format-status status "something like %s"))
@@ -504,11 +504,11 @@
 	   (oldest-status (car (last (get-fixture 'timeline-data)))))
        (format-status oldest-status "\n%FILL[  ]{%T // from %f%L%r}")))
 
-    (test-assert-string-equal
-     (if (> 22 emacs-major-version)
-	 ;; `fill-region' on Emacs21 does not keep white spaces and
-	 ;; tabs adjacent to hard newlines.
-	 "
+    (when (> 22 emacs-major-version)
+      (test-assert-string-equal
+       ;; `fill-region' on Emacs21 does not keep white spaces and
+       ;; tabs adjacent to hard newlines.
+       "
 --Edit XHTML5 documents in nxml-mode with on-the-fly validation:
 --http://bit.ly/lYnEg
 --
@@ -516,12 +516,11 @@
        "
 --Edit XHTML5 documents in nxml-mode with on-the-fly validation:
 --http://bit.ly/lYnEg
---			     
---	(by @hober) // from web")
-     (let ((twittering-fill-column 80)
-	   (oldest-status (car (last (get-fixture 'timeline-data)))))
-       (format-status oldest-status "\n%FOLD[--]{%T // from %f%L%r}")))
-    ))
+--
+--	(by @hober) // from web"
+       (let ((twittering-fill-column 80)
+             (oldest-status (car (last (get-fixture 'timeline-data)))))
+         (format-status oldest-status "\n%FOLD[--]{%T // from %f%L%r}"))))))
 
 (defcase test-find-curl-program nil nil
   (test-assert-string-match "curl" (twittering-find-curl-program))

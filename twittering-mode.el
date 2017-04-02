@@ -14,6 +14,7 @@
 ;; Version: HEAD
 ;; Identity: $Id$
 ;; Keywords: twitter web
+;; Prefix: twittering
 ;; URL: http://twmode.sf.net/
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -48,6 +49,7 @@
 (eval-when-compile (require 'cl)
 		   (require 'easymenu))
 (require 'xml)
+(require 'twittering-utilities)
 
 (eval-and-compile
   ;; On byte-compilation, Emacs21 requires loading the libraries
@@ -885,132 +887,6 @@ the following tweets are hidden.
   in user timelines and list timelines,
 - tweets including \"aa\" at a beginning of a line in list timelines of
   twitter, such as \"twitter/media\" or \"twitter/support\".")
-
-
-;;;;
-;;;; Macro and small utility function
-;;;;
-
-(defun assocref (item alist)
-  (cdr (assoc item alist)))
-
-(defmacro list-push (value listvar)
-  `(setq ,listvar (cons ,value ,listvar)))
-
-(defmacro case-string (str &rest clauses)
-  `(cond
-    ,@(mapcar
-       (lambda (clause)
-	 (let ((keylist (car clause))
-	       (body (cdr clause)))
-	   `(,(if (listp keylist)
-		  `(or ,@(mapcar (lambda (key) `(string-equal ,str ,key))
-				 keylist))
-		't)
-	     ,@body)))
-       clauses)))
-
-(defmacro twittering-wait-while (timeout interval condition &optional form &rest timeout-forms)
-  "Wait while CONDITION returns non-nil until TIMEOUT seconds passes.
-
-The form CONDITION is repeatedly evaluated for every INTERVAL seconds
-until CONDITION returns nil or TIMEOUT seconds passes unless TIMEOUT is nil.
-If TIMEOUT is nil, there is no time limit.
-
-If CONDITION returns nil, evaluate the form FORM and return its value.
-If TIMEOUT seconds passes, evaluate the forms TIMEOUT-FORMS and return
-the value of the last form in TIMEOUT-FORMS."
-  `(lexical-let (,@(when timeout `((timeout ,timeout)))
-		 (interval ,interval)
-		 (current 0.0))
-     (while (and ,@(when timeout '((< current timeout)))
-		 ,condition)
-       (sleep-for interval)
-       (setq current (+ current interval)))
-     ,(when (or form timeout-forms)
-	(if (null timeout)
-	    form
-	  `(if (< current timeout)
-	       ,form
-	     ,@timeout-forms)))))
-
-
-(defun twittering-extract-matched-substring-all (regexp str)
-  (let ((pos 0)
-	(result nil))
-    (while (string-match regexp str pos)
-      (setq result (cons (match-string 1 str) result))
-      (setq pos (match-end 0)))
-    (reverse result)))
-
-(defun twittering-process-alive-p (proc)
-  "Return non-nil if PROC is alive."
-  (not (memq (process-status proc) '(nil closed exit failed signal))))
-
-(defun twittering-start-process-with-sentinel (name buffer program args sentinel)
-  "Start a program in a subprocess with a sentinel.
-
-This function is the same as `start-process' except that SENTINEL must
-be invoked when the process is successfully started."
-  (let ((proc (apply 'start-process name buffer program args)))
-    (when (and proc (functionp sentinel))
-      (if (twittering-process-alive-p proc)
-	  (set-process-sentinel proc sentinel)
-	;; Ensure that the sentinel is invoked if a subprocess is
-	;; successfully started.
-	(funcall sentinel proc "finished")))
-    proc))
-
-(defun twittering-parse-time-string (str &optional round-up)
-  "Parse the time-string STR into (SEC MIN HOUR DAY MON YEAR DOW DST TZ).
-This function is the same as `parse-time-string' except to complement the
-lacked parameters with the current time.
-If ROUND-UP is nil, complement the lacked parameters with the oldest ones.
-If ROUND-UP is non-nil, complement the lacked parameters with the latest ones.
-For example, (twittering-parse-time-string \"2012-04-20\")
-returns (0 0 0 20 4 2012 nil nil 32400).
-And (twittering-parse-time-string \"2012-04-20\" t)
-returns (59 59 23 20 4 2012 nil nil 32400).
-The values are identical to those of `decode-time', but any values that are
-unknown are returned as nil."
-  (let* ((parsed (parse-time-string str))
-	 (current (decode-time (current-time)))
-	 (replacement-alist
-	  `((SEC . ,(if round-up
-			59
-		      0))
-	    (MIN . ,(if round-up
-			59
-		      0))
-	    (HOUR . ,(if round-up
-			 23
-		       0))
-	    (DAY . nil)
-	    (MON . nil)
-	    (YEAR . nil)
-	    (DOW . nil)
-	    (DST . nil)
-	    (TZ . nil)))
-	 (sym-list (mapcar 'car replacement-alist))
-	 (result nil))
-    (while (and parsed current sym-list)
-      (let* ((sym (car sym-list))
-	     (v (or (car parsed)
-		    (cdr (assq sym replacement-alist))
-		    ;; If `sym' is not 'DOW and it is bound to nil
-		    ;; in `replacement-alist', use `current'.
-		    (unless (eq sym 'DOW)
-		      (car current)))))
-	(setq result (cons v result)))
-      (setq parsed (cdr parsed))
-      (setq current (cdr current))
-      (setq sym-list (cdr sym-list)))
-    (reverse result)))
-
-(defun twittering-normalize-string (str)
-  (if (require 'ucs-normalize nil t)
-      (ucs-normalize-NFC-string str)
-    str))
 
 ;;;;
 ;;;; Utility for portability
@@ -2935,7 +2811,7 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
 	(status-code (cdr (assq 'status-code header-info)))
 	(format
 	 (twittering-get-content-subtype-symbol-from-header-info header-info)))
-    (case-string
+    (twittering-case-string
      status-code
      (("200")
       (debug-printf "connection-info=%s" connection-info)
@@ -3023,7 +2899,7 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
 	(status-code (cdr (assq 'status-code header-info)))
 	(format
 	 (twittering-get-content-subtype-symbol-from-header-info header-info)))
-    (case-string
+    (twittering-case-string
      status-code
      (("200" "403" "404")
       (debug-printf "connection-info=%s" connection-info)
@@ -3101,7 +2977,7 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
 	  (twittering-get-content-subtype-symbol-from-header-info header-info))
 	 (indexes nil)
 	 (mes nil))
-     (case-string
+     (twittering-case-string
       status-code
       (("200")
        (cond
@@ -3201,7 +3077,7 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
 (defun twittering-http-post-default-sentinel (proc status connection-info header-info)
   (let ((status-line (cdr (assq 'status-line header-info)))
 	(status-code (cdr (assq 'status-code header-info))))
-    (case-string
+    (twittering-case-string
      status-code
      (("200")
       "Success: Post.")
@@ -3215,7 +3091,7 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
 	(status-code (cdr (assq 'status-code header-info)))
 	(format
 	 (twittering-get-content-subtype-symbol-from-header-info header-info)))
-    (case-string
+    (twittering-case-string
      status-code
      (("200")
       (let* ((params
@@ -3643,7 +3519,7 @@ function."
 	      (lambda (proc status connection-info header-info)
 		(let ((status-line (cdr (assq 'status-line header-info)))
 		      (status-code (cdr (assq 'status-code header-info))))
-		  (case-string
+		  (twittering-case-string
 		   status-code
 		   (("200")
 		    (when twittering-debug-mode
@@ -4128,7 +4004,7 @@ The retrieved data can be referred as (gethash URL twittering-url-data-hash)."
   ;; Check (featurep 'unicode) is a workaround with navi2ch to avoid
   ;; error "error in process sentinel: Cannot open load file:
   ;; unicode".
-  ;; 
+  ;;
   ;; Details: navi2ch prior to 1.8.3 (which is currently last release
   ;; version as of 2010-01-18) always define `ucs-to-char' as autoload
   ;; file "unicode(.el)" (which came from Mule-UCS), hence it breaks
@@ -4424,7 +4300,7 @@ If WIN is nil, the selected window is splitted."
 		(lambda (proc status connection-info header-info)
 		  (let ((status-line (cdr (assq 'status-line header-info)))
 			(status-code (cdr (assq 'status-code header-info))))
-		    (case-string
+		    (twittering-case-string
 		     status-code
 		     (("200")
 		      (setq result (buffer-string))
@@ -5413,129 +5289,6 @@ string and the number of new statuses for the timeline."
 	      (twittering-percent-encode (match-string 1 query-string)))
     (format "http://%s/search?q=%s"
 	    twittering-web-host (twittering-percent-encode query-string))))
-
-(defun twittering-extract-id-from-url (url-string)
-  "Extract the ID from URL-STRING.
-Return nil if URL-STRING cannot be interpreted as a URL pointing a tweet."
-  (when (string-match
-	 "\\`https?://twitter.com/\\(?:#!/\\)?[^/]+/status\\(?:es\\)?/\\([0-9]+\\)/?\\'"
-	 url-string)
-    (match-string 1 url-string)))
-
-;;;;
-;;;; Utility of status IDs
-;;;;
-
-(defun twittering-status-id< (id1 id2)
-  (let ((len1 (length id1))
-	(len2 (length id2)))
-    (cond
-     ((= len1 len2) (string< id1 id2))
-     ((< len1 len2) t)
-     (t nil))))
-
-(defun twittering-status-id= (id1 id2)
-  (equal id1 id2))
-
-(defun twittering-snowflake-epoch-time ()
-  "Return the epoch time of Snowflake."
-  (require 'calc)
-  (let ((epoch-str
-	 ;; This corresponds to 2010-11-04 01:42:54+00:00 in RFC3339.
-	 ;; The value comes from the following page.
-	 ;; https://github.com/twitter/snowflake/blob/6d4634aa490de26e22425538291fe0a03071a170/src/main/scala/com/twitter/service/snowflake/IdWorker.scala#L22
-	 ;; 22    val twepoch = 1288834974657L
-	 "1288834974657"))
-    (let ((str
-	   (calc-eval `(,(concat "floor(10#" epoch-str "/10#1000)")
-			calc-word-size 64 calc-number-radix 16)))
-	  (milisec-str
-	   (calc-eval `(,(concat "10#" epoch-str "%10#1000")
-			calc-word-size 64 calc-number-radix 10))))
-      (mapcar (lambda (s) (string-to-number s 16))
-	      `(,(substring str 3 7) ,(substring str 7)
-		,milisec-str)))))
-
-(defun twittering-id-to-time (id)
-  "Return the time corresonding to ID generated by Snowflake.
-If ID is a string consisting of 12 or more digits, return the corresponding
-time in Emacs internal representation the same as `encode-time'.
-Otherwise, return nil.
-
-This is because ID consisting of 11 or less digits may not be generated
-by Snowflake."
-  (require 'calc)
-  (cond
-   ((not (stringp id))
-    nil)
-   ((< (length id) 12)
-    ;; The given ID may not be generated by Snowflake.
-    ;;
-    ;; The first tweet in the example response of
-    ;; https://dev.twitter.com/docs/api/1/get/statuses/home_timeline
-    ;; has "18700887835" as the ID.
-    ;; Assuming that it is generated by Snowflake, it corresponds to
-    ;; "2010-11-04 01:42:58+00:00".
-    ;; However, the created_at is "Fri Jul 16 16:58:46 +0000 2010".
-    ;; It can be confirmed at http://twitter.com/cindyli/status/18700887835 .
-    ;;
-    ;; Therefore we can not suppose that an ID is generated by Snowflake
-    ;; if the ID consists of 11-digits.
-    ;; Assuming that an ID reaches 10^11 before Snowflake is turned on at
-    ;; Nov 04 2010, the average number of tweets per day will exceed
-    ;; 533 million.
-    ;; ( 10^11 - 18,700,887,835 > 80,000,000,000
-    ;;   80 billion / 5 month (from Jul 16 to Nov 4) > 533 million / day )
-    ;;
-    ;; It is impossible.
-    ;; So, I assume that an ID is generated by Snowflake if the ID consists of
-    ;; 12 or more digits.
-    ;; The first ID with 12-digits, 100,000,000,000 (10^11), corresponds to
-    ;; 2010-11-04 01:43:17+00:00.
-    nil)
-   (t
-    (let* ((epoch (twittering-snowflake-epoch-time))
-	   (str (calc-eval
-		 `(,(format "floor(rsh(10#%s,22)/1000)" id)
-		   calc-word-size 64 calc-number-radix 16)))
-	   (milisec
-	    (string-to-number
-	     (calc-eval
-	      `(,(format "rsh(10#%s,22)%%1000" id)
-		calc-word-size 64 calc-number-radix 10))
-	     10)))
-      (when (string-match "^16#\\([[:xdigit:]]+\\)" str)
-	(let* ((hex-str (match-string 1 str))
-	       (hex-str
-		(if (< (length hex-str) 4)
-		    (concat "0000" hex-str)
-		  hex-str)))
-	  (time-add epoch
-		    `(,(string-to-number
-			(substring hex-str 0 (- (length hex-str) 4)) 16)
-		      ,(string-to-number
-			(substring hex-str (- (length hex-str) 4)) 16)
-		      ,(* milisec 1000)
-		      ))))))))
-
-(defun twittering-time-to-id (time)
-  "Return the ID corresponding to TIME by Snowflake.
-Bits other than timestamp are zero. The least significant 22 bits are zero.
-TIME must be an Emacs internal representation as a return value of
-`current-time'."
-  (require 'calc)
-  (let* ((epoch-time (twittering-snowflake-epoch-time))
-	 (dt (if (time-less-p epoch-time time)
-		 (time-subtract time epoch-time)
-	       nil))
-	 (sec-high (nth 0 dt))
-	 (sec-low (nth 1 dt))
-	 (microsec (or (nth 2 dt) "0")))
-    (when dt
-      (calc-eval
-       `(,(format "lsh((16#%04x%04x) * 1000 + floor(%d/1000), 22)"
-		  sec-high sec-low microsec)
-	 calc-word-size 64 calc-number-radix 10)))))
 
 ;;;;
 ;;;; Process info
@@ -6722,7 +6475,7 @@ get-service-configuration -- Get the configuration of the server.
 	(status-code (cdr (assq 'status-code header-info)))
 	(format
 	 (twittering-get-content-subtype-symbol-from-header-info header-info)))
-    (case-string
+    (twittering-case-string
      status-code
      (("200")
       (let* ((conf-alist
@@ -7044,7 +6797,7 @@ If the authorization failed, return nil."
 	  (twittering-get-from-account-info "screen_name" account-info))
 	 (password
 	  (twittering-get-from-account-info "password" account-info)))
-    (case-string
+    (twittering-case-string
      status-code
      (("200")
       (twittering-register-account-info account-info)
@@ -7576,24 +7329,24 @@ references. This function decodes them."
 		     (string-match "&\\(#\\([0-9]+\\)\\|\\([a-zA-Z]+\\)\\);"
 				   encoded-str cursor))
 	  (when (> found-at cursor)
-	    (list-push (substring encoded-str cursor found-at) result))
+	    (twittering-list-push (substring encoded-str cursor found-at) result))
 	  (let ((number-entity (match-string-no-properties 2 encoded-str))
 		(letter-entity (match-string-no-properties 3 encoded-str)))
 	    (cond (number-entity
-		   (list-push
+		   (twittering-list-push
 		    (char-to-string
 		     (twittering-ucs-to-char
 		      (string-to-number number-entity))) result))
 		  (letter-entity
 		   (cond
-		    ((string= "amp" letter-entity) (list-push "&" result))
-		    ((string= "gt" letter-entity) (list-push ">" result))
-		    ((string= "lt" letter-entity) (list-push "<" result))
-		    ((string= "quot" letter-entity) (list-push "\"" result))
-		    (t (list-push "?" result))))
-		  (t (list-push "?" result)))
+		    ((string= "amp" letter-entity) (twittering-list-push "&" result))
+		    ((string= "gt" letter-entity) (twittering-list-push ">" result))
+		    ((string= "lt" letter-entity) (twittering-list-push "<" result))
+		    ((string= "quot" letter-entity) (twittering-list-push "\"" result))
+		    (t (twittering-list-push "?" result))))
+		  (t (twittering-list-push "?" result)))
 	    (setq cursor (match-end 0))))
-	(list-push (substring encoded-str cursor) result)
+	(twittering-list-push (substring encoded-str cursor) result)
 	(apply 'concat (nreverse result)))
     ""))
 

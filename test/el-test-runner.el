@@ -6,9 +6,9 @@
   (add-to-list 'load-path twittering-test-dir))
 
 (require 'twittering-mode (expand-file-name "../twittering-mode.el"
-					    twittering-test-dir))
-(require 'test (expand-file-name "../test.el"
-				 twittering-test-dir))
+                                            twittering-test-dir))
+(require 'test (expand-file-name "./vendor/test.el"
+                                 twittering-test-dir))
 
 (defun get-fixture (name)
   (when (symbolp name)

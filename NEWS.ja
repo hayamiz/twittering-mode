@@ -48,6 +48,8 @@
   - 115個の"&"と25個の数字からなるtweetは投稿可能ですが、116個の"&"と
     24個の数字からなるtweetは"Status is over 140 characters."のエラー
     が起こり投稿できません。
+* 自分自身のtweetのretweet
+  自分が投稿したtweetをretweetできるようになりました。
 
 ### バグ修正
 * 同一のtimelineに対してhookが二重に実行されるバグを修正

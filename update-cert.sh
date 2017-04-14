@@ -6,9 +6,9 @@ END_DELIMITER=";; #END-CERTIFICATE"
 BUNDLE_FILE=`mktemp`
 EMBEDDED_CERTS=`mktemp`
 
-curl http://curl.haxx.se/ca/cacert.pem > ${BUNDLE_FILE}
+curl https://curl.haxx.se/ca/cacert.pem > ${BUNDLE_FILE}
 (grep --before-context=1 '^=' ${BUNDLE_FILE} | sed -ne '/^[^-=]/p' \
-| egrep -i '(verisign|equifax|DigiCert High Assurance EV Root CA)' \
+| egrep -i '(verisign|geotrust global ca$|DigiCert High Assurance EV Root CA)' \
 | while read CERT ; do
     echo ";; ${CERT}";
     NUM=`grep -c "^${CERT}\$" ${BUNDLE_FILE}`;

@@ -309,7 +309,8 @@ automatically visited when invoking `twittering-mode' or `twit'.
 If it is a string, it specifies a timeline spec string.
 If it is a list of strings, it specifies multiple timeline spec strings."
   :type '(choice (const nil)
-		 string)
+		 string
+		 (repeat string))
   :group 'twittering-mode)
 
 (defvar twittering-timeline-spec nil
@@ -1474,33 +1475,6 @@ servers on SSL.")
 (defconst twittering-ca-cert-list
   '(
 ;; #BEGIN-CERTIFICATE
-;; Equifax Secure CA
-;; issuer= /C=US/O=Equifax/OU=Equifax Secure Certificate Authority
-;; subject= /C=US/O=Equifax/OU=Equifax Secure Certificate Authority
-;; serial=35DEF4CF
-;; SHA1 Fingerprint=D2:32:09:AD:23:D3:14:23:21:74:E4:0D:7F:9D:62:13:97:86:63:3A
-;; notBefore=Aug 22 16:41:51 1998 GMT
-;; notAfter=Aug 22 16:41:51 2018 GMT
-"-----BEGIN CERTIFICATE-----
-MIIDIDCCAomgAwIBAgIENd70zzANBgkqhkiG9w0BAQUFADBOMQswCQYDVQQGEwJV
-UzEQMA4GA1UEChMHRXF1aWZheDEtMCsGA1UECxMkRXF1aWZheCBTZWN1cmUgQ2Vy
-dGlmaWNhdGUgQXV0aG9yaXR5MB4XDTk4MDgyMjE2NDE1MVoXDTE4MDgyMjE2NDE1
-MVowTjELMAkGA1UEBhMCVVMxEDAOBgNVBAoTB0VxdWlmYXgxLTArBgNVBAsTJEVx
-dWlmYXggU2VjdXJlIENlcnRpZmljYXRlIEF1dGhvcml0eTCBnzANBgkqhkiG9w0B
-AQEFAAOBjQAwgYkCgYEAwV2xWGcIYu6gmi0fCG2RFGiYCh7+2gRvE4RiIcPRfM6f
-BeC4AfBONOziipUEZKzxa1NfBbPLZ4C/QgKO/t0BCezhABRP/PvwDN1Dulsr4R+A
-cJkVV5MW8Q+XarfCaCMczE1ZMKxRHjuvK9buY0V7xdlfUNLjUA86iOe/FP3gx7kC
-AwEAAaOCAQkwggEFMHAGA1UdHwRpMGcwZaBjoGGkXzBdMQswCQYDVQQGEwJVUzEQ
-MA4GA1UEChMHRXF1aWZheDEtMCsGA1UECxMkRXF1aWZheCBTZWN1cmUgQ2VydGlm
-aWNhdGUgQXV0aG9yaXR5MQ0wCwYDVQQDEwRDUkwxMBoGA1UdEAQTMBGBDzIwMTgw
-ODIyMTY0MTUxWjALBgNVHQ8EBAMCAQYwHwYDVR0jBBgwFoAUSOZo+SvSspXXR9gj
-IBBPM5iQn9QwHQYDVR0OBBYEFEjmaPkr0rKV10fYIyAQTzOYkJ/UMAwGA1UdEwQF
-MAMBAf8wGgYJKoZIhvZ9B0EABA0wCxsFVjMuMGMDAgbAMA0GCSqGSIb3DQEBBQUA
-A4GBAFjOKer89961zgK5F7WF0bnj4JXMJTENAKaSbn+2kmOeUJXRmm/kEd5jhW6Y
-7qj/WsjTVbJmcVfewCHrPSqnI0kBBIZCe/zuf6IWUrVnZ9NA2zsmWLIodz2uFHdh
-1voqZiegDfqnc1zqcPGUIWVEX/r87yloqaKHee9570+sB3c4
------END CERTIFICATE-----
-"
 ;; Verisign Class 3 Public Primary Certification Authority - G3
 ;; issuer= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 1999 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 3 Public Primary Certification Authority - G3
 ;; subject= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 1999 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 3 Public Primary Certification Authority - G3
@@ -1533,36 +1507,32 @@ F4ErWjfJXir0xuKhXFSbplQAz/DxwceYMBo7Nhbbo27q/a2ywtrvAkcTisDxszGt
 TxzhT5yvDwyd93gN2PQ1VoDat20Xj50egWTh/sVFuq1ruQp6Tk9LhO5L8X3dEQ==
 -----END CERTIFICATE-----
 "
-;; Verisign Class 4 Public Primary Certification Authority - G3
-;; issuer= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 1999 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 4 Public Primary Certification Authority - G3
-;; subject= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 1999 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 4 Public Primary Certification Authority - G3
-;; serial=ECA0A78B6E756A01CFC47CCC2F945ED7
-;; SHA1 Fingerprint=C8:EC:8C:87:92:69:CB:4B:AB:39:E9:8D:7E:57:67:F3:14:95:73:9D
-;; notBefore=Oct  1 00:00:00 1999 GMT
-;; notAfter=Jul 16 23:59:59 2036 GMT
+;; GeoTrust Global CA
+;; issuer= /C=US/O=GeoTrust Inc./CN=GeoTrust Global CA
+;; subject= /C=US/O=GeoTrust Inc./CN=GeoTrust Global CA
+;; serial=023456
+;; SHA1 Fingerprint=DE:28:F4:A4:FF:E5:B9:2F:A3:C5:03:D1:A3:49:A7:F9:96:2A:82:12
+;; notBefore=May 21 04:00:00 2002 GMT
+;; notAfter=May 21 04:00:00 2022 GMT
 "-----BEGIN CERTIFICATE-----
-MIIEGjCCAwICEQDsoKeLbnVqAc/EfMwvlF7XMA0GCSqGSIb3DQEBBQUAMIHKMQsw
-CQYDVQQGEwJVUzEXMBUGA1UEChMOVmVyaVNpZ24sIEluYy4xHzAdBgNVBAsTFlZl
-cmlTaWduIFRydXN0IE5ldHdvcmsxOjA4BgNVBAsTMShjKSAxOTk5IFZlcmlTaWdu
-LCBJbmMuIC0gRm9yIGF1dGhvcml6ZWQgdXNlIG9ubHkxRTBDBgNVBAMTPFZlcmlT
-aWduIENsYXNzIDQgUHVibGljIFByaW1hcnkgQ2VydGlmaWNhdGlvbiBBdXRob3Jp
-dHkgLSBHMzAeFw05OTEwMDEwMDAwMDBaFw0zNjA3MTYyMzU5NTlaMIHKMQswCQYD
-VQQGEwJVUzEXMBUGA1UEChMOVmVyaVNpZ24sIEluYy4xHzAdBgNVBAsTFlZlcmlT
-aWduIFRydXN0IE5ldHdvcmsxOjA4BgNVBAsTMShjKSAxOTk5IFZlcmlTaWduLCBJ
-bmMuIC0gRm9yIGF1dGhvcml6ZWQgdXNlIG9ubHkxRTBDBgNVBAMTPFZlcmlTaWdu
-IENsYXNzIDQgUHVibGljIFByaW1hcnkgQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkg
-LSBHMzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAK3LpRFpxlmr8Y+1
-GQ9Wzsy1HyDkniYlS+BzZYlZ3tCD5PUPtbut8XzoIfzk6AzufEUiGXaStBO3IFsJ
-+mGuqPKljYXCKtbeZjbSmwL0qJJgfJxptI8kHtCGUvYynEFYHiK9zUVilQhu0Gbd
-U6LM8BDcVHOLBKFGMzNcF0C5nk3T875Vg+ixiY5afJqWIpA7iCXy0lOIAgwLePLm
-NxdLMEYH5IBtptiWLugs+BGzOA1mppvqySNb247i8xOOGlktqgLw7KSHZtzBP/XY
-ufTsgsbSPZUd5cBPhMnZo0QoBmrXRazwa2rvTl/4EYIeOGM0ZlDUPpNz+jDDZq3/
-ky2X7wMCAwEAATANBgkqhkiG9w0BAQUFAAOCAQEAj/ola09b5KROJ1WrIhVZPMq1
-CtRK26vdoV9TxaBXOcLORyu+OshWv8LZJxA6sQU8wHcxuzrTBXttmhwwjIDLk5Mq
-g6sFUYICABFna/OIYUdfA5PVWw3g8dShMjWFsjrbsIKr0csKvE+MW8VLADsfKoKm
-fjaF3H48ZwC15DtS4KjrXRX5xm3wrR0OhbepmnMUWluPQSjA1egtTaRezarZ7c7c
-2NU8Qh0XwRJdRTjDOPP8hS6DRkiy1yBfkjaP53kPmF6Z6PDQpLv1U70qzlmwr25/
-bLvSHgCwIe34QWKCudiyxLtGUPMxxY8BqHTr9Xgn2uf3ZkPznoM+IKrDNWCRzg==
+MIIDVDCCAjygAwIBAgIDAjRWMA0GCSqGSIb3DQEBBQUAMEIxCzAJBgNVBAYTAlVT
+MRYwFAYDVQQKEw1HZW9UcnVzdCBJbmMuMRswGQYDVQQDExJHZW9UcnVzdCBHbG9i
+YWwgQ0EwHhcNMDIwNTIxMDQwMDAwWhcNMjIwNTIxMDQwMDAwWjBCMQswCQYDVQQG
+EwJVUzEWMBQGA1UEChMNR2VvVHJ1c3QgSW5jLjEbMBkGA1UEAxMSR2VvVHJ1c3Qg
+R2xvYmFsIENBMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2swYYzD9
+9BcjGlZ+W988bDjkcbd4kdS8odhM+KhDtgPpTSEHCIjaWC9mOSm9BXiLnTjoBbdq
+fnGk5sRgprDvgOSJKA+eJdbtg/OtppHHmMlCGDUUna2YRpIuT8rxh0PBFpVXLVDv
+iS2Aelet8u5fa9IAjbkU+BQVNdnARqN7csiRv8lVK83Qlz6cJmTM386DGXHKTubU
+1XupGc1V3sjs0l44U+VcT4wt/lAjNvxm5suOpDkZALeVAjmRCw7+OC7RHQWa9k0+
+bw8HHa8sHo9gOeL6NlMTOdReJivbPagUvTLrGAMoUgRx5aszPeE4uwc2hGKceeoW
+MPRfwCvocWvk+QIDAQABo1MwUTAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBTA
+ephojYn7qwVkDBF9qn1luMrMTjAfBgNVHSMEGDAWgBTAephojYn7qwVkDBF9qn1l
+uMrMTjANBgkqhkiG9w0BAQUFAAOCAQEANeMpauUvXVSOKVCUn5kaFOSPeCpilKIn
+Z57QzxpeR+nBsqTP3UEaBU6bS+5Kb1VSsyShNwrrZHYqLizz/Tt1kL/6cdjHPTfS
+tQWVYrmm3ok9Nns4d0iXrKYgjy6myQzCsplFAMfOEVEiIuCl6rYVSAlk6l5PdPcF
+PseKUgzbFbS9bZvlxrFUaKnjaZC2mqUPuLk/IH2uSrW4nOQdtqvmlKXBx4Ot2/Un
+hw4EbNX/3aBd7YdStysVAq45pmp06drE57xNNB6pXE0zX5IJL4hmXXeXxx12E6nV
+5fEWCRE11azbJHFwLJhWC9kXtNHjUStedejV0NxPNO3CBWaAocvmMw==
 -----END CERTIFICATE-----
 "
 ;; DigiCert High Assurance EV Root CA
@@ -2060,7 +2030,7 @@ The alist consists of pairs of field-name and field-value, such as
 	 (status-line (car lines))
 	 (header-lines (cdr lines)))
     (when (string-match
-	   "^\\(HTTP/[12]\.[01]\\) \\([0-9][0-9][0-9]\\)\\(.*\\)$"
+	   "^\\(HTTP/1\\.[01]\\|HTTP/2\\(?:\\.0\\)?\\) \\([0-9][0-9][0-9]\\)\\(.*\\)$"
 	   status-line)
       (append `((status-line . ,status-line)
 		(http-version . ,(match-string 1 status-line))
@@ -2560,10 +2530,10 @@ The method to perform the request is determined from
 	  (goto-char (point-min))
 	  (let ((first-regexp
 		 ;; successful HTTP response
-		 "\\`HTTP/[12]\.[01] 2[0-9][0-9].*?\r?\n")
+		 "\\`HTTP/\\(1\\.[01]\\|2\\(\\.0\\)?\\) 2[0-9][0-9].*?\r?\n")
 		(next-regexp
 		 ;; following HTTP response
-		 "^\\(\r?\n\\)HTTP/[12]\.[01] [0-9][0-9][0-9].*?\r?\n"))
+		 "^\\(\r?\n\\)HTTP/\\(1\\.[01]\\|2\\(\\.0\\)?\\) [0-9][0-9][0-9].*?\r?\n"))
 	    (when (and (search-forward-regexp first-regexp nil t)
 		       (search-forward-regexp next-regexp nil t))
 	      (let ((beg (point-min))
@@ -3610,7 +3580,7 @@ function."
   (with-current-buffer buffer
     (goto-char (point-min))
     (when (search-forward-regexp
-	   "\\`\\(\\(HTTP/[12]\.[01]\\) \\([0-9][0-9][0-9]\\)\\(.*?\\)\\)\r?\n"
+	   "\\`\\(\\(HTTP/1\\.[01]\\|HTTP/2\\(?:\\.0\\)?\\) \\([0-9][0-9][0-9]\\)\\(.*?\\)\\)\r?\n"
 	   nil t)
       (let ((status-line (match-string 1))
 	    (http-version (match-string 2))
@@ -3889,7 +3859,7 @@ like following:
 
 (defun twittering-capable-of-encryption-p ()
   (and (or (require 'epa nil t) (require 'alpaca nil t))
-       (executable-find "gpg")))
+       (or (executable-find "gpg") (executable-find "gpg2"))))
 
 (eval-when-compile
   (require 'epa nil t)
@@ -6373,6 +6343,7 @@ get-service-configuration -- Get the configuration of the server.
 		  ,@(when max_id `(("max_id" . ,max_id)))
 		  ("screen_name" . ,username)
 		  ,@(when since_id `(("since_id" . ,since_id)))
+		  ("tweet_mode" . "extended")
 		  )))
 	     ((eq spec-type 'list)
 	      (let ((username (elt spec 1))
@@ -6385,21 +6356,26 @@ get-service-configuration -- Get the configuration of the server.
 		  ,@(when max_id `(("max_id" . ,max_id)))
 		  ("owner_screen_name" . ,username)
 		  ,@(when since_id `(("since_id" . ,since_id)))
-		  ("slug" . ,list-name))))
+		  ("slug" . ,list-name)
+		  ("tweet_mode" . "extended")
+		  )))
 	     ((eq spec-type 'direct_messages)
 	      `(,twittering-api-host
 		"1.1/direct_messages"
 		("count" . ,number-str)
 		("include_entities" . "true")
 		,@(when max_id `(("max_id" . ,max_id)))
-		,@(when since_id `(("since_id" . ,since_id)))))
+		,@(when since_id `(("since_id" . ,since_id)))
+		("tweet_mode" . "extended")))
 	     ((eq spec-type 'direct_messages_sent)
 	      `(,twittering-api-host
 		"1.1/direct_messages/sent"
 		("count" . ,number-str)
 		("include_entities" . "true")
 		,@(when max_id `(("max_id" . ,max_id)))
-		,@(when since_id `(("since_id" . ,since_id)))))
+		,@(when since_id `(("since_id" . ,since_id)))
+		("tweet_mode" . "extended")
+		))
 	     ((eq spec-type 'favorites)
 	      (let ((user (elt spec 1)))
 		`(,twittering-api-host
@@ -6408,21 +6384,27 @@ get-service-configuration -- Get the configuration of the server.
 		  ("include_entities" . "true")
 		  ,@(when max_id `(("max_id" . ,max_id)))
 		  ,@(when user `(("screen_name" . ,user)))
-		  ,@(when since_id `(("since_id" . ,since_id))))))
+		  ,@(when since_id `(("since_id" . ,since_id)))
+		  ("tweet_mode" . "extended")
+		  )))
 	     ((eq spec-type 'home)
 	      `(,twittering-api-host
 		"1.1/statuses/home_timeline"
 		("count" . ,number-str)
 		("include_entities" . "true")
 		,@(when max_id `(("max_id" . ,max_id)))
-		,@(when since_id `(("since_id" . ,since_id)))))
+		,@(when since_id `(("since_id" . ,since_id)))
+		("tweet_mode" . "extended")
+		))
 	     ((eq spec-type 'mentions)
 	      `(,twittering-api-host
 		"1.1/statuses/mentions_timeline"
 		("count" . ,number-str)
 		("include_entities" . "true")
 		,@(when max_id `(("max_id" . ,max_id)))
-		,@(when since_id `(("since_id" . ,since_id)))))
+		,@(when since_id `(("since_id" . ,since_id)))
+		("tweet_mode" . "extended")
+		))
 	     ((eq spec-type 'public)
 	      (error
 	       "Timeline spec %s is not supported in the Twitter REST API v1.1"
@@ -6442,13 +6424,17 @@ get-service-configuration -- Get the configuration of the server.
 		("count" . ,number-str)
 		("include_entities" . "true")
 		,@(when max_id `(("max_id" . ,max_id)))
-		,@(when since_id `(("since_id" . ,since_id)))))
+		,@(when since_id `(("since_id" . ,since_id)))
+		("tweet_mode" . "extended")
+		))
 	     ((eq spec-type 'single)
 	      (let ((id (elt spec 1)))
 		`(,twittering-api-host
 		  "1.1/statuses/show"
 		  ("id" . ,id)
-		  ("include_entities" . "true"))))
+		  ("include_entities" . "true")
+		  ("tweet_mode" . "extended")
+		  )))
 	     ((eq spec-type 'search)
 	      (let ((word (elt spec 1)))
 		`(,twittering-api-host
@@ -6458,7 +6444,9 @@ get-service-configuration -- Get the configuration of the server.
 		  ,@(when max_id `(("max_id" . ,max_id)))
 		  ("q" . ,word)
 		  ("result_type" . "recent")
-		  ,@(when since_id `(("since_id" . ,since_id))))))
+		  ,@(when since_id `(("since_id" . ,since_id)))
+		  ("tweet_mode" . "extended")
+		  )))
 	     (t
 	      (error
 	       "Timeline spec %s is unknown"
@@ -7614,7 +7602,9 @@ references. This function decodes them."
   "Extract common parameters of a tweet from JSON-OBJECT.
 Return an alist including text, created_at and entities, which are common
 to JSON objects from ordinary timeline and search timeline."
-  (let* ((encoded-text (cdr (assq 'text json-object)))
+  (let* ((encoded-text
+	  (cdr (or (assq 'text json-object)
+		   (assq 'full_text json-object))))
 	 (text
 	  (twittering-decode-html-entities
 	   (twittering-decode-entities-after-parsing-xml encoded-text)))
@@ -9559,6 +9549,7 @@ This function returns a list of the statuses newly rendered by the invocation."
     (let* ((spec (twittering-get-timeline-spec-for-buffer buffer))
 	   (referring-id-table
 	    (twittering-current-timeline-referring-id-table spec))
+	   (current-user (twittering-get-username))
 	   (timeline-data
 	    ;; Collect visible statuses.
 	    (let ((prev-id nil))
@@ -9580,6 +9571,12 @@ This function returns a list of the statuses newly rendered by the invocation."
 			     (twittering-status-id=
 			      id (gethash retweeted-id referring-id-table)))
 			;; `status' is the first retweet.
+			status)
+		       ((and retweeted-id
+			     (string= (cdr (assq 'retweeting-user-screen-name
+						 status))
+				      current-user))
+			;; `status' is retweeted by the current account.
 			status)
 		       ((null (gethash retweeted-id referring-id-table))
 			;; If the first ID referring the retweet is unknown,
@@ -11121,11 +11118,6 @@ Pairs of a key symbol and an associated value are following:
      ((< max-length (twittering-effective-length status))
       (message "Tweet is too long!"))
      ((cond
-       ((and (eq tweet-type 'reply)
-	     (not (string-match
-		   (concat "@" cited-username "\\(?:[\n\r \t]+\\)*") status)))
-	(y-or-n-p
-	 "Send this tweet without mentions as a normal tweet (not a reply)? "))
        (twittering-request-confirmation-on-posting
 	(y-or-n-p "Send this tweet? "))
        (t
@@ -11846,7 +11838,6 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
   (interactive)
   (let ((id (get-text-property (point) 'id))
 	(text (copy-sequence (get-text-property (point) 'text)))
-	(user (get-text-property (point) 'username))
 	(width (max 40 ;; XXX
 		    (- (frame-width)
 		       1 ;; margin for wide characters
@@ -11855,17 +11846,15 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
 		    )))
     (set-text-properties 0 (length text) nil text)
     (if id
-	(if (not (string= user twittering-username))
-	    (let ((mes (format "Retweet \"%s\"? "
-			       (if (< width (string-width text))
-				   (concat
-				    (truncate-string-to-width text (- width 3))
-				    "...")
-				 text))))
-	      (if (y-or-n-p mes)
-		  (twittering-call-api 'retweet `((id . ,id)))
-		(message "Request canceled")))
-	  (message "Cannot retweet your own tweet"))
+	(let ((mes (format "Retweet \"%s\"? "
+			   (if (< width (string-width text))
+			       (concat
+				(truncate-string-to-width text (- width 3))
+				"...")
+			     text))))
+	  (if (y-or-n-p mes)
+	      (twittering-call-api 'retweet `((id . ,id)))
+	    (message "Request canceled")))
       (message "No status selected"))))
 
 ;;;; Commands for browsing information related to a status

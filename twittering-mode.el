@@ -105,6 +105,7 @@
   "://api.twitter.com/oauth/authorize?oauth_token=")
 (defvar twittering-oauth-access-token-url-without-scheme
   "://api.twitter.com/oauth/access_token")
+(defvar twittering-max-character-length 280)
 
 (defun twittering-mode-version ()
   "Display a message for twittering-mode version."
@@ -6773,11 +6774,11 @@ get-service-configuration -- Get the configuration of the server.
   "Return the maximum message length of TWEET-TYPE.
 If TWEET-TYPE is a symbol `direct-message', return the value of the
  service configuration `dm_text_character_limit'.
-Otherwise, return 140."
+Otherwise, return twittering-max-character-length."
   (let ((max-length
 	 (if (eq tweet-type 'direct-message)
 	     (twittering-get-service-configuration 'dm_text_character_limit)
-	   140)))
+	   twittering-max-character-length)))
     max-length))
 
 ;;;;

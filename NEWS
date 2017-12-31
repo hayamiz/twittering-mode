@@ -6,6 +6,15 @@
 ------------------
 
 ### Important notice
+
+### Improvements
+
+### Bug fixes
+
+ 3.1.0: 2016-09-28
+------------------
+
+### Important notice
 * Posting a native retweet of a native retweet.
   When the function `twittering-native-retweet' bound to "C-u C-c C-m"
   is invoked on a native retweet, the current version of

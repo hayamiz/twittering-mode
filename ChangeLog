@@ -24,6 +24,26 @@
 	`twittering-display-user-information'.
 	(twittering-display-user-information): new function.
 
+	* twittering-mode.el: Support a tweet longer than 140 characters.
+	(twittering-get-content-subtype-symbol-from-header-info): add
+	"plain" as a subtype.
+	(twittering-text-configuration-default): new constant.
+	(twittering-text-configuration-url): new constant.
+	(twittering-text-configuration): new variable.
+	(twittering-text-configuration-queried): new variable.
+	(twittering-prepare-text-configuration): new function.
+	(twittering-get-service-configuration): add support for text
+	configuration.
+	(twittering-update-service-configuration): likewise.
+	(twittering-update-text-configuration-sentinel): new function.
+	(twittering-update-text-configuration-clean-up-sentinel): new
+	function.
+	(twittering-get-maximum-message-length): refer to the current text
+	configuration instead of a hard-coded constant.
+	(twittering-get-weighted-length): new function.
+	(twittering-effective-length): calculate weighted tweet length
+	instead of simply counting number of characters.
+
 2016-09-22  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Retrieve tweets in extended mode.

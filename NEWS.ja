@@ -12,6 +12,16 @@
 * ユーザ情報の表示機能を追加
   `twittering-display-user-information'実行するとカーソル位置のtweetの
   ユーザ情報が表示されます(デフォルトでは"="にbindされています)。
+* 140文字以上のtweetに対応
+  Twitterは現在、単純な文字数ではなくtweetに含まれる文字の「重み」の和
+  で「tweetの長さ」を測るようになっていることに注意してください。編集
+  バッファのモードラインにはこの重みが表示されます。現在ASCII文字の重
+  みは100となっており、重み100の文字であれば280文字までtweetに含めるこ
+  とができます。ひらがなや漢字等の重みは200となっていますのでこれまで
+  通り140文字しか含めることができません。
+  詳しくは下記のページを参照してください。
+  - https://developer.twitter.com/en/docs/basics/counting-characters
+  - https://developer.twitter.com/en/docs/developer-utilities/twitter-text.html
 
 ### バグ修正
 

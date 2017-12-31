@@ -1,3 +1,16 @@
+2017-12-31  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Import the patch by Eivind Fonn.
+	(twittering-stop): set `twittering-timer' to nil explicitly.
+
+	* twittering-mode.el: Import the patch by Taichi KAWABATA.
+	(twittering-initial-timeline-spec-string): add variable number of
+	strings as a choice.
+
+	* twittering-mode.el: Import the patch by Ignacio Torres Masdeu.
+	(twittering-capable-of-encryption-p): search "gpg2" as well as
+	"gpg".
+
 2016-09-22  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Retrieve tweets in extended mode.

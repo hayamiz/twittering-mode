@@ -9,6 +9,9 @@
 
 ### 改良
 * 140文字以上のdirect messageの表示に対応
+* ユーザ情報の表示機能を追加
+  `twittering-display-user-information'実行するとカーソル位置のtweetの
+  ユーザ情報が表示されます(デフォルトでは"="にbindされています)。
 
 ### バグ修正
 

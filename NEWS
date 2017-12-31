@@ -9,6 +9,10 @@
 
 ### Improvements
 * Support for displaying direct messages longer than 140 characters.
+* Support for displaying user information.
+  You can display the user information of the pointed tweet by
+  invoking `twittering-display-user-information' (which is bound to
+  "=" in default).
 
 ### Bug fixes
 

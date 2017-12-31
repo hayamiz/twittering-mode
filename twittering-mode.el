@@ -10448,6 +10448,7 @@ If FORCE is non-nil, all active buffers are updated forcibly."
       (define-key km (kbd "C-c C-p") 'twittering-toggle-proxy)
       (define-key km (kbd "q") 'twittering-kill-buffer)
       (define-key km (kbd "C-c C-q") 'twittering-search)
+      (define-key km (kbd "=") 'twittering-display-user-information)
       nil))
 
 (let ((km twittering-mode-menu-on-uri-map))
@@ -11856,6 +11857,27 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
 	      (twittering-call-api 'retweet `((id . ,id)))
 	    (message "Request canceled")))
       (message "No status selected"))))
+
+;;;; Commands for displaying information related to a status
+(defun twittering-display-user-information (&optional pos)
+  (interactive)
+  (let* ((pos (or pos (point)))
+	 (status (twittering-find-status (twittering-get-id-at pos)))
+	 (name (or (cdr (assq 'user-name status)) ""))
+	 (screen-name (or (cdr (assq 'user-screen-name status)) ""))
+	 (location (or (cdr (assq 'user-location status)) ""))
+	 (url (or (cdr (assq 'user-url status)) ""))
+	 (description (or (cdr (assq 'user-description status)) "")))
+    (message "%s"
+	     (mapconcat
+	      'identity
+	      `(,(format "%s(@%s)" name screen-name)
+		,@(unless (string= "" location) (list (concat " " location)))
+		,@(unless (string= "" url)
+		    (list (concat "\nURL: " url)))
+		,@(unless (string= "" description)
+		    (list (concat "\nDESC: " description))))
+	      ""))))
 
 ;;;; Commands for browsing information related to a status
 

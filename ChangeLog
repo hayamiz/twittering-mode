@@ -14,6 +14,10 @@
 	* LAST-VERSION, NEWS, NEWS.ja, VERSION, doc/web/index.text,
 	doc/web/ja.po: release 3.1.0.
 
+	* twittering-mode.el: Allow full text direct messages.
+	(twittering-call-api-with-account-in-api1.1): send and receive
+	full text direct messages.
+
 2016-09-22  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Retrieve tweets in extended mode.

@@ -6366,7 +6366,7 @@ get-service-configuration -- Get the configuration of the server.
 		("include_entities" . "true")
 		,@(when max_id `(("max_id" . ,max_id)))
 		,@(when since_id `(("since_id" . ,since_id)))
-		("tweet_mode" . "extended")))
+		("full_text" . "true")))
 	     ((eq spec-type 'direct_messages_sent)
 	      `(,twittering-api-host
 		"1.1/direct_messages/sent"
@@ -6374,7 +6374,7 @@ get-service-configuration -- Get the configuration of the server.
 		("include_entities" . "true")
 		,@(when max_id `(("max_id" . ,max_id)))
 		,@(when since_id `(("since_id" . ,since_id)))
-		("tweet_mode" . "extended")
+		("full_text" . "true")
 		))
 	     ((eq spec-type 'favorites)
 	      (let ((user (elt spec 1)))

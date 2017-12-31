@@ -1,3 +1,10 @@
+2018-01-03  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix the calculation of a weighted tweet
+	length where the tweet includes a URL.
+	(twittering-effective-length): fix the calculation of a weighted
+	tweet length where the tweet includes a URL.
+
 2017-12-31  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Import the patch by Eivind Fonn.

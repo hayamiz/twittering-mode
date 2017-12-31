@@ -11095,7 +11095,7 @@ instead."
 		   (+ text-weighted-len short-len)))
 	      (setq len (+ len additional-length))
 	      (setq pos end)))))
-      (+ len (- (twittering-get-weighted-length str) pos))))
+      (+ len (twittering-get-weighted-length (substring str pos)))))
    (t
     (length str))))
 

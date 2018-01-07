@@ -11022,8 +11022,25 @@ entry in `twittering-edit-skeleton-alist' are performed."
     (define-key km (kbd "M-p") 'twittering-edit-previous-history)
     (define-key km (kbd "<f4>") 'twittering-edit-replace-at-point)))
 
-(defun twittering-get-weighted-length (str)
-  "Calculate a weighted length of STR according to twitter-text Parser
+(defun twittering-get-weighted-length-info (str &optional threshold)
+  "Get weighted length information of STR according to twitter-text Parser.
+
+Return a cons cell (weighted-length . exceeding-pos).
+The weighted-length is the weighted length of STR.
+If THRESHOLD is nil, the exceeding-pos is also nil.
+If THRESHOLD is a non-integer or negative integer, it is considered 0.
+
+If THRESHOLD is a positive integer and the weighted length of STR is
+less than or equal to THRESHOLD, the exceeding-pos is nil.
+If THRESHOLD is a positive integer and the weighted length of STR is
+larger than THRESHOLD, the exceeding-pos is the position
+where the weighted length exceeds the THRESHOLD.
+
+The exceeding-pos satisfies the following (for a positive THRESHOLD);
+- The weighted length of (substring str 0 exceeding-pos) must be less than
+  or equal to THRESHOLD.
+- If exceeding-pos is non-nil, the weighted length of
+  (substring str 0 (+ 1 exceeding-pos)) must be larger than THRESHOLD.
 
 STR should be NFC normalized.
 The weights are defined in `twittering-text-configuration'."
@@ -11031,20 +11048,121 @@ The weights are defined in `twittering-text-configuration'."
 	 (valid-weights (twittering-get-service-configuration 'valid-weights))
 	 (ranges-regexp (twittering-get-service-configuration 'ranges-regexp))
 	 (pos 0)
-	 (scaled-length 0))
-      (save-match-data
-	(while (string-match ranges-regexp str pos)
-	  (let ((current (car valid-weights))
-		(rest (cdr valid-weights)))
-	    (while (null (match-beginning current))
-	      (setq current (car rest))
-	      (setq rest (cdr rest)))
-	    (let ((number-of-code-points
-		   (- (match-end current) (match-beginning current))))
-	      (setq scaled-length
-		    (+ scaled-length (* current number-of-code-points))))
-	    (setq pos (match-end current)))))
-      (/ scaled-length scale)))
+	 (scaled-length 0)
+	 (scaled-threshold (if (and (integerp threshold) (< 0 threshold))
+			       (* threshold scale)
+			     0))
+	 (exceeding-pos nil))
+    (save-match-data
+      (while (string-match ranges-regexp str pos)
+	(let ((current (car valid-weights))
+	      (rest (cdr valid-weights)))
+	  (while (null (match-beginning current))
+	    (setq current (car rest))
+	    (setq rest (cdr rest)))
+	  (let* ((end (match-end current))
+		 (number-of-code-points
+		  (- end (match-beginning current)))
+		 (next-scaled-length (+ scaled-length
+					(* current number-of-code-points))))
+	    (when (and (null exceeding-pos)
+		       (< scaled-threshold next-scaled-length))
+	      (let* ((diff (/ (- next-scaled-length scaled-threshold)
+			      current))
+		     (remainder (% (- next-scaled-length scaled-threshold)
+				   current))
+		     (diff (if (< 0 remainder)
+			       (+ 1 diff)
+			     diff)))
+		(setq exceeding-pos (- end diff))))
+	    (setq scaled-length next-scaled-length))
+	  (setq pos (match-end current)))))
+    (cons (/ scaled-length scale) (if (null threshold) nil exceeding-pos))))
+
+(defun twittering-get-weighted-length (str)
+  "Calculate a weighted length of STR according to twitter-text Parser.
+
+STR should be NFC normalized.
+The weights are defined in `twittering-text-configuration'.
+For detail, see `twittering-get-weighted-length-info'.
+"
+  (let ((info (twittering-get-weighted-length-info str)))
+    (car info)))
+
+(defun twittering-get-effective-length-info (str &optional threshold short-length-http short-length-https)
+  "Return the effective length information of STR.
+
+Return a cons cell (effective-length . exceeding-pos),
+where the effective-length is the effective length of STR which is calculated
+with taking account of shortening URIs.
+
+It is assumed that a URI via HTTP or HTTPS will be converted into a URI
+consisting of SHORT-LENGTH-HTTP or SHORT-LENGTH-HTTPS characters, respectively.
+If THRESHOLD is nil or a negative integer, the THRESHOLD is considered 0.
+
+If the effective length of STR is less than or equal to THRESHOLD,
+the exceeding-pos is nil.
+If the effective length of STR is larger than THRESHOLD, the exceeding-pos
+is the position where the effective length exceeds the THRESHOLD.
+Note that the exceeding-pos does not divide a URL.
+
+The exceeding-pos satisfies the following (for non-nil THRESHOLD);
+- The effective length of (substring str 0 exceeding-pos) must be less than
+  or equal to THRESHOLD.
+- If exceeding-pos is non-nil, the effective length of
+  (substring str 0 (+ 1 exceeding-pos)) must be larger than THRESHOLD.
+"
+  (let* ((str (twittering-normalize-string str))
+	 (threshold (or threshold 0))
+	 (regexp "\\(?:^\\|[[:space:]]\\)\\(http\\(s\\)?://[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+\\)")
+	 (short-length-http
+	  (or short-length-http
+	      (twittering-get-service-configuration 'short_url_length)))
+	 (short-length-https
+	  (or short-length-https
+	      (twittering-get-service-configuration 'short_url_length_https)))
+	 (rest str)
+	 (pos 0)
+	 (len 0)
+	 (exceeding-pos nil))
+    (save-match-data
+      (while (string-match regexp str pos)
+	(let* ((beg (match-beginning 1))
+	       (end (match-end 1))
+	       (relative-threshold (- threshold len))
+	       (text-weighted-len-info
+		(twittering-get-weighted-length-info
+		 (substring str pos beg) relative-threshold))
+	       (text-weighted-len (car text-weighted-len-info))
+	       (text-exceeding-pos (cdr text-weighted-len-info))
+	       (short-len (if (match-beginning 2)
+			      short-length-https
+			    short-length-http)))
+	  (when (and (null exceeding-pos) text-exceeding-pos)
+	    (setq exceeding-pos (+ pos text-exceeding-pos)))
+	  (let ((additional-length
+		 ;; Ignore the original length to follow the change
+		 ;; of t.co URL wrapper.
+		 ;;
+		 ;; https://dev.twitter.com/docs/tco-url-wrapper
+		 ;; As of October 10, 2011 the t.co URL wrapper
+		 ;; automatically wraps all links submitted to
+		 ;; Twitter, regardless of length. This includes
+		 ;; so-called URLs without protocols.
+		 (+ text-weighted-len short-len)))
+	    (when (and (null exceeding-pos)
+		       (< threshold (+ len additional-length)))
+	      (setq exceeding-pos beg))
+	    (setq len (+ len additional-length))
+	    (setq pos end)))))
+    (let* ((text-weighted-len-info
+	    (twittering-get-weighted-length-info
+	     (substring str pos) (- threshold len)))
+	   (text-weighted-len (car text-weighted-len-info))
+	   (text-exceeding-pos (cdr text-weighted-len-info)))
+      (when (and (null exceeding-pos) text-exceeding-pos)
+	(setq exceeding-pos (+ pos text-exceeding-pos)))
+      (cons (+ len text-weighted-len) exceeding-pos))))
 
 (defun twittering-effective-length (str &optional short-length-http short-length-https)
   "Return the effective length of STR with taking account of shortening URIs.
@@ -11060,57 +11178,35 @@ If SHORT-LENGTH-HTTP is nil, the value of
  (twittering-get-service-configuration 'short_url_length) is used instead.
 If SHORT-LENGTH-HTTPS is nil, the value of
  (twittering-get-service-configuration 'short_url_length_https) is used
-instead."
+instead.
+
+For detail, see `twittering-get-effective-length-info'.
+"
   (cond
    ((memq twittering-service-method '(twitter twitter-api-v1.1))
-    (let* ((str (twittering-normalize-string str))
-	   (regexp "\\(?:^\\|[[:space:]]\\)\\(http\\(s\\)?://[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+\\)")
-	   (short-length-http
-	    (or short-length-http
-		(twittering-get-service-configuration 'short_url_length)))
-	   (short-length-https
-	    (or short-length-https
-		(twittering-get-service-configuration 'short_url_length_https)))
-	   (rest str)
-	   (pos 0)
-	   (len 0))
-      (save-match-data
-	(while (string-match regexp str pos)
-	  (let* ((beg (match-beginning 1))
-		 (end (match-end 1))
-		 (text-weighted-len
-		  (twittering-get-weighted-length (substring str pos beg)))
-		 (short-len (if (match-beginning 2)
-				short-length-https
-			      short-length-http)))
-	    (let ((additional-length
-		   ;; Ignore the original length to follow the change
-		   ;; of t.co URL wrapper.
-		   ;;
-		   ;; https://dev.twitter.com/docs/tco-url-wrapper
-		   ;; As of October 10, 2011 the t.co URL wrapper
-		   ;; automatically wraps all links submitted to
-		   ;; Twitter, regardless of length. This includes
-		   ;; so-called URLs without protocols.
-		   (+ text-weighted-len short-len)))
-	      (setq len (+ len additional-length))
-	      (setq pos end)))))
-      (+ len (twittering-get-weighted-length (substring str pos)))))
+    (let* ((threshold nil)
+	   (info (twittering-get-effective-length-info
+		  str threshold short-length-http short-length-https)))
+      (car info)))
    (t
     (length str))))
 
 (defun twittering-edit-length-check (&optional beg end len)
   (let* ((status (twittering-edit-extract-status))
 	 (tweet-type (cdr (assq 'tweet-type twittering-edit-mode-info)))
+	 (raw-length (length status))
 	 (maxlen (twittering-get-maximum-message-length tweet-type))
-	 (length (twittering-effective-length status)))
+	 (length-info (twittering-get-effective-length-info status maxlen))
+	 (length (car length-info))
+	 (exceeding-pos (cdr length-info)))
     (setq mode-name
 	  (format "twmode-status-edit[%d/%d]" length maxlen))
     (force-mode-line-update)
     (unless twittering-disable-overlay-on-too-long-string
       (if (< maxlen length)
 	  (move-overlay twittering-warning-overlay
-			(- (point-max) (- length maxlen)) (point-max))
+			(- (point-max) (- raw-length exceeding-pos))
+			(point-max))
 	(move-overlay twittering-warning-overlay 1 1)))))
 
 (defun twittering-edit-get-help-end ()

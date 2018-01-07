@@ -1,3 +1,19 @@
+2018-01-07  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix the position of the warning overlay on
+	the edit buffer.
+	(twittering-get-weighted-length-info): new function.
+	(twittering-get-weighted-length): reimplemented with the new
+	function `twittering-get-weighted-length'.
+	(twittering-get-effective-length-info): new function.
+	(twittering-effective-length): reimplemented with the new function
+	`twittering-get-effective-length-info'.
+	(twittering-edit-length-check): put the warning overlay to the
+	appropriate position by using the new function
+	`twittering-get-effective-length-info'.
+	* test/test-twittering-mode.el: Add tests for calculating
+	effective length of a string as a tweet.
+
 2018-01-03  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the calculation of a weighted tweet

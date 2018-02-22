@@ -2065,6 +2065,7 @@ The alist consists of pairs of field-name and field-value, such as
 	 (symbol-alist
 	  '(("json" . json)
 	    ("atom+xml" . atom)
+	    ("plain" . plain)
 	    ("xml" . xml))))
     (cdr (assoc subtype symbol-alist))))
 
@@ -6366,7 +6367,7 @@ get-service-configuration -- Get the configuration of the server.
 		("include_entities" . "true")
 		,@(when max_id `(("max_id" . ,max_id)))
 		,@(when since_id `(("since_id" . ,since_id)))
-		("tweet_mode" . "extended")))
+		("full_text" . "true")))
 	     ((eq spec-type 'direct_messages_sent)
 	      `(,twittering-api-host
 		"1.1/direct_messages/sent"
@@ -6374,7 +6375,7 @@ get-service-configuration -- Get the configuration of the server.
 		("include_entities" . "true")
 		,@(when max_id `(("max_id" . ,max_id)))
 		,@(when since_id `(("since_id" . ,since_id)))
-		("tweet_mode" . "extended")
+		("full_text" . "true")
 		))
 	     ((eq spec-type 'favorites)
 	      (let ((user (elt spec 1)))
@@ -6683,16 +6684,92 @@ get-service-configuration -- Get the configuration of the server.
     (short_url_length . 23)
     (short_url_length_https . 23))
   "Default value of `twittering-service-configuration'.")
+(defconst twittering-text-configuration-default
+  '((ranges .
+	    [((weight . 100) (end . 4351) (start . 0))
+	     ((weight . 100) (end . 8205) (start . 8192))
+	     ((weight . 100) (end . 8223) (start . 8208))
+	     ((weight . 100) (end . 8247) (start . 8242))])
+    (transformedURLLength . 23)
+    (defaultWeight . 200)
+    (scale . 100)
+    (maxWeightedTweetLength . 280)
+    (version . 2))
+  "Default value of `twittering-text-configuration'.")
+(defconst twittering-text-configuration-url
+  "https://raw.githubusercontent.com/twitter/twitter-text/master/config/v2.json")
+
 (defvar twittering-service-configuration nil
   "Current server configuration.")
+(defvar twittering-text-configuration nil
+  "Current text configuration.
+
+It is retrieved from the URL defined in `twittering-text-configuration-url'.")
 (defvar twittering-service-configuration-queried nil)
+(defvar twittering-text-configuration-queried nil)
+
 (defvar twittering-service-configuration-update-interval 86400
-  "*Interval of updating `twittering-service-configuration'.")
+  "*Interval of updating `twittering-service-configuration' and `twittering-text-configuration'.")
+
+(defun twittering-prepare-text-configuration (config)
+  (let* ((ranges (cdr (assq 'ranges config)))
+	 (default-weight (cdr (assq 'defaultWeight config)))
+	 (range-weights
+	  (sort
+	   (twittering-remove-duplicates
+	    (mapcar (lambda (r) (cdr (assq 'weight r))) ranges))
+	   '<))
+	 (valid-weights `(,default-weight ,@range-weights))
+	 (ranges-regexp
+	  (concat
+	   (mapconcat
+	    (lambda (focused-weight)
+	      (concat
+	       (format "\\(?%d:[" focused-weight)
+	       (mapconcat
+		(lambda (entry)
+		  (let ((weight (cdr (assq 'weight entry)))
+			(start (cdr (assq 'start entry)))
+			(end (cdr (assq 'end entry))))
+		    (if (not (= weight focused-weight))
+			""
+		      (format "%c-%c" start (- end 1)))))
+		ranges
+		"")
+	       "]+\\)"))
+	    range-weights
+	    "\\|")
+	   ;; otherwise
+	   "\\|"
+	   (format "\\(?%d:[^" default-weight)
+	   (mapconcat
+	    (lambda (entry)
+	      (let ((start (cdr (assq 'start entry)))
+		    (end (cdr (assq 'end entry))))
+		(format "%c-%c" start (- end 1))))
+	    ranges
+	    "")
+	   "]+\\)"
+	   )))
+    `(,@(remove
+	 nil
+	 (mapcar (lambda (entry)
+		   (if (memq (car entry) '(ranges-regexp valid-weights))
+		       nil
+		     entry))
+		 config))
+      (ranges-regexp . ,ranges-regexp)
+      (valid-weights . ,valid-weights))))
 
 (defun twittering-get-service-configuration (entry)
-  (let ((pair (assq entry twittering-service-configuration)))
+  (let* ((configuration (append twittering-service-configuration
+				twittering-text-configuration))
+	 (default-configuration
+	   (append twittering-service-configuration-default
+		   twittering-text-configuration-default))
+	 (pair (assq entry configuration)))
     (if (null pair)
-	(cdr (assq entry twittering-service-configuration-default))
+	(cdr (assq entry default-configuration))
       (cdr pair))))
 
 (defun twittering-update-service-configuration (&optional ignore-time)
@@ -6710,12 +6787,25 @@ get-service-configuration -- Get the configuration of the server.
 		 ;; If time passed more than `interval',
 		 ;; update the configuration.
 		 (time-less-p interval (time-since current))))))
+    (when (eq nil
+	      (assq 'ranges-regexp twittering-text-configuration-default))
+      (setq twittering-text-configuration-default
+	    (twittering-prepare-text-configuration
+	     twittering-text-configuration-default)))
     (setq twittering-service-configuration-queried t)
     (twittering-call-api
      'get-service-configuration
      '((sentinel . twittering-update-service-configuration-sentinel)
        (clean-up-sentinel
-	. twittering-update-service-configuration-clean-up-sentinel)))))
+	. twittering-update-service-configuration-clean-up-sentinel)))
+    (let* ((url twittering-text-configuration-url)
+	   (request (twittering-make-http-request-from-uri "GET" nil url)))
+      (setq twittering-text-configuration-queried t)
+      (twittering-send-http-request
+       request nil
+       'twittering-update-text-configuration-sentinel
+       'twittering-update-text-configuration-clean-up-sentinel))
+    ))
 
 (defun twittering-update-service-configuration-sentinel (proc status connection-info header-info)
   (let ((status-line (cdr (assq 'status-line header-info)))
@@ -6769,6 +6859,49 @@ get-service-configuration -- Get the configuration of the server.
   (when (not (twittering-process-alive-p proc))
     (setq twittering-service-configuration-queried nil)))
 
+(defun twittering-update-text-configuration-sentinel (proc status connection-info header-info)
+  (let ((status-line (cdr (assq 'status-line header-info)))
+	(status-code (cdr (assq 'status-code header-info)))
+	(format
+	 (twittering-get-content-subtype-symbol-from-header-info header-info)))
+    (case-string
+     status-code
+     (("200")
+      (let* ((conf-alist
+	      (cond
+	       ((eq format 'plain)
+		(twittering-json-read))
+	       (t
+		(error "Format \"%s\" is not supported" format)
+		nil)))
+	     (entries
+	      '(ranges transformedURLLength defaultWeight scale
+		       maxWeightedTweetLength version)))
+	(setq twittering-text-configuration
+	      (twittering-prepare-text-configuration
+	       `((time . ,(current-time))
+		 ,@(mapcar (lambda (entry)
+			     (let ((value (cdr (assq entry conf-alist))))
+			       (cons
+				entry
+				(cond
+				 ((stringp value)
+				  (string-to-number value))
+				 (t
+				  value)))))
+			   entries))))
+	(setq twittering-text-configuration-queried nil)
+	nil))
+     (t
+      (setq twittering-text-configuration-queried nil)
+      (format "Response: %s"
+	      (twittering-get-error-message header-info connection-info))))))
+
+(defun twittering-update-text-configuration-clean-up-sentinel (proc status connection-info)
+  (when (not (twittering-process-alive-p proc))
+    (setq twittering-text-configuration-queried nil)))
+
+
 (defun twittering-get-maximum-message-length (&optional tweet-type)
   "Return the maximum message length of TWEET-TYPE.
 If TWEET-TYPE is a symbol `direct-message', return the value of the
@@ -6777,7 +6910,7 @@ Otherwise, return 140."
   (let ((max-length
 	 (if (eq tweet-type 'direct-message)
 	     (twittering-get-service-configuration 'dm_text_character_limit)
-	   140)))
+	   (twittering-get-service-configuration 'maxWeightedTweetLength))))
     max-length))
 
 ;;;;
@@ -10461,6 +10594,7 @@ If FORCE is non-nil, all active buffers are updated forcibly."
       (define-key km (kbd "C-c C-p") 'twittering-toggle-proxy)
       (define-key km (kbd "q") 'twittering-kill-buffer)
       (define-key km (kbd "C-c C-q") 'twittering-search)
+      (define-key km (kbd "=") 'twittering-display-user-information)
       nil))
 
 (let ((km twittering-mode-menu-on-uri-map))
@@ -10888,6 +11022,148 @@ entry in `twittering-edit-skeleton-alist' are performed."
     (define-key km (kbd "M-p") 'twittering-edit-previous-history)
     (define-key km (kbd "<f4>") 'twittering-edit-replace-at-point)))
 
+(defun twittering-get-weighted-length-info (str &optional threshold)
+  "Get weighted length information of STR according to twitter-text Parser.
+
+Return a cons cell (weighted-length . exceeding-pos).
+The weighted-length is the weighted length of STR.
+If THRESHOLD is nil, the exceeding-pos is also nil.
+If THRESHOLD is a non-integer or negative integer, it is considered 0.
+
+If THRESHOLD is a positive integer and the weighted length of STR is
+less than or equal to THRESHOLD, the exceeding-pos is nil.
+If THRESHOLD is a positive integer and the weighted length of STR is
+larger than THRESHOLD, the exceeding-pos is the position
+where the weighted length exceeds the THRESHOLD.
+
+The exceeding-pos satisfies the following (for a positive THRESHOLD);
+- The weighted length of (substring str 0 exceeding-pos) must be less than
+  or equal to THRESHOLD.
+- If exceeding-pos is non-nil, the weighted length of
+  (substring str 0 (+ 1 exceeding-pos)) must be larger than THRESHOLD.
+
+STR should be NFC normalized.
+The weights are defined in `twittering-text-configuration'."
+  (let* ((scale (twittering-get-service-configuration 'scale))
+	 (valid-weights (twittering-get-service-configuration 'valid-weights))
+	 (ranges-regexp (twittering-get-service-configuration 'ranges-regexp))
+	 (pos 0)
+	 (scaled-length 0)
+	 (scaled-threshold (if (and (integerp threshold) (< 0 threshold))
+			       (* threshold scale)
+			     0))
+	 (exceeding-pos nil))
+    (save-match-data
+      (while (string-match ranges-regexp str pos)
+	(let ((current (car valid-weights))
+	      (rest (cdr valid-weights)))
+	  (while (null (match-beginning current))
+	    (setq current (car rest))
+	    (setq rest (cdr rest)))
+	  (let* ((end (match-end current))
+		 (number-of-code-points
+		  (- end (match-beginning current)))
+		 (next-scaled-length (+ scaled-length
+					(* current number-of-code-points))))
+	    (when (and (null exceeding-pos)
+		       (< scaled-threshold next-scaled-length))
+	      (let* ((diff (/ (- next-scaled-length scaled-threshold)
+			      current))
+		     (remainder (% (- next-scaled-length scaled-threshold)
+				   current))
+		     (diff (if (< 0 remainder)
+			       (+ 1 diff)
+			     diff)))
+		(setq exceeding-pos (- end diff))))
+	    (setq scaled-length next-scaled-length))
+	  (setq pos (match-end current)))))
+    (cons (/ scaled-length scale) (if (null threshold) nil exceeding-pos))))
+
+(defun twittering-get-weighted-length (str)
+  "Calculate a weighted length of STR according to twitter-text Parser.
+
+STR should be NFC normalized.
+The weights are defined in `twittering-text-configuration'.
+For detail, see `twittering-get-weighted-length-info'.
+"
+  (let ((info (twittering-get-weighted-length-info str)))
+    (car info)))
+
+(defun twittering-get-effective-length-info (str &optional threshold short-length-http short-length-https)
+  "Return the effective length information of STR.
+
+Return a cons cell (effective-length . exceeding-pos),
+where the effective-length is the effective length of STR which is calculated
+with taking account of shortening URIs.
+
+It is assumed that a URI via HTTP or HTTPS will be converted into a URI
+consisting of SHORT-LENGTH-HTTP or SHORT-LENGTH-HTTPS characters, respectively.
+If THRESHOLD is nil or a negative integer, the THRESHOLD is considered 0.
+
+If the effective length of STR is less than or equal to THRESHOLD,
+the exceeding-pos is nil.
+If the effective length of STR is larger than THRESHOLD, the exceeding-pos
+is the position where the effective length exceeds the THRESHOLD.
+Note that the exceeding-pos does not divide a URL.
+
+The exceeding-pos satisfies the following (for non-nil THRESHOLD);
+- The effective length of (substring str 0 exceeding-pos) must be less than
+  or equal to THRESHOLD.
+- If exceeding-pos is non-nil, the effective length of
+  (substring str 0 (+ 1 exceeding-pos)) must be larger than THRESHOLD.
+"
+  (let* ((str (twittering-normalize-string str))
+	 (threshold (or threshold 0))
+	 (regexp "\\(?:^\\|[[:space:]]\\)\\(http\\(s\\)?://[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+\\)")
+	 (short-length-http
+	  (or short-length-http
+	      (twittering-get-service-configuration 'short_url_length)))
+	 (short-length-https
+	  (or short-length-https
+	      (twittering-get-service-configuration 'short_url_length_https)))
+	 (rest str)
+	 (pos 0)
+	 (len 0)
+	 (exceeding-pos nil))
+    (save-match-data
+      (while (string-match regexp str pos)
+	(let* ((beg (match-beginning 1))
+	       (end (match-end 1))
+	       (relative-threshold (- threshold len))
+	       (text-weighted-len-info
+		(twittering-get-weighted-length-info
+		 (substring str pos beg) relative-threshold))
+	       (text-weighted-len (car text-weighted-len-info))
+	       (text-exceeding-pos (cdr text-weighted-len-info))
+	       (short-len (if (match-beginning 2)
+			      short-length-https
+			    short-length-http)))
+	  (when (and (null exceeding-pos) text-exceeding-pos)
+	    (setq exceeding-pos (+ pos text-exceeding-pos)))
+	  (let ((additional-length
+		 ;; Ignore the original length to follow the change
+		 ;; of t.co URL wrapper.
+		 ;;
+		 ;; https://dev.twitter.com/docs/tco-url-wrapper
+		 ;; As of October 10, 2011 the t.co URL wrapper
+		 ;; automatically wraps all links submitted to
+		 ;; Twitter, regardless of length. This includes
+		 ;; so-called URLs without protocols.
+		 (+ text-weighted-len short-len)))
+	    (when (and (null exceeding-pos)
+		       (< threshold (+ len additional-length)))
+	      (setq exceeding-pos beg))
+	    (setq len (+ len additional-length))
+	    (setq pos end)))))
+    (let* ((text-weighted-len-info
+	    (twittering-get-weighted-length-info
+	     (substring str pos) (- threshold len)))
+	   (text-weighted-len (car text-weighted-len-info))
+	   (text-exceeding-pos (cdr text-weighted-len-info)))
+      (when (and (null exceeding-pos) text-exceeding-pos)
+	(setq exceeding-pos (+ pos text-exceeding-pos)))
+      (cons (+ len text-weighted-len) exceeding-pos))))
+
 (defun twittering-effective-length (str &optional short-length-http short-length-https)
   "Return the effective length of STR with taking account of shortening URIs.
 
@@ -10902,54 +11178,35 @@ If SHORT-LENGTH-HTTP is nil, the value of
  (twittering-get-service-configuration 'short_url_length) is used instead.
 If SHORT-LENGTH-HTTPS is nil, the value of
  (twittering-get-service-configuration 'short_url_length_https) is used
-instead."
+instead.
+
+For detail, see `twittering-get-effective-length-info'.
+"
   (cond
    ((memq twittering-service-method '(twitter twitter-api-v1.1))
-    (let ((regexp "\\(?:^\\|[[:space:]]\\)\\(http\\(s\\)?://[-_.!~*'()a-zA-Z0-9;/?:@&=+$,%#]+\\)")
-	  (short-length-http
-	   (or short-length-http
-	       (twittering-get-service-configuration 'short_url_length)))
-	  (short-length-https
-	   (or short-length-https
-	       (twittering-get-service-configuration 'short_url_length_https)))
-	  (rest str)
-	  (pos 0)
-	  (len 0))
-      (save-match-data
-	(while (string-match regexp str pos)
-	  (let ((beg (match-beginning 1))
-		(end (match-end 1))
-		(short-len (if (match-beginning 2)
-			       short-length-https
-			     short-length-http)))
-	    (let ((additional-length
-		   ;; Ignore the original length to follow the change
-		   ;; of t.co URL wrapper.
-		   ;;
-		   ;; https://dev.twitter.com/docs/tco-url-wrapper
-		   ;; As of October 10, 2011 the t.co URL wrapper
-		   ;; automatically wraps all links submitted to
-		   ;; Twitter, regardless of length. This includes
-		   ;; so-called URLs without protocols.
-		   (+ (- beg pos) short-len)))
-	      (setq len (+ len additional-length))
-	      (setq pos end)))))
-      (+ len (- (length str) pos))))
+    (let* ((threshold nil)
+	   (info (twittering-get-effective-length-info
+		  str threshold short-length-http short-length-https)))
+      (car info)))
    (t
     (length str))))
 
 (defun twittering-edit-length-check (&optional beg end len)
   (let* ((status (twittering-edit-extract-status))
 	 (tweet-type (cdr (assq 'tweet-type twittering-edit-mode-info)))
+	 (raw-length (length status))
 	 (maxlen (twittering-get-maximum-message-length tweet-type))
-	 (length (twittering-effective-length status)))
+	 (length-info (twittering-get-effective-length-info status maxlen))
+	 (length (car length-info))
+	 (exceeding-pos (cdr length-info)))
     (setq mode-name
 	  (format "twmode-status-edit[%d/%d]" length maxlen))
     (force-mode-line-update)
     (unless twittering-disable-overlay-on-too-long-string
       (if (< maxlen length)
 	  (move-overlay twittering-warning-overlay
-			(- (point-max) (- length maxlen)) (point-max))
+			(- (point-max) (- raw-length exceeding-pos))
+			(point-max))
 	(move-overlay twittering-warning-overlay 1 1)))))
 
 (defun twittering-edit-get-help-end ()
@@ -11856,6 +12113,27 @@ How to edit a tweet is determined by `twittering-update-status-funcion'."
 	      (twittering-call-api 'retweet `((id . ,id)))
 	    (message "Request canceled")))
       (message "No status selected"))))
+
+;;;; Commands for displaying information related to a status
+(defun twittering-display-user-information (&optional pos)
+  (interactive)
+  (let* ((pos (or pos (point)))
+	 (status (twittering-find-status (twittering-get-id-at pos)))
+	 (name (or (cdr (assq 'user-name status)) ""))
+	 (screen-name (or (cdr (assq 'user-screen-name status)) ""))
+	 (location (or (cdr (assq 'user-location status)) ""))
+	 (url (or (cdr (assq 'user-url status)) ""))
+	 (description (or (cdr (assq 'user-description status)) "")))
+    (message "%s"
+	     (mapconcat
+	      'identity
+	      `(,(format "%s(@%s)" name screen-name)
+		,@(unless (string= "" location) (list (concat " " location)))
+		,@(unless (string= "" url)
+		    (list (concat "\nURL: " url)))
+		,@(unless (string= "" description)
+		    (list (concat "\nDESC: " description))))
+	      ""))))
 
 ;;;; Commands for browsing information related to a status
 

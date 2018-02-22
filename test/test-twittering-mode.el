@@ -891,3 +891,95 @@
 (when (require 'xml nil t)
   (defcase test-xml-parse nil nil
     (test-assert-eq t (test-read-xml-with-unsupported-code-point))))
+
+(defun test-effective-length (str threshold)
+  (let ((short-length-http 22)
+	(short-length-https 23))
+    (twittering-get-effective-length-info
+     str threshold short-length-http short-length-https)))
+
+(defun test-weighted-length (str threshold-list)
+  (mapcar
+   (lambda (threshold)
+     (let* ((info (twittering-get-weighted-length-info str threshold))
+	    (weighted-length (car info))
+	    (exceeding-pos (cdr info))
+	    (virtual-threshold (if (and (integerp threshold)
+					(< 0 threshold))
+				   threshold
+				 0)))
+       `(,threshold
+	 ;; The sub-string before exceeding-pos should have a weighted length
+	 ;; less than or equal to virtual-threshold.
+	 ,(<= (twittering-get-weighted-length (substring str 0 exceeding-pos))
+	      virtual-threshold)
+	 ,(or
+	   ;; If the total weighted length is less than or equal to
+	   ;; virtual-threshold, exceeding-pos should be nil.
+	   (and (<= weighted-length virtual-threshold)
+		(null exceeding-pos))
+	   ;; If the total weighted length is larger than virtual-threshold,
+	   ;; the sub-string from the head and including a single character
+	   ;; at exceeding-pos should have a weighted length larger than
+	   ;; virtual-threshold.
+	      (< virtual-threshold
+		 (twittering-get-weighted-length
+		  (substring str 0 (+ 1 exceeding-pos))))))))
+   threshold-list))
+
+(defcase effective-length nil nil
+  (setq twittering-text-configuration-default
+	(twittering-prepare-text-configuration
+	 twittering-text-configuration-default))
+
+  (test-assert-equal
+   (let* ((str (concat "aaa"
+		       (mapconcat 'char-to-string
+				  (mapcar 'twittering-ucs-to-char
+					  '(#x3042 #x3044))
+				  ""))))
+     (twittering-get-weighted-length-info str 7))
+   '(7))
+
+  (test-assert-equal
+   (let* ((str (concat "aaa"
+		       (mapconcat 'char-to-string
+				  (mapcar 'twittering-ucs-to-char
+					  '(#x3042 #x3044))
+				  ""))))
+     (twittering-get-weighted-length-info str 6))
+   '(7 . 4))
+
+  (test-assert-equal
+   (let* ((str (concat "aaa"
+		       (mapconcat 'char-to-string
+				  (mapcar 'twittering-ucs-to-char
+					  '(#x3042 #x3044))
+				  "")
+		       "bbb"
+		       (mapconcat 'char-to-string
+				  (mapcar 'twittering-ucs-to-char
+					  '(#x3042 #x3044))
+				  "")
+		       )))
+     (test-weighted-length str (number-sequence -1 16)))
+   '((-1 t t) (0 t t) (1 t t) (2 t t) (3 t t) (4 t t) (5 t t)
+     (6 t t) (7 t t) (8 t t) (9 t t) (10 t t)
+     (11 t t) (12 t t) (13 t t) (14 t t) (15 t t) (16 t t)))
+
+  (test-assert-equal (test-effective-length "http://www" 6) '(22 . 0))
+  (test-assert-equal (test-effective-length "https://www" 6) '(23 . 0))
+  (test-assert-equal (test-effective-length "https://www" 23) '(23))
+  (test-assert-equal (test-effective-length "https://www " 23) '(24 . 11))
+  (test-assert-equal (test-effective-length "a https://www" 23) '(25 . 2))
+  (test-assert-equal (test-effective-length "a https://www https://www" 26)
+		     '(49 . 14))
+  (test-assert-equal
+   (let ((str (format "a https://www %s"
+		      (mapconcat 'char-to-string
+				 (mapcar 'twittering-ucs-to-char
+					 '(#x3042 #x3044))
+				 ""))))
+     (test-effective-length str 29))
+   '(30 . 15))
+  )

@@ -6,6 +6,33 @@
 ------------------
 
 ### Important notice
+
+### Improvements
+* Support for displaying direct messages longer than 140 characters.
+* Support for displaying user information.
+  You can display the user information of the pointed tweet by
+  invoking `twittering-display-user-information' (which is bound to
+  "=" in default).
+* Support for posting a tweet longer than 140 characters.
+  Note that Twitter now measures the "length" of a tweet by a total
+  weight of the tweet, not a simple number of characters.
+  The current measure is based on weights defined for each Unicode
+  code-point. The current version of twittering-mode displays the
+  total weight of a tweet on the mode-line of an edit buffer.
+  Currently, a tweet can include 280 characters if all weights of
+  characters are 100. The weights of ASCII characters are 100. Weights
+  of other characters may be 100 or 200 currently. For example,
+  weights of Tibetan characters are 100 and those of Ethiopic
+  characters are 200. For detail, see the following pages.
+  - https://developer.twitter.com/en/docs/basics/counting-characters
+  - https://developer.twitter.com/en/docs/developer-utilities/twitter-text.html
+
+### Bug fixes
+
+ 3.1.0: 2016-09-28
+------------------
+
+### Important notice
 * Posting a native retweet of a native retweet.
   When the function `twittering-native-retweet' bound to "C-u C-c C-m"
   is invoked on a native retweet, the current version of

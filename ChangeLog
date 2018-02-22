@@ -1,3 +1,72 @@
+2018-01-07  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix the position of the warning overlay on
+	the edit buffer.
+	(twittering-get-weighted-length-info): new function.
+	(twittering-get-weighted-length): reimplemented with the new
+	function `twittering-get-weighted-length'.
+	(twittering-get-effective-length-info): new function.
+	(twittering-effective-length): reimplemented with the new function
+	`twittering-get-effective-length-info'.
+	(twittering-edit-length-check): put the warning overlay to the
+	appropriate position by using the new function
+	`twittering-get-effective-length-info'.
+	* test/test-twittering-mode.el: Add tests for calculating
+	effective length of a string as a tweet.
+
+2018-01-03  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix the calculation of a weighted tweet
+	length where the tweet includes a URL.
+	(twittering-effective-length): fix the calculation of a weighted
+	tweet length where the tweet includes a URL.
+
+2017-12-31  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Import the patch by Eivind Fonn.
+	(twittering-stop): set `twittering-timer' to nil explicitly.
+
+	* twittering-mode.el: Import the patch by Taichi KAWABATA.
+	(twittering-initial-timeline-spec-string): add variable number of
+	strings as a choice.
+
+	* twittering-mode.el: Import the patch by Ignacio Torres Masdeu.
+	(twittering-capable-of-encryption-p): search "gpg2" as well as
+	"gpg".
+
+	* LAST-VERSION, NEWS, NEWS.ja, VERSION, doc/web/index.text,
+	doc/web/ja.po: release 3.1.0.
+
+	* twittering-mode.el: Allow full text direct messages.
+	(twittering-call-api-with-account-in-api1.1): send and receive
+	full text direct messages.
+
+	* twittering-mode.el: Add a function to display user information
+	and bind "=" to it.
+	(twittering-mode-map): bind "=" to the function
+	`twittering-display-user-information'.
+	(twittering-display-user-information): new function.
+
+	* twittering-mode.el: Support a tweet longer than 140 characters.
+	(twittering-get-content-subtype-symbol-from-header-info): add
+	"plain" as a subtype.
+	(twittering-text-configuration-default): new constant.
+	(twittering-text-configuration-url): new constant.
+	(twittering-text-configuration): new variable.
+	(twittering-text-configuration-queried): new variable.
+	(twittering-prepare-text-configuration): new function.
+	(twittering-get-service-configuration): add support for text
+	configuration.
+	(twittering-update-service-configuration): likewise.
+	(twittering-update-text-configuration-sentinel): new function.
+	(twittering-update-text-configuration-clean-up-sentinel): new
+	function.
+	(twittering-get-maximum-message-length): refer to the current text
+	configuration instead of a hard-coded constant.
+	(twittering-get-weighted-length): new function.
+	(twittering-effective-length): calculate weighted tweet length
+	instead of simply counting number of characters.
+
 2016-09-22  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Retrieve tweets in extended mode.

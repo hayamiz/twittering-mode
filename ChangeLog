@@ -1,3 +1,16 @@
+2018-05-07  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix functions for decryption and encryption
+	according to the latest EasyPG. The functions for decrypting or
+	encrypting private information are modified with reference to the
+	EasyPG functions `epa-decrypt-region' and `epa-encrypt-region'.
+	(twittering-read-from-encrypted-file): set the pinentry-mode
+	option of the context and display verification result if
+	possible.
+	(twittering-write-and-encrypt): set the pinentry-mode option to
+	the context and fix the codes for configuring the armor and the
+	textmode option so that they work with the latest EasyPG.
+
 2018-01-07  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the position of the warning overlay on

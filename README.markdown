@@ -81,6 +81,13 @@ Twittering-mode enables you to twit on Emacsen.
     Once the authorized OAuth token is encrypted, you do not have to
     retrieve a PIN code with an external browser. The master password
     is only required to establish authorized connection to Twitter.
+
+    The private information is encrypted by EasyPG or alpaca.el, which
+    utilize GnuPG or GnuPG2. If you use GnuPG2 with Emacs 25.1 or a
+    later version, you can input a passphrase in the Emacs minibuffer
+    instead of external dialog by the following configuration;
+    `(setq epa-pinentry-mode 'loopback)`.
+
 3.  Your home timeline will appear. Basic key bindings are as
     follows.
     - `V`: Open or switch to another timeline by

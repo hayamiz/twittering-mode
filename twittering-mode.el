@@ -3878,13 +3878,16 @@ This function requires `epa' or `alpaca' library."
 	  ;; Bind `default-directory' to the temporary directory
 	  ;; because it is possible that the directory pointed by
 	  ;; `default-directory' has been already removed.
-	  (default-directory temporary-file-directory))
+	  (default-directory temporary-file-directory)
+	  (decrypted-result nil))
       (epg-context-set-passphrase-callback
        context #'epa-passphrase-callback-function)
       (epg-context-set-progress-callback
        context
        (cons #'epa-progress-callback-function
 	     (format "Decrypting %s..." (file-name-nondirectory file))))
+      (when (fboundp 'epg-context-pinentry-mode)
+	(setf (epg-context-pinentry-mode context) epa-pinentry-mode))
       (message "Decrypting %s..." (file-name-nondirectory file))
       (condition-case err
 	  (let ((full-path (expand-file-name file)))
@@ -3892,10 +3895,20 @@ This function requires `epa' or `alpaca' library."
 	    ;; distributed with Emacs 23.2, requires the expanded full path
 	    ;; as the argument CIPHER. This is because CIPHER is directly
 	    ;; used as an argument of the command `gpg'.
-	    (epg-decrypt-file context full-path nil))
+	    (setq decrypted-result (epg-decrypt-file context full-path nil)))
 	(error
-	 (message "%s" (cdr err))
-	 nil))))
+	 (if (fboundp 'epa-display-error)
+	     (epa-display-error context)
+	   (message "%s" (cdr err)))
+	 nil))
+      (setq decrypted-result
+	    (epa--decode-coding-string
+	     decrypted-result
+	     (or coding-system-for-read 'undecided)))
+      (if (epg-context-result-for context 'verify)
+	  (epa-display-info (epg-verify-result-to-string
+			     (epg-context-result-for context 'verify))))
+      decrypted-result))
    ((require 'alpaca nil t)
     (with-temp-buffer
       (let ((buffer-file-name (expand-file-name file))
@@ -3932,10 +3945,19 @@ This function requires `epa' or `alpaca' library."
 	  ;; because it is possible that the directory pointed by
 	  ;; `default-directory' has been already removed.
 	  (default-directory temporary-file-directory))
+      (cond
+       ((version< emacs-version  "25.1")
+	(epg-context-set-armor context t)
+	(epg-context-set-textmode context t))
+       (nil
+	(setf (epg-context-armor context) t)
+	(setf (epg-context-textmode context) t)))
       (epg-context-set-passphrase-callback
        context #'epa-passphrase-callback-function)
       (epg-context-set-progress-callback
        context (cons #'epa-progress-callback-function "Encrypting..."))
+      (when (fboundp 'epg-context-pinentry-mode)
+	(setf (epg-context-pinentry-mode context) epa-pinentry-mode))
       (message "Encrypting...")
       (condition-case err
 	  (unwind-protect

@@ -26,6 +26,14 @@
   characters are 200. For detail, see the following pages.
   - https://developer.twitter.com/en/docs/basics/counting-characters
   - https://developer.twitter.com/en/docs/developer-utilities/twitter-text.html
+* Improved integration with EasyPG
+  With the current version of twittering-mode, the configuration of
+  `epa-pinentry-mode' will be referred in decryption and encryption of
+  private information as expected.
+  If you use GnuPG2 (and gpg-agent distributed with GnuPG2) with Emacs
+  25.1 or a later version, you can input a passphrase in the Emacs
+  minibuffer by the following configuration.
+  (setq epa-pinentry-mode 'loopback)
 
 ### Bug fixes
 

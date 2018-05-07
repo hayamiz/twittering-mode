@@ -2479,7 +2479,7 @@ The method to perform the request is determined from
 	    ;; http://www.escafrace.co.jp/blog/09/10/16/1008
 	    ("Expect" . "")))
 	 (curl-args
-	  `("--include" "--silent" "--compressed"
+	  `("--include" "--silent" "--compressed" "--output" "-"
 	    ,@(when use-http2 `("--http2"))
 	    ,@(apply 'append
 		     (mapcar

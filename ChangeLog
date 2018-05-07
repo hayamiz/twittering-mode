@@ -11,6 +11,15 @@
 	the context and fix the codes for configuring the armor and the
 	textmode option so that they work with the latest EasyPG.
 
+	* twittering-mode.el: Fix the arguments of curl for the versions
+	later than 7.55.0. Unless giving the arguments "--output -", there
+	is possibility that those versions output data to the standard
+	output as a text. Downloading an image may be failed due to such a
+	text output. To avoid such failure, the arguments "--output -" are
+	added by this commit.
+	(twittering-send-http-request-curl): add "--output" and "-" as
+	arguments of curl.
+
 2018-01-07  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the position of the warning overlay on

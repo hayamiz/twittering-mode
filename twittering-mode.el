@@ -2054,7 +2054,7 @@ The alist consists of pairs of field-name and field-value, such as
 	    (mapcar (lambda (entry)
 		      (when (and (stringp (car entry))
 				 (let ((case-fold-search t))
-				   (string-match "\\`content-type\\'"
+				   (string-match "\\`\\(\\\033\\[[0-9]*m\\)*content-type\\(\\\033\\[[0-9]*m\\)*\\'"
 						 (car entry))))
 			(cdr entry)))
 		    header-info))))

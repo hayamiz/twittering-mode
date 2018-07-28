@@ -1,3 +1,13 @@
+2018-07-29  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Use a pipe, not a pty to communicate with a
+	process. This is required for a program that changes its behavior
+	according to output device (pipe or pty) such as curl later than
+	7.61.0.
+	(twittering-start-process-with-sentinel): bind
+	`process-connection-type' to nil in order to ensure that the new
+	process will communicate with Emacs via a pipe instead of a pty.
+
 2018-05-07  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix functions for decryption and encryption

@@ -952,7 +952,11 @@ the value of the last form in TIMEOUT-FORMS."
 
 This function is the same as `start-process' except that SENTINEL must
 be invoked when the process is successfully started."
-  (let ((proc (apply 'start-process name buffer program args)))
+  (let* (;; By binding `process-connection-type' to nil,
+	 ;; ensure that the new process communicates with Emacs
+	 ;; via a pipe instead of a pty.
+	 (process-connection-type nil)
+	 (proc (apply 'start-process name buffer program args)))
     (when (and proc (functionp sentinel))
       (if (twittering-process-alive-p proc)
 	  (set-process-sentinel proc sentinel)

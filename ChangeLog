@@ -8,6 +8,13 @@
 	`process-connection-type' to nil in order to ensure that the new
 	process will communicate with Emacs via a pipe instead of a pty.
 
+	* twittering-mode.el: Check a decrypted result before converting
+	its coding-system. This is necessary because the conversion will
+	cause an exception when the result is nil due to a wrong
+	passphrase.
+	(twittering-read-from-encrypted-file): check the value of
+	`decrypted-result' before converting its coding-system.
+
 2018-05-07  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix functions for decryption and encryption

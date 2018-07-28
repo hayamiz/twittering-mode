@@ -3905,10 +3905,11 @@ This function requires `epa' or `alpaca' library."
 	     (epa-display-error context)
 	   (message "%s" (cdr err)))
 	 nil))
-      (setq decrypted-result
-	    (epa--decode-coding-string
-	     decrypted-result
-	     (or coding-system-for-read 'undecided)))
+      (when decrypted-result
+	(setq decrypted-result
+	      (epa--decode-coding-string
+	       decrypted-result
+	       (or coding-system-for-read 'undecided))))
       (if (epg-context-result-for context 'verify)
 	  (epa-display-info (epg-verify-result-to-string
 			     (epg-context-result-for context 'verify))))

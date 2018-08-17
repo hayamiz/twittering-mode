@@ -1,3 +1,29 @@
+2018-08-17  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Collect user IDs and corresponding
+	names. They are used as candidates when completing a user screen
+	name. They are saved in "~/.twittering-mode-user-info.gz" in
+	default and they will be automatically loaded when initializing
+	global variables.
+	(twittering-add-statuses-to-timeline-data): register user IDs
+	found in new statuses.
+	(twittering-user-id-db): new variable.
+	(twittering-user-id-db-file): new customizable variable.
+	(twittering-registered-user-screen-names): new function.
+	(twittering-find-user): new function.
+	(twittering-register-user-id): new function.
+	(twittering-register-user-id-from-status): new function.
+	(twittering-save-user-id-db): new function.
+	(twittering-load-user-id-db): new function.
+	(twittering-register-account-info): register the user ID and the
+	screen name in the given account information.
+	(twittering-initialize-global-variables-if-necessary): load user
+	IDs and add the function `twittering-save-user-id-db' to the
+	`kill-emacs-hook' hook.
+	(twittering-read-username-with-completion): use registered user
+	IDs as candidates for completion.
+	(twittering-read-timeline-spec-with-completion): likewise.
+
 2018-07-29  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Use a pipe, not a pty to communicate with a

@@ -24,6 +24,11 @@
 	IDs as candidates for completion.
 	(twittering-read-timeline-spec-with-completion): likewise.
 
+	* twittering-mode.el: Add a function to convert a timestamp string
+	representing a UNIX epoch time into a Emacs time object.
+	(twittering-epoch-timestamp-to-time): new function.
+	(twittering-snowflake-epoch-time): use the new function.
+
 2018-07-29  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Use a pipe, not a pty to communicate with a

@@ -245,6 +245,7 @@ The valid timeline specs follows:
   - `USER/LISTNAME` :
     The list timeline owned by *USER* and named *LISTNAME*.
 - Direct message
+  - `:direct_message_events` : Direct message events.
   - `:direct_messages` : Direct messages sent to you.
   - `:direct_messages_sent` : Direct messages that you sent.
 - Favorite

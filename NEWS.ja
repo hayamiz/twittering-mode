@@ -29,6 +29,20 @@
   用する場合、下記のように設定することでEmacsのミニバッファから
   passphraseを入力することができるようになります。
   (setq epa-pintenry-mode 'loopback)
+* Direct message events timelineに対応
+  新しく":direct_message_events"というtimelineに対応しました。送信ある
+  いは受信したdirect messageに関するイベントを含むtimelineです。これは
+  direct messageに関する新しいAPIに対応しています。この新しいAPIの仕様
+  により、直近30日のイベントしか取得できません。
+  現在の実装の制限により、更新するたび直近50件のイベントのみが取得され
+  ます。それ以前のイベントを遡って取得することはできません。また、この
+  timelineではユーザ名、ユーザのscreen_nameが"UNKNOWN-NAME(ID:...)"や
+  "UNKNOWN-SCREEN-NAME(ID:...)"のように表示されることがあります。これ
+  は件の新しいAPIがユーザIDは返すものの、名前に関する情報を返さないた
+  めです。不足しているユーザ名等は、他のtimeline取得の際に集めた情報を
+  使って補われます。正しいユーザ名等で表示するために関数
+  `twittering-erase-old-statuses'(デフォルトでは"C-cC-e"にbindされてい
+  ます)を実行してのイベント情報再取得が必要となる場合があります。
 
 ### バグ修正
 

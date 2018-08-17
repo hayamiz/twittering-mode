@@ -29,6 +29,24 @@
 	(twittering-epoch-timestamp-to-time): new function.
 	(twittering-snowflake-epoch-time): use the new function.
 
+	* twittering-mode.el: Support a new timeline spec
+	":direct_message_events".
+	(twittering-http-get-default-sentinel): use a new function for
+	reading direct message events timeline.
+	(twittering-timeline-spec-to-string): add a new timeline spec
+	":direct_message_events".
+	(twittering-extract-timeline-spec): likewise.
+	(twittering-timeline-spec-primary-p): likewise.
+	(twittering-timeline-spec-is-direct-message-events-p): new
+	function.
+	(twittering-call-api-with-account-in-api1.1): likewise.
+	(twittering-read-timeline-spec-with-completion): likewise.
+	(twittering-enter): likewise.
+	(twittering-extract-common-element-from-json): add special
+	treatment for a status without a human readable timestamp.
+	(twittering-json-object-to-statuses-on-direct-message-events): new
+	function.
+
 2018-07-29  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Use a pipe, not a pty to communicate with a

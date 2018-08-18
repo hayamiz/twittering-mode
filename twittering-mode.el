@@ -8178,33 +8178,60 @@ To convert a JSON object from other timelines, use
 JSON-OBJECT must originate in the timeline of direct message events.
 To convert a JSON object from other timelines, use
 `twittering-json-object-to-a-status'."
-  (mapcar
-   (lambda (ev)
-     (let* ((id (cdr (assq 'id ev)))
-	    (epoch-timestamp-str (cdr (assq 'created_timestamp ev)))
-	    (created-at
-	     (twittering-epoch-timestamp-to-time epoch-timestamp-str))
-	    (msg-create (cdr (assq 'message_create ev)))
-	    (msg-data (cdr (assq 'message_data msg-create)))
-	    (sender-id (cdr (assq 'sender_id msg-create)))
-	    (user-info (twittering-find-user sender-id))
-	    (user-name (or (cdr (assq 'name user-info))
-			   (format "UNKNOWN-NAME(ID:%s)" sender-id)))
-	    (user-screen-name
-	     (or (cdr (assq 'screen-name user-info))
-		 (format "UNKNOWN-SCREEN-NAME(ID:%s)" sender-id)))
-	    (user-profile-image-url (cdr (assq 'profile-image-url user-info)))
-	    )
-       `(,@(twittering-extract-common-element-from-json msg-data)
-	 (id . ,id)
-	 (created-at . ,created-at)
-	 (user-id . ,sender-id)
-	 (user-name . ,user-name)
-	 (user-screen-name . ,user-screen-name)
-	 (user-profile-image-url . ,user-profile-image-url)
-	 )))
-   (cdr (assq 'events json-object)))
-  )
+  (let* ((events (cdr (assq 'events json-object)))
+	 (apps (cdr (assq 'apps json-object))))
+    (mapcar
+     (lambda (ev)
+       (let* ((id (cdr (assq 'id ev)))
+	      (epoch-timestamp-str (cdr (assq 'created_timestamp ev)))
+	      (created-at
+	       (twittering-epoch-timestamp-to-time epoch-timestamp-str))
+	      (msg-create (cdr (assq 'message_create ev)))
+	      (msg-data (cdr (assq 'message_data msg-create)))
+	      (target (cdr (assq 'target msg-create)))
+	      (recipient-id (cdr (assq 'recipient_id target)))
+	      (recipient-info (twittering-find-user recipient-id))
+	      (recipient-name
+	       (or (cdr (assq 'name recipient-info))
+		   (format "UNKNOWN-NAME(ID:%s)" recipient-id)))
+	      (recipient-screen-name
+	       (or (cdr (assq 'screen-name recipient-info))
+		   (format "UNKNOWN-SCREEN-NAME(ID:%s)" recipient-id)))
+	      (sender-id (cdr (assq 'sender_id msg-create)))
+	      (user-info (twittering-find-user sender-id))
+	      (user-name (or (cdr (assq 'name user-info))
+			     (format "UNKNOWN-NAME(ID:%s)" sender-id)))
+	      (user-screen-name
+	       (or (cdr (assq 'screen-name user-info))
+		   (format "UNKNOWN-SCREEN-NAME(ID:%s)" sender-id)))
+	      (user-profile-image-url (cdr (assq 'profile-image-url user-info)))
+	      (source-app-id (cdr (assq 'source_app_id msg-create)))
+	      (source-app-name
+	       (if source-app-id
+		   (cdr (assq 'name (assq (intern source-app-id) apps)))
+		 ;; A message without `source_app_id' has been observed.
+		 ""))
+	      (source-app-url
+	       (if source-app-id
+		   (cdr (assq 'url (assq (intern source-app-id) apps)))
+		 ;; A message without `source_app_id' has been observed.
+		 ""))
+	      )
+	 `(,@(twittering-extract-common-element-from-json msg-data)
+	   (id . ,id)
+	   (created-at . ,created-at)
+	   (user-id . ,sender-id)
+	   (user-name . ,user-name)
+	   (user-screen-name . ,user-screen-name)
+	   (user-profile-image-url . ,user-profile-image-url)
+	   (recipient-id . ,recipient-id)
+	   (recipient-name . ,recipient-name)
+	   (recipient-screen-name . ,recipient-screen-name)
+	   (source . ,source-app-name)
+	   (source-uri . ,source-app-url)
+	   )))
+     events)
+    ))
 
 (defun twittering-json-object-to-a-status-on-direct-messages (json-object)
   "Convert JSON-OBJECT representing a tweet into an alist representation.

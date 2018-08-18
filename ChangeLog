@@ -1,3 +1,11 @@
+2018-08-18  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix the direct message events
+	timeline. Each event has properties related to a recipient and a
+	source app.
+	(twittering-json-object-to-statuses-on-direct-message-events):
+	convert recipient information and source app information.
+
 2018-08-17  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Collect user IDs and corresponding

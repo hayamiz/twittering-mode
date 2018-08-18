@@ -5395,6 +5395,7 @@ string and the number of new statuses for the timeline."
 ;;;;
 
 (defvar twittering-user-id-db (make-hash-table :test 'equal))
+(defvar twittering-user-screen-name-db (make-hash-table :test 'equal))
 (defcustom twittering-user-id-db-file
   (expand-file-name "~/.twittering-mode-user-info.gz")
   "*The file to which user IDs are stored.
@@ -5405,17 +5406,22 @@ The file is loaded with `with-auto-compression-mode'."
 (defun twittering-registered-user-screen-names ()
   (let ((result '()))
     (maphash
-     (lambda (user-id properties)
-       (let ((screen-name (cdr (assq 'screen-name properties))))
-	 (setq result (cons screen-name result))))
-     twittering-user-id-db)
+     (lambda (user-screen-name properties)
+       (setq result (cons user-screen-name result)))
+     twittering-user-screen-name-db)
     result))
 
 (defun twittering-find-user (user-id)
   (gethash user-id twittering-user-id-db))
 
+(defun twittering-find-user-screen-name (user-screen-name)
+  (gethash user-screen-name twittering-user-screen-name-db))
+
 (defun twittering-register-user-id (user-id properties)
-  (puthash user-id properties twittering-user-id-db))
+  (let ((screen-name (cdr (assq 'screen-name properties))))
+    (puthash user-id properties twittering-user-id-db)
+    (when screen-name
+      (puthash screen-name properties twittering-user-screen-name-db))))
 
 (defun twittering-register-user-id-from-status (status)
   (let* ((id (cdr (assq 'user-id status)))

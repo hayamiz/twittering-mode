@@ -6,6 +6,15 @@
 	(twittering-json-object-to-statuses-on-direct-message-events):
 	convert recipient information and source app information.
 
+	* twittering-mode.el: Add the database to find user information
+	from its screen name.
+	(twittering-user-screen-name-db): new variable.
+	(twittering-registered-user-screen-names): use the new variable
+	`twittering-user-screen-name-db'.
+	(twittering-find-user-screen-name): new function.
+	(twittering-register-user-id): also update the new variable
+	`twittering-user-screen-name-db'.
+
 2018-08-17  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Collect user IDs and corresponding

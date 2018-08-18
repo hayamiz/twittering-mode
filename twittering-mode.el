@@ -3172,7 +3172,7 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
 		    twittering-list-index-retrieved)))
     result))
 
-(defun twittering-http-post (account-info-alist host method &optional parameters format additional-info sentinel clean-up-sentinel)
+(defun twittering-http-post (account-info-alist host method &optional parameters format additional-info sentinel clean-up-sentinel post-body)
   "Send HTTP POST request to api.twitter.com (or search.twitter.com)
 ACCOUNT-INFO-ALIST is an alist used by
 `twittering-add-application-header-to-http-request'.
@@ -3194,7 +3194,7 @@ FORMAT is a response data format (\"xml\", \"atom\", \"json\")"
 	 (path (concat "/" method "." format))
 	 (headers nil)
 	 (port nil)
-	 (post-body "")
+	 (post-body (or post-body ""))
 	 (request
 	  (twittering-add-application-header-to-http-request
 	   (twittering-make-http-request "POST" headers host port path
@@ -6117,8 +6117,8 @@ verify-credentials -- Verify the current credentials.
       of `twittering-send-http-request' via `twittering-http-get'.
 send-direct-message -- Send a direct message.
   Valid key symbols in ARGS-ALIST:
-    username -- the username who the message is sent to.
-    status -- the sent message.
+    recipient-id -- the user ID who the message is sent to.
+    text -- the sent message.
 mute -- Mute a user.
   Valid key symbols in ARGS-ALIST:
     user-id -- the user-id that will be muted.
@@ -6428,8 +6428,8 @@ get-service-configuration -- Get the configuration of the server.
    ((eq command 'send-direct-message)
     ;; Send a direct message.
     (let ((parameters
-	   `(("screen_name" . ,(cdr (assq 'username args-alist)))
-	     ("text" . ,(cdr (assq 'status args-alist))))))
+	   `(("user_id" . ,(cdr (assq 'id args-alist)))
+	     ("text" . ,(cdr (assq 'text args-alist))))))
       (twittering-http-post account-info-alist twittering-api-host
 			    (twittering-api-path "direct_messages/new")
 			    parameters nil additional-info)))
@@ -6806,13 +6806,24 @@ get-service-configuration -- Get the configuration of the server.
    ((eq command 'send-direct-message)
     ;; Send a direct message.
     (let* ((host twittering-api-host)
-	   (method "1.1/direct_messages/new")
-	   (http-parameters
-	    `(("screen_name" . ,(cdr (assq 'username args-alist)))
-	      ("text" . ,(cdr (assq 'status args-alist)))))
-	   (format-str "json"))
+	   (method "1.1/direct_messages/events/new")
+	   (http-parameters nil)
+	   (format-str "json")
+	   (additional-info nil)
+	   (recipient-id (cdr (assq 'recipient-id args-alist)))
+	   (text (cdr (assq 'text args-alist)))
+	   (obj
+	    `((event
+	       .
+	       ((type . "message_create")
+		(message_create
+		 .
+		 ((target . ((recipient_id . ,recipient-id)))
+		  (message_data . ((text . ,text)))))))))
+	   (post-body (json-encode obj))
+	   )
       (twittering-http-post account-info-alist host method http-parameters
-			    format-str additional-info)))
+			    format-str additional-info nil nil post-body)))
    ((memq command '(mute unmute))
     ;; Mute a user.
     (let* ((user-id (cdr (assq 'user-id args-alist)))
@@ -11654,11 +11665,17 @@ Pairs of a key symbol and an associated value are following:
 	    (cons status twittering-edit-history))
       (cond
        ((eq tweet-type 'direct-message)
-	(if direct-message-recipient
-	    (twittering-call-api 'send-direct-message
-				 `((username . ,direct-message-recipient)
-				   (status . ,status)))
-	  (message "No username specified")))
+	(if (null direct-message-recipient)
+	    (message "No direct message recipient specified")
+	  (let* ((recipient-info
+		  (twittering-find-user-screen-name direct-message-recipient))
+		 (recipient-id (cdr (assq 'id recipient-info))))
+	    (if recipient-id
+		(twittering-call-api 'send-direct-message
+				     `((recipient-id . ,recipient-id)
+				       (text . ,status)))
+	      (message "Failed to find the user ID of %s"
+		       direct-message-recipient)))))
        ((eq tweet-type 'reply)
 	(twittering-call-api 'update-status
 			     `((status . ,status)
@@ -11800,11 +11817,17 @@ Pairs of a key symbol and an associated value are following:
 	      (when (twittering-status-not-blank-p status)
 		(cond
 		 ((eq tweet-type 'direct-message)
-		  (if username
-		      (twittering-call-api 'send-direct-message
-					   `((username . ,username)
-					     (status . ,status)))
-		    (message "No username specified")))
+		  (if (null username)
+		      (message "No direct message recipient specified")
+		    (let* ((recipient-info
+			    (twittering-find-user-screen-name username))
+			   (recipient-id (cdr (assq 'id recipient-info))))
+		      (if recipient-id
+			  (twittering-call-api 'send-direct-message
+					       `((recipient-id . ,recipient-id)
+						 (text . ,status)))
+			(message "Failed to find the user ID of %s"
+				 username)))))
 		 (t
 		  (let ((parameters `(("status" . ,status)))
 			(as-reply

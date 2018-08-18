@@ -6,6 +6,15 @@
 ------------------
 
 ### Important notice
+* Sending a direct message with a new API.
+  A direct messages will be sent by a new API "POST
+  direct_messages/events/new", which requires a user ID of a recipient
+  instead of a user screen name. You can specify a recipient by a
+  screen name as before, but it may fail if twittering-mode has not
+  yet known the user ID corresponding to the recipient. In such a
+  case, you can avoid the problem by once visiting the timeline of the
+  recipient because twittering-mode will collect the user ID from the
+  timeline.
 
 ### Improvements
 * Support for displaying direct messages longer than 140 characters.

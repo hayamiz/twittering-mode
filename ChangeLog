@@ -15,6 +15,19 @@
 	(twittering-register-user-id): also update the new variable
 	`twittering-user-screen-name-db'.
 
+	* twittering-mode.el: Send a direct message with a new API.
+	(twittering-http-post): add a new argument `post-body'.
+	(twittering-call-api-with-account): change the arguments for the
+	command `send-direct-message', which includes a user ID of the
+	recipient instead of a user screen name.
+	(twittering-call-api-with-account-in-api1.0): likewise.
+	(twittering-call-api-with-account-in-api1.1): invoke the new API
+	"POST direct_messages/events/new" for the command
+	`send-direct-message'.
+	(twittering-edit-post-status): call the command
+	`send-direct-message' with new arguments.
+	(twittering-update-status-from-minibuffer): likewise.
+
 2018-08-17  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Collect user IDs and corresponding

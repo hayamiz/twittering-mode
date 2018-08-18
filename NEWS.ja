@@ -6,6 +6,14 @@
 ------------------
 
 ### 重要なお知らせ
+* 新規APIによるdirect message送信
+  direct messageは、新しいAPI "POST direct_messages/events/new"によっ
+  て送信されるようになりました。このAPIは宛先指定の際、ユーザの表示名
+  (screen_name)ではなくユーザIDを必要とします。direct messageの宛先は
+  従来通りscreen_nameで指定することができますが、twittering-modeが対応
+  するユーザIDを把握していない場合には送信に失敗する場合があります。
+  twittering-modeはtimelineの取得時にユーザIDも収集するので、一度宛先
+  ユーザのtimelineにアクセスすればこの問題を回避できます。
 
 ### 改良
 * 140文字以上のdirect messageの表示に対応

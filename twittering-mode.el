@@ -5399,9 +5399,18 @@ string and the number of new statuses for the timeline."
 (defcustom twittering-user-id-db-file
   (expand-file-name "~/.twittering-mode-user-info.gz")
   "*The file to which user IDs are stored.
+
 The file is loaded with `with-auto-compression-mode'."
   :group 'twittering-mode
   :type 'file)
+(defcustom twittering-user-id-db-expiration-date 7
+  "*How many days a user ID without update will be saved to the file.
+
+If nil, all user IDs are saved without regard to dates when they are updated.
+The file is specified by `twittering-user-id-db-file'."
+  :group 'twittering-mode
+  :type '(choice (const nil)
+                 integer))
 
 (defun twittering-registered-user-screen-names ()
   (let ((result '()))
@@ -5418,7 +5427,24 @@ The file is loaded with `with-auto-compression-mode'."
   (gethash user-screen-name twittering-user-screen-name-db))
 
 (defun twittering-register-user-id (user-id properties)
-  (let ((screen-name (cdr (assq 'screen-name properties))))
+  (let* ((screen-name (cdr (assq 'screen-name properties)))
+	 (current-properties (twittering-find-user user-id))
+	 (now-timestamp (current-time))
+	 (properties
+	  (if (null current-properties)
+	      (if (null (assq 'timestamp properties))
+		  `(,@properties
+		    (timestamp . ,now-timestamp))
+		properties)
+	    `(,@properties
+	      ,@(remove nil
+			(mapcar (lambda (entry)
+				  (when (and
+					 (not (assq (car entry) properties))
+					 (not (eq (car entry) 'timestamp)))
+				    entry))
+				current-properties))
+	      (timestamp . ,now-timestamp)))))
     (puthash user-id properties twittering-user-id-db)
     (when screen-name
       (puthash screen-name properties twittering-user-screen-name-db))))
@@ -5460,16 +5486,27 @@ The file is loaded with `with-auto-compression-mode'."
 (defun twittering-save-user-id-db (&optional filename)
   (let ((filename (or filename twittering-user-id-db-file))
 	(stored-data
-	 (let ((result nil))
+	 (let* ((result nil)
+		(current (current-time))
+		(limit
+		 (when twittering-user-id-db-expiration-date
+		   (time-subtract
+		    (current-time)
+		    (seconds-to-time
+		     (* twittering-user-id-db-expiration-date 24 60 60))))))
 	   (maphash
 	    (lambda (user-id properties)
-	      (setq result (cons `(,user-id ,@properties) result)))
+	      (let ((timestamp (cdr (assq 'timestamp properties))))
+		(when (or (null twittering-user-id-db-expiration-date)
+			  (time-less-p limit timestamp))
+		  (setq result (cons `(,user-id ,@properties) result)))))
 	    twittering-user-id-db)
 	   result))
 	;; Bind `default-directory' to the temporary directory
 	;; because it is possible that the directory pointed by
 	;; `default-directory' has been already removed.
 	(default-directory temporary-file-directory))
+    (message "Saving %d user IDs." (length stored-data))
     (when (require 'jka-compr nil t)
       (with-auto-compression-mode
 	(let ((coding-system-for-write 'utf-8))

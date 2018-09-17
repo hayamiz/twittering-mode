@@ -1,3 +1,13 @@
+2018-09-17  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Add a variable for expiration of user IDs.
+	(twittering-user-id-db-expiration-date): new variable.
+	(twittering-register-user-id): attach a timestamp as a property
+	and update each property if an already registered user ID is
+	given.
+	(twittering-save-user-id-db): save only user IDs updated recently
+	if `twittering-user-id-db-expiration-date' is non-nil.
+
 2018-08-18  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the direct message events

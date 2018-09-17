@@ -5396,6 +5396,12 @@ string and the number of new statuses for the timeline."
 
 (defvar twittering-user-id-db (make-hash-table :test 'equal))
 (defvar twittering-user-screen-name-db (make-hash-table :test 'equal))
+(defvar twittering-user-screen-name-history '()
+  "Recently registered user screen names.
+
+It is updated by `twittering-register-user-id'.")
+(defvar twittering-user-screen-name-history-length 1000
+  "Maximum length of `twittering-user-screen-name-history'.")
 (defcustom twittering-user-id-db-file
   (expand-file-name "~/.twittering-mode-user-info.gz")
   "*The file to which user IDs are stored.
@@ -5413,12 +5419,7 @@ The file is specified by `twittering-user-id-db-file'."
                  integer))
 
 (defun twittering-registered-user-screen-names ()
-  (let ((result '()))
-    (maphash
-     (lambda (user-screen-name properties)
-       (setq result (cons user-screen-name result)))
-     twittering-user-screen-name-db)
-    result))
+  twittering-user-screen-name-history)
 
 (defun twittering-find-user (user-id)
   (gethash user-id twittering-user-id-db))
@@ -5446,6 +5447,8 @@ The file is specified by `twittering-user-id-db-file'."
 				current-properties))
 	      (timestamp . ,now-timestamp)))))
     (puthash user-id properties twittering-user-id-db)
+    (add-to-history 'twittering-user-screen-name-history screen-name
+		    twittering-user-screen-name-history-length)
     (when screen-name
       (puthash screen-name properties twittering-user-screen-name-db))))
 

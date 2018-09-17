@@ -8,6 +8,14 @@
 	(twittering-save-user-id-db): save only user IDs updated recently
 	if `twittering-user-id-db-expiration-date' is non-nil.
 
+	* twittering-mode.el: Add a history variable of user screen names.
+	(twittering-user-screen-name-history): new variable.
+	(twittering-user-screen-name-history-length): new variable.
+	(twittering-registered-user-screen-names): return only screen
+	names of users with recently updated properties.
+	(twittering-register-user-id): update the new variable
+	`(twittering-user-screen-name-history'.
+
 2018-08-18  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the direct message events

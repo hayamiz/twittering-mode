@@ -1,3 +1,10 @@
+2018-11-21  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix a typo that causes an error when using
+	another version Emacs. Thanks to afukumoto, who reports the
+	problem.
+	(twittering-load-user-id-db): fix a typo. Thanks
+
 2018-09-17  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Add a variable for expiration of user IDs.

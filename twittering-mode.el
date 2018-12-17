@@ -86,6 +86,11 @@
 			 (list str)))
 		     process-environment)))))
       ad-do-it)))
+
+(when (>= 27 emacs-major-version)
+  ;;  Cheap support newest version of emacs plus backward compatibility
+  (defalias 'epa--decode-coding-string 'decode-coding-string))
+
 (require 'url)
 
 (defgroup twittering-mode nil

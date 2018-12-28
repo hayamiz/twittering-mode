@@ -6,6 +6,14 @@
 ------------------
 
 ### 重要なお知らせ
+* 新規APIによるdirect message送信
+  direct messageは、新しいAPI "POST direct_messages/events/new"によっ
+  て送信されるようになりました。このAPIは宛先指定の際、ユーザの表示名
+  (screen_name)ではなくユーザIDを必要とします。direct messageの宛先は
+  従来通りscreen_nameで指定することができますが、twittering-modeが対応
+  するユーザIDを把握していない場合には送信に失敗する場合があります。
+  twittering-modeはtimelineの取得時にユーザIDも収集するので、一度宛先
+  ユーザのtimelineにアクセスすればこの問題を回避できます。
 
 ### 改良
 * 140文字以上のdirect messageの表示に対応
@@ -22,6 +30,27 @@
   詳しくは下記のページを参照してください。
   - https://developer.twitter.com/en/docs/basics/counting-characters
   - https://developer.twitter.com/en/docs/developer-utilities/twitter-text.html
+* EasyPGとの連携を改善
+  秘密情報を暗号化するもしくは復号する際に`epa-pintenry-mode'の設定が
+  反映されるよう修正しました。
+  GnuPG2(とそれに付属のgpg-agent)をEmacs 25.1以降のバージョンと共に使
+  用する場合、下記のように設定することでEmacsのミニバッファから
+  passphraseを入力することができるようになります。
+  (setq epa-pintenry-mode 'loopback)
+* Direct message events timelineに対応
+  新しく":direct_message_events"というtimelineに対応しました。送信ある
+  いは受信したdirect messageに関するイベントを含むtimelineです。これは
+  direct messageに関する新しいAPIに対応しています。この新しいAPIの仕様
+  により、直近30日のイベントしか取得できません。
+  現在の実装の制限により、更新するたび直近50件のイベントのみが取得され
+  ます。それ以前のイベントを遡って取得することはできません。また、この
+  timelineではユーザ名、ユーザのscreen_nameが"UNKNOWN-NAME(ID:...)"や
+  "UNKNOWN-SCREEN-NAME(ID:...)"のように表示されることがあります。これ
+  は件の新しいAPIがユーザIDは返すものの、名前に関する情報を返さないた
+  めです。不足しているユーザ名等は、他のtimeline取得の際に集めた情報を
+  使って補われます。正しいユーザ名等で表示するために関数
+  `twittering-erase-old-statuses'(デフォルトでは"C-cC-e"にbindされてい
+  ます)を実行してのイベント情報再取得が必要となる場合があります。
 
 ### バグ修正
 

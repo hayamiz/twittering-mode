@@ -1,3 +1,146 @@
+2018-11-21  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix a typo that causes an error when using
+	another version Emacs. Thanks to afukumoto, who reports the
+	problem.
+	(twittering-load-user-id-db): fix a typo. Thanks
+
+2018-09-17  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Add a variable for expiration of user IDs.
+	(twittering-user-id-db-expiration-date): new variable.
+	(twittering-register-user-id): attach a timestamp as a property
+	and update each property if an already registered user ID is
+	given.
+	(twittering-save-user-id-db): save only user IDs updated recently
+	if `twittering-user-id-db-expiration-date' is non-nil.
+
+	* twittering-mode.el: Add a history variable of user screen names.
+	(twittering-user-screen-name-history): new variable.
+	(twittering-user-screen-name-history-length): new variable.
+	(twittering-registered-user-screen-names): return only screen
+	names of users with recently updated properties.
+	(twittering-register-user-id): update the new variable
+	`(twittering-user-screen-name-history'.
+
+2018-08-18  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix the direct message events
+	timeline. Each event has properties related to a recipient and a
+	source app.
+	(twittering-json-object-to-statuses-on-direct-message-events):
+	convert recipient information and source app information.
+
+	* twittering-mode.el: Add the database to find user information
+	from its screen name.
+	(twittering-user-screen-name-db): new variable.
+	(twittering-registered-user-screen-names): use the new variable
+	`twittering-user-screen-name-db'.
+	(twittering-find-user-screen-name): new function.
+	(twittering-register-user-id): also update the new variable
+	`twittering-user-screen-name-db'.
+
+	* twittering-mode.el: Send a direct message with a new API.
+	(twittering-http-post): add a new argument `post-body'.
+	(twittering-call-api-with-account): change the arguments for the
+	command `send-direct-message', which includes a user ID of the
+	recipient instead of a user screen name.
+	(twittering-call-api-with-account-in-api1.0): likewise.
+	(twittering-call-api-with-account-in-api1.1): invoke the new API
+	"POST direct_messages/events/new" for the command
+	`send-direct-message'.
+	(twittering-edit-post-status): call the command
+	`send-direct-message' with new arguments.
+	(twittering-update-status-from-minibuffer): likewise.
+
+2018-08-17  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Collect user IDs and corresponding
+	names. They are used as candidates when completing a user screen
+	name. They are saved in "~/.twittering-mode-user-info.gz" in
+	default and they will be automatically loaded when initializing
+	global variables.
+	(twittering-add-statuses-to-timeline-data): register user IDs
+	found in new statuses.
+	(twittering-user-id-db): new variable.
+	(twittering-user-id-db-file): new customizable variable.
+	(twittering-registered-user-screen-names): new function.
+	(twittering-find-user): new function.
+	(twittering-register-user-id): new function.
+	(twittering-register-user-id-from-status): new function.
+	(twittering-save-user-id-db): new function.
+	(twittering-load-user-id-db): new function.
+	(twittering-register-account-info): register the user ID and the
+	screen name in the given account information.
+	(twittering-initialize-global-variables-if-necessary): load user
+	IDs and add the function `twittering-save-user-id-db' to the
+	`kill-emacs-hook' hook.
+	(twittering-read-username-with-completion): use registered user
+	IDs as candidates for completion.
+	(twittering-read-timeline-spec-with-completion): likewise.
+
+	* twittering-mode.el: Add a function to convert a timestamp string
+	representing a UNIX epoch time into a Emacs time object.
+	(twittering-epoch-timestamp-to-time): new function.
+	(twittering-snowflake-epoch-time): use the new function.
+
+	* twittering-mode.el: Support a new timeline spec
+	":direct_message_events".
+	(twittering-http-get-default-sentinel): use a new function for
+	reading direct message events timeline.
+	(twittering-timeline-spec-to-string): add a new timeline spec
+	":direct_message_events".
+	(twittering-extract-timeline-spec): likewise.
+	(twittering-timeline-spec-primary-p): likewise.
+	(twittering-timeline-spec-is-direct-message-events-p): new
+	function.
+	(twittering-call-api-with-account-in-api1.1): likewise.
+	(twittering-read-timeline-spec-with-completion): likewise.
+	(twittering-enter): likewise.
+	(twittering-extract-common-element-from-json): add special
+	treatment for a status without a human readable timestamp.
+	(twittering-json-object-to-statuses-on-direct-message-events): new
+	function.
+
+2018-07-29  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Use a pipe, not a pty to communicate with a
+	process. This is required for a program that changes its behavior
+	according to output device (pipe or pty) such as curl later than
+	7.61.0.
+	(twittering-start-process-with-sentinel): bind
+	`process-connection-type' to nil in order to ensure that the new
+	process will communicate with Emacs via a pipe instead of a pty.
+
+	* twittering-mode.el: Check a decrypted result before converting
+	its coding-system. This is necessary because the conversion will
+	cause an exception when the result is nil due to a wrong
+	passphrase.
+	(twittering-read-from-encrypted-file): check the value of
+	`decrypted-result' before converting its coding-system.
+
+2018-05-07  Tadashi MATSUO  <tad@mymail.twin.jp>
+
+	* twittering-mode.el: Fix functions for decryption and encryption
+	according to the latest EasyPG. The functions for decrypting or
+	encrypting private information are modified with reference to the
+	EasyPG functions `epa-decrypt-region' and `epa-encrypt-region'.
+	(twittering-read-from-encrypted-file): set the pinentry-mode
+	option of the context and display verification result if
+	possible.
+	(twittering-write-and-encrypt): set the pinentry-mode option to
+	the context and fix the codes for configuring the armor and the
+	textmode option so that they work with the latest EasyPG.
+
+	* twittering-mode.el: Fix the arguments of curl for the versions
+	later than 7.55.0. Unless giving the arguments "--output -", there
+	is possibility that those versions output data to the standard
+	output as a text. Downloading an image may be failed due to such a
+	text output. To avoid such failure, the arguments "--output -" are
+	added by this commit.
+	(twittering-send-http-request-curl): add "--output" and "-" as
+	arguments of curl.
+
 2018-01-07  Tadashi MATSUO  <tad@mymail.twin.jp>
 
 	* twittering-mode.el: Fix the position of the warning overlay on

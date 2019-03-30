@@ -13094,6 +13094,29 @@ and a tweet is pointed, the URI to the tweet is insteadly pushed."
       (message "Copied %s" copy)
       copy))))
 
+;;;; Filtering.
+
+(defvar twittering-filter-users '()
+  "*List of strings containing usernames (without '@' prefix) whose tweets should not be displayed in timeline.")
+(defvar twittering-filter-tweets '()
+  "*List of strings containing phrases which will prevent a tweet containing one of those phrases from being displayed in timeline.")
+
+(defun twittering-filters-apply ()
+  (setq non-matching-statuses '())
+  (dolist (status twittering-new-tweets-statuses)
+    (setq matched-tweets 0)
+    (dolist (pat twittering-filter-users)
+      (if (string-match pat (cdr (assoc 'user-screen-name status)))
+	  (setq matched-tweets (+ 1 matched-tweets))))
+    (dolist (pat twittering-filter-tweets)
+      (if (string-match pat (cdr (assoc 'text status)))
+	  (setq matched-tweets (+ 1 matched-tweets))))
+    (if (= 0 matched-tweets)
+	(setq non-matching-statuses (append non-matching-statuses `(,status)))))
+  (setq new-statuses non-matching-statuses))
+
+(add-hook 'twittering-new-tweets-hook 'twittering-filters-apply)
+
 ;;;; Suspend
 
 (defun twittering-suspend ()

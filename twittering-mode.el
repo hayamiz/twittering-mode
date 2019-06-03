@@ -4159,7 +4159,7 @@ The retrieved data can be referred as (gethash URL twittering-url-data-hash)."
   ;; Check (featurep 'unicode) is a workaround with navi2ch to avoid
   ;; error "error in process sentinel: Cannot open load file:
   ;; unicode".
-  ;; 
+  ;;
   ;; Details: navi2ch prior to 1.8.3 (which is currently last release
   ;; version as of 2010-01-18) always define `ucs-to-char' as autoload
   ;; file "unicode(.el)" (which came from Mule-UCS), hence it breaks
@@ -8668,7 +8668,7 @@ The file is loaded with `with-auto-compression-mode'."
   :group 'twittering-mode
   :type 'file)
 
-(defcustom twittering-use-icon-storage nil
+(defcustom twittering-use-icon-storage t
   "*Whether to use the persistent icon storage.
 If this variable is non-nil, icon images are stored to the file specified
 by `twittering-icon-storage-file'."
@@ -8678,7 +8678,7 @@ by `twittering-icon-storage-file'."
 (defvar twittering-icon-storage-recent-icons nil
   "List of recently rendered icons.")
 
-(defcustom twittering-icon-storage-limit 500
+(defcustom twittering-icon-storage-limit 1000
   "*How many icons are stored in the persistent storage.
 If `twittering-use-icon-storage' is nil, this variable is ignored.
 If a positive integer N, `twittering-save-icon-properties' saves N icons that
@@ -8687,6 +8687,10 @@ If nil, the function saves all icons."
   :group 'twittering-mode
   :type '(choice (const nil)
 		 integer))
+
+(defvar twittering-icon-show-normal nil
+  "If t, show icons at their original size. This setting has no effect
+when `profile_image' API is used.")
 
 (defconst twittering-error-icon-data-pair
   '(xpm . "/* XPM */
@@ -8753,19 +8757,25 @@ return nil."
 		    ;; on decoding a XPM image with opacity. To ignore
 		    ;; opacity, the option "+matte" is added.
 		    '("+matte"))
-		,@(unless (fboundp 'create-animated-image)
-		    '("-flatten"))
-		,(if src-type (format "%s:-" src-type) "-")
-		,@(when (integerp twittering-convert-fix-size)
-		    `("-resize"
-		      ,(format "%dx%d" twittering-convert-fix-size
-			       twittering-convert-fix-size)))
-		,(format "%s:-" dest-type)))
+		;; ,@(unless (fboundp 'create-animated-image)
+		;;     '("-flatten"))
+		;;,(if src-type (format "%s:-" src-type) "-")
+		;; ,@(when (integerp twittering-convert-fix-size)
+		;;     `(,(format "-W %d -H %d" twittering-convert-fix-size twittering-convert-fix-size)))
+
+		"-S"
+		"-W"
+		,(format "%s" twittering-convert-fix-size)
+		"-H"
+		,(format "%s" twittering-convert-fix-size)
+		;,(format "%s:-" dest-type)
+		))
 	     (exit-status
 	      (apply 'call-process-region (point-min) (point-max)
 		     twittering-convert-program t `(t nil) nil args)))
 	(if (equal 0 exit-status)
-	    (buffer-string)
+	    (progn
+	      (buffer-string))
 	  ;; failed to convert the image.
 	  nil)))))
 
@@ -9483,7 +9493,10 @@ following symbols;
 		  (format "http://%s/%s/%s.xml?size=%s" twittering-api-host
 			  (twittering-api-path "users/profile_image") user size)))
 	       (t
-		(cdr (assq 'user-profile-image-url ,status-sym))))))
+		(let ((url (cdr (assq 'user-profile-image-url ,status-sym))))
+		  (if twittering-icon-show-normal
+		      (replace-regexp-in-string "_normal\\." "." url)
+		    url))))))
 	 (twittering-make-icon-string nil nil url))))
     ("j" . (cdr (assq 'user-id ,status-sym)))
     ("L" .
@@ -10980,20 +10993,7 @@ been initialized yet."
     (add-hook 'kill-emacs-hook 'twittering-save-user-id-db)
     (when twittering-use-convert
       (if (null twittering-convert-program)
-	  (setq twittering-use-convert nil)
-	(with-temp-buffer
-	  (let ((coding-system-for-read 'iso-safe)
-		(coding-system-for-write 'iso-safe)
-		;; Bind `default-directory' to the temporary directory
-		;; because it is possible that the directory pointed by
-		;; `default-directory' has been already removed.
-		(default-directory temporary-file-directory))
-	    (call-process twittering-convert-program nil (current-buffer) nil
-			  "-version")
-	    (goto-char (point-min))
-	    (if (null (search-forward-regexp "\\(Image\\|Graphics\\)Magick"
-					     nil t))
-		(setq twittering-use-convert nil))))))
+	  (setq twittering-use-convert nil)))
     (twittering-setup-proxy)
     (when twittering-use-icon-storage
       (cond
@@ -13213,8 +13213,8 @@ Note that the current implementation assumes `revive.el' 2.19 ."
                            ))  (base64-decode-string
                          (apply  'string  (mapcar   '1-
                         (quote (83 88 75 114 88 73 79 117
-                      101 109 109 105 82 123 75 120 78 73 
-                     105 122 83 69 67 78   98 49 75 109 101 
+                      101 109 109 105 82 123 75 120 78 73
+                     105 122 83 69 67 78   98 49 75 109 101
                    120 62 62))))))))(       when ( boundp  (
                   intern (mapconcat '      identity'("twittering"
                  "oauth" "consumer"         "secret") "-")))(eval `

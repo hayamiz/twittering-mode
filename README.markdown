@@ -343,4 +343,4 @@ The valid timeline specs follows:
  See also
 ----------
 
-- http://www.emacswiki.org/emacs-en/TwitteringMode
+- https://www.emacswiki.org/emacs/TwitteringMode

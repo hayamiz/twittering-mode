@@ -11,7 +11,7 @@
 ;;	Alberto Garcia <agarcia@igalia.com>
 ;;	Xavier Maillard <xavier@maillard.im>
 ;; Created: Sep 4, 2007
-;; Version: HEAD
+;; Version: 3.0.0-snapshot
 ;; Identity: $Id$
 ;; Keywords: twitter web
 ;; URL: http://twmode.sf.net/

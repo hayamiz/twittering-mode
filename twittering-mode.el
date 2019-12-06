@@ -1062,9 +1062,9 @@ as a list of a string on Emacs21."
 	   (maxelt (or maxelt history-length))
 	   (len (length added)))
       (set history-var
-	    (if (<= len maxelt)
-		added
-	      (butlast added (- len maxelt)))))))
+	   (if (<= len maxelt)
+	       added
+	     (butlast added (- len maxelt)))))))
 
 (if (fboundp 'assoc-string)
     (defalias 'twittering-assoc-string 'assoc-string)
@@ -1476,15 +1476,15 @@ as the connection method."
 
 (defconst twittering-ca-cert-list
   '(
-;; #BEGIN-CERTIFICATE
-;; Verisign Class 3 Public Primary Certification Authority - G3
-;; issuer= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 1999 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 3 Public Primary Certification Authority - G3
-;; subject= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 1999 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 3 Public Primary Certification Authority - G3
-;; serial=9B7E0649A33E62B9D5EE90487129EF57
-;; SHA1 Fingerprint=13:2D:0D:45:53:4B:69:97:CD:B2:D5:C3:39:E2:55:76:60:9B:5C:C6
-;; notBefore=Oct  1 00:00:00 1999 GMT
-;; notAfter=Jul 16 23:59:59 2036 GMT
-"-----BEGIN CERTIFICATE-----
+    ;; #BEGIN-CERTIFICATE
+    ;; Verisign Class 3 Public Primary Certification Authority - G3
+    ;; issuer= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 1999 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 3 Public Primary Certification Authority - G3
+    ;; subject= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 1999 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 3 Public Primary Certification Authority - G3
+    ;; serial=9B7E0649A33E62B9D5EE90487129EF57
+    ;; SHA1 Fingerprint=13:2D:0D:45:53:4B:69:97:CD:B2:D5:C3:39:E2:55:76:60:9B:5C:C6
+    ;; notBefore=Oct  1 00:00:00 1999 GMT
+    ;; notAfter=Jul 16 23:59:59 2036 GMT
+    "-----BEGIN CERTIFICATE-----
 MIIEGjCCAwICEQCbfgZJoz5iudXukEhxKe9XMA0GCSqGSIb3DQEBBQUAMIHKMQsw
 CQYDVQQGEwJVUzEXMBUGA1UEChMOVmVyaVNpZ24sIEluYy4xHzAdBgNVBAsTFlZl
 cmlTaWduIFRydXN0IE5ldHdvcmsxOjA4BgNVBAsTMShjKSAxOTk5IFZlcmlTaWdu
@@ -1509,14 +1509,14 @@ F4ErWjfJXir0xuKhXFSbplQAz/DxwceYMBo7Nhbbo27q/a2ywtrvAkcTisDxszGt
 TxzhT5yvDwyd93gN2PQ1VoDat20Xj50egWTh/sVFuq1ruQp6Tk9LhO5L8X3dEQ==
 -----END CERTIFICATE-----
 "
-;; GeoTrust Global CA
-;; issuer= /C=US/O=GeoTrust Inc./CN=GeoTrust Global CA
-;; subject= /C=US/O=GeoTrust Inc./CN=GeoTrust Global CA
-;; serial=023456
-;; SHA1 Fingerprint=DE:28:F4:A4:FF:E5:B9:2F:A3:C5:03:D1:A3:49:A7:F9:96:2A:82:12
-;; notBefore=May 21 04:00:00 2002 GMT
-;; notAfter=May 21 04:00:00 2022 GMT
-"-----BEGIN CERTIFICATE-----
+    ;; GeoTrust Global CA
+    ;; issuer= /C=US/O=GeoTrust Inc./CN=GeoTrust Global CA
+    ;; subject= /C=US/O=GeoTrust Inc./CN=GeoTrust Global CA
+    ;; serial=023456
+    ;; SHA1 Fingerprint=DE:28:F4:A4:FF:E5:B9:2F:A3:C5:03:D1:A3:49:A7:F9:96:2A:82:12
+    ;; notBefore=May 21 04:00:00 2002 GMT
+    ;; notAfter=May 21 04:00:00 2022 GMT
+    "-----BEGIN CERTIFICATE-----
 MIIDVDCCAjygAwIBAgIDAjRWMA0GCSqGSIb3DQEBBQUAMEIxCzAJBgNVBAYTAlVT
 MRYwFAYDVQQKEw1HZW9UcnVzdCBJbmMuMRswGQYDVQQDExJHZW9UcnVzdCBHbG9i
 YWwgQ0EwHhcNMDIwNTIxMDQwMDAwWhcNMjIwNTIxMDQwMDAwWjBCMQswCQYDVQQG
@@ -1537,14 +1537,14 @@ hw4EbNX/3aBd7YdStysVAq45pmp06drE57xNNB6pXE0zX5IJL4hmXXeXxx12E6nV
 5fEWCRE11azbJHFwLJhWC9kXtNHjUStedejV0NxPNO3CBWaAocvmMw==
 -----END CERTIFICATE-----
 "
-;; DigiCert High Assurance EV Root CA
-;; issuer= /C=US/O=DigiCert Inc/OU=www.digicert.com/CN=DigiCert High Assurance EV Root CA
-;; subject= /C=US/O=DigiCert Inc/OU=www.digicert.com/CN=DigiCert High Assurance EV Root CA
-;; serial=02AC5C266A0B409B8F0B79F2AE462577
-;; SHA1 Fingerprint=5F:B7:EE:06:33:E2:59:DB:AD:0C:4C:9A:E6:D3:8F:1A:61:C7:DC:25
-;; notBefore=Nov 10 00:00:00 2006 GMT
-;; notAfter=Nov 10 00:00:00 2031 GMT
-"-----BEGIN CERTIFICATE-----
+    ;; DigiCert High Assurance EV Root CA
+    ;; issuer= /C=US/O=DigiCert Inc/OU=www.digicert.com/CN=DigiCert High Assurance EV Root CA
+    ;; subject= /C=US/O=DigiCert Inc/OU=www.digicert.com/CN=DigiCert High Assurance EV Root CA
+    ;; serial=02AC5C266A0B409B8F0B79F2AE462577
+    ;; SHA1 Fingerprint=5F:B7:EE:06:33:E2:59:DB:AD:0C:4C:9A:E6:D3:8F:1A:61:C7:DC:25
+    ;; notBefore=Nov 10 00:00:00 2006 GMT
+    ;; notAfter=Nov 10 00:00:00 2031 GMT
+    "-----BEGIN CERTIFICATE-----
 MIIDxTCCAq2gAwIBAgIQAqxcJmoLQJuPC3nyrkYldzANBgkqhkiG9w0BAQUFADBs
 MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
 d3cuZGlnaWNlcnQuY29tMSswKQYDVQQDEyJEaWdpQ2VydCBIaWdoIEFzc3VyYW5j
@@ -1568,14 +1568,14 @@ vEsXCS+0yx5DaMkHJ8HSXPfqIbloEpw8nL+e/IBcm2PN7EeqJSdnoDfzAIJ9VNep
 +OkuE6N36B9K
 -----END CERTIFICATE-----
 "
-;; VeriSign Class 3 Public Primary Certification Authority - G5
-;; issuer= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 2006 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 3 Public Primary Certification Authority - G5
-;; subject= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 2006 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 3 Public Primary Certification Authority - G5
-;; serial=18DAD19E267DE8BB4A2158CDCC6B3B4A
-;; SHA1 Fingerprint=4E:B6:D5:78:49:9B:1C:CF:5F:58:1E:AD:56:BE:3D:9B:67:44:A5:E5
-;; notBefore=Nov  8 00:00:00 2006 GMT
-;; notAfter=Jul 16 23:59:59 2036 GMT
-"-----BEGIN CERTIFICATE-----
+    ;; VeriSign Class 3 Public Primary Certification Authority - G5
+    ;; issuer= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 2006 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 3 Public Primary Certification Authority - G5
+    ;; subject= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 2006 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 3 Public Primary Certification Authority - G5
+    ;; serial=18DAD19E267DE8BB4A2158CDCC6B3B4A
+    ;; SHA1 Fingerprint=4E:B6:D5:78:49:9B:1C:CF:5F:58:1E:AD:56:BE:3D:9B:67:44:A5:E5
+    ;; notBefore=Nov  8 00:00:00 2006 GMT
+    ;; notAfter=Jul 16 23:59:59 2036 GMT
+    "-----BEGIN CERTIFICATE-----
 MIIE0zCCA7ugAwIBAgIQGNrRniZ96LtKIVjNzGs7SjANBgkqhkiG9w0BAQUFADCB
 yjELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDlZlcmlTaWduLCBJbmMuMR8wHQYDVQQL
 ExZWZXJpU2lnbiBUcnVzdCBOZXR3b3JrMTowOAYDVQQLEzEoYykgMjAwNiBWZXJp
@@ -1604,14 +1604,14 @@ WE9gyn6CagsCqiUXObXbf+eEZSqVir2G3l6BFoMtEMze/aiCKm0oHw0LxOXnGiYZ
 hnacRHr2lVz2XTIIM6RUthg/aFzyQkqFOFSDX9HoLPKsEdao7WNq
 -----END CERTIFICATE-----
 "
-;; VeriSign Universal Root Certification Authority
-;; issuer= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 2008 VeriSign, Inc. - For authorized use only/CN=VeriSign Universal Root Certification Authority
-;; subject= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 2008 VeriSign, Inc. - For authorized use only/CN=VeriSign Universal Root Certification Authority
-;; serial=401AC46421B31321030EBBE4121AC51D
-;; SHA1 Fingerprint=36:79:CA:35:66:87:72:30:4D:30:A5:FB:87:3B:0F:A7:7B:B7:0D:54
-;; notBefore=Apr  2 00:00:00 2008 GMT
-;; notAfter=Dec  1 23:59:59 2037 GMT
-"-----BEGIN CERTIFICATE-----
+    ;; VeriSign Universal Root Certification Authority
+    ;; issuer= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 2008 VeriSign, Inc. - For authorized use only/CN=VeriSign Universal Root Certification Authority
+    ;; subject= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 2008 VeriSign, Inc. - For authorized use only/CN=VeriSign Universal Root Certification Authority
+    ;; serial=401AC46421B31321030EBBE4121AC51D
+    ;; SHA1 Fingerprint=36:79:CA:35:66:87:72:30:4D:30:A5:FB:87:3B:0F:A7:7B:B7:0D:54
+    ;; notBefore=Apr  2 00:00:00 2008 GMT
+    ;; notAfter=Dec  1 23:59:59 2037 GMT
+    "-----BEGIN CERTIFICATE-----
 MIIEuTCCA6GgAwIBAgIQQBrEZCGzEyEDDrvkEhrFHTANBgkqhkiG9w0BAQsFADCB
 vTELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDlZlcmlTaWduLCBJbmMuMR8wHQYDVQQL
 ExZWZXJpU2lnbiBUcnVzdCBOZXR3b3JrMTowOAYDVQQLEzEoYykgMjAwOCBWZXJp
@@ -1640,14 +1640,14 @@ lRQOfc2VNNnSj3BzgXucfr2YYdhFh5iQxeuGMMY1v/D/w1WIg0vvBZIGcfK4mJO3
 7M2CYfE45k+XmCpajQ==
 -----END CERTIFICATE-----
 "
-;; VeriSign Class 3 Public Primary Certification Authority - G4
-;; issuer= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 2007 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 3 Public Primary Certification Authority - G4
-;; subject= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 2007 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 3 Public Primary Certification Authority - G4
-;; serial=2F80FE238C0E220F486712289187ACB3
-;; SHA1 Fingerprint=22:D5:D8:DF:8F:02:31:D1:8D:F7:9D:B7:CF:8A:2D:64:C9:3F:6C:3A
-;; notBefore=Nov  5 00:00:00 2007 GMT
-;; notAfter=Jan 18 23:59:59 2038 GMT
-"-----BEGIN CERTIFICATE-----
+    ;; VeriSign Class 3 Public Primary Certification Authority - G4
+    ;; issuer= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 2007 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 3 Public Primary Certification Authority - G4
+    ;; subject= /C=US/O=VeriSign, Inc./OU=VeriSign Trust Network/OU=(c) 2007 VeriSign, Inc. - For authorized use only/CN=VeriSign Class 3 Public Primary Certification Authority - G4
+    ;; serial=2F80FE238C0E220F486712289187ACB3
+    ;; SHA1 Fingerprint=22:D5:D8:DF:8F:02:31:D1:8D:F7:9D:B7:CF:8A:2D:64:C9:3F:6C:3A
+    ;; notBefore=Nov  5 00:00:00 2007 GMT
+    ;; notAfter=Jan 18 23:59:59 2038 GMT
+    "-----BEGIN CERTIFICATE-----
 MIIDhDCCAwqgAwIBAgIQL4D+I4wOIg9IZxIokYesszAKBggqhkjOPQQDAzCByjEL
 MAkGA1UEBhMCVVMxFzAVBgNVBAoTDlZlcmlTaWduLCBJbmMuMR8wHQYDVQQLExZW
 ZXJpU2lnbiBUcnVzdCBOZXR3b3JrMTowOAYDVQQLEzEoYykgMjAwNyBWZXJpU2ln
@@ -1669,8 +1669,8 @@ kf3upm7ktS5Jj4d4gYDs5bG1MAoGCCqGSM49BAMDA2gAMGUCMGYhDBgmYFo4e1ZC
 FRJZap7v1VmyHVIsmXHNxynfGyphe3HR3vPA5Q06Sqotp9iGKt0uEA==
 -----END CERTIFICATE-----
 "
-;; #END-CERTIFICATE
-))
+    ;; #END-CERTIFICATE
+    ))
 
 (defun twittering-delete-ca-cert ()
   (when (and twittering-cert-file
@@ -5467,7 +5467,7 @@ The file is specified by `twittering-user-id-db-file'."
 					 (symbol-name raw-source-sym))))
 			       (dest-sym (cdr pair)))
 			  `(,dest-sym . ,(cdr (assq source-sym status)))))
-		     symbols)))
+		      symbols)))
 	(twittering-register-user-id id-of-retweet info-of-retweet)))))
 
 (defun twittering-save-user-id-db (&optional filename)
@@ -7494,12 +7494,12 @@ If the authorization failed, return nil."
 	  (twittering-id-to-time id)
 	  (apply 'encode-time
 		 (parse-time-string "Jan 01 00:00:00 +0000 2012")))))
-  `((forbidden . t)
-    (id . ,id)
-    (created-at . ,created-at)
-    (user-name . nil)
-    (user-screen-name . ,user-screen-name)
-    (text . "SORRY, YOU ARE NOT AUTHORIZED TO SEE THIS TWEET."))))
+    `((forbidden . t)
+      (id . ,id)
+      (created-at . ,created-at)
+      (user-name . nil)
+      (user-screen-name . ,user-screen-name)
+      (text . "SORRY, YOU ARE NOT AUTHORIZED TO SEE THIS TWEET."))))
 
 (defun twittering-make-alist-of-non-existent-tweet (id &optional user-screen-name)
   (let ((created-at
@@ -7507,12 +7507,12 @@ If the authorization failed, return nil."
 	  (twittering-id-to-time id)
 	  (apply 'encode-time
 		 (parse-time-string "Jan 01 00:00:00 +0000 2012")))))
-  `((forbidden . t)
-    (id . ,id)
-    (created-at . ,created-at)
-    (user-name . nil)
-    (user-screen-name . ,user-screen-name)
-    (text . ,(format "THE TWEET WITH ID %s DOES NOT EXIST." id)))))
+    `((forbidden . t)
+      (id . ,id)
+      (created-at . ,created-at)
+      (user-name . nil)
+      (user-screen-name . ,user-screen-name)
+      (text . ,(format "THE TWEET WITH ID %s DOES NOT EXIST." id)))))
 
 (defun twittering-atom-xmltree-to-status-datum (atom-xml-entry)
   (let* ((id-str (car (cddr (assq 'id atom-xml-entry))))
@@ -8024,18 +8024,18 @@ to JSON objects from ordinary timeline and search timeline."
 			       . ,(cdr (assq 'expanded_url entry))))))
 			urls))
        (media . ,(mapcar (lambda (entry)
-			  (let* ((indices (cdr (assq 'indices entry)))
-				 (start (elt indices 0))
-				 (end (elt indices 1))
-				 (gap (twittering-get-gap start gap-list)))
-			    `((start . ,(- start gap))
-			      (end . ,(- end gap))
-			      (url . ,(cdr (assq 'url entry)))
-			      (raw-entry . ,entry)
-			      ,@(funcall func entry
-					 '((media-url . media_url)
-					   (display-url . display_url)
-					   (expanded-url . expanded_url))))))
+			   (let* ((indices (cdr (assq 'indices entry)))
+				  (start (elt indices 0))
+				  (end (elt indices 1))
+				  (gap (twittering-get-gap start gap-list)))
+			     `((start . ,(- start gap))
+			       (end . ,(- end gap))
+			       (url . ,(cdr (assq 'url entry)))
+			       (raw-entry . ,entry)
+			       ,@(funcall func entry
+					  '((media-url . media_url)
+					    (display-url . display_url)
+					    (expanded-url . expanded_url))))))
 			 media)))
       (retweet-count . ,(cdr (assq 'retweet_count json-object)))
       (favorite-count . ,(cdr (assq 'favorite_count json-object))))))
@@ -8169,28 +8169,28 @@ To convert a JSON object from other timelines, use
 	       (profile_image_url . user-profile-image-url)
 	       (from_user_name . user-name)
 	       (from_user . user-screen-name))))
-	  (remove nil
-		  (mapcar
-		   (lambda (entry)
-		     (let* ((sym (car entry))
-			    (value (cdr entry))
-			    (dest (cdr (assq sym symbol-table))))
-		       (when (and dest value)
-			 `(,dest . ,value))))
-		   json-object)))
+	(remove nil
+		(mapcar
+		 (lambda (entry)
+		   (let* ((sym (car entry))
+			  (value (cdr entry))
+			  (dest (cdr (assq sym symbol-table))))
+		     (when (and dest value)
+		       `(,dest . ,value))))
+		 json-object)))
     ;; source
     ,@(let ((source
-	       (twittering-decode-html-entities
-		(cdr (assq 'source json-object)))))
-	  (if (and source
-		   (string-match "<a href=\"\\(.*?\\)\".*?>\\(.*\\)</a>"
-				 source))
-	      (let ((uri (match-string-no-properties 1 source))
-		    (caption (match-string-no-properties 2 source)))
-		`((source . ,caption)
-		  (source-uri . ,uri)))
-	    `((source . ,source)
-	      (source-uri . ""))))))
+	     (twittering-decode-html-entities
+	      (cdr (assq 'source json-object)))))
+	(if (and source
+		 (string-match "<a href=\"\\(.*?\\)\".*?>\\(.*\\)</a>"
+			       source))
+	    (let ((uri (match-string-no-properties 1 source))
+		  (caption (match-string-no-properties 2 source)))
+	      `((source . ,caption)
+		(source-uri . ,uri)))
+	  `((source . ,source)
+	    (source-uri . ""))))))
 
 (defun twittering-json-object-to-statuses-on-direct-message-events (json-object)
   "Convert JSON-OBJECT representing DM events into an alist representation.
@@ -8259,14 +8259,14 @@ To convert a JSON object from other timelines, use
 	     '((id_str . id)
 	       (recipient_screen_name . recipient-screen-name))))
 	(remove nil
-		  (mapcar
-		   (lambda (entry)
-		     (let* ((sym (car entry))
-			    (value (cdr entry))
-			    (dest (cdr (assq sym symbol-table))))
-		       (when (and dest value)
-			 `(,dest . ,value))))
-		   json-object)))
+		(mapcar
+		 (lambda (entry)
+		   (let* ((sym (car entry))
+			  (value (cdr entry))
+			  (dest (cdr (assq sym symbol-table))))
+		     (when (and dest value)
+		       `(,dest . ,value))))
+		 json-object)))
     ;; sender
     ,@(let ((symbol-table
 	     '((id_str . user-id)

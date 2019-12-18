@@ -33,7 +33,7 @@ Twittering-mode enables you to twit on Emacsen.
 -------------------
 
 - GNU Emacs 21 (some restrictions)
-- GNU Emacs 22, 23, 24
+- GNU Emacs 22, 23, 24, 25, 26
 
  Prerequisites
 -------------------
